@@ -19,7 +19,7 @@
 	},
     "require": {
         "php": ">=5.3.0",
-        "ext-pdo" => "*",
+        "ext-pdo": "*",
         "icanboogie/common": "1.0.*",
         "icanboogie/prototype": "1.0.*"
     },
