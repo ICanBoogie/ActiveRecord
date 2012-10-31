@@ -1,0 +1,1557 @@
+Active Record [![Build Status](https://secure.travis-ci.org/ICanBoogie/ActiveRecord.png?branch=master)](http://travis-ci.org/ICanBoogie/ActiveRecord)
+=============
+
+As described by Martin Flower, an active record "carries both data and behavior. Much of this
+data is persistent and needs to be stored in a database. Active Record uses the most obvious
+approach, putting data access logic in the domain object. This way all people know how
+to read and write their data to and from the database."
+
+__Connections__, __models__ and __active records__ are the foundations of everything that concerns
+database access and management. They are used to establish database connections, manage tables and
+their possible relationship, as well as manage the records of these tables. Leveraging OOP, the
+models and active records are instances which properties, getters/setters and behavior can be
+inherited in a business logic.
+
+Using the __query interface__, you won't have to write raw SQL, manage table relationship,
+or worry about injection.
+
+Finaly, using __providers__ you can define all your connections and models in a single place.
+Connections are established and models are instanciated on demand, so feel free the define
+hundreds of them.  
+
+
+
+
+### Acknowledgements
+
+The implementation of the query interface is vastly inspired by
+[Ruby On Rails's Active Record Query Interface](http://guides.rubyonrails.org/active_record_querying.html).
+
+
+
+
+### Requirement
+
+PHP 5.3+ is required.  
+[icanboogie/prototype](https://packagist.org/packages/icanboogie/prototype) is required.
+
+
+
+
+## Installation
+
+The easiest way to install the package is to use [composer](http://getcomposer.org/).
+Just create a `composer.json` file and run the `php composer.phar install` command:
+
+```json
+{
+	"minium-stability": "dev",
+	"require":
+	{
+		"icanboogie/activerecord": "1.0.*"
+	}
+}
+```
+
+
+
+
+## Establishing a connection to a database
+
+A connection to a database is created with a `Connection` instance.
+
+The following code establishes a connection to a MySQL database:
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord\Connection;
+
+$connection = new Connection('mysql:dbname=example', 'username', 'password');
+```
+
+The `Connection` class extends `PDO`. It takes the same parameters, and custom options can
+be provided with the driver options to specify a prefix to table names, specify the charset and
+collate of the connection or its timezone.
+
+
+
+
+
+### Prefixing database tables
+
+The `#table_name_prefix` option specifies the prefix for all the tables name of the connection. 
+Thus, if the `icybee` prefix is defined the `nodes` table is renamed as `icybee_nodes`.
+
+The `{table_name_prefix}` placeholder is replaced in queries by the prefix:
+
+```php
+<?php
+
+$stmt = $connection('SELECT * FROM `{table_name_prefix}nodes` LIMIT 10');
+```
+
+
+
+
+### Charset and collate of strings
+
+The `#charset` and `#collate` options specify the charset and the collate of the connection.
+
+The `{charset}` and `{collate}` placeholders are replaced in queries:
+
+```php
+<?php
+
+$connection('ALTER TABLE nodes CHARACTER SET "{charset}" COLLATE "{collate}"');
+```
+
+
+
+### Specifying a time zone
+
+The `#timezone` option specifies the time zone of the connection.
+
+
+
+
+## Models overview
+
+A _model_ is an object-oriented representation of a database table, or a group of tables.
+A model is used to create, update, delete and query records. Models are instances of the `Model`
+class, and usually implement a specific business logic.
+
+```php
+<?php
+
+namespace Website\Nodes;
+
+class Model extends \ICanBoogie\ActiveRecord\Model
+{
+	// …
+}
+
+$model = new Nodes
+(
+	array
+	(
+		Model::T_CONNECTION => $connection,
+		Model::T_ACTIVERECORD_CLASS => __NAMESPACE__ . '\Node',
+		Model::T_NAME => 'node',
+		Model::T_SCHEMA => array
+		(
+			'fields' => array
+			(
+				'id' => 'serial',
+				'title' => array('varchar', 80),
+				'number' => array('integer', 'unsigned' => true)
+			)
+		)
+	)
+);
+```
+
+
+
+### Database connection
+
+The `T_CONNECTION` key specifies the database connection, an instance of the `Connection`
+class.
+
+
+
+
+### Active Record class
+
+The `T_ACTIVERECORD_CLASS` key specifies the class used to instantiate the active records of the
+model.
+
+
+
+
+### Name of the table
+
+The `T_NAME` key specifies the name of the table. If a table prefix is defined by the connection,
+it is used to prefix the table name. The `name` and `unprefixed_name` properties returns the
+prefixed name and original name of the table:
+
+```php
+<?php
+
+echo "table name: {$model->name}, original: {$model->unprefixed_name}.";
+```
+
+The `{self}` placeholder is replaced in queries by the `name` property:
+
+```php
+<?php
+
+$stmt = $model('SELECT * FROM `{self}` LIMIT 10');
+```
+
+
+
+### Schema
+
+The columns and properties of the table are defined with a schema, which is specified by the
+`T_SCHMEA` attribute.
+
+The `fields` key specifies the columns of the table. A key defines the name of the column, and a
+value defines the properties of the column. Most column types use the following basic definition
+pattern:
+
+```
+'<identifier>' => '<type_and_default_options>'
+# or
+'<identifier>' => array('<type>', <size>);
+```
+
+The following types are available: `blob`, `char`, `integer`, `text`, `varchar`,
+`bit`, `boolean`, `date`, `datetime`, `time`, `timestamp`, `year`, `enum`, `double` et `float`. The 
+`serial` and `foreign` special types are used to defined auto incrementing primary keys and foreign
+keys:
+
+```php
+<?php
+
+array
+(
+	'nid' => 'serial', // bigint(20) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (`nid`) 
+	'uid' => 'foreign' // bigint(20) unsigned NOT NULL, KEY `uid` (`uid`)
+);
+```
+
+The size of the field can be defined as an integer for the `blob`, `char`, `integer`, `varchar` and
+`bit` types:
+
+```php
+<?php
+
+array
+(
+	'title' => 'varchar', // varchar(255) NOT NULL
+ 	'slug' => array('varchar', 80), // varchar(80) NOT NULL
+ 	'weight' => 'integer', // int(11) NOT NULL
+ 	'small_count' => array('integer', 8) // int(8) NOT NULL,
+ 	'price' => array('float', array(10,3)) // float(10,3) NOT NULL
+);
+```
+
+The size of the field can be defined using the qualifiers `tiny`, `small`, `medium`,
+`big` or `long` for the `blob`, `char`, `integer`, `text` and `varchar` types:
+
+```php
+<?php
+
+array
+(
+	'body' => array('text', 'long') // longtext NOT NULL
+);
+```
+
+The qualifier `null` specifies that a field can be null, by default fields are not capable
+of receiving the `null`:
+
+```
+array('varchar', 'null' => true) // varchar(255)
+array('integer', 'null' => true) // int(11)
+array('integer') // int(11) NOT NULL
+```
+
+The qualifier `unsigned` specifies that a numeric value is not signed:
+
+```
+array('integer') // int(11)
+array('integer', 'unsigned' => true) // int(10) unsigned
+```
+
+The qualifier `indexed` specifies that a field should be indexed:
+
+```php
+array
+(
+	'slug' => array('varchar', 'indexed' => true), // varchar(255) NOT NULL, KEY `slug` (`slug`)
+	'is_online' => array('boolean', 'indexed' => true) // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
+
+	'pageid' => array('foreign', 'indexed' => 'page-content'), // bigint(20) unsigned NOT NULL
+	'contentid' => array('foreign', 'indexed' => 'page-content'), // bigint(20) unsigned NOT NULL, KEY `page-content` (`pageid`, `contentid`)
+);
+```
+
+The qualifier `primary` specifies that a column is a primary key. A multi-column primary key is
+created if multiple columns have the `primary` qualifier:
+
+```php
+array
+(
+	'vtid' => array('foreign', 'primary' => true),
+	'nid' => array('foreign', 'primary' => true),
+	'weight' => array('integer', 'unsigned' => true)
+);
+
+// ADD PRIMARY KEY ( `vtid` , `nid` )
+```
+
+
+
+
+### Creating the table associated with a model
+
+Once the model has been defined, its associated table can easily be created with the `install()`
+method.
+
+```php
+<?php
+
+$model->install();
+```
+
+The `is_installed()` method checks if a model has already been installed.
+
+Note: The method only checks if the corresponding table exists, not if its schema is correct.
+
+```php
+<?php
+
+if ($model->is_installed())
+{
+	echo "The model is already installed.";
+}
+```
+
+
+
+### Placeholders
+
+The following placeholders are replaced in model queries:
+
+* `{alias}`: The alias of the table.
+* `{prefix}`: The prefix of the table names of the connection.
+* `{primary}`: The primary key of the table.
+* `{self}`: The name of the table.
+* `{self_and_related}`: The escaped name of the table and the possible JOIN clauses.
+
+
+
+
+## Active Records
+
+An active record is an object-oriented representation of a record in a database. Usually, the
+table columns are its public properties and it is not unusual that getters/setters and business
+logic methods are implemented by an active record class.
+
+```php
+<?php
+
+namespace Website;
+
+class Node extends \ICanBoogie\ActiveRecord
+{
+	...
+	
+	protected function get_next()
+	{
+		return $this->_model->own->visible->where('date > ?', $this->date)->order('date')->one;
+	}
+
+	protected function get_previous()
+	{
+		return $this->_model->own->visible->where('date < ?', $this->date)->order('date DESC')->one;
+	}
+	
+	...
+}
+```
+
+The active record holds both the data and the business logic. Most of its properties are
+persistent and are saved in the database. The `save()` method saves the active record.
+
+```php
+<?php
+
+$record = $model[10];
+$record->is_online = false;
+$record->save();
+```
+
+The `delete()` method deletes the active record from the database:
+
+```php
+<?php
+
+$record = $model[190];
+$record->delete();
+```
+
+
+
+## Query Interface
+
+The query interface provides different ways to retrieve data from the database. Using the query
+interface you can find records using a variety of methods and conditions; specify the order,
+fields, grouping, limit, or the tables to join; use dynamic or scoped filters; check the existence
+or particular records; perform various calculations.
+
+Queries often starts from a model, in the following examples the `$model` variable is a reference
+to a model managing _nodes_.
+
+
+
+
+### Retrieving records from the database
+
+To retrieve objects and values from the database several finder methods are provided. Each of these
+methods defines the fragments of the database query. Complex queries can be created without having
+to write any raw SQL.
+
+The methods are:
+
+* where
+* select
+* group
+* having
+* order
+* limit
+* offset
+* joins
+
+All of the above methods return a `ICanBoogie\ActiveRecord\Query` instance, allowing you to chain
+them.
+
+Records can be retrieved in various ways, especially using the `all`, `one`, `pairs` or `rc`
+magic properties. The `find()` method—used to retrieve a single record or a set of records—is the
+most simple of them.
+
+
+
+
+#### Retrieving a single record
+
+Retrieve a single record using its primary key is really simple. You can either use the `find()`
+of the model, or use the model as an array. 
+
+```php
+<?php
+
+$article = $model->find(10);
+
+# or
+
+$article = $model[10];
+```
+
+
+
+#### Retrieving a set of records
+
+Retrieve a set or records using their primary key is really simple too:
+
+```php
+<?php
+
+$articles = $model->find(array(10, 32, 89));
+
+# or
+
+$articles = $model->find(10, 32, 89);
+```
+
+The `RecordNotFound` exception is thrown when a record could not be found. Its `records` property
+can be used to know which records could be found and which could not.
+
+Note: The records of the records set are returned in the same order they are requested, this
+also applies to the `records` property of the `RecordNotFound` exception.
+
+
+
+#### Records caching
+
+Retrieve records using `find()` enables record caching. Retrieved objects are reused by
+subsequent calls. This also applies to the array notation.
+
+```
+<?php
+
+$article = $model[12]; // '12' retrieved from database
+$articles = $model->find(11, 12, 13); '11' and '13' retrieved from database, '12' is reused.
+```
+
+
+
+
+### Conditions
+
+The `where()` method specifies the conditions used to filter the records. It represents
+the `WHERE`-part of the SQL statement. Conditions can either be specified as a string, as a
+list of arguments or as an array.
+
+
+
+
+#### Conditions specified as a string
+
+Adding a condition to a query can be as simple as `$model->where('is_online = 1');`. This
+would return all the records where the `is_online` field equals "1".
+
+__Warning:__ Building you own conditions as string can leave you vulnerable to SQL injection
+exploits. For instance, `$model->where('is_online = ' . $_GET['online']);` is not safe. Always
+use placeholders when you can't trust the source of your inputs:
+
+```php
+<?php
+
+$model->where('is_online = ?', $_GET['online']);
+```
+
+Of course you can use multiple conditions:
+
+```php
+<?php
+
+$model->where('is_online = ? AND is_home_excluded = ?', $_GET['online'], false);
+```
+
+
+
+#### Conditions specified as an array (or list of arguments)
+
+Conditions can also be specified as arrays:
+
+```php
+<?php
+
+$model->where(array('is_online' => $_GET['online'], 'is_home_excluded' => false));
+```
+
+
+
+#### Subset conditions
+
+Records belonging to a subset can be retrieved using an array as condition value:
+
+```php
+<?php
+
+$model->where(array('orders_count' => array(1,3,5)));
+```
+
+This generates something like: `... WHERE (orders_count IN (1,3,5))`.
+
+
+
+#### Modifiers
+
+When conditions are specified as an array it is possible to modify the comparing function.
+Prefixing a field name with an exclamation mark uses the _not equal_ operator.
+
+The following example demonstrates how to search for records where the `order_count` field is
+different than "2":
+
+```php
+<?php
+
+$model->where(array('!order_count' => 2));
+```
+
+```
+… WHERE `order_count` != 2
+```
+
+This also works with subsets:
+
+```php
+<?php
+
+$model->where(array('!order_count' => array(1,3,5)));
+```
+
+```
+… WHERE `order_id` NOT IN(1, 3, 5)
+```
+
+
+
+#### Dynamic filters
+
+Conditions can also be specified as methods, prefixed by `filter_by_` and separated by `_and_`:
+
+```php
+<?php
+
+$model->filter_by_slug('creer-nuage-mots-cle');
+$model->filter_by_is_online_and_uid(true, 3);
+```
+
+Is equivalent to:
+
+```php
+<?php
+
+$model->where(array('slug' => 'creer-nuage-mots-cle'));
+$model->where(array('is_online' => true, 'uid' => 3));
+```
+
+
+
+#### Scopes
+
+Scopes can be viewed as pre-configured filters sets. Each model can define its own filters,
+inherit filters from its parent class or override them. For instance, this is how a `similar_site`,
+`similar_language` and `visible` scopes could be defined:
+
+```php
+<?php
+
+namespace Website\Nodes;
+
+use ICanBoogie\Core;
+use ICanBoogie\ActiveRecord\Query;
+
+class Model extends \ICanBoogie\ActiveRecord\Model
+{  
+	// …
+
+	protected function scope_similar_site(Query $query, $siteid=null)
+	{
+		return $query->where('siteid = 0 OR siteid = ?', $siteid !== null ? $siteid : Core::get()->site->siteid);
+	}
+	
+	protected function scope_similar_language(Query $query, $language=null)
+	{
+		return $query->where('language = "" OR language = ?', $language !== null ? $language : Core::get()->site->language);
+	}
+
+	protected function scope_visible(Query $query, $visible=true)
+	{
+		return $query->similar_site->similar_language->filter_by_is_online($visible);
+	}
+
+	// …
+}
+```
+
+Now you can easily retrieve the first ten records that are visible on your website:
+
+```php
+<?php
+
+$model->visible->limit(10);
+```
+
+Or retrieve the first ten french records:
+
+```php
+<?php
+
+$model->similar_language('fr')->limit(10);
+```
+
+
+
+
+### Ordering
+
+The `order` method retrieves records in a specific order.
+
+The following example demonstrates how to get records in the ascending order of their creation
+date:
+
+```php
+<?php
+
+$model->order('created');
+```
+
+A direction can be specified:
+
+```php
+<?php
+
+$model->order('created ASC');
+# or
+$model->order('created DESC');
+```
+
+Multiple fields can be used while ordering:
+
+```php
+<?php
+
+$model->order('created DESC, title');
+```
+
+
+
+
+
+### Grouping data
+
+The `group()` method specifies the `GROUP BY` clause.
+
+The following example demonstrates how to retrieve the first record of records grouped by day:
+
+```php
+<?php
+
+$model->group('date(created)')->order('created');
+```
+
+
+
+#### Filtering groups
+
+The `having()` method specifies the `HAVING` clause, which specifies the conditions of the
+`GROUP BY` clause.
+
+The following example demonstrates how to retrieve the first record created by day for the past
+month:
+
+```php
+<?php
+
+$model->group('date(created)')->having('created > ?', date('Y-m-d', strtotime('-1 month')))->order('created')
+```
+
+
+
+
+### Limit and offset
+
+The `limit()` method limits the number of records to retrieve.
+
+```php
+<?php
+
+$model->where('is_online = 1')->limit(10); // retrieves the first 10 records
+```
+
+With two arguments, an offset can be specified:
+
+```php
+<?php
+
+$model->where('is_online = 1')->limit(5, 10); // retrieves records from the 6th to the 16th
+```
+
+The offset can also be defined using the `offset()` method:
+
+```php
+<?php
+
+$model->where('is_online = 1')->offset(5); // retrieves records from the 6th to the last
+$model->where('is_online = 1')->limit(10)->offset(5);
+```
+
+
+
+
+### Selecting specific fields
+
+By default all fields are selected (`SELECT *`) and records are instances of the `ActiveRecord`
+class defined by the model. The `select()` method selects only a subset of fields from
+the result set, in which case each row of the result set is returned as an array, unless a fetch
+mode is defined.
+
+The following example demonstrates how to get the identifier, creation date and title of records:
+
+```php
+<?php
+
+$model->select('nid, created, title');
+```
+
+Because the `SELECT` string is used _as is_ to build the query, complex SQL statements can be
+used:
+
+```php
+<?php
+
+$model->select('nid, created, CONCAT_WS(":", title, language)');
+```
+
+
+
+
+### Joining tables
+
+The `joins()` method specifies the `JOIN` clause. A raw string or a model identifier
+can be used to specify the join. The method can be used multiple times to create multiple joins.
+
+
+
+
+#### Joining tables using a raw string
+
+A join can be specified using a raw string, which will be included _as is_ in the final SQL
+statement.
+
+```php
+<?php
+
+$model->joins('INNER JOIN `contents` USING(`nid`)');
+```
+
+
+
+#### Joining tables using a model identifier
+
+A join can be specified using a model identifier, in which case relationship between models
+are used to create the join:
+
+```php
+<?php
+
+$model->joins(':contents');
+```
+
+The same SQL statement will be created, but we don't have to care about the join conditions. Please
+notice the column ":" used to identify that a model identifier is used and not a raw fragement.
+
+Note: The method uses the `get_model()` helper. Checkout the "Patching" section for implementation
+details. 
+
+
+
+
+### Retrieving data
+
+There are many ways to retrieve data. We have already seen the `find()` method, which can be used
+to retrieve records using their identifier. The following methods or magic properties work with
+conditions.
+
+
+
+
+#### Retrieving data by iteration
+
+Instances of `Query` are traversable, it's the easiest way the retrieve the rows of
+the result set:
+
+```php
+<?php
+
+foreach ($model->where('is_online = 1') as $node)
+{
+	// …
+}
+```
+
+
+
+#### Retrieving the complete result set
+
+The magic property `all` retrieves the complete result set as an array:
+
+```php
+<?php
+
+$array = $model->all;
+$array = $model->visible->order('created DESC')->all
+```
+
+The `all()` method retrieves the complete result set using a specific fetch mode:
+
+```php
+<?php
+
+$array = $model->all(\PDO::FETCH_ASSOC);
+$array = $model->visible->order('created DESC')->(\PDO::FETCH_ASSOC)
+```
+
+
+
+#### Retrieving a single record
+
+The `one` magic property retrieves a single record:
+
+```php
+<?php
+
+$record = $model->one;
+$record = $model->visible->order('created DESC')->one
+```
+
+The `one()` method retrieves a single record using a specific fetch mode:
+
+```php
+<?php
+
+$record = $model->one(\PDO::FETCH_ASSOC);
+$record = $model->visible->order('created DESC')->one(\PDO::FETCH_ASSOC);
+```
+
+Note: The number of records to retrieve is automatically limited to 1.
+
+
+
+
+#### Retrieving key/value pairs
+
+The `pairs` magic property retrieves key/value pairs when selecting two columns, the first column
+is the key and the second its value.
+
+```php
+<?php
+
+$model->select('nid, title')->pairs;
+```
+
+Results are similar to the following example:
+
+```
+array
+  34 => string 'Créer un nuage de mots-clé' (length=28)
+  57 => string 'Générer à la volée des miniatures avec mise en cache' (length=56)
+  307 => string 'Mes premiers pas de développeur sous Ubuntu 10.04 (Lucid Lynx)' (length=63)
+  ...
+```
+
+
+
+#### Retrieve the first column of the first row
+
+The `rc` magic property retrieves the first colunm of the first row.
+
+```php
+<?php
+
+$title = $model->select('title')->rc;
+```
+
+Note: The number of records to retrieve is automatically limited to 1.
+
+
+
+### Defining the fetch mode
+
+The fetch mode is usually selected by the query interface but the `mode` can be used to specify
+it.
+
+```php
+<?php
+
+$model->select('nid, title')->mode(\PDO::FETCH_NUM);
+```
+
+The `mode()` method accepts the same arguments as the
+[PDOStatement::setFetchMode](http://php.net/manual/fr/pdostatement.setfetchmode.php) method.
+
+As we have seen in previous examples, the fetch mode can also be specified when fetching data
+with the `all()` and `one()` methods.
+
+```php
+<?php
+
+$array = $model->order('created DESC')->all(\PDO::FETCH_ASSOC);
+$record = $model->order('created DESC')->one(\PDO::FETCH_ASSOC);
+```
+
+
+
+
+### Checking the existence of records
+
+The `exists()` method checks the existence of a record, it queries the database just like `find()`
+but returns `true` when a record is found and `false` otherwise.
+
+```php
+<?php
+
+$model->exists(1);
+```
+
+The method accepts multiple identifiers in which case it returns `true` when all the
+records exist, `false` when all the record don't exist, and an array otherwise.
+
+```php
+<?php
+
+$model->exists(1, 2, 999)
+# or
+$model->exists(array(1, 2, 999));
+```
+
+The method would return the following result if records "1" and "2" exist but not record "999".
+
+```
+array
+  1 => boolean true
+  2 => boolean true
+  999 => boolean false
+```
+
+The `exists` magic property is `true` if at least one record matching the specified conditions
+exists, `false` otherwise.
+
+```php
+<?php
+
+$model->filter_by_author('Madonna')->exists;
+```
+
+The `exists` magic property of the model is `true` if the modal has at least one record, `false`
+otherwise.
+
+```php
+<?php
+
+$model->exists;
+```
+
+
+
+### Counting
+
+The `count` magic property is the number of records in a model or matching a query.
+
+```php
+<?php
+
+$model->count;
+```
+
+Or on a query:
+
+```php
+<?php
+
+$model->filter_by_firstname('Ryan')->count;
+```
+
+Of course, all query methods can be combined:
+
+```php
+<?php
+
+$model->filter_by_firstname('Ryan')->joins(':content')->where('YEAR(date) = 2011')->count;
+```
+
+The `count()` method returns an array with the number of recond for each value of a field:
+
+```php
+<?php
+
+$model->count('is_online');
+```
+
+```
+array
+  0 => string '35' (length=2)
+  1 => string '145' (length=3)
+```
+
+In this example, there is 35 record online and 145 offline.
+
+
+
+### Calculations
+
+The `average()`, `minimum()`, `maximum()` and `sum()` method are respectively used, for a column,
+to compute its average value, its minimum value, its maximum value and its sum.
+
+All calculation methods work directly on the model:
+
+```php
+<?php
+
+$model->average('price');
+```
+
+And on a query:
+
+```php
+<?php
+
+$model->filter_by_category('Toys')->average('price');
+```
+
+Of course, all query methods can be combined:
+
+```php
+<?php
+
+$model->filter_by_category('Toys')->joins(':content')->where('YEAR(date) = 2011')->average('price');
+```
+
+
+
+
+
+### Query interface summary
+
+Retrieving records:
+
+```php
+<?php
+
+$record = $model[10];
+# or
+$record = $model->find(10);
+
+$records = $model->find(10, 15, 19);
+# or
+$records = $model->find(array(10, 15, 19));
+```
+
+Conditions:
+
+```php
+<?php
+
+$model->where('is_online = ?', true);
+$model->where(array('is_online' => true, 'is_home_excluded' => false));
+$model->where('siteid = 0 OR siteid = ?', 1)->where('language = '' OR language = ?', "fr");
+
+# Sets
+
+$model->where(array('order_count' => array(1, 2, 3));
+$model->where(array('!order_count' => array(1, 2, 3)); # NOT
+
+# Dynamic filters
+
+$model->filter_by_nid(1);
+$model->filter_by_siteid_and_language(1, 'fr');
+
+# Scopes
+
+$model->visible;
+$model->own->visible->ordered;
+```
+
+Grouping and ordering:
+
+```php
+<?php
+
+$model->group('date(created)')->order('created');
+$model->group('date(created)')->having('created > ?', date('Y-m-d', strtotime('-1 month')))->order('created');
+```
+
+Limits and offets:
+
+```php
+<?php
+
+$model->where('is_online = 1')->limit(10); // first 10 records
+$model->where('is_online = 1')->limit(5, 10); // 6th to the 16th records
+
+$model->where('is_online = 1')->offset(5); // from the 6th to the last
+$model->where('is_online = 1')->offset(5)->limit(10);
+```
+
+Fields selection:
+
+```php
+<?php
+
+$model->select('nid, created, title');
+$model->select('nid, created, CONCAT_WS(":", title, language)');
+```
+
+Joins:
+
+```php
+<?php
+
+$model->joins('INNER JOIN contents USING(nid)');
+$model->joins(':contents');
+```
+
+Retrieving data:
+
+```php
+<?php
+
+$model->all;
+$model->order('created DESC')->all(PDO::FETCH_ASSOC);
+$model->order('created DESC')->mode(PDO::FETCH_ASSOC)->all;
+$model->order('created DESC')->one;
+$model->select('nid, title')->pairs;
+$model->select('title')->rc;
+```
+
+Testing object existence:
+
+```php
+<?php
+
+$model->exists;
+$model->exists(1, 2, 3);
+$model->exists(array(1, 2, 3));
+$model->where('author = ?', 'madonna')->exists;
+```
+
+Calculations:
+
+```php
+<?php
+
+$model->count;
+$model->count('is_online'); // count is_online = 0 and is_online = 1
+$model->filter_by_is_online(true)->count; // count is_online = 1
+$model->average('score');
+$model->minimum('age');
+$model->maximum('age');
+$model->sum('comments_count');
+```
+
+
+
+## Providers
+
+Providers are included to manage connections and models.
+
+
+
+
+### The connections provider
+
+The connections provider manages database connections.
+
+
+
+
+#### Defining connections
+
+Connection definitions can be specified while creating the `Connections` instance.
+
+```php 
+<?php
+
+use ICanBoogie\ActiveRecord\Connections;
+
+$connections = new Connections
+(
+	array
+	(
+		'one' => array
+		(
+			'dsn' => 'sqlite::memory:'
+		),
+
+		'bad' => array
+		(
+			'dsn' => 'mysql:dbname=bad_database' . uniqid()
+		)
+	)
+); 
+```
+
+Or after:
+
+```php 
+<?php
+
+$connections['two'] = array
+(
+	'dsn' => 'mysql:dbname=example',
+	'username' => 'root',
+	'password' => 'root'
+);
+```
+
+You can modify a connection definition until it is established. A `ConnectionAlreayEstablished`
+exception is thrown in attempt to modify the definition of an already established connection.
+ 
+
+
+
+#### Obtaining a database connection
+
+`Connections` instances are used as arrays. For instance, this how you obtain a `Connection`
+instance, which represent a database connection:
+
+```php 
+<?php
+
+$one = $connections['one'];
+```
+
+Database connections are created on demand, so that you can define a hundred connections and they
+will only the established when needed.
+
+A `ConnectionNotDefined` exception is thrown in attempt to obtain a connection which is not
+defined.
+
+
+
+
+#### Checking defined connections
+
+`Connections` instances are used as arrays, the `isset()` function checks if
+a connection is defined.
+
+```php 
+<?php
+
+if (isset($connections['one']))
+{
+	echo "The connection 'one' is defined.\n";
+}
+```
+
+The `definitions` magic property returns the current connection definitions. The property is
+_read-only_.
+
+```php 
+<?php
+
+foreach ($connections->definitions as $id => $definition)
+{
+	echo "The connection '$id' is defined.\n";
+} 
+```
+
+
+
+#### Established connections
+
+An array with the established connections can be retrieved using the `established` magic property.
+The property is _read-only_.
+
+```php 
+<?php
+
+foreach ($connections->established as $id => $connection)
+{
+	echo "The connection '$id' is established.\n";
+} 
+```
+
+The `Connections` instance itself can be used to traverse established connections.
+
+```php 
+<?php
+
+foreach ($connections as $id => $connection)
+{
+	echo "The connection '$id' is established.\n";
+} 
+```
+
+
+
+### The models provider
+
+The models provider manages models.
+
+
+
+
+#### Defining models
+
+Model definitions can be specified while creating the `Models` instance.
+
+Note: You don't have to create the `Connection` intances used by the models, you can use their
+identifier which will get resolved when the model is needed.
+
+Note: If `T_CONNECTION` is not specified the `primary` connection is used.
+
+
+
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Models;
+
+$models = new Models
+(
+	$connections, array
+	(
+		'nodes' => array
+		(
+			// …
+			Model::T_SCHEMA => array
+			(
+				'nid' => 'serial',
+				'title' => 'varchar'
+				// …
+			)
+		),
+		
+		'contents' => array
+		(
+			// …
+			Model::T_EXTENDS => 'nodes'
+		)
+	)
+); 
+```
+
+Model definitions can be modified or added after the `Models` instance has been created.
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord\Model;
+
+$models['new'] = array
+(
+	// …
+	Model::T_EXTENDS => 'contents'
+);
+```
+
+You can modify the definition of a model until the model is instanciated. A
+`ModelAlreadyInstanciated` exception is thrown in attempt to modify the definition of an already
+instanciated model.
+
+
+
+
+#### Obtaining a model
+
+Use the `Models` instance as an array to obtain a `Model` instance.
+
+```php
+<?php
+
+$nodes = $models['nodes'];
+```
+
+Models are instanciated on demand, so that you can define a hundred models an they will only by
+instanciated, along with their database connection, when needed.
+
+A `ModelNotDefined` exception is thrown in attempts to obtain a model which is not defined.
+
+
+
+
+#### Checking defined models
+
+The `isset()` function checks if a model is defined.
+
+```php
+<?php
+
+if (isset($models['nodes']))
+{
+	echo "The model 'node' is defined.\n";
+}
+```
+
+The `definitions` magic property returns the current model definitions. The property is
+_read-only_.
+
+```php
+<?php
+
+foreach ($models->definitions as $id => $definition)
+{
+	echo "The model '$id' is defined.\n";
+}
+```
+
+
+
+#### Instanciated models
+
+An array with the instanciated models can be retrieved using the `instances` magic property. The
+property is _read-only_.
+
+```php
+<?php
+
+foreach ($models->instances as $id => $model)
+{
+	echo "The model '$id' has been instanciated.\n";
+}
+```
+
+
+
+## Patching
+
+### Retrieving models from a provider
+
+The `get_model()` helper retrieves models using their identifier. It is used by active
+records to retrieve their model when required, and by queries during joins. You need to patch
+this helper according to your application logic because the default implementation only throws
+`\RuntimeException`.
+
+In the following example, the `get_model()` helper is patched to retrieve models from a provider
+similar to the one we've seen in previous examples. 
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Helpers;
+
+Helpers::patch('get_model', function($id) use($models) {
+
+	return $models[$id];
+
+});
+
+$nodes = ActiveRecord\get_model('nodes');
+```
+
+
+
+
+### Using APC to cache records between requests
+
+Records are cached during an HTTP request by the `Model` class, but performance can be improved
+by caching records _between_ HTTP requests.
+
+The following example illustrates how ActiveRecord could be patched to use APC. It could be
+adapted to use [MemCache](http://php.net/manual/en/book.memcache.php) or any other caching daemon.
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Helpers;
+use ICanBoogie\ActiveRecord\Model;
+
+Helpers::patch('create_cache_key', function(Model $model, ActiveRecord $record) {
+
+	static $prefix;
+
+	if ($prefix === null)
+	{
+		$prefix = md5($_SERVER['DOCUMENT_ROOT']) . '/ActiveRecord/';
+	}
+
+	return $prefix . $this->connection->id . '/' . $this->name . '/' . $key;
+	
+});
+
+Helpers::patch('cache_store', function(Model $model, ActiveRecord $record) {
+
+	$key = ActiveRecord\create_cache_key($model, $record->{$model->primary});
+	
+	apc_store($key, $record, 3600);
+	
+});
+
+Helpers::patch('cache_retrieve', function(Model $model, $key) {
+
+	$key = ActiveRecord\create_cache_key($model, $key);
+	
+	$record = apc_fetch($key, $success);
+
+	if ($success)
+	{
+		return $record;
+	}
+	
+});
+
+Helpers::patch('cache_eliminate', function(Model $model, $key) {
+
+	$key = ActiveRecord\create_cache_key($model, $key);
+	
+	apc_delete($key);
+	
+});
+```
+
+
+
+## License
+
+ICanBoogie/ActiveRecord is licensed under the New BSD License - See the LICENSE file for details.
