@@ -16,7 +16,7 @@ Using the __query interface__, you won't have to write raw SQL, manage table rel
 or worry about injection.
 
 Finaly, using __providers__ you can define all your connections and models in a single place.
-Connections are established and models are instanciated on demand, so feel free the define
+Connections are established and models are instantiated on demand, so feel free the define
 hundreds of them.  
 
 
@@ -1394,9 +1394,9 @@ $models['new'] = array
 );
 ```
 
-You can modify the definition of a model until the model is instanciated. A
+You can modify the definition of a model until the model is instantiated. A
 `ModelAlreadyInstanciated` exception is thrown in attempt to modify the definition of an already
-instanciated model.
+instantiated model.
 
 
 
@@ -1411,8 +1411,8 @@ Use the `Models` instance as an array to obtain a `Model` instance.
 $nodes = $models['nodes'];
 ```
 
-Models are instanciated on demand, so that you can define a hundred models an they will only by
-instanciated, along with their database connection, when needed.
+Models are instantiated on demand, so that you can define a hundred models an they will only by
+instantiated, along with their database connection, when needed.
 
 A `ModelNotDefined` exception is thrown in attempts to obtain a model which is not defined.
 
@@ -1448,7 +1448,7 @@ foreach ($models->definitions as $id => $definition)
 
 #### Instanciated models
 
-An array with the instanciated models can be retrieved using the `instances` magic property. The
+An array with the instantiated models can be retrieved using the `instances` magic property. The
 property is _read-only_.
 
 ```php
@@ -1456,7 +1456,7 @@ property is _read-only_.
 
 foreach ($models->instances as $id => $model)
 {
-	echo "The model '$id' has been instanciated.\n";
+	echo "The model '$id' has been instantiated.\n";
 }
 ```
 

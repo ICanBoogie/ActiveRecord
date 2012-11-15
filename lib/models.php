@@ -86,7 +86,7 @@ class Models implements \ArrayAccess
 	 * @param string $id Identifier of the model.
 	 * @param array $definition Definition of the model.
 	 *
-	 * @throws ModelAlreadyInstanciated in attempt to write a model already instanciated.
+	 * @throws ModelAlreadyInstanciated in attempt to write a model already instantiated.
 	 */
 	public function offsetSet($id, $definition)
 	{
@@ -140,7 +140,7 @@ class Models implements \ArrayAccess
 	 * Unset the definition of a model.
 	 *
 	 * @throws ModelAlreadyInstanciated in attempt to unset the definition of an already
-	 * instanciated model.
+	 * instantiated model.
 	 */
 	public function offsetUnset($id)
 	{
@@ -169,7 +169,7 @@ class ModelNotDefined extends ActiveRecordException
 }
 
 /**
- * Exception thrown in attempt to set/unset the definition of an already instanciated model.
+ * Exception thrown in attempt to set/unset the definition of an already instantiated model.
  */
 class ModelAlreadyInstanciated extends ActiveRecordException
 {
