@@ -45,10 +45,10 @@ Create a `composer.json` file and run `php composer.phar install` command to ins
 
 ```json
 {
-    "minimum-stability": "dev",
-    "require": {
+	"minimum-stability": "dev",
+	"require": {
 		"icanboogie/activerecord": "1.0.*"
-    }
+	}
 }
 ```
 

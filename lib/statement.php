@@ -165,6 +165,29 @@ class Statement extends \PDOStatement
 	}
 
 	/**
+	 * Set the fetch mode for the statement.
+	 *
+	 * @param mixed $mode
+	 *
+	 * @return Statement Return the instance.
+	 *
+	 * @throws ActiveRecordException if the mode cannot be set.
+	 *
+	 * @see http://www.php.net/manual/en/pdostatement.setfetchmode.php
+	 */
+	public function mode($mode)
+	{
+		$mode = func_get_args();
+
+		if (!call_user_func_array(array($this, 'setFetchMode'), $mode))
+		{
+			throw new ActiveRecordException("Unable to set fetch mode.");
+		}
+
+		return $this;
+	}
+
+	/**
 	 * Alias for {@link \PDOStatement::fetchAll()}
 	 */
 	public function all($fetch_style=null, $column_index=null, array $ctor_args=null)

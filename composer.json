@@ -1,29 +1,30 @@
 {
-    "name": "icanboogie/activerecord",
-    "type": "library",
-    "description": "ActiveRecord Object-relational mapping",
-    "keywords": ["orm", "database", "activerecord"],
-    "homepage": "http://icanboogie.org/",
-    "license": "BSD-3-Clause",
-    "authors": [
-        {
-            "name": "Olivier Laviale",
+	"name": "icanboogie/activerecord",
+	"type": "library",
+	"description": "ActiveRecord Object-relational mapping",
+	"keywords": ["orm", "database", "activerecord"],
+	"homepage": "http://icanboogie.org/",
+	"license": "BSD-3-Clause",
+	"authors": [
+		{
+			"name": "Olivier Laviale",
 			"email": "olivier.laviale@gmail.com",
 			"homepage": "http://www.weirdog.com/",
 			"role" : "Developer"
-        }
-    ],
-    "support": {
+		}
+	],
+	"support": {
 		"issues": "https://github.com/ICanBoogie/ActiveRecord/issues",
 		"source": "https://github.com/ICanBoogie/ActiveRecord"
 	},
-    "require": {
-        "php": ">=5.3.0",
-        "ext-pdo": "*",
-        "icanboogie/prototype": "1.0.*"
-    },
-    "autoload": {
-        "classmap": [ "lib/" ],
-        "files": [ "lib/helpers.php" ]
-    }
+	"minimum-stability": "dev",
+	"require": {
+		"php": ">=5.3.0",
+		"ext-pdo": "*",
+		"icanboogie/prototype": "1.0.*"
+	},
+	"autoload": {
+		"classmap": [ "lib/" ],
+		"files": [ "lib/helpers.php" ]
+	}
 }
