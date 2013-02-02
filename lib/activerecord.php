@@ -15,7 +15,7 @@ namespace ICanBoogie;
  * Active Record faciliates the creation and use of business objects whose data require persistent
  * storage via database.
  *
- * @property-read Model $_model Model managing the active record.
+ * @property-read \ICanBoogie\ActiveRecord\Model $_model Model managing the active record.
  * @property-read string $_model_id Identifier of the model managing the active record.
  */
 class ActiveRecord extends \ICanBoogie\Object
@@ -23,7 +23,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	/**
 	 * Model managing the active record.
 	 *
-	 * @var Model
+	 * @var \ICanBoogie\ActiveRecord\Model
 	 */
 	protected $_model;
 
@@ -37,7 +37,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	/**
 	 * Initializes the {@link $_model} and {@link $_model_id} properties.
 	 *
-	 * @param string|Model $model Model managing the active record. A {@link Model}
+	 * @param string|Model $model Model managing the active record. A {@link ActiveRecord\Model}
 	 * object can be provided or a model id. If a model id is provided, the model object
 	 * is resolved when the {@link $_model} property is accessed.
 	 */
@@ -84,9 +84,10 @@ class ActiveRecord extends \ICanBoogie\Object
 	{
 		$model = $this->_model;
 		$primary = $model->primary;
-
-		$properties = get_object_vars($this);
+		$properties = $this->to_array();
 		$key = null;
+
+		# removes the primary key from the properties.
 
 		if (isset($properties[$primary]))
 		{
@@ -95,16 +96,16 @@ class ActiveRecord extends \ICanBoogie\Object
 			unset($properties[$primary]);
 		}
 
-		/*
-		 * We discard null values so that we don't have to define every properties before saving
-		 * our active record.
-		 *
-		 * FIXME-20110904: we should check if the schema allows the column value to be null
-		 */
+		#
+		# Unless it's an acceptable value for a column, columns with `null` values are discarted.
+		# This way, we don't have to define every properties before saving our active record.
+		#
+
+		$schema = $model->extended_schema;
 
 		foreach ($properties as $identifier => $value)
 		{
-			if ($value !== null)
+			if ($value !== null || (isset($schema['fields'][$identifier]) && !empty($schema['fields'][$identifier]['null'])))
 			{
 				continue;
 			}
