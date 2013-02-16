@@ -66,8 +66,6 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 
 	/**
 	 * Adds support for model's scopes.
-	 *
-	 * @see ICanBoogie.Object::__get()
 	 */
 	public function __get($property)
 	{
@@ -88,8 +86,6 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 
 	/**
 	 * Override the method to handle magic 'filter_by_' methods.
-	 *
-	 * @see ICanBoogie.Object::__call()
 	 */
 	public function __call($method, $arguments)
 	{
@@ -627,8 +623,6 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 * Getter for the {@link $all} magic property.
 	 *
 	 * @return array
-	 *
-	 * @see all()
 	 */
 	protected function volatile_get_all()
 	{
@@ -905,8 +899,6 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 
 	/**
 	 * Returns an iterator for the query.
-	 *
-	 * @see IteratorAggregate::getIterator()
 	 */
 	public function getIterator()
 	{

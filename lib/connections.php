@@ -68,8 +68,6 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Checks if a connection definition exists.
-	 *
-	 * @see ArrayAccess::offsetExists()
 	 */
 	public function offsetExists($id)
 	{
@@ -81,8 +79,6 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * @throws ConnectionAlreadyEstablished in attempt to set the definition of an already
 	 * established connection.
-	 *
-	 * @see ArrayAccess::offsetSet()
 	 */
 	public function offsetSet($id, $definition)
 	{
@@ -141,12 +137,10 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 		(
 			'dsn' => null,
 			'username' => 'root',
-			'password' => null,
-			'options' => array
-			(
-				Connection::T_ID => $id
-			)
+			'password' => null
 		);
+
+		$options['options'][Connection::ID] = $id;
 
 		#
 		# we catch connection exceptions and rethrow them in order to avoid displaying sensible
@@ -165,8 +159,6 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Returns an iterator for established connections.
-	 *
-	 * @see IteratorAggregate::getIterator()
 	 */
 	public function getIterator()
 	{

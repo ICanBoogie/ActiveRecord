@@ -80,7 +80,7 @@ class Models implements \ArrayAccess
 	/**
 	 * Sets the definition of a model.
 	 *
-	 * The {@link Model::T_ID} and {@link Model::T_NAME} are set to the provided id if they are not
+	 * The {@link Model::ID} and {@link Model::NAME} are set to the provided id if they are not
 	 * defined.
 	 *
 	 * @param string $id Identifier of the model.
@@ -97,8 +97,8 @@ class Models implements \ArrayAccess
 
 		$this->definitions[$id] = $definition + array
 		(
-			Model::T_ID => $id,
-			Model::T_NAME => $id
+			Model::ID => $id,
+			Model::NAME => $id
 		);
 	}
 
@@ -125,12 +125,12 @@ class Models implements \ArrayAccess
 
 		$properties = $this->definitions[$id] + array
 		(
-			Model::T_CONNECTION => 'primary'
+			Model::CONNECTION => 'primary'
 		);
 
-		if (is_string($properties[Model::T_CONNECTION]))
+		if (is_string($properties[Model::CONNECTION]))
 		{
-			$properties[Model::T_CONNECTION] = $this->connections[$properties[Model::T_CONNECTION]];
+			$properties[Model::CONNECTION] = $this->connections[$properties[Model::CONNECTION]];
 		}
 
 		return new Model($properties);

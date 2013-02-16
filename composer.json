@@ -21,7 +21,7 @@
 	"require": {
 		"php": ">=5.3.0",
 		"ext-pdo": "*",
-		"icanboogie/prototype": "1.0.*"
+		"icanboogie/prototype": "*"
 	},
 	"autoload": {
 		"classmap": [ "lib/" ],

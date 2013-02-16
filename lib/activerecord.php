@@ -60,7 +60,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	 *
 	 * This getter is used when the model has been provided as a string during construct.
 	 *
-	 * @return Model
+	 * @return \ICanBoogie\ActiveRecord\Model
 	 */
 	protected function volatile_get__model()
 	{

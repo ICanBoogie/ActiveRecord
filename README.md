@@ -168,10 +168,10 @@ $model = new Nodes
 (
 	array
 	(
-		Model::T_CONNECTION => $connection,
-		Model::T_ACTIVERECORD_CLASS => __NAMESPACE__ . '\Node',
-		Model::T_NAME => 'node',
-		Model::T_SCHEMA => array
+		Model::CONNECTION => $connection,
+		Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\Node',
+		Model::NAME => 'node',
+		Model::SCHEMA => array
 		(
 			'fields' => array
 			(
@@ -188,7 +188,7 @@ $model = new Nodes
 
 ### Database connection
 
-The `T_CONNECTION` key specifies the database connection, an instance of the `Connection`
+The `CONNECTION` key specifies the database connection, an instance of the `Connection`
 class.
 
 
@@ -196,7 +196,7 @@ class.
 
 ### Active Record class
 
-The `T_ACTIVERECORD_CLASS` key specifies the class used to instantiate the active records of the
+The `ACTIVERECORD_CLASS` key specifies the class used to instantiate the active records of the
 model.
 
 
@@ -204,7 +204,7 @@ model.
 
 ### Name of the table
 
-The `T_NAME` key specifies the name of the table. If a table prefix is defined by the connection,
+The `NAME` key specifies the name of the table. If a table prefix is defined by the connection,
 it is used to prefix the table name. The `name` and `unprefixed_name` properties returns the
 prefixed name and original name of the table:
 
@@ -227,7 +227,7 @@ $stmt = $model('SELECT * FROM `{self}` LIMIT 10');
 ### Schema
 
 The columns and properties of the table are defined with a schema, which is specified by the
-`T_SCHMEA` attribute.
+`SCHEMA` attribute.
 
 The `fields` key specifies the columns of the table. A key defines the name of the column, and a
 value defines the properties of the column. Most column types use the following basic definition
@@ -367,6 +367,103 @@ The following placeholders are replaced in model queries:
 
 
 
+
+
+## Relations
+
+### Extending another model
+
+A model can extend another, just like a class can extend another in PHP. Fields are inherited
+and the primary key of the parent is used to link records together. When the model is queried, the
+tables are joined. When values are inserted or updated, they are split to update the various
+tables. Also, the connection of the parent model is inherited.
+
+The `EXTENDING` attribute specifies the model to extend.
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord\Model;
+
+$nodes = new Model
+(
+	array
+	(
+		Model::NAME => 'nodes',
+		Model::CONNECTION => $connection,
+		Model::SCHEMA => array
+		(
+			'fields' => array
+			(
+				'nid' => 'serial',
+				'title' => 'varchar'
+			)
+		)
+	)
+);
+
+$news = new Model
+(
+	array
+	(
+		Model::NAME => 'news',
+		Model::EXTENDING => $nodes,
+		Model::SCHEMA => array
+		(
+			'fields' => array
+			(
+				'date' => 'date'
+			)
+		)
+	)
+);
+
+$news->save(array('title' => 'Testing!', 'date' => '2013-02-16'));
+```
+
+
+ 
+
+
+### Belong to
+
+Records of a model can belong to records of other models. For instance, a news article belonging
+to a user. The relation is specified with the `BELONGS_TO` attribute. When the _belongs to_
+relation is specified, a getter is automatically added to the prototype of the records. For
+instance, if records of a `news` model belong to records of a `users` model, than the `get_user`
+getter is added to the prototype of the records of the `news` model. The user of a news record
+can then by obtained using the magic property `user`.
+
+```php
+<?php
+
+$news = new Model
+(
+	array
+	(
+		Model::NAME => 'news',
+		Model::EXTENDING => $nodes,
+		Model::BELONGS_TO => $users,
+		Model::SCHEMA => array
+		(
+			'fields' => array
+			(
+				'date' => 'date',
+				'uid' => 'foreign'
+			)
+		)
+	)
+);
+
+$record = $news->one;
+
+echo "{$record->title} belongs to {$record->user->name}.";
+```
+
+
+
+
+
 ## Active Records
 
 An active record is an object-oriented representation of a record in a database. Usually, the
@@ -380,7 +477,7 @@ namespace Website;
 
 class Node extends \ICanBoogie\ActiveRecord
 {
-	...
+	// …
 	
 	protected function get_next()
 	{
@@ -392,7 +489,7 @@ class Node extends \ICanBoogie\ActiveRecord
 		return $this->_model->own->visible->where('date < ?', $this->date)->order('date DESC')->one;
 	}
 	
-	...
+	// …
 }
 ```
 
@@ -1378,7 +1475,7 @@ Model definitions can be specified while creating the `Models` instance.
 Note: You don't have to create the `Connection` intances used by the models, you can use their
 identifier which will get resolved when the model is needed.
 
-Note: If `T_CONNECTION` is not specified the `primary` connection is used.
+Note: If `CONNECTION` is not specified the `primary` connection is used.
 
 
 
@@ -1396,7 +1493,7 @@ $models = new Models
 		'nodes' => array
 		(
 			// …
-			Model::T_SCHEMA => array
+			Model::SCHEMA => array
 			(
 				'nid' => 'serial',
 				'title' => 'varchar'
@@ -1407,7 +1504,7 @@ $models = new Models
 		'contents' => array
 		(
 			// …
-			Model::T_EXTENDS => 'nodes'
+			Model::EXTENDING => 'nodes'
 		)
 	)
 ); 
@@ -1423,7 +1520,7 @@ use ICanBoogie\ActiveRecord\Model;
 $models['new'] = array
 (
 	// …
-	Model::T_EXTENDS => 'contents'
+	Model::EXTENDING => 'contents'
 );
 ```
 

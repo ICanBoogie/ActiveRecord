@@ -20,15 +20,26 @@ use ICanBoogie\PropertyNotWritable;
  * @property-read array $extended_schema Extended schema of the table.
  * @property-read string $name_unprefixed Unprefixed name of the table.
  * @property-read mixed $primary Primary key of the table, or `null` if there is none.
+ * @property-read string $alias The alias name of the table.
+ * @property-read Table|null $parent The parent of the table.
  */
 class Table extends \ICanBoogie\Object
 {
+	// TODO-20130216: deprecate all T_*
+
 	const T_ALIAS = 'alias';
 	const T_CONNECTION = 'connection';
 	const T_EXTENDS = 'extends';
 	const T_IMPLEMENTS = 'implements';
 	const T_NAME = 'name';
 	const T_SCHEMA = 'schema';
+
+	const ALIAS = 'alias';
+	const CONNECTION = 'connection';
+	const EXTENDING = 'extends';
+	const IMPLEMENTING = 'implements';
+	const NAME = 'name';
+	const SCHEMA = 'schema';
 
 	/**
 	 * A database connection.
@@ -111,7 +122,7 @@ class Table extends \ICanBoogie\Object
 	}
 
 	/**
-	 * Primary key of the table, retrieved from the schema defined using the T_SCHEMA tag.
+	 * Primary key of the table, retrieved from the schema defined using the {@link SCHEMA} attribute.
 	 *
 	 * @var mixed
 	 */
@@ -137,13 +148,33 @@ class Table extends \ICanBoogie\Object
 	}
 
 	/**
-	 * Alias for the table's name, which can be defined using the T_ALIAS tag or automatically created.
+	 * Alias for the table's name, which can be defined using the {@link ALIAS} attribute
+	 * or automatically created.
 	 *
 	 * The "{primary}" placeholder used in queries is replaced by the properties value.
 	 *
 	 * @var string
 	 */
 	protected $alias;
+
+	/**
+	 * Returns the alias of the table.
+	 *
+	 * @return string
+	 */
+	protected function volatile_get_alias()
+	{
+		return $this->alias;
+	}
+
+	/**
+	 * @throws PropertyNotWritable in attempt to set the {@link $alias} property from
+	 * public scope.
+	 */
+	protected function volatile_set_alias()
+	{
+		throw new PropertyNotWritable(array('alias', $this));
+	}
 
 	/**
 	 * Schema for the table.
@@ -161,6 +192,25 @@ class Table extends \ICanBoogie\Object
 	 * @var Table
 	 */
 	protected $parent;
+
+	/**
+	 * Returns the parent of the table.
+	 *
+	 * @return string
+	 */
+	protected function volatile_get_parent()
+	{
+		return $this->parent;
+	}
+
+	/**
+	 * @throws PropertyNotWritable in attempt to set the {@link $parent} property from
+	 * public scope.
+	 */
+	protected function volatile_set_parent()
+	{
+		throw new PropertyNotWritable(array('parent', $this));
+	}
 
 	protected $implements = array();
 
@@ -182,27 +232,48 @@ class Table extends \ICanBoogie\Object
 	 */
 	protected $select_join;
 
-	public function __construct($tags)
+	/**
+	 * Initialiazes the following properties: {@link $alias}, {@link $connection},
+	 * {@link implements}, {@link $name_unprefixed}, {@link $schema} and {@link $parent}.
+	 *
+	 * @param array $attributes
+	 *
+	 * @throws \InvalidArgumentException if the {@link CONNECTION} attribute is empty.
+	 */
+	public function __construct(array $attributes)
 	{
-		foreach ($tags as $tag => $value)
+		foreach ($attributes as $attribute => $value)
 		{
-			switch ($tag)
+			switch ($attribute)
 			{
-				case self::T_ALIAS: $this->alias = $value; break;
-				case self::T_CONNECTION: $this->connection = $value; break;
-				case self::T_IMPLEMENTS: $this->implements = $value; break;
-				case self::T_NAME: $this->name_unprefixed = $value; break;
-				case self::T_SCHEMA: $this->schema = $value; break;
-				case self::T_EXTENDS: $this->parent = $value; break;
+				case self::ALIAS: $this->alias = $value; break;
+				case self::CONNECTION: $this->connection = $value; break;
+				case self::IMPLEMENTING: $this->implements = $value; break;
+				case self::NAME: $this->name_unprefixed = $value; break;
+				case self::SCHEMA: $this->schema = $value; break;
+				case self::EXTENDING: $this->parent = $value; break;
 			}
 		}
 
-		if (!$this->connection)
+		if (!$this->name_unprefixed)
 		{
-			throw new \Exception('The <code>T_CONNECTION</code> tag is required');
+			throw new \InvalidArgumentException('The <code>NAME</code> attribute is empty.');
 		}
 
-		$this->name = $this->connection->prefix . $this->name_unprefixed;
+		if (!$this->schema)
+		{
+			throw new \InvalidArgumentException('The <code>SCHEMA</code> attribute is empty.');
+		}
+
+		if (empty($this->schema['fields']))
+		{
+			throw new \InvalidArgumentException("Schema fields are empty for table \"{$this->name_unprefixed}\".");
+		}
+
+		if ($this->parent && !($this->parent instanceof self))
+		{
+			throw new \InvalidArgumentException("EXTENDING must be an instance of " . __CLASS__ . ". Given: {$this->parent}.");
+		}
 
 		#
 		# alias
@@ -218,6 +289,8 @@ class Table extends \ICanBoogie\Object
 			{
 				$alias = substr($alias, $pos + 1);
 			}
+
+			// TODO-20130216: use ICanBoogie's inflectors
 
 			if (substr($alias, -3, 3) == 'ies')
 			{
@@ -239,19 +312,14 @@ class Table extends \ICanBoogie\Object
 
 		if ($parent)
 		{
-			if (empty($this->schema['fields']))
-			{
-				throw new \InvalidArgumentException("Schema is empty for {$this->name}.");
-			}
-			else
-			{
-				$primary = $parent->primary;
-				$primary_definition = $parent->schema['fields'][$primary];
+			$this->connection = $parent->connection;
 
-				unset($primary_definition['serial']);
+			$primary = $parent->primary;
+			$primary_definition = $parent->schema['fields'][$primary];
 
-				$this->schema['fields'] = array($primary => $primary_definition) + $this->schema['fields'];
-			}
+			unset($primary_definition['serial']);
+
+			$this->schema['fields'] = array($primary => $primary_definition) + $this->schema['fields'];
 
 			#
 			# implements are inherited too
@@ -262,6 +330,13 @@ class Table extends \ICanBoogie\Object
 				$this->implements = array_merge($parent->implements, $this->implements);
 			}
 		}
+
+		if (!$this->connection)
+		{
+			throw new \InvalidArgumentException('The <code>CONNECTION</code> attribute is empty.');
+		}
+
+		$this->name = $this->connection->prefix . $this->name_unprefixed;
 
 		#
 		# parse definition schema to have a complete schema
@@ -305,7 +380,7 @@ class Table extends \ICanBoogie\Object
 		{
 			if (!is_array($this->implements))
 			{
-				throw new \InvalidArgumentException('<code>T_IMPLEMENTS</code> must be an array.');
+				throw new \InvalidArgumentException('<code>IMPLEMENTING</code> must be an array.');
 			}
 
 			$i = 1;
@@ -314,7 +389,7 @@ class Table extends \ICanBoogie\Object
 			{
 				if (!is_array($implement))
 				{
-					throw new \InvalidArgumentException('<code>T_IMPLEMENTS</code> must be an array.');
+					throw new \InvalidArgumentException('<code>IMPLEMENTING</code> must be an array.');
 				}
 
 				$table = $implement['table'];
@@ -339,8 +414,6 @@ class Table extends \ICanBoogie\Object
 
 	/**
 	 * Alias to the {@link query()} method.
-	 *
-	 * @see query()
 	 */
 	public function __invoke($query, array $args=array(), array $options=array())
 	{
@@ -397,6 +470,7 @@ class Table extends \ICanBoogie\Object
 			$table = $table->parent;
 		}
 
+		$schemas = array_reverse($schemas);
 		$schema = call_user_func_array('\ICanBoogie\array_merge_recursive', $schemas);
 
 		$this->connection->parse_schema($schema);
@@ -437,6 +511,9 @@ class Table extends \ICanBoogie\Object
 	/**
 	 * Interface to the connection's prepare method.
 	 *
+	 * The statement is resolved by the {@link resolve_statement()} method before the call is
+	 * forwarded.
+	 *
 	 * @return Database\Statement
 	 */
 	public function prepare($query, $options=array())
@@ -451,6 +528,13 @@ class Table extends \ICanBoogie\Object
 		return $this->connection->quote($string, $parameter_type);
 	}
 
+	/**
+	 * Executes a statement.
+	 *
+	 * The statement is prepared by the {@link prepare()} method before it is executed.
+	 *
+	 * @return mixed
+	 */
 	public function execute($query, array $args=array(), array $options=array())
 	{
 		$statement = $this->prepare($query, $options);
@@ -622,6 +706,17 @@ class Table extends \ICanBoogie\Object
 		return $id;
 	}
 
+	/**
+	 * Inserts values into the table.
+	 *
+	 * @param array $values The values to insert.
+	 * @param array $options The folowing options can be used:
+	 * - `ignore`: Ignore duplicate errors.
+	 * - `on duplicate`: specifies the column to update on duplicate, and the values to update
+	 * them. If `true` the `$values` array is used, after the primary keys has been removed.
+	 *
+	 * @return mixed
+	 */
 	public function insert(array $values, array $options=array())
 	{
 		list($values, $holders, $identifiers) = $this->filter_values($values);

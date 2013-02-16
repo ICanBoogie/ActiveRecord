@@ -16,19 +16,27 @@ use ICanBoogie\PropertyNotDefined;
 /**
  * Connection to a databse.
  *
- * @property-read string $charset
- * @property-read string $collate
- * @property-read string $driver_name
- * @property-read string $id
- * @property-read string $table_name_prefix
+ * @property-read string $charset The character set used to communicate with the database. Defaults to "utf8".
+ * @property-read string $collate The collation of the character set. Defaults to "utf8_general_ci".
+ * @property-read string $driver_name Name of the PDO driver.
+ * @property-read string $id Identifier of the database connection.
+ * @property-read string $table_name_prefix The prefix to prepend to every table name.
  */
 class Connection extends \PDO
 {
+	// TODO-20130216: deprecate all T_*
+
 	const T_ID = '#id';
 	const T_TABLE_NAME_PREFIX = '#table_name_prefix';
 	const T_CHARSET = '#charset';
 	const T_COLLATE = '#collate';
 	const T_TIMEZONE = '#timezone';
+
+	const ID = '#id';
+	const TABLE_NAME_PREFIX = '#table_name_prefix';
+	const CHARSET = '#charset';
+	const COLLATE = '#collate';
+	const TIMEZONE = '#timezone';
 
 	/**
 	 * Connection identifier.
@@ -88,11 +96,11 @@ class Connection extends \PDO
 	 *
 	 * Custom options can be specified using the driver-specific connection options:
 	 *
-	 * - {@link T_ID}: Connection identifier.
-	 * - {@link T_TABLE_NAME_PREFIX}: Prefix for the database tables.
-	 * - {@link T_CHARSET} and {@link T_COLLATE}: Charset and collate used for the connection
+	 * - {@link ID}: Connection identifier.
+	 * - {@link TABLE_NAME_PREFIX}: Prefix for the database tables.
+	 * - {@link CHARSET} and {@link COLLATE}: Charset and collate used for the connection
 	 * to the database, and to create tables.
-	 * - {@link T_TIMEZONE}: Timezone for the connection.
+	 * - {@link TIMEZONE}: Timezone for the connection.
 	 *
 	 * @link http://www.php.net/manual/en/pdo.construct.php
 	 * @link http://dev.mysql.com/doc/refman/5.5/en/time-zone-support.html
@@ -114,12 +122,12 @@ class Connection extends \PDO
 		{
 			switch ($option)
 			{
-				case self::T_ID: $this->id = $value; break;
+				case self::ID: $this->id = $value; break;
 				case '#prefix': // COMPAT-20120913
-				case self::T_TABLE_NAME_PREFIX: $this->table_name_prefix = $value ? $value . '_' : null; break;
-				case self::T_CHARSET: $this->charset = $value; $this->collate = null; break;
-				case self::T_COLLATE: $this->collate = $value; break;
-				case self::T_TIMEZONE: $timezone = $value; break;
+				case self::TABLE_NAME_PREFIX: $this->table_name_prefix = $value ? $value . '_' : null; break;
+				case self::CHARSET: $this->charset = $value; $this->collate = null; break;
+				case self::COLLATE: $this->collate = $value; break;
+				case self::TIMEZONE: $timezone = $value; break;
 			}
 		}
 

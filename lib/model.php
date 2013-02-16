@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Module;
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\PropertyNotWritable;
 
@@ -27,9 +27,16 @@ use ICanBoogie\PropertyNotWritable;
  */
 class Model extends Table implements \ArrayAccess
 {
+	// TODO-20130216: deprecate all T_*
+
+	const T_ACTIVERECORD_CLASS = 'activerecord_class';
 	const T_CLASS = 'class';
-	const T_ACTIVERECORD_CLASS = 'activerecord-class';
 	const T_ID = 'id';
+
+	const ACTIVERECORD_CLASS = 'activerecord_class';
+	const BELONGS_TO = 'belongs_to';
+	const CLASSNAME = 'class';
+	const ID = 'id';
 
 	/**
 	 * Active record instances class.
@@ -46,39 +53,50 @@ class Model extends Table implements \ArrayAccess
 	protected $attributes;
 
 	/**
-	 * Override the constructor to provide support for the {@link T_ACTIVERECORD_CLASS} tag and
-	 * extended support for the {@link T_EXTENDS} tag.
+	 * Override the constructor to provide support for the {@link ACTIVERECORD_CLASS} tag and
+	 * extended support for the {@link EXTENDING} tag.
 	 *
-	 * If {@link T_EXTENDS} is defined but the model has no schema ({@link T_SCHEMA} is empty),
+	 * If {@link EXTENDING} is defined but the model has no schema ({@link SCHEMA} is empty),
 	 * the name of the model and the schema are inherited from the extended model and
-	 * {@link T_EXTENDS} is set to the parent model object. If {@link T_ACTIVERECORD_CLASS} is
+	 * {@link EXTENDING} is set to the parent model object. If {@link ACTIVERECORD_CLASS} is
 	 * empty, its value is set to the extended model's active record class.
 	 *
-	 * If {@link T_ACTIVERECORD_CLASS} is set, its value is saved in the
+	 * If {@link ACTIVERECORD_CLASS} is set, its value is saved in the
 	 * {@link $activerecord_class} property.
 	 *
 	 * @param array $tags Tags used to construct the model.
 	 */
 	public function __construct(array $tags)
 	{
-		if (isset($tags[self::T_EXTENDS]) && empty($tags[self::T_SCHEMA]))
+		$tags += array
+		(
+			self::BELONGS_TO => null,
+			self::EXTENDING => null,
+			self::ID => null,
+			self::SCHEMA => null,
+			self::ACTIVERECORD_CLASS => null
+		);
+
+		if ($tags[self::EXTENDING] && !$tags[self::SCHEMA])
 		{
-			$extends = $tags[self::T_EXTENDS];
+			$extends = $tags[self::EXTENDING];
 
-			$tags[self::T_NAME] = $extends->name_unprefixed;
-			$tags[self::T_SCHEMA] = $extends->schema;
-			$tags[self::T_EXTENDS] = $extends->parent;
+			$tags[self::NAME] = $extends->name_unprefixed;
+			$tags[self::SCHEMA] = $extends->schema;
+			$tags[self::EXTENDING] = $extends->parent;
 
-			if (empty($tags[self::T_ACTIVERECORD_CLASS]))
+			if (!$tags[self::ACTIVERECORD_CLASS])
 			{
-				$tags[self::T_ACTIVERECORD_CLASS] = $extends->activerecord_class;
+				$tags[self::ACTIVERECORD_CLASS] = $extends->activerecord_class;
 			}
 		}
 
-		if (empty($tags[self::T_ID]))
+		if (empty($tags[self::ID]))
 		{
-			$tags[self::T_ID] = $tags[self::T_NAME];
+			$tags[self::ID] = $tags[self::NAME];
 		}
+
+		$this->attributes = $tags;
 
 		parent::__construct($tags);
 
@@ -86,23 +104,56 @@ class Model extends Table implements \ArrayAccess
 		# Resolve the active record class.
 		#
 
-		if ($this->parent)
+		$activerecord_class = $tags[self::ACTIVERECORD_CLASS];
+
+		if (!$activerecord_class && $this->parent)
 		{
-			$this->activerecord_class = $this->parent->activerecord_class;
+			$activerecord_class = $this->parent->activerecord_class;
 		}
 
-		if (isset($tags[self::T_ACTIVERECORD_CLASS]))
+		$this->activerecord_class = $activerecord_class;
+
+		# belongs_to
+
+		$belongs_to = $tags[self::BELONGS_TO];
+
+		if ($belongs_to)
 		{
-			$this->activerecord_class = $tags[self::T_ACTIVERECORD_CLASS];
+			$this->belongs_to($belongs_to);
+		}
+	}
+
+	/**
+	 * Handles the _belongs to_ relationship of the model.
+	 *
+	 * @param string $belongs_to
+	 *
+	 * @throws ActiveRecordException if the class of the active record is `ICanBoogie\ActiveRecord`.
+	 */
+	public function belongs_to($belongs_to)
+	{
+		$activerecord_class = $this->activerecord_class;
+		$getter_name = 'get_' . \ICanBoogie\singularize($belongs_to);
+
+		if ($activerecord_class == 'ICanBoogie\ActiveRecord')
+		{
+			throw new ActiveRecordException('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a <em>belongs to</em> relationship.');
 		}
 
-		$this->attributes = $tags;
+		$prototype = \ICanBoogie\Prototype::get($activerecord_class);
+
+		$prototype[$getter_name] = function(ActiveRecord $ar) use($belongs_to)
+		{
+			$model = get_model($belongs_to);
+			$primary = $model->primary;
+			$key = $ar->$primary;
+
+			return $key ? $model[$key] : null;
+		};
 	}
 
 	/**
 	 * Overrides the method to handle dynamic finders and scopes.
-	 *
-	 * @see Object::__call()
 	 */
 	public function __call($method, $arguments)
 	{
@@ -149,7 +200,7 @@ class Model extends Table implements \ArrayAccess
 	 */
 	protected function volatile_get_id()
 	{
-		return $this->attributes[self::T_ID];
+		return $this->attributes[self::ID];
 	}
 
 	/**
@@ -267,8 +318,6 @@ class Model extends Table implements \ArrayAccess
 	/**
 	 * Because records are cached, we need to removed the record from the cache when it is saved,
 	 * so that loading the record again returns the updated record, not the one in the cache.
-	 *
-	 * @see ICanBoogie\ActiveRecord\Table::save($properies, $key, $options)
 	 */
 	public function save(array $properties, $key=null, array $options=array())
 	{
@@ -287,7 +336,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @param ActiveRecord $record The record to store.
 	 */
-	protected function store(\ICanBoogie\ActiveRecord $record)
+	protected function store(ActiveRecord $record)
 	{
 		$cache_key = $this->create_cache_key($record->{$this->primary});
 
@@ -403,8 +452,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param string $expression
 	 *
 	 * @return Query
-	 *
-	 * @see Query::joins
 	 */
 	public function joins($expression)
 	{
@@ -417,8 +464,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param string $expression
 	 *
 	 * @return Query
-	 *
-	 * @see Query::select
 	 */
 	public function select($expression)
 	{
@@ -433,8 +478,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param null $conditions_args
 	 *
 	 * @return Query
-	 *
-	 * @see Query::where
 	 */
 	public function where($conditions, $conditions_args=null)
 	{
@@ -447,8 +490,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param $group
 	 *
 	 * @return Query
-	 *
-	 * @see Query::group
 	 */
 	public function group($group)
 	{
@@ -474,8 +515,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param int $offset
 	 *
 	 * @return Query
-	 *
-	 * @see Query::limit
 	 */
 	public function limit($limit, $offset=null)
 	{
@@ -488,8 +527,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param $key
 	 *
 	 * @return bool
-	 *
-	 * @see Query::exists
 	 */
 	public function exists($key=null)
 	{
@@ -520,8 +557,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param $column
 	 *
 	 * @return Query
-	 *
-	 * @see Query::count
 	 */
 	public function count($column=null)
 	{
@@ -552,8 +587,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param $column
 	 *
 	 * @return Query
-	 *
-	 * @see Query::average
 	 */
 	public function average($column)
 	{
@@ -566,8 +599,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param $column
 	 *
 	 * @return Query
-	 *
-	 * @see Query::minimum
 	 */
 	public function minimum($column)
 	{
@@ -580,8 +611,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param $column
 	 *
 	 * @return Query
-	 *
-	 * @see Query::maximum
 	 */
 	public function maximum($column)
 	{
@@ -594,8 +623,6 @@ class Model extends Table implements \ArrayAccess
 	 * @param $column
 	 *
 	 * @return Query
-	 *
-	 * @see Query::sum
 	 */
 	public function sum($column)
 	{
