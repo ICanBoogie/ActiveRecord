@@ -59,15 +59,6 @@ class Table extends \ICanBoogie\Object
 	}
 
 	/**
-	 * @throws PropertyNotWritable in attempt to set the {@link $connection} property from
-	 * public scope.
-	 */
-	protected function volatile_set_connection()
-	{
-		throw new PropertyNotWritable(array('connection', $this));
-	}
-
-	/**
 	 * Name of the table, including the prefix defined by the model's connection.
 	 *
 	 * @var string
@@ -82,15 +73,6 @@ class Table extends \ICanBoogie\Object
 	protected function volatile_get_name()
 	{
 		return $this->name;
-	}
-
-	/**
-	 * @throws PropertyNotWritable in attempt to set the {@link $name} property from
-	 * public scope.
-	 */
-	protected function volatile_set_name()
-	{
-		throw new PropertyNotWritable(array('name', $this));
 	}
 
 	/**
@@ -113,15 +95,6 @@ class Table extends \ICanBoogie\Object
 	}
 
 	/**
-	 * @throws PropertyNotWritable in attempt to set the {@link $name_unprefixed} property from
-	 * public scope.
-	 */
-	protected function volatile_set_name_unprefixed()
-	{
-		throw new PropertyNotWritable(array('name_unprefixed', $this));
-	}
-
-	/**
 	 * Primary key of the table, retrieved from the schema defined using the {@link SCHEMA} attribute.
 	 *
 	 * @var mixed
@@ -136,15 +109,6 @@ class Table extends \ICanBoogie\Object
 	protected function volatile_get_primary()
 	{
 		return $this->primary;
-	}
-
-	/**
-	 * @throws PropertyNotWritable in attempt to set the {@link $primary} property from
-	 * public scope.
-	 */
-	protected function volatile_set_primary()
-	{
-		throw new PropertyNotWritable(array('primary', $this));
 	}
 
 	/**
@@ -165,15 +129,6 @@ class Table extends \ICanBoogie\Object
 	protected function volatile_get_alias()
 	{
 		return $this->alias;
-	}
-
-	/**
-	 * @throws PropertyNotWritable in attempt to set the {@link $alias} property from
-	 * public scope.
-	 */
-	protected function volatile_set_alias()
-	{
-		throw new PropertyNotWritable(array('alias', $this));
 	}
 
 	/**
@@ -201,15 +156,6 @@ class Table extends \ICanBoogie\Object
 	protected function volatile_get_parent()
 	{
 		return $this->parent;
-	}
-
-	/**
-	 * @throws PropertyNotWritable in attempt to set the {@link $parent} property from
-	 * public scope.
-	 */
-	protected function volatile_set_parent()
-	{
-		throw new PropertyNotWritable(array('parent', $this));
 	}
 
 	protected $implements = array();
@@ -843,7 +789,10 @@ class Table extends \ICanBoogie\Object
 			$where .= '`{primary}` = ?';
 		}
 
-		return $this->execute('delete from `{self}` ' . $where, (array) $key);
+		$statement = $this->prepare('delete from `{self}` ' . $where);
+		$statement((array) $key);
+
+		return !!$statement->rowCount();
 	}
 
 	// FIXME-20081223: what about extends ?

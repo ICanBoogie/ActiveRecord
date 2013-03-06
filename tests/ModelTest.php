@@ -9,22 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord\Tests\Model;
+namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Connection;
-use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\Query;
-use ICanBoogie\ActiveRecord\RecordNotFound;
-
-const CHARSET = 'utf-8';
-
-class A extends Model
-{
-	protected function scope_ordered(Query $query, $direction='desc')
-	{
-		return $query->order('date ' . ($direction == 'desc' ? 'DESC' : 'ASC'));
-	}
-}
+use ICanBoogie\ActiveRecord\ModelTest\A;
 
 class ModelTest extends \PHPUnit_Framework_TestCase
 {
@@ -33,15 +20,15 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 	public function setUp()
 	{
-		$connection = new Connection('sqlite::memory:');
+		$connection = new Connection('sqlite::memory:', null, null, array(Connection::TABLE_NAME_PREFIX => 'prefix'));
 
 		$model = new A
 		(
 			array
 			(
-				Model::T_NAME => 'test',
-				Model::T_CONNECTION => $connection,
-				Model::T_SCHEMA => array
+				Model::NAME => 'tests',
+				Model::CONNECTION => $connection,
+				Model::SCHEMA => array
 				(
 					'fields' => array
 					(
@@ -176,7 +163,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	public function testExistsFalse()
 	{
 		$m = $this->model;
-		$u = uniqid();
+		$u = rand(999, 9999);
 
 		$this->assertFalse($m->exists($u));
 		$this->assertFalse($m->exists($u+1, $u+2, $u+3));
@@ -189,7 +176,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	public function testExistsMixed()
 	{
 		$m = $this->model;
-		$u = uniqid();
+		$u = rand(999, 9999);
 		$a = array(1 => true, $u => false, 3 => true);
 
 		$this->assertEquals($a, $m->exists(1, $u, 3));
@@ -212,5 +199,18 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$b = $this->model[1];
 
 		$this->assertEquals(spl_object_hash($a), spl_object_hash($b));
+	}
+}
+
+namespace ICanBoogie\ActiveRecord\ModelTest;
+
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Query;
+
+class A extends Model
+{
+	protected function scope_ordered(Query $query, $direction='desc')
+	{
+		return $query->order('date ' . ($direction == 'desc' ? 'DESC' : 'ASC'));
 	}
 }

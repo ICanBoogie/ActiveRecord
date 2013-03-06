@@ -11,19 +11,21 @@
 
 namespace ICanBoogie;
 
+use ICanBoogie\ActiveRecord\Model;
+
 /**
  * Active Record faciliates the creation and use of business objects whose data require persistent
  * storage via database.
  *
- * @property-read \ICanBoogie\ActiveRecord\Model $_model Model managing the active record.
- * @property-read string $_model_id Identifier of the model managing the active record.
+ * @property-read Model $_model The model managing the active record.
+ * @property-read string $_model_id The identifier of the model managing the active record.
  */
 class ActiveRecord extends \ICanBoogie\Object
 {
 	/**
 	 * Model managing the active record.
 	 *
-	 * @var \ICanBoogie\ActiveRecord\Model
+	 * @var Model
 	 */
 	protected $_model;
 
@@ -37,9 +39,12 @@ class ActiveRecord extends \ICanBoogie\Object
 	/**
 	 * Initializes the {@link $_model} and {@link $_model_id} properties.
 	 *
-	 * @param string|Model $model Model managing the active record. A {@link ActiveRecord\Model}
-	 * object can be provided or a model id. If a model id is provided, the model object
-	 * is resolved when the {@link $_model} property is accessed.
+	 * @param string|Model $model The model managing the active record. A {@link Model}
+	 * instance can be specified as well as a model identifier. If a model identifier is
+	 * specified, the model is resolved when the {@link $_model} property is accessed.
+	 *
+	 * @throws \InvalidArgumentException if $model is neither a model identifier nor a
+	 * {@link Model} instance.
 	 */
 	public function __construct($model)
 	{
@@ -48,31 +53,69 @@ class ActiveRecord extends \ICanBoogie\Object
 			unset($this->_model);
 			$this->_model_id = $model;
 		}
-		else
+		else if ($model instanceof Model)
 		{
 			$this->_model = $model;
 			$this->_model_id = $model->id;
 		}
+		else
+		{
+			throw new \InvalidArgumentException("\$model must be an instance of ICanBoogie\ActiveRecord\Model or a model identifier. Given:" . (is_object($model) ? get_class($model) : gettype($model)));
+		}
 	}
 
 	/**
-	 * Returns the model for the active record.
+	 * Removes the {@link $_model} property.
+	 */
+	public function __sleep()
+	{
+		$properties = parent::__sleep();
+
+		unset($properties['_model']);
+
+		return $properties;
+	}
+
+	/**
+	 * Removes the {@link $_model} and {@link $_model_id} properties.
+	 */
+	public function to_array()
+	{
+		$array = parent::to_array();
+
+		unset($array['_model']);
+		unset($array['_model_id']);
+
+		return $array;
+	}
+
+	/**
+	 * Returns the model managing the active record.
 	 *
 	 * This getter is used when the model has been provided as a string during construct.
 	 *
-	 * @return \ICanBoogie\ActiveRecord\Model
+	 * @return Model
 	 */
 	protected function volatile_get__model()
 	{
-		return ActiveRecord\get_model($this->_model_id);
+		if (!$this->_model)
+		{
+			$this->_model = ActiveRecord\get_model($this->_model_id);
+		}
+
+		return $this->_model;
 	}
 
 	/**
-	 * @throws PropertyNotWritable in attempt to set the {@link _model} property.
+	 * Returns the identifier of the model managing the active record.
+	 *
+	 * The getter is used to provide read-only access to the property.
+	 *
+	 * @return string
 	 */
-	protected function volatile_set__model()
+	protected function volatile_get__model_id()
 	{
-		throw new PropertyNotWritable(array('_model', $this));
+		return $this->_model_id;
 	}
 
 	/**
@@ -113,11 +156,20 @@ class ActiveRecord extends \ICanBoogie\Object
 			unset($properties[$identifier]);
 		}
 
-		return $model->save($properties, $key);
+		$rc = $model->save($properties, $key);
+
+		if ($key === null && $rc)
+		{
+			$this->$primary = $rc;
+		}
+
+		return $rc;
 	}
 
 	/**
 	 * Deletes the active record using its model.
+	 *
+	 * @return bool `true` if the record was deleted, `false` otherwise.
 	 */
 	public function delete()
 	{

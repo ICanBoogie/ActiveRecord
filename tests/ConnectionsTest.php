@@ -9,9 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord\Tests\Connections;
-
-use ICanBoogie\ActiveRecord\Connections;
+namespace ICanBoogie\ActiveRecord;
 
 class ConnectionsTest extends \PHPUnit_Framework_TestCase
 {

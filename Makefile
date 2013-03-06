@@ -4,7 +4,10 @@ install:
 		curl -s https://getcomposer.org/installer | php ; \
 	fi
 	
-	@php composer.phar install
+	@php composer.phar install --prefer-source --dev 
+
+update:
+	@php composer.phar update --prefer-source --dev
 
 test:
 	@if [ ! -d "vendor" ] ; then \

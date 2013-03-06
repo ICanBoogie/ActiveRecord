@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\PropertyNotDefined;
 
 /**
- * Database connections manager.
+ * Connection collection.
  *
  * @property-read array[string]array $definitions Connection definitions.
  * @property-read Database $established Established connections.

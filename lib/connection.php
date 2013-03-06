@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\PropertyNotDefined;
 
 /**
- * Connection to a databse.
+ * A connection to a databse.
  *
  * @property-read string $charset The character set used to communicate with the database. Defaults to "utf8".
  * @property-read string $collate The collation of the character set. Defaults to "utf8_general_ci".
@@ -92,7 +92,7 @@ class Connection extends \PDO
 	public $profiling = array();
 
 	/**
-	 * Creates a connection to a database.
+	 * Establish a connection to a database.
 	 *
 	 * Custom options can be specified using the driver-specific connection options:
 	 *

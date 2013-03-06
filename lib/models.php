@@ -12,7 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Models manager.
+ * Model collection.
  *
  * @property-read Connections $connections
  * @property-read array[string]array $definitions
