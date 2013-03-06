@@ -96,14 +96,9 @@ class ActiveRecord extends \ICanBoogie\Object
 	 *
 	 * @return Model
 	 */
-	protected function volatile_get__model()
+	protected function get__model()
 	{
-		if (!$this->_model)
-		{
-			$this->_model = ActiveRecord\get_model($this->_model_id);
-		}
-
-		return $this->_model;
+		return ActiveRecord\get_model($this->_model_id);
 	}
 
 	/**
