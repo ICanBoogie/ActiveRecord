@@ -22,7 +22,8 @@
 		"php": ">=5.3.0",
 		"ext-pdo": "*",
 		"icanboogie/prototype": "*",
-		"icanboogie/inflector": "*"
+		"icanboogie/inflector": "*",
+		"icanboogie/datetime": "*"
 	},
 	"autoload": {
 		"classmap": [ "lib/" ],

@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\DateTime;
 use ICanBoogie\PropertyNotWritable;
 
 /**
@@ -514,6 +515,12 @@ class Table extends \ICanBoogie\Object
 			if (!array_key_exists($identifier, $fields))
 			{
 				continue;
+			}
+
+			if ($value instanceof \DateTime)
+			{
+				$value = DateTime::from($value);
+				$value = $value->utc->as_db;
 			}
 
 			$filtered[] = $value;

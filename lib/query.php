@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\DateTime;
 use ICanBoogie\Prototype\MethodNotDefined;
 
 /**
@@ -233,6 +234,8 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	/**
 	 * Parses the conditions for the {@link where()} and {@link having()} methods.
 	 *
+	 * {@link \DateTime} conditions are converted to strings.
+	 *
 	 * @return array An array made of the condition string and its arguments.
 	 */
 	private function defered_parse_conditions()
@@ -293,6 +296,14 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 						$conditions_args[$key] = $value;
 					}
 				}
+			}
+		}
+
+		foreach ($conditions_args as &$value)
+		{
+			if ($value instanceof \DateTime)
+			{
+				$value = DateTime::from($value)->utc->as_db;
 			}
 		}
 

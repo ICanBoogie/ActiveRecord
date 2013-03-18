@@ -12,6 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\DateTime;
 
 class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 {
@@ -32,7 +33,8 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 					'fields' => array
 					(
 						'id' => 'serial',
-						'title' => 'varchar'
+						'title' => 'varchar',
+						'date' => 'datetime'
 					)
 				)
 			)
@@ -103,23 +105,48 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$this->assertNotContains('_model_id', $array);
 	}
 
+	public function test_datetime()
+	{
+		$record = new ActiveRecord(self::$model);
+		$record->title = 'datetime';
+		$record->date = '2013-03-06 18:30:30';
+
+		$key = $record->save();
+ 		$record = self::$model[$key];
+		$this->assertEquals('2013-03-06 18:30:30', $record->date);
+
+		$date = new DateTime('2013-03-06 18:30:30', 'Europe/Paris');
+		$record->date = $date;
+		$record->save();
+
+		$record = self::$model[$key];
+		$this->assertEquals($record->date, $date->utc->as_db);
+
+		$record = self::$model->where('date = ?', $date)->one;
+		$this->assertInstanceOf('ICanBoogie\ActiveRecord', $record);
+		$this->assertEquals($key, $record->id);
+	}
+
 	public function test_create_return_key()
 	{
 		$model = self::$model;
+		$model->truncate();
 
 		$a1 = new ActiveRecord($model);
 		$a1->title = 'a1';
+		$a1->date = '2013-03-06 18:30:30';
 
 		$this->assertEquals(1, $a1->save());
 
 		$a2 = new ActiveRecord($model);
 		$a2->title = 'a2';
+		$a2->date = '2013-03-06 18:30:30';
 
 		$this->assertEquals(2, $a2->save());
 
 		$a3 = new ActiveRecord($model);
 		$a3->title = 'a3';
-
+		$a3->date = '2013-03-06 18:30:30';
 		$this->assertEquals(3, $a3->save());
 
 		#
