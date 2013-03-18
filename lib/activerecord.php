@@ -32,9 +32,12 @@ class ActiveRecord extends \ICanBoogie\Object
 	/**
 	 * Identifier of the model managing the active record.
 	 *
+	 * Note: Due to a PHP bug (or feature), the visibility of the property MUST NOT be private.
+	 * https://bugs.php.net/bug.php?id=40412
+	 *
 	 * @var string
 	 */
-	private $_model_id;
+	protected $_model_id;
 
 	/**
 	 * Initializes the {@link $_model} and {@link $_model_id} properties.
@@ -68,10 +71,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	 */
 	public function __sleep()
 	{
-		$properties = parent::__sleep() + array
-		(
-			'_model_id' => '_model_id'
-		);
+		$properties = parent::__sleep();
 
 		unset($properties['_model']);
 

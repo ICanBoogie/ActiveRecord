@@ -12,6 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\ActiveRecordTest\Extended;
 use ICanBoogie\DateTime;
 
 class ActiveRecordTest extends \PHPUnit_Framework_TestCase
@@ -105,6 +106,19 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$this->assertNotContains('_model_id', $array);
 	}
 
+	public function test_serialize()
+	{
+		$record = new ActiveRecord(self::$model);
+		$serialized_record = serialize($record);
+		$unserialized_record = unserialize($serialized_record);
+		$this->assertEquals($record->_model_id, $unserialized_record->_model_id);
+
+		$record = new Extended(self::$model);
+		$serialized_record = serialize($record);
+		$unserialized_record = unserialize($serialized_record);
+		$this->assertEquals($record->_model_id, $unserialized_record->_model_id);
+	}
+
 	public function test_datetime()
 	{
 		$record = new ActiveRecord(self::$model);
@@ -173,4 +187,11 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$record->id = 999;
 		$this->assertFalse($record->delete());
 	}
+}
+
+namespace ICanBoogie\ActiveRecord\ActiveRecordTest;
+
+class Extended extends \ICanBoogie\ActiveRecord
+{
+
 }
