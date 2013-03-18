@@ -27,14 +27,14 @@ class ActiveRecord extends \ICanBoogie\Object
 	 *
 	 * @var Model
 	 */
-	protected $_model;
+	private $_model;
 
 	/**
 	 * Identifier of the model managing the active record.
 	 *
 	 * @var string
 	 */
-	protected $_model_id;
+	private $_model_id;
 
 	/**
 	 * Initializes the {@link $_model} and {@link $_model_id} properties.
@@ -50,7 +50,6 @@ class ActiveRecord extends \ICanBoogie\Object
 	{
 		if (is_string($model))
 		{
-			unset($this->_model);
 			$this->_model_id = $model;
 		}
 		else if ($model instanceof Model)
@@ -69,7 +68,10 @@ class ActiveRecord extends \ICanBoogie\Object
 	 */
 	public function __sleep()
 	{
-		$properties = parent::__sleep();
+		$properties = parent::__sleep() + array
+		(
+			'_model_id' => '_model_id'
+		);
 
 		unset($properties['_model']);
 
@@ -96,9 +98,14 @@ class ActiveRecord extends \ICanBoogie\Object
 	 *
 	 * @return Model
 	 */
-	protected function get__model()
+	protected function volatile_get__model()
 	{
-		return ActiveRecord\get_model($this->_model_id);
+		if (!$this->_model)
+		{
+			$this->_model = ActiveRecord\get_model($this->_model_id);
+		}
+
+		return $this->_model;
 	}
 
 	/**
@@ -120,7 +127,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	 */
 	public function save()
 	{
-		$model = $this->_model;
+		$model = $this->volatile_get__model();
 		$primary = $model->primary;
 		$properties = $this->to_array();
 		$key = null;
@@ -168,7 +175,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	 */
 	public function delete()
 	{
-		$model = $this->_model;
+		$model = $this->volatile_get__model();
 		$primary = $model->primary;
 
 		return $model->delete($this->$primary);
