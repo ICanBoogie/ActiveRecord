@@ -126,30 +126,71 @@ class Model extends Table implements \ArrayAccess
 	/**
 	 * Handles the _belongs to_ relationship of the model.
 	 *
-	 * @param string $belongs_to
+	 * <pre>
+	 * $cars->belongs_to(array($drivers, $brands));
+	 * # or
+	 * $cars->belongs_to(array('drivers', 'brands'));
+	 * # or
+	 * $cars->belongs_to($drivers, $brands);
+	 * # or
+	 * $cars->belongs_to($drivers);
+	 * $cars->belongs_to($brands);
+	 * </pre>
+	 *
+	 * @param string|array $belongs_to
+	 *
+	 * @return Model
 	 *
 	 * @throws ActiveRecordException if the class of the active record is `ICanBoogie\ActiveRecord`.
 	 */
 	public function belongs_to($belongs_to)
 	{
-		$activerecord_class = $this->activerecord_class;
-		$getter_name = 'get_' . \ICanBoogie\singularize($belongs_to);
+		if (func_num_args() > 1)
+		{
+			$belongs_to = func_get_args();
+		}
 
-		if ($activerecord_class == 'ICanBoogie\ActiveRecord')
+		if (is_array($belongs_to))
+		{
+			foreach ($belongs_to as $b)
+			{
+				$this->belongs_to($b);
+			}
+
+			return $this;
+		}
+
+		if ($belongs_to instanceof self)
+		{
+			$belongs_to_model = $belongs_to;
+			$belongs_to_id = $belongs_to->id;
+		}
+		else
+		{
+			$belongs_to_model = null;
+			$belongs_to_id = $belongs_to;
+		}
+
+		$activerecord_class = $this->activerecord_class;
+		$getter_name = 'volatile_get_' . \ICanBoogie\singularize($belongs_to_id);
+
+		if (!$activerecord_class || $activerecord_class == 'ICanBoogie\ActiveRecord')
 		{
 			throw new ActiveRecordException('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a <em>belongs to</em> relationship.');
 		}
 
 		$prototype = \ICanBoogie\Prototype::get($activerecord_class);
 
-		$prototype[$getter_name] = function(ActiveRecord $ar) use($belongs_to)
+		$prototype[$getter_name] = function(ActiveRecord $ar) use($belongs_to_model, $belongs_to_id)
 		{
-			$model = get_model($belongs_to);
+			$model = $belongs_to_model ? $belongs_to_model : get_model($belongs_to_id);
 			$primary = $model->primary;
 			$key = $ar->$primary;
 
 			return $key ? $model[$key] : null;
 		};
+
+		return $this;
 	}
 
 	/**
@@ -751,6 +792,20 @@ class Model extends Table implements \ArrayAccess
 	static public function format_name($module_id, $model_id='primary')
 	{
 		return strtr($module_id, '.', '_') . ($model_id == 'primary' ? '' : '__' . $model_id);
+	}
+
+	/**
+	 * Creates a new active record instance.
+	 *
+	 * The class of the instance is defined by the {@link $activerecord_class} property.
+	 *
+	 * @return ActiveRecord
+	 */
+	public function new_record()
+	{
+		$class = $this->activerecord_class;
+
+		return new $class($this);
 	}
 }
 

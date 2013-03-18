@@ -200,10 +200,107 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 		$this->assertEquals(spl_object_hash($a), spl_object_hash($b));
 	}
+
+	public function test_belongs_to()
+	{
+		$connection = new Connection('sqlite::memory:');
+
+		$drivers = new Model
+		(
+			array
+			(
+				Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Driver',
+				Model::CONNECTION => $connection,
+				Model::NAME => 'drivers',
+				Model::SCHEMA => array
+				(
+					'fields' => array
+					(
+						'driver_id' => 'serial',
+						'name' => 'varchar'
+					)
+				)
+			)
+		);
+
+		$brands = new Model
+		(
+			array
+			(
+				Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Brand',
+				Model::CONNECTION => $connection,
+				Model::NAME => 'brands',
+				Model::SCHEMA => array
+				(
+					'fields' => array
+					(
+						'brand_id' => 'serial',
+						'name' => 'varchar'
+					)
+				)
+			)
+		);
+
+		$cars = new Model
+		(
+			array
+			(
+				Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Car',
+// 				Model::BELONGS_TO => array($drivers, $brands),
+				Model::CONNECTION => $connection,
+				Model::NAME => 'cars',
+				Model::SCHEMA => array
+				(
+					'fields' => array
+					(
+						'car_id' => 'serial',
+						'driver_id' => 'foreign',
+						'brand_id' => 'foreign',
+						'name' => 'varchar'
+					)
+				)
+			)
+		);
+
+		$cars->belongs_to($drivers, $brands);
+
+		$drivers->install();
+		$brands->install();
+		$cars->install();
+
+		$car = $cars->new_record();
+		$this->assertInstanceOf(__NAMESPACE__ . '\ModelTest\Car', $car);
+
+		$car->name = '4two';
+		$this->assertNull($car->driver);
+		$this->assertNull($car->brand);
+
+		# driver
+
+		$driver = $drivers->new_record();
+		$this->assertInstanceOf(__NAMESPACE__ . '\ModelTest\Driver', $driver);
+		$driver->name = 'Madonna';
+		$driver_id = $driver->save();
+
+		# brand
+
+		$brand = $brands->new_record();
+		$this->assertInstanceOf(__NAMESPACE__ . '\ModelTest\Brand', $brand);
+		$brand->name = 'Smart';
+		$brand_id = $brand->save();
+
+		$car->driver_id = $driver_id;
+		$car->brand_id = $brand_id;
+		$car->save();
+
+		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Driver', $car->driver);
+		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Brand', $car->brand);
+	}
 }
 
 namespace ICanBoogie\ActiveRecord\ModelTest;
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 
@@ -213,4 +310,24 @@ class A extends Model
 	{
 		return $query->order('date ' . ($direction == 'desc' ? 'DESC' : 'ASC'));
 	}
+}
+
+class Driver extends ActiveRecord
+{
+	public $driver_id;
+	public $name;
+}
+
+class Brand extends ActiveRecord
+{
+	public $brand_id;
+	public $name;
+}
+
+class Car extends ActiveRecord
+{
+	public $car_id;
+	public $driver_id = 0;
+	public $brand_id = 0;
+	public $name = '';
 }
