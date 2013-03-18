@@ -236,16 +236,7 @@ class Table extends \ICanBoogie\Object
 				$alias = substr($alias, $pos + 1);
 			}
 
-			// TODO-20130216: use ICanBoogie's inflectors
-
-			if (substr($alias, -3, 3) == 'ies')
-			{
-				$alias = substr($alias, 0, -3) . 'y';
-			}
-			else if (substr($alias, -1, 1) == 's')
-			{
-				$alias = substr($alias, 0, -1);
-			}
+			$alias = \ICanBoogie\singularize($alias);
 
 			$this->alias = $alias;
 		}
