@@ -187,6 +187,19 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$record->id = 999;
 		$this->assertFalse($record->delete());
 	}
+
+	public function testPropertiesWithActiveRecordValueAreNotExportedBySleep()
+	{
+		$record = new ActiveRecord(self::$model);
+		$record->int = 13;
+		$record->text = "Text";
+		$record->record = new ActiveRecord(self::$model);
+
+		$properties = $record->__sleep();
+		$this->assertArrayHasKey('int', $properties);
+		$this->assertArrayHasKey('text', $properties);
+		$this->assertArrayNotHasKey('record', $properties);
+	}
 }
 
 namespace ICanBoogie\ActiveRecord\ActiveRecordTest;

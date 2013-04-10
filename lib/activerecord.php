@@ -68,12 +68,23 @@ class ActiveRecord extends \ICanBoogie\Object
 
 	/**
 	 * Removes the {@link $_model} property.
+	 *
+	 * Properties whose value are instances of the {@link ActiveRecord} class are removed from the
+	 * exported properties.
 	 */
 	public function __sleep()
 	{
 		$properties = parent::__sleep();
 
 		unset($properties['_model']);
+
+		foreach ($properties as $property => $dummy)
+		{
+			if ($this->$property instanceof self)
+			{
+				unset($properties[$property]);
+			}
+		}
 
 		return $properties;
 	}
