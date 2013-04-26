@@ -17,8 +17,8 @@ use ICanBoogie\ActiveRecord\Model;
  * Active Record faciliates the creation and use of business objects whose data require persistent
  * storage via database.
  *
- * @property-read Model $_model The model managing the active record.
- * @property-read string $_model_id The identifier of the model managing the active record.
+ * @property-read Model $model The model managing the active record.
+ * @property-read string $model_id The identifier of the model managing the active record.
  */
 class ActiveRecord extends \ICanBoogie\Object
 {
@@ -27,7 +27,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	 *
 	 * @var Model
 	 */
-	private $_model;
+	private $model;
 
 	/**
 	 * Identifier of the model managing the active record.
@@ -37,14 +37,14 @@ class ActiveRecord extends \ICanBoogie\Object
 	 *
 	 * @var string
 	 */
-	protected $_model_id;
+	protected $model_id;
 
 	/**
-	 * Initializes the {@link $_model} and {@link $_model_id} properties.
+	 * Initializes the {@link $model} and {@link $model_id} properties.
 	 *
 	 * @param string|Model $model The model managing the active record. A {@link Model}
 	 * instance can be specified as well as a model identifier. If a model identifier is
-	 * specified, the model is resolved when the {@link $_model} property is accessed.
+	 * specified, the model is resolved when the {@link $model} property is accessed.
 	 *
 	 * @throws \InvalidArgumentException if $model is neither a model identifier nor a
 	 * {@link Model} instance.
@@ -53,12 +53,12 @@ class ActiveRecord extends \ICanBoogie\Object
 	{
 		if (is_string($model))
 		{
-			$this->_model_id = $model;
+			$this->model_id = $model;
 		}
 		else if ($model instanceof Model)
 		{
-			$this->_model = $model;
-			$this->_model_id = $model->id;
+			$this->model = $model;
+			$this->model_id = $model->id;
 		}
 		else
 		{
@@ -67,7 +67,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	}
 
 	/**
-	 * Removes the {@link $_model} property.
+	 * Removes the {@link $model} property.
 	 *
 	 * Properties whose value are instances of the {@link ActiveRecord} class are removed from the
 	 * exported properties.
@@ -76,7 +76,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	{
 		$properties = parent::__sleep();
 
-		unset($properties['_model']);
+		unset($properties['model']);
 
 		foreach ($properties as $property => $dummy)
 		{
@@ -90,14 +90,14 @@ class ActiveRecord extends \ICanBoogie\Object
 	}
 
 	/**
-	 * Removes the {@link $_model} and {@link $_model_id} properties.
+	 * Removes the {@link $model} and {@link $model_id} properties.
 	 */
 	public function to_array()
 	{
 		$array = parent::to_array();
 
-		unset($array['_model']);
-		unset($array['_model_id']);
+		unset($array['model']);
+		unset($array['model_id']);
 
 		return $array;
 	}
@@ -109,14 +109,26 @@ class ActiveRecord extends \ICanBoogie\Object
 	 *
 	 * @return Model
 	 */
-	protected function volatile_get__model()
+	protected function volatile_get_model()
 	{
-		if (!$this->_model)
+		if (!$this->model)
 		{
-			$this->_model = ActiveRecord\get_model($this->_model_id);
+			$this->model = ActiveRecord\get_model($this->model_id);
 		}
 
-		return $this->_model;
+		return $this->model;
+	}
+
+	/**
+	 * Alias to {@link volatile_get_model}.
+	 *
+	 * @deprecated
+	 *
+	 * @see volatile_get_model
+	 */
+	protected function volatile_get__model()
+	{
+		return $this->volatile_get_model();
 	}
 
 	/**
@@ -126,9 +138,21 @@ class ActiveRecord extends \ICanBoogie\Object
 	 *
 	 * @return string
 	 */
+	protected function volatile_get_model_id()
+	{
+		return $this->model_id;
+	}
+
+	/**
+	 * Alias to {@link volatile_get_model_id}.
+	 *
+	 * @deprecated
+	 *
+	 * @see volatile_get_model_id
+	 */
 	protected function volatile_get__model_id()
 	{
-		return $this->_model_id;
+		return $this->volatile_get_model_id();
 	}
 
 	/**

@@ -61,6 +61,12 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	public function test_get_model()
 	{
 		$record = new ActiveRecord(self::$model);
+		$this->assertEquals(self::$model, $record->model);
+	}
+
+	public function test_deprecated_get_model()
+	{
+		$record = new ActiveRecord(self::$model);
 		$this->assertEquals(self::$model, $record->_model);
 	}
 
@@ -70,10 +76,16 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	public function test_set_model()
 	{
 		$record = new ActiveRecord(self::$model);
-		$record->_model = null;
+		$record->model = null;
 	}
 
 	public function test_get_model_id()
+	{
+		$record = new ActiveRecord(self::$model);
+		$this->assertEquals(self::$model->id, $record->model_id);
+	}
+
+	public function test_deprecated_get_model_id()
 	{
 		$record = new ActiveRecord(self::$model);
 		$this->assertEquals(self::$model->id, $record->_model_id);
@@ -85,7 +97,7 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	public function test_set_model_id()
 	{
 		$record = new ActiveRecord(self::$model);
-		$record->_model_id = null;
+		$record->model_id = null;
 	}
 
 	public function test_sleep()
@@ -93,8 +105,8 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$record = new ActiveRecord(self::$model);
 		$properties = $record->__sleep();
 
-		$this->assertNotContains('_model', $properties);
-		$this->assertContains('_model_id', $properties);
+		$this->assertNotContains('model', $properties);
+		$this->assertContains('model_id', $properties);
 	}
 
 	public function test_to_array()
@@ -102,8 +114,8 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$record = new ActiveRecord(self::$model);
 		$array = $record->to_array();
 
-		$this->assertNotContains('_model', $array);
-		$this->assertNotContains('_model_id', $array);
+		$this->assertNotContains('model', $array);
+		$this->assertNotContains('model_id', $array);
 	}
 
 	public function test_serialize()
@@ -111,12 +123,12 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$record = new ActiveRecord(self::$model);
 		$serialized_record = serialize($record);
 		$unserialized_record = unserialize($serialized_record);
-		$this->assertEquals($record->_model_id, $unserialized_record->_model_id);
+		$this->assertEquals($record->model_id, $unserialized_record->model_id);
 
 		$record = new Extended(self::$model);
 		$serialized_record = serialize($record);
 		$unserialized_record = unserialize($serialized_record);
-		$this->assertEquals($record->_model_id, $unserialized_record->_model_id);
+		$this->assertEquals($record->model_id, $unserialized_record->model_id);
 	}
 
 	public function test_datetime()

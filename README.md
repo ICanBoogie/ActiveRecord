@@ -481,12 +481,12 @@ class Node extends \ICanBoogie\ActiveRecord
 	
 	protected function get_next()
 	{
-		return $this->_model->own->visible->where('date > ?', $this->date)->order('date')->one;
+		return $this->model->own->visible->where('date > ?', $this->date)->order('date')->one;
 	}
 
 	protected function get_previous()
 	{
-		return $this->_model->own->visible->where('date < ?', $this->date)->order('date DESC')->one;
+		return $this->model->own->visible->where('date < ?', $this->date)->order('date DESC')->one;
 	}
 	
 	// …
@@ -524,6 +524,7 @@ or particular records; perform various calculations.
 
 Queries often starts from a model, in the following examples the `$model` variable is a reference
 to a model managing _nodes_.
+
 
 
 
