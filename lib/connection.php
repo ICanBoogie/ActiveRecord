@@ -606,7 +606,7 @@ class Connection extends \PDO
 			{
 				$default = $params['default'];
 
-				$definition .= ' DEFAULT ' . ($default{strlen($default) - 1} == ')' ? $default : '"' . $default . '"');
+				$definition .= ' DEFAULT ' . ($default{strlen($default) - 1} == ')' || $default == 'CURRENT_TIMESTAMP' ? $default : '"' . $default . '"');
 			}
 
 			#
