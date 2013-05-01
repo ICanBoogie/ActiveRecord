@@ -293,6 +293,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$car->brand_id = $brand_id;
 		$car->save();
 
+		unset($car->driver);
+		unset($car->brand);
+
 		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Driver', $car->driver);
 		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Brand', $car->brand);
 	}

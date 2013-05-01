@@ -14,7 +14,7 @@ inherited in a business logic.
 Using the __query interface__, you won't have to write raw SQL, manage table relationship,
 or worry about injection.
 
-Finaly, using __providers__ you can define all your connections and models in a single place.
+Finally, using __providers__ you can define all your connections and models in a single place.
 Connections are established and models are instantiated on demand, so feel free the define
 hundreds of them.  
 
@@ -31,8 +31,7 @@ The implementation of the query interface is vastly inspired by
 
 ## Requirements
 
-The package requires PHP 5.3 or later and PDO. The package [icanboogie/prototype](https://packagist.org/packages/icanboogie/prototype)
-is also required.
+The package requires PHP 5.3 or later and PDO.
 
 
 
@@ -40,14 +39,14 @@ is also required.
 
 ## Installation
 
-The recommended way to install this package is through [composer](http://getcomposer.org/).
+The recommended way to install this package is through [Composer](http://getcomposer.org/).
 Create a `composer.json` file and run `php composer.phar install` command to install it:
 
 ```json
 {
 	"minimum-stability": "dev",
 	"require": {
-		"icanboogie/activerecord": "1.0.*"
+		"icanboogie/activerecord": "*"
 	}
 }
 ```
@@ -85,13 +84,26 @@ The test suite is ran with the `make test` command. [Composer](http://getcompose
 automatically installed as well as all dependencies required to run the suite. You can later
 clean the directory with the `make clean` command.
 
+The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
+
+[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.png?branch=master)](https://travis-ci.org/ICanBoogie/ActiveRecord)
+
+
+
+
+
+## License
+
+ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](https://raw.github.com/ICanBoogie/ActiveRecord/master/LICENSE) file for details.
+
 
 
 
 
 ## Establishing a connection to a database
 
-A connection to a database is created with a `Connection` instance.
+A connection to a database is created with a [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
+instance.
 
 The following code establishes a connection to a MySQL database:
 
@@ -151,7 +163,7 @@ The `#timezone` option specifies the time zone of the connection.
 ## Models overview
 
 A _model_ is an object-oriented representation of a database table, or a group of tables.
-A model is used to create, update, delete and query records. Models are instances of the `Model`
+A model is used to create, update, delete and query records. Models are instances of the [Model](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Model.html)
 class, and usually implement a specific business logic.
 
 ```php
@@ -188,7 +200,7 @@ $model = new Nodes
 
 ### Database connection
 
-The `CONNECTION` key specifies the database connection, an instance of the `Connection`
+The `CONNECTION` key specifies the database connection, an instance of the [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
 class.
 
 
@@ -546,8 +558,8 @@ The methods are:
 * offset
 * joins
 
-All of the above methods return a `ICanBoogie\ActiveRecord\Query` instance, allowing you to chain
-them.
+All of the above methods return a [Query](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html)
+instance, allowing you to chain them.
 
 Records can be retrieved in various ways, especially using the `all`, `one`, `pairs` or `rc`
 magic properties. The `find()` method—used to retrieve a single record or a set of records—is the
@@ -587,11 +599,13 @@ $articles = $model->find(array(10, 32, 89));
 $articles = $model->find(10, 32, 89);
 ```
 
-The `RecordNotFound` exception is thrown when a record could not be found. Its `records` property
+The [RecordNotFound](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RecordNotFound.html)
+exception is thrown when a record could not be found. Its `records` property
 can be used to know which records could be found and which could not.
 
 Note: The records of the records set are returned in the same order they are requested, this
-also applies to the `records` property of the `RecordNotFound` exception.
+also applies to the `records` property of the [RecordNotFound](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RecordNotFound.html)
+exception.
 
 
 
@@ -878,7 +892,7 @@ $model->where('is_online = 1')->limit(10)->offset(5);
 
 ### Selecting specific fields
 
-By default all fields are selected (`SELECT *`) and records are instances of the `ActiveRecord`
+By default all fields are selected (`SELECT *`) and records are instances of the [ActiveRecord](http://icanboogie.org/docs/namespace-ICanBoogie.ActiveRecord.html)
 class defined by the model. The `select()` method selects only a subset of fields from
 the result set, in which case each row of the result set is returned as an array, unless a fetch
 mode is defined.
@@ -955,8 +969,8 @@ conditions.
 
 #### Retrieving data by iteration
 
-Instances of `Query` are traversable, it's the easiest way the retrieve the rows of
-the result set:
+Instances of [Query](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html)
+are traversable, it's the easiest way the retrieve the rows of the result set:
 
 ```php
 <?php
@@ -1344,7 +1358,8 @@ The connections provider manages database connections.
 
 #### Defining connections
 
-Connection definitions can be specified while creating the `Connections` instance.
+Connection definitions can be specified while creating the [Connections](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html)
+instance.
 
 ```php 
 <?php
@@ -1381,7 +1396,7 @@ $connections['two'] = array
 );
 ```
 
-You can modify a connection definition until it is established. A `ConnectionAlreayEstablished`
+You can modify a connection definition until it is established. A [ConnectionAlreayEstablished](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html)
 exception is thrown in attempt to modify the definition of an already established connection.
  
 
@@ -1389,7 +1404,8 @@ exception is thrown in attempt to modify the definition of an already establishe
 
 #### Obtaining a database connection
 
-`Connections` instances are used as arrays. For instance, this how you obtain a `Connection`
+[Connections](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html) instances
+are used as arrays. For instance, this is how you obtain a [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
 instance, which represent a database connection:
 
 ```php 
@@ -1398,19 +1414,19 @@ instance, which represent a database connection:
 $one = $connections['one'];
 ```
 
-Database connections are created on demand, so that you can define a hundred connections and they
-will only the established when needed.
+Database connections are created on demand, so that you can define a hundred of them and they
+will only be established when needed.
 
-A `ConnectionNotDefined` exception is thrown in attempt to obtain a connection which is not
-defined.
+A [ConnectionNotDefined](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html)
+exception is thrown in attempt to obtain a connection that is not defined.
 
 
 
 
 #### Checking defined connections
 
-`Connections` instances are used as arrays, the `isset()` function checks if
-a connection is defined.
+Because [Connections](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html)
+instances are used as arrays, the `isset()` function is used to check if a connection is defined.
 
 ```php 
 <?php
@@ -1449,7 +1465,8 @@ foreach ($connections->established as $id => $connection)
 } 
 ```
 
-The `Connections` instance itself can be used to traverse established connections.
+The [Connections](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html) instance
+itself can be used to traverse established connections.
 
 ```php 
 <?php
@@ -1471,10 +1488,12 @@ The models provider manages models.
 
 #### Defining models
 
-Model definitions can be specified while creating the `Models` instance.
+Model definitions can be specified while creating the [Models](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Models.html)
+instance.
 
-Note: You don't have to create the `Connection` intances used by the models, you can use their
-identifier which will get resolved when the model is needed.
+Note: You don't have to create the [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
+intances used by the models, you can use their identifier which will get resolved when the
+model is needed.
 
 Note: If `CONNECTION` is not specified the `primary` connection is used.
 
@@ -1511,7 +1530,8 @@ $models = new Models
 ); 
 ```
 
-Model definitions can be modified or added after the `Models` instance has been created.
+Model definitions can be modified or added after the [Models](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Models.html)
+instance has been created.
 
 ```php
 <?php
@@ -1525,16 +1545,17 @@ $models['new'] = array
 );
 ```
 
-You can modify the definition of a model until the model is instantiated. A
-`ModelAlreadyInstanciated` exception is thrown in attempt to modify the definition of an already
-instantiated model.
+You can modify the definition of a model until it is instantiated. A
+[ModelAlreadyInstanciated](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelAlreadyInstanciated.html)
+exception is thrown in attempt to modify the definition of an already instantiated model.
 
 
 
 
 #### Obtaining a model
 
-Use the `Models` instance as an array to obtain a `Model` instance.
+Use the [Models](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Models.html) instance
+as an array to obtain a [Model](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Model.html) instance.
 
 ```php
 <?php
@@ -1545,7 +1566,8 @@ $nodes = $models['nodes'];
 Models are instantiated on demand, so that you can define a hundred models an they will only by
 instantiated, along with their database connection, when needed.
 
-A `ModelNotDefined` exception is thrown in attempts to obtain a model which is not defined.
+A [ModelNotDefined](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelNotDefined.html)
+exception is thrown in attempts to obtain a model which is not defined.
 
 
 
@@ -1680,9 +1702,3 @@ Helpers::patch('cache_eliminate', function(Model $model, $key) {
 	
 });
 ```
-
-
-
-## License
-
-ICanBoogie/ActiveRecord is licensed under the New BSD License - See the LICENSE file for details.

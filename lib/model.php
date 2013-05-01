@@ -172,7 +172,8 @@ class Model extends Table implements \ArrayAccess
 		}
 
 		$activerecord_class = $this->activerecord_class;
-		$getter_name = 'volatile_get_' . \ICanBoogie\singularize($belongs_to_id);
+// 		$getter_name = 'volatile_get_' . \ICanBoogie\singularize($belongs_to_id);
+		$getter_name = 'get_' . \ICanBoogie\singularize($belongs_to_id);
 
 		if (!$activerecord_class || $activerecord_class == 'ICanBoogie\ActiveRecord')
 		{
