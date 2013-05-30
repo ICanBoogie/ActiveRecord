@@ -16,7 +16,8 @@ or worry about injection.
 
 Finally, using __providers__ you can define all your connections and models in a single place.
 Connections are established and models are instantiated on demand, so feel free the define
-hundreds of them.  
+hundreds of them.
+
 
 
 
@@ -25,76 +26,6 @@ hundreds of them.
 
 The implementation of the query interface is vastly inspired by
 [Ruby On Rails's Active Record Query Interface](http://guides.rubyonrails.org/active_record_querying.html).
-
-
-
-
-## Requirements
-
-The package requires PHP 5.3 or later and PDO.
-
-
-
-
-
-## Installation
-
-The recommended way to install this package is through [Composer](http://getcomposer.org/).
-Create a `composer.json` file and run `php composer.phar install` command to install it:
-
-```json
-{
-	"minimum-stability": "dev",
-	"require": {
-		"icanboogie/activerecord": "*"
-	}
-}
-```
-
-
-
-
-
-### Cloning the repository
-
-The package is [available on GitHub](https://github.com/ICanBoogie/ActiveRecord), its repository
-can be cloned with the following command line:
-
-	$ git clone git://github.com/ICanBoogie/ActiveRecord.git
-
-
-
-
-
-## Documentation
-
-The package is documented as part of the [ICanBoogie](http://icanboogie.org/) framework
-[documentation](http://icanboogie.org/docs/). You can generate the documentation for the package
-and its dependencies with the `make doc` command. The documentation is generated in the `docs`
-directory. [ApiGen](http://apigen.org/) is required. You can later clean the directory with
-the `make clean` command.
-
-
-
-
-
-## Testing
-
-The test suite is ran with the `make test` command. [Composer](http://getcomposer.org/) is
-automatically installed as well as all dependencies required to run the suite. You can later
-clean the directory with the `make clean` command.
-
-The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
-
-[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.png?branch=master)](https://travis-ci.org/ICanBoogie/ActiveRecord)
-
-
-
-
-
-## License
-
-ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](https://raw.github.com/ICanBoogie/ActiveRecord/master/LICENSE) file for details.
 
 
 
@@ -125,7 +56,7 @@ collate of the connection or its timezone.
 
 ### Prefixing database tables
 
-The `#table_name_prefix` option specifies the prefix for all the tables name of the connection. 
+The `#table_name_prefix` option specifies the prefix for all the tables name of the connection.
 Thus, if the `icybee` prefix is defined the `nodes` table is renamed as `icybee_nodes`.
 
 The `{table_name_prefix}` placeholder is replaced in queries by the prefix:
@@ -135,6 +66,7 @@ The `{table_name_prefix}` placeholder is replaced in queries by the prefix:
 
 $stmt = $connection('SELECT * FROM `{table_name_prefix}nodes` LIMIT 10');
 ```
+
 
 
 
@@ -153,9 +85,11 @@ $connection('ALTER TABLE nodes CHARACTER SET "{charset}" COLLATE "{collate}"');
 
 
 
+
 ### Specifying a time zone
 
 The `#timezone` option specifies the time zone of the connection.
+
 
 
 
@@ -198,6 +132,8 @@ $model = new Nodes
 
 
 
+
+
 ### Database connection
 
 The `CONNECTION` key specifies the database connection, an instance of the [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
@@ -206,10 +142,12 @@ class.
 
 
 
+
 ### Active Record class
 
 The `ACTIVERECORD_CLASS` key specifies the class used to instantiate the active records of the
 model.
+
 
 
 
@@ -233,6 +171,8 @@ The `{self}` placeholder is replaced in queries by the `name` property:
 
 $stmt = $model('SELECT * FROM `{self}` LIMIT 10');
 ```
+
+
 
 
 
@@ -366,6 +306,7 @@ if ($model->is_installed())
 
 
 
+
 ### Placeholders
 
 The following placeholders are replaced in model queries:
@@ -375,7 +316,6 @@ The following placeholders are replaced in model queries:
 * `{primary}`: The primary key of the table.
 * `{self}`: The name of the table.
 * `{self_and_related}`: The escaped name of the table and the possible JOIN clauses.
-
 
 
 
@@ -434,7 +374,7 @@ $news->save(array('title' => 'Testing!', 'date' => '2013-02-16'));
 ```
 
 
- 
+
 
 
 ### Belong to
@@ -490,7 +430,7 @@ namespace Website;
 class Node extends \ICanBoogie\ActiveRecord
 {
 	// …
-	
+
 	protected function get_next()
 	{
 		return $this->model->own->visible->where('date > ?', $this->date)->order('date')->one;
@@ -500,7 +440,7 @@ class Node extends \ICanBoogie\ActiveRecord
 	{
 		return $this->model->own->visible->where('date < ?', $this->date)->order('date DESC')->one;
 	}
-	
+
 	// …
 }
 ```
@@ -524,6 +464,8 @@ The `delete()` method deletes the active record from the database:
 $record = $model[190];
 $record->delete();
 ```
+
+
 
 
 
@@ -568,6 +510,7 @@ most simple of them.
 
 
 
+
 #### Retrieving a single record
 
 Retrieve a single record using its primary key is really simple. You can either use the `find()`
@@ -582,6 +525,8 @@ $article = $model->find(10);
 
 $article = $model[10];
 ```
+
+
 
 
 
@@ -609,6 +554,8 @@ exception.
 
 
 
+
+
 #### Records caching
 
 Retrieve records using `find()` enables record caching. Retrieved objects are reused by
@@ -624,11 +571,13 @@ $articles = $model->find(11, 12, 13); '11' and '13' retrieved from database, '12
 
 
 
+
 ### Conditions
 
 The `where()` method specifies the conditions used to filter the records. It represents
 the `WHERE`-part of the SQL statement. Conditions can either be specified as a string, as a
 list of arguments or as an array.
+
 
 
 
@@ -658,6 +607,8 @@ $model->where('is_online = ? AND is_home_excluded = ?', $_GET['online'], false);
 
 
 
+
+
 #### Conditions specified as an array (or list of arguments)
 
 Conditions can also be specified as arrays:
@@ -667,6 +618,8 @@ Conditions can also be specified as arrays:
 
 $model->where(array('is_online' => $_GET['online'], 'is_home_excluded' => false));
 ```
+
+
 
 
 
@@ -681,6 +634,8 @@ $model->where(array('orders_count' => array(1,3,5)));
 ```
 
 This generates something like: `... WHERE (orders_count IN (1,3,5))`.
+
+
 
 
 
@@ -716,6 +671,8 @@ $model->where(array('!order_count' => array(1,3,5)));
 
 
 
+
+
 #### Dynamic filters
 
 Conditions can also be specified as methods, prefixed by `filter_by_` and separated by `_and_`:
@@ -738,6 +695,8 @@ $model->where(array('is_online' => true, 'uid' => 3));
 
 
 
+
+
 #### Scopes
 
 Scopes can be viewed as pre-configured filters sets. Each model can define its own filters,
@@ -753,7 +712,7 @@ use ICanBoogie\Core;
 use ICanBoogie\ActiveRecord\Query;
 
 class Model extends \ICanBoogie\ActiveRecord\Model
-{  
+{
 	// …
 
 	protected function scope_similar_site(Query $query, $siteid=null)
@@ -794,6 +753,7 @@ $model->similar_language('fr')->limit(10);
 
 
 
+
 ### Ordering
 
 The `order` method retrieves records in a specific order.
@@ -829,6 +789,7 @@ $model->order('created DESC, title');
 
 
 
+
 ### Grouping data
 
 The `group()` method specifies the `GROUP BY` clause.
@@ -840,6 +801,8 @@ The following example demonstrates how to retrieve the first record of records g
 
 $model->group('date(created)')->order('created');
 ```
+
+
 
 
 
@@ -856,6 +819,7 @@ month:
 
 $model->group('date(created)')->having('created > ?', date('Y-m-d', strtotime('-1 month')))->order('created')
 ```
+
 
 
 
@@ -890,6 +854,7 @@ $model->where('is_online = 1')->limit(10)->offset(5);
 
 
 
+
 ### Selecting specific fields
 
 By default all fields are selected (`SELECT *`) and records are instances of the [ActiveRecord](http://icanboogie.org/docs/namespace-ICanBoogie.ActiveRecord.html)
@@ -917,10 +882,12 @@ $model->select('nid, created, CONCAT_WS(":", title, language)');
 
 
 
+
 ### Joining tables
 
 The `joins()` method specifies the `JOIN` clause. A raw string or a model identifier
 can be used to specify the join. The method can be used multiple times to create multiple joins.
+
 
 
 
@@ -935,6 +902,8 @@ statement.
 
 $model->joins('INNER JOIN `contents` USING(`nid`)');
 ```
+
+
 
 
 
@@ -958,11 +927,13 @@ details.
 
 
 
+
 ### Retrieving data
 
 There are many ways to retrieve data. We have already seen the `find()` method, which can be used
 to retrieve records using their identifier. The following methods or magic properties work with
 conditions.
+
 
 
 
@@ -980,6 +951,8 @@ foreach ($model->where('is_online = 1') as $node)
 	// …
 }
 ```
+
+
 
 
 
@@ -1002,6 +975,8 @@ The `all()` method retrieves the complete result set using a specific fetch mode
 $array = $model->all(\PDO::FETCH_ASSOC);
 $array = $model->visible->order('created DESC')->(\PDO::FETCH_ASSOC)
 ```
+
+
 
 
 
@@ -1030,6 +1005,7 @@ Note: The number of records to retrieve is automatically limited to 1.
 
 
 
+
 #### Retrieving key/value pairs
 
 The `pairs` magic property retrieves key/value pairs when selecting two columns, the first column
@@ -1053,6 +1029,8 @@ array
 
 
 
+
+
 #### Retrieve the first column of the first row
 
 The `rc` magic property retrieves the first colunm of the first row.
@@ -1064,6 +1042,8 @@ $title = $model->select('title')->rc;
 ```
 
 Note: The number of records to retrieve is automatically limited to 1.
+
+
 
 
 
@@ -1090,6 +1070,7 @@ with the `all()` and `one()` methods.
 $array = $model->order('created DESC')->all(\PDO::FETCH_ASSOC);
 $record = $model->order('created DESC')->one(\PDO::FETCH_ASSOC);
 ```
+
 
 
 
@@ -1145,6 +1126,8 @@ $model->exists;
 
 
 
+
+
 ### Counting
 
 The `count` magic property is the number of records in a model or matching a query.
@@ -1186,6 +1169,8 @@ array
 ```
 
 In this example, there is 35 record online and 145 offline.
+
+
 
 
 
@@ -1342,9 +1327,12 @@ $model->sum('comments_count');
 
 
 
+
+
 ## Providers
 
 Providers are included to manage connections and models.
+
 
 
 
@@ -1356,12 +1344,13 @@ The connections provider manages database connections.
 
 
 
+
 #### Defining connections
 
 Connection definitions can be specified while creating the [Connections](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html)
 instance.
 
-```php 
+```php
 <?php
 
 use ICanBoogie\ActiveRecord\Connections;
@@ -1380,12 +1369,12 @@ $connections = new Connections
 			'dsn' => 'mysql:dbname=bad_database' . uniqid()
 		)
 	)
-); 
+);
 ```
 
 Or after:
 
-```php 
+```php
 <?php
 
 $connections['two'] = array
@@ -1398,7 +1387,8 @@ $connections['two'] = array
 
 You can modify a connection definition until it is established. A [ConnectionAlreayEstablished](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html)
 exception is thrown in attempt to modify the definition of an already established connection.
- 
+
+
 
 
 
@@ -1408,7 +1398,7 @@ exception is thrown in attempt to modify the definition of an already establishe
 are used as arrays. For instance, this is how you obtain a [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
 instance, which represent a database connection:
 
-```php 
+```php
 <?php
 
 $one = $connections['one'];
@@ -1419,6 +1409,7 @@ will only be established when needed.
 
 A [ConnectionNotDefined](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html)
 exception is thrown in attempt to obtain a connection that is not defined.
+
 
 
 
@@ -1451,6 +1442,8 @@ foreach ($connections->definitions as $id => $definition)
 
 
 
+
+
 #### Established connections
 
 An array with the established connections can be retrieved using the `established` magic property.
@@ -1479,9 +1472,12 @@ foreach ($connections as $id => $connection)
 
 
 
+
+
 ### The models provider
 
 The models provider manages models.
+
 
 
 
@@ -1496,9 +1492,6 @@ intances used by the models, you can use their identifier which will get resolve
 model is needed.
 
 Note: If `CONNECTION` is not specified the `primary` connection is used.
-
-
-
 
 ```php
 <?php
@@ -1520,7 +1513,7 @@ $models = new Models
 				// …
 			)
 		),
-		
+
 		'contents' => array
 		(
 			// …
@@ -1552,6 +1545,7 @@ exception is thrown in attempt to modify the definition of an already instantiat
 
 
 
+
 #### Obtaining a model
 
 Use the [Models](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Models.html) instance
@@ -1568,6 +1562,7 @@ instantiated, along with their database connection, when needed.
 
 A [ModelNotDefined](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelNotDefined.html)
 exception is thrown in attempts to obtain a model which is not defined.
+
 
 
 
@@ -1599,6 +1594,8 @@ foreach ($models->definitions as $id => $definition)
 
 
 
+
+
 #### Instanciated models
 
 An array with the instantiated models can be retrieved using the `instances` magic property. The
@@ -1612,6 +1609,8 @@ foreach ($models->instances as $id => $model)
 	echo "The model '$id' has been instantiated.\n";
 }
 ```
+
+
 
 
 
@@ -1645,6 +1644,7 @@ $nodes = ActiveRecord\get_model('nodes');
 
 
 
+
 ### Using APC to cache records between requests
 
 Records are cached during an HTTP request by the `Model` class, but performance can be improved
@@ -1670,35 +1670,106 @@ Helpers::patch('create_cache_key', function(Model $model, ActiveRecord $record) 
 	}
 
 	return $prefix . $this->connection->id . '/' . $this->name . '/' . $key;
-	
+
 });
 
 Helpers::patch('cache_store', function(Model $model, ActiveRecord $record) {
 
 	$key = ActiveRecord\create_cache_key($model, $record->{$model->primary});
-	
+
 	apc_store($key, $record, 3600);
-	
+
 });
 
 Helpers::patch('cache_retrieve', function(Model $model, $key) {
 
 	$key = ActiveRecord\create_cache_key($model, $key);
-	
+
 	$record = apc_fetch($key, $success);
 
 	if ($success)
 	{
 		return $record;
 	}
-	
+
 });
 
 Helpers::patch('cache_eliminate', function(Model $model, $key) {
 
 	$key = ActiveRecord\create_cache_key($model, $key);
-	
+
 	apc_delete($key);
-	
+
 });
 ```
+
+
+
+
+
+## Requirements
+
+The package requires PHP 5.3 or later and PDO.
+
+
+
+
+
+## Installation
+
+The recommended way to install this package is through [Composer](http://getcomposer.org/).
+Create a `composer.json` file and run `php composer.phar install` command to install it:
+
+```json
+{
+	"minimum-stability": "dev",
+	"require": {
+		"icanboogie/activerecord": "*"
+	}
+}
+```
+
+
+
+
+
+### Cloning the repository
+
+The package is [available on GitHub](https://github.com/ICanBoogie/ActiveRecord), its repository
+can be cloned with the following command line:
+
+	$ git clone git://github.com/ICanBoogie/ActiveRecord.git
+
+
+
+
+
+## Testing
+
+The test suite is ran with the `make test` command. [Composer](http://getcomposer.org/) is
+automatically installed as well as all dependencies required to run the suite. You can later
+clean the directory with the `make clean` command.
+
+The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
+
+[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.png?branch=master)](https://travis-ci.org/ICanBoogie/ActiveRecord)
+
+
+
+
+
+## Documentation
+
+The package is documented as part of the [ICanBoogie](http://icanboogie.org/) framework
+[documentation](http://icanboogie.org/docs/). You can generate the documentation for the package
+and its dependencies with the `make doc` command. The documentation is generated in the `docs`
+directory. [ApiGen](http://apigen.org/) is required. You can later clean the directory with
+the `make clean` command.
+
+
+
+
+
+## License
+
+ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](https://raw.github.com/ICanBoogie/ActiveRecord/master/LICENSE) file for details.
