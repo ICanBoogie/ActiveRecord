@@ -442,7 +442,7 @@ class Model extends Table implements \ArrayAccess
 			return;
 		}
 
-		self::$cached_records[$cache_key] = null;
+		unset(self::$cached_records[$cache_key]);
 
 		Helpers::cache_eliminate($this, $key);
 	}
@@ -456,24 +456,8 @@ class Model extends Table implements \ArrayAccess
 	 */
 	protected function create_cache_key($key)
 	{
-		/*
-		if ($key === null)
-		{
-			return;
-		}
-
-		if (self::$master_cache_key === null)
-		{
-			self::$master_cache_key = md5($_SERVER['DOCUMENT_ROOT']) . '/AR/';
-		}
-
-		return self::$master_cache_key . $this->connection->id . '/' . $this->name . '/' . $key;
-		*/
-
 		return Helpers::create_cache_key($this, $key);
 	}
-
-// 	static private $master_cache_key;
 
 	/**
 	 * Delegation hub.

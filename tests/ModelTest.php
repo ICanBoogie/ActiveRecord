@@ -299,6 +299,40 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Driver', $car->driver);
 		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Brand', $car->brand);
 	}
+
+	public function testCacheRevokedOnSave()
+	{
+		$connection = new Connection('sqlite::memory:');
+
+		$drivers = new Model
+		(
+			array
+			(
+				Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Driver',
+				Model::CONNECTION => $connection,
+				Model::NAME => 'drivers_3',
+				Model::SCHEMA => array
+				(
+					'fields' => array
+					(
+						'driver_id' => 'serial',
+						'name' => 'varchar'
+					)
+				)
+			)
+		);
+
+		$drivers->install();
+
+		$driver_id = $drivers->save(array('name' => 'madonna'));
+		$driver = $drivers[$driver_id];
+		$drivers->save(array('name' => 'lady gaga'), $driver_id);
+		$driver_now = $drivers[$driver_id];
+
+		$this->assertEquals('madonna', $driver->name);
+		$this->assertEquals('lady gaga', $driver_now->name);
+		$this->assertNotEquals(spl_object_hash($driver), spl_object_hash($driver_now));
+	}
 }
 
 namespace ICanBoogie\ActiveRecord\ModelTest;
