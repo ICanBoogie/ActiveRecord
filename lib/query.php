@@ -395,9 +395,9 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * @return Query
 	 */
-	public function order($order)
+	public function order($order_or_field_name, $field_values=null)
 	{
-		$this->order = $order;
+		$this->order = func_get_args();
 
 		return $this;
 	}
@@ -528,25 +528,58 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 			}
 		}
 
-		if ($this->order)
+		$order = $this->order;
+
+		if ($order)
 		{
-			$query .= ' ORDER BY ' . $this->order;
+			$query .= ' ' . $this->render_order($order);
 		}
 
-		if ($this->offset && $this->limit)
+		$offset = $this->offset;
+		$limit = $this->limit;
+
+		if ($offset || $limit)
 		{
-			$query .= " LIMIT $this->offset, $this->limit";
-		}
-		else if ($this->offset)
-		{
-			$query .= " LIMIT $this->offset, 18446744073709551615";
-		}
-		else if ($this->limit)
-		{
-			$query .= " LIMIT $this->limit";
+			$query .= ' ' . $this->render_offset_and_limit($offset, $limit);
 		}
 
 		return $query;
+	}
+
+	protected function render_order($order)
+	{
+		if (count($order) == 1)
+		{
+			return 'ORDER BY ' . $order[0];
+		}
+
+		$connection = $this->model->connection;
+
+		$field = array_shift($order);
+		$field_values = is_array($order[0]) ? $order[0] : $order;
+		$field_values = array_map(function($v) use($connection) {
+
+			return $connection->quote($v);
+
+		}, $field_values);
+
+		return "ORDER BY FIELD($field, " . implode(', ', $field_values) . ")";
+	}
+
+	protected function render_offset_and_limit($offset, $limit)
+	{
+		if ($offset && $limit)
+		{
+			return "LIMIT $offset, $limit";
+		}
+		else if ($offset)
+		{
+			return "LIMIT $offset, 18446744073709551615";
+		}
+		else if ($limit)
+		{
+			return "LIMIT $limit";
+		}
 	}
 
 	/**

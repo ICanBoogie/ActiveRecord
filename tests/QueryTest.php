@@ -93,6 +93,25 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 		$this->assertInternalType('array', $all);
 		$this->assertEquals(self::$n, count($all));
 	}
+
+	public function test_order()
+	{
+		$m = self::$animals;
+
+		$q = $m->order('name ASC, legs DESC');
+		$this->assertEquals("SELECT * FROM `animals` `animal` ORDER BY name ASC, legs DESC", (string) $q);
+	}
+
+	public function test_order_by_field()
+	{
+		$m = self::$animals;
+
+		$q = $m->order('id', array(1, 2, 3));
+		$this->assertEquals("SELECT * FROM `animals` `animal` ORDER BY FIELD(id, '1', '2', '3')", (string) $q);
+
+		$q = $m->order('id', 1, 2, 3);
+		$this->assertEquals("SELECT * FROM `animals` `animal` ORDER BY FIELD(id, '1', '2', '3')", (string) $q);
+	}
 }
 
 namespace ICanBoogie\ActiveRecord\QueryTest;

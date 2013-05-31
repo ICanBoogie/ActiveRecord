@@ -308,7 +308,7 @@ class Table extends \ICanBoogie\Object
 
 		$this->update_join = $join;
 
-		$join = " `{$this->alias}` $join";
+		$join = "`{$this->alias}`" . ($join ? " $join" : '');
 
 		#
 		# resolve implements
@@ -341,7 +341,7 @@ class Table extends \ICanBoogie\Object
 				$primary = $table->primary;
 
 				$join .= empty($implement['loose']) ? 'INNER' : 'LEFT';
-				$join .= " JOIN `$name` as {$table->alias} USING(`$primary`) ";
+				$join .= " JOIN `$name` AS {$table->alias} USING(`$primary`) ";
 
 				$i++;
 			}
@@ -441,7 +441,7 @@ class Table extends \ICanBoogie\Object
 				'{prefix}' => $this->connection->prefix,
 				'{primary}' => $this->primary,
 				'{self}' => $this->name,
-				'{self_and_related}' => "`$this->name` $this->select_join"
+				'{self_and_related}' => "`$this->name`" . ($this->select_join ? " $this->select_join" : '')
 			)
 		);
 	}

@@ -699,9 +699,9 @@ $model->where(array('is_online' => true, 'uid' => 3));
 
 #### Scopes
 
-Scopes can be viewed as pre-configured filters sets. Each model can define its own filters,
-inherit filters from its parent class or override them. For instance, this is how a `similar_site`,
-`similar_language` and `visible` scopes could be defined:
+Scopes can be viewed as model defined filters. Models can define their own filters,
+inherit filters from their parent class and override them. For instance, this is how a
+`similar_site`, `similar_language` and `visible` scopes could be defined:
 
 ```php
 <?php
@@ -756,7 +756,7 @@ $model->similar_language('fr')->limit(10);
 
 ### Ordering
 
-The `order` method retrieves records in a specific order.
+The `order()` method retrieves records in a specific order.
 
 The following example demonstrates how to get records in the ascending order of their creation
 date:
@@ -785,6 +785,15 @@ Multiple fields can be used while ordering:
 $model->order('created DESC, title');
 ```
 
+Records can also be ordered by field:
+
+```php
+<?php
+
+$model->where(array('nid' => array(1, 2, 3)))->order('nid', array(2, 3, 1));
+# or
+$model->where(array('nid' => array(1, 2, 3)))->order('nid', 2, 3, 1);
+```
 
 
 
