@@ -18,6 +18,33 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	private $connection;
 	private $model;
 
+	static public $query_connection;
+	static public $query_model;
+
+	static public function setUpBeforeClass()
+	{
+		self::$query_connection = new Connection('sqlite::memory:');
+		self::$query_model = new Model
+		(
+			array
+			(
+				Model::NAME => 'nodes',
+				Model::CONNECTION => self::$query_connection,
+				Model::SCHEMA => array
+				(
+					'fields' => array
+					(
+						'id' => 'serial',
+						'name' => 'varchar',
+						'date' => 'timestamp'
+					)
+				)
+			)
+		);
+
+		self::$query_model->install();
+	}
+
 	public function setUp()
 	{
 		$connection = new Connection('sqlite::memory:', null, null, array(Connection::TABLE_NAME_PREFIX => 'prefix'));
@@ -49,6 +76,46 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->connection = $connection;
 		$this->model = $model;
 	}
+
+	/*
+	 * Setters/Getters
+	 */
+
+	/**
+	 * @expectedException ICanBoogie\PropertyNotWritable
+	 */
+	public function testIdIsNotWritable()
+	{
+		self::$query_model->id = true;
+	}
+
+	/**
+	 * @expectedException ICanBoogie\PropertyNotWritable
+	 */
+	public function testActiverecordClassIsNotWritable()
+	{
+		self::$query_model->activerecord_class = true;
+	}
+
+	/**
+	 * @expectedException ICanBoogie\PropertyNotWritable
+	 */
+	public function testExistsIsNotWritable()
+	{
+		self::$query_model->exists = true;
+	}
+
+	/**
+	 * @expectedException ICanBoogie\PropertyNotWritable
+	 */
+	public function testCountIsNotWritable()
+	{
+		self::$query_model->count = true;
+	}
+
+	/*
+	 *
+	 */
 
 	public function testFind()
 	{
@@ -183,13 +250,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($a, $m->exists(array(1, $u, 3)));
 	}
 
-	public function testExistsConditionTrue()
+	public function testExistsCondition()
 	{
 		$this->assertTrue($this->model->filter_by_name('Madonna')->exists);
-	}
-
-	public function testExistsConditionFalse()
-	{
 		$this->assertFalse($this->model->filter_by_name('Madonna ' . uniqid())->exists);
 	}
 
@@ -332,6 +395,54 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('madonna', $driver->name);
 		$this->assertEquals('lady gaga', $driver_now->name);
 		$this->assertNotEquals(spl_object_hash($driver), spl_object_hash($driver_now));
+	}
+
+	/*
+	 * Querying
+	 */
+
+	public function testForwardSelect()
+	{
+		$m = self::$query_model;
+		$this->assertEquals("SELECT nid, UPPER(name) FROM `nodes` `node`", (string) $m->select('nid, UPPER(name)'));
+	}
+
+	public function testForwardJoins()
+	{
+		$m = self::$query_model;
+		$this->assertEquals("SELECT * FROM `nodes` `node` INNER JOIN other USING(nid)", (string) $m->joins('INNER JOIN other USING(nid)'));
+	}
+
+	public function testForwardWhere()
+	{
+		$m = self::$query_model;
+		$this->assertEquals("SELECT * FROM `nodes` `node` WHERE (`nid` = ? AND `name` = ?)", (string) $m->where(array('nid' => 1, 'name' => 'madonna')));
+	}
+
+	public function testForwardGroup()
+	{
+		$m = self::$query_model;
+		$this->assertEquals("SELECT * FROM `nodes` `node` GROUP BY name", (string) $m->group('name'));
+	}
+
+	public function testForwardOrder()
+	{
+		$m = self::$query_model;
+		$this->assertEquals("SELECT * FROM `nodes` `node` ORDER BY nid", (string) $m->order('nid'));
+		$this->assertEquals("SELECT * FROM `nodes` `node` ORDER BY FIELD(nid, '1', '2', '3')", (string) $m->order('nid', 1, 2, 3));
+	}
+
+	public function testForwardLimit()
+	{
+		$m = self::$query_model;
+		$this->assertEquals("SELECT * FROM `nodes` `node` LIMIT 5", (string) $m->limit(5));
+		$this->assertEquals("SELECT * FROM `nodes` `node` LIMIT 5, 10", (string) $m->limit(5, 10));
+	}
+
+	public function testForwardOffset()
+	{
+		$m = self::$query_model;
+		$this->assertEquals("SELECT * FROM `nodes` `node` LIMIT 5, " . Query::LIMIT_MAX, (string) $m->offset(5));
 	}
 }
 

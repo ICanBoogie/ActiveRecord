@@ -32,6 +32,8 @@ use ICanBoogie\Prototype\MethodNotDefined;
  */
 class Query extends \ICanBoogie\Object implements \IteratorAggregate
 {
+	const LIMIT_MAX = '18446744073709551615';
+
 	protected $select;
 	protected $join;
 
@@ -226,7 +228,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 			$expression = $model->resolve_statement("INNER JOIN `{self}` AS `{alias}` USING(`{$primary}`)");
 		}
 
-		$this->join .= ' ' . $expression;
+		$this->join .= ($this->join ? ' ' : '') . $expression;
 
 		return $this;
 	}
@@ -574,7 +576,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 		}
 		else if ($offset)
 		{
-			return "LIMIT $offset, 18446744073709551615";
+			return "LIMIT $offset, " . self::LIMIT_MAX;
 		}
 		else if ($limit)
 		{

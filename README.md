@@ -561,11 +561,11 @@ exception.
 Retrieve records using `find()` enables record caching. Retrieved objects are reused by
 subsequent calls. This also applies to the array notation.
 
-```
+```php
 <?php
 
 $article = $model[12]; // '12' retrieved from database
-$articles = $model->find(11, 12, 13); '11' and '13' retrieved from database, '12' is reused.
+$articles = $model->find(11, 12, 13); // '11' and '13' retrieved from database, '12' is reused.
 ```
 
 
@@ -666,7 +666,7 @@ $model->where(array('!order_count' => array(1,3,5)));
 ```
 
 ```
-… WHERE `order_id` NOT IN(1, 3, 5)
+… WHERE `order_count` NOT IN(1, 3, 5)
 ```
 
 
@@ -840,7 +840,7 @@ The `limit()` method limits the number of records to retrieve.
 ```php
 <?php
 
-$model->where('is_online = 1')->limit(10); // retrieves the first 10 records
+$model->limit(10); // retrieves the first 10 records
 ```
 
 With two arguments, an offset can be specified:
@@ -848,7 +848,7 @@ With two arguments, an offset can be specified:
 ```php
 <?php
 
-$model->where('is_online = 1')->limit(5, 10); // retrieves records from the 6th to the 16th
+$model->limit(5, 10); // retrieves records from the 6th to the 16th
 ```
 
 The offset can also be defined using the `offset()` method:
@@ -856,8 +856,8 @@ The offset can also be defined using the `offset()` method:
 ```php
 <?php
 
-$model->where('is_online = 1')->offset(5); // retrieves records from the 6th to the last
-$model->where('is_online = 1')->limit(10)->offset(5);
+$model->offset(5); // retrieves records from the 6th to the last
+$model->limit(10)->offset(5);
 ```
 
 
@@ -1271,11 +1271,11 @@ Limits and offets:
 ```php
 <?php
 
-$model->where('is_online = 1')->limit(10); // first 10 records
-$model->where('is_online = 1')->limit(5, 10); // 6th to the 16th records
+$model->limit(10); // first 10 records
+$model->limit(5, 10); // 6th to the 16th records
 
-$model->where('is_online = 1')->offset(5); // from the 6th to the last
-$model->where('is_online = 1')->offset(5)->limit(10);
+$model->offset(5); // from the 6th to the last
+$model->offset(5)->limit(10);
 ```
 
 Fields selection:

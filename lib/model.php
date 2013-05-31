@@ -18,6 +18,21 @@ use ICanBoogie\PropertyNotWritable;
 /**
  * Base class for activerecord models.
  *
+ * @method Query select() select($expression) The method is forwarded to {@link Query::select}.
+ * @method Query joins() joins($expression) The method is forwarded to {@link Query::joins}.
+ * @method Query where() where($conditions, $conditions_args=null) The method is forwarded to {@link Query::where}.
+ * @method Query group() group($group) The method is forwarded to {@link Query::group}.
+ * @method Query order() order($order) The method is forwarded to {@link Query::order}.
+ * @method Query limit() limit($limit, $offset=null) The method is forwarded to {@link Query::limit}.
+ * @method bool exists() exists($key=null) The method is forwarded to {@link Query::exists}.
+ * @method mixed count() count($column=null) The method is forwarded to {@link Query::count}.
+ * @method string average() average($column) The method is forwarded to {@link Query::average}.
+ * @method string maximum() maximum($column) The method is forwarded to {@link Query::maximum}.
+ * @method string minimum() minimum($column) The method is forwarded to {@link Query::minimum}.
+ * @method int sum() sum($column) The method is forwarded to {@link Query::sum}.
+ * @method array all() all() The method is forwarded to {@link Query::all}.
+ * @method ActiveRecord one() one() The method is forwarded to {@link Query::one}.
+ *
  * @property-read array $all Retrieve all the records from the model.
  * @property-read string $activerecord_class Class of the active records of the model.
  * @property-read int $count The number of records of the model.
@@ -37,6 +52,19 @@ class Model extends Table implements \ArrayAccess
 	const BELONGS_TO = 'belongs_to';
 	const CLASSNAME = 'class';
 	const ID = 'id';
+
+	/**
+	 * Formats a SQL table name given the module id and the model id.
+	 *
+	 * @param string $module_id
+	 * @param string $model_id
+	 *
+	 * @return string
+	 */
+	static public function format_name($module_id, $model_id='primary')
+	{
+		return strtr($module_id, '.', '_') . ($model_id == 'primary' ? '' : '__' . $model_id);
+	}
 
 	/**
 	 * Active record instances class.
@@ -195,24 +223,17 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Overrides the method to handle dynamic finders and scopes.
+	 * Handles query methods, dynamic filters and scopes.
 	 */
 	public function __call($method, $arguments)
 	{
-		if (strpos($method, 'filter_by_') === 0)
+		if (is_callable(array('ICanBoogie\ActiveRecord\Query', $method))
+		|| strpos($method, 'filter_by_') === 0
+		|| method_exists($this, 'scope_' . $method))
 		{
-			$arq = new Query($this);
+			$query = new Query($this);
 
-			return call_user_func_array(array($arq, $method), $arguments);
-		}
-
-		$callback = 'scope_' . $method;
-
-		if (method_exists($this, $callback))
-		{
-			$arq = new Query($this);
-
-			return call_user_func_array(array($arq, $method), $arguments);
+			return call_user_func_array(array($query, $method), $arguments);
 		}
 
 		return parent::__call($method, $arguments);
@@ -223,13 +244,11 @@ class Model extends Table implements \ArrayAccess
 	 */
 	public function __get($property)
 	{
-		$callback = 'scope_' . $property;
+		$method = 'scope_' . $property;
 
-		if (method_exists($this, $callback))
+		if (method_exists($this, $method))
 		{
-			$arq = new Query($this);
-
-			return $this->$callback($arq);
+			return $this->$method(new Query($this));
 		}
 
 		return parent::__get($property);
@@ -243,14 +262,6 @@ class Model extends Table implements \ArrayAccess
 	protected function volatile_get_id()
 	{
 		return $this->attributes[self::ID];
-	}
-
-	/**
-	 * @throws PropertyNotWritable in appenpt to write {@link $id}
-	 */
-	protected function volatile_set_id()
-	{
-		throw new PropertyNotWritable(array('id', $this));
 	}
 
 	/**
@@ -460,114 +471,6 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Delegation hub.
-	 *
-	 * @return mixed
-	 */
-	private function forward_to_query()
-	{
-		$trace = debug_backtrace(false);
-		$arq = new Query($this);
-
-		return call_user_func_array(array($arq, $trace[1]['function']), $trace[1]['args']);
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::joins}.
-	 *
-	 * @param string $expression
-	 *
-	 * @return Query
-	 */
-	public function joins($expression)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is delegated {@link Query::select}.
-	 *
-	 * @param string $expression
-	 *
-	 * @return Query
-	 */
-	public function select($expression)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::where}.
-	 *
-	 * @param $conditions
-	 *
-	 * @param null $conditions_args
-	 *
-	 * @return Query
-	 */
-	public function where($conditions, $conditions_args=null)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::group}.
-	 *
-	 * @param $group
-	 *
-	 * @return Query
-	 */
-	public function group($group)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::order}.
-	 *
-	 * @param $order
-	 *
-	 * @return Query
-	 */
-	public function order($order)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::limit}.
-	 *
-	 * @param int $limit
-	 * @param int $offset
-	 *
-	 * @return Query
-	 */
-	public function limit($limit, $offset=null)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::exists}.
-	 *
-	 * @param $key
-	 *
-	 * @return bool
-	 */
-	public function exists($key=null)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * @throws PropertyNotWritable in attempt to write {@link $exists}
-	 */
-	protected function volatile_set_exists()
-	{
-		throw new PropertyNotWritable(array('exists', $this));
-	}
-
-	/**
 	 * Checks that the SQL table associated with the model exists.
 	 *
 	 * @return bool
@@ -575,26 +478,6 @@ class Model extends Table implements \ArrayAccess
 	protected function volatile_get_exists()
 	{
 		return $this->exists();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::count}.
-	 *
-	 * @param $column
-	 *
-	 * @return Query
-	 */
-	public function count($column=null)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * @throws PropertyNotWritable in attempt to write {@link $count}
-	 */
-	protected function volatile_set_count()
-	{
-		throw new PropertyNotWritable(array('count', $this));
 	}
 
 	/**
@@ -608,78 +491,20 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * The method is forwarded to {@link Query::average}.
+	 * Returns all the records of the model.
 	 *
-	 * @param $column
-	 *
-	 * @return Query
+	 * @return array[]ActiveRecord
 	 */
-	public function average($column)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::minimum}.
-	 *
-	 * @param $column
-	 *
-	 * @return Query
-	 */
-	public function minimum($column)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::maximum}.
-	 *
-	 * @param $column
-	 *
-	 * @return Query
-	 */
-	public function maximum($column)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::sum}.
-	 *
-	 * @param $column
-	 *
-	 * @return Query
-	 */
-	public function sum($column)
-	{
-		return $this->forward_to_query();
-	}
-
-	/**
-	 * The method is forwarded to {@link Query::all}.
-	 *
-	 * @return array An array of records.
-	 */
-	public function all()
-	{
-		return $this->forward_to_query();
-	}
-
 	protected function volatile_get_all()
 	{
 		return $this->all();
 	}
 
 	/**
-	 * The method is forwarded to {@link Query::one}.
+	 * Returns the first record of the model.
 	 *
-	 * @return ActiveRecord A record.
+	 * @return ActiveRecord
 	 */
-	public function one()
-	{
-		return $this->forward_to_query();
-	}
-
 	protected function volatile_get_one()
 	{
 		return $this->one();
@@ -764,19 +589,6 @@ class Model extends Table implements \ArrayAccess
 	public function offsetGet($key)
 	{
 		return $this->find($key);
-	}
-
-	/**
-	 * Formats a SQL table name given the module id and the model id.
-	 *
-	 * @param string $module_id
-	 * @param string $model_id
-	 *
-	 * @return string
-	 */
-	static public function format_name($module_id, $model_id='primary')
-	{
-		return strtr($module_id, '.', '_') . ($model_id == 'primary' ? '' : '__' . $model_id);
 	}
 
 	/**
