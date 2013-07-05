@@ -513,8 +513,8 @@ most simple of them.
 
 #### Retrieving a single record
 
-Retrieve a single record using its primary key is really simple. You can either use the `find()`
-of the model, or use the model as an array. 
+Retrieving a single record using its primary key is really simple. You can either use the `find()`
+method of the model, or use the model as an array. 
 
 ```php
 <?php
@@ -532,7 +532,7 @@ $article = $model[10];
 
 #### Retrieving a set of records
 
-Retrieve a set or records using their primary key is really simple too:
+Retrieving a set or records using their primary key is really simple too:
 
 ```php
 <?php
@@ -548,8 +548,8 @@ The [RecordNotFound](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Re
 exception is thrown when a record could not be found. Its `records` property
 can be used to know which records could be found and which could not.
 
-Note: The records of the records set are returned in the same order they are requested, this
-also applies to the `records` property of the [RecordNotFound](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RecordNotFound.html)
+Note: The records of the set are returned in the same order they are requested, this also applies
+to the `records` property of the [RecordNotFound](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RecordNotFound.html)
 exception.
 
 
@@ -558,8 +558,8 @@ exception.
 
 #### Records caching
 
-Retrieve records using `find()` enables record caching. Retrieved objects are reused by
-subsequent calls. This also applies to the array notation.
+Records retrived using `find()` are cached, they are reused by subsequent calls. This also
+applies to the array notation.
 
 ```php
 <?php
