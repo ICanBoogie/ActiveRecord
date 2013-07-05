@@ -19,6 +19,8 @@ use ICanBoogie\Prototype\MethodNotDefined;
  * methods of the {@link Model} class create a {@link Query} object that is returned for
  * further specification, such as filters or limits.
  *
+ * @method Query and() and($conditions, $conditions_args=null) Alias to {@link where()}.
+ *
  * @property-read array $all An array with all the records matching the query.
  * @property-read mixed $one The first record matching the query.
  * @property-read array $pairs An array of key/value pairs.
@@ -92,6 +94,11 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 */
 	public function __call($method, $arguments)
 	{
+		if ($method === 'and')
+		{
+			return call_user_func_array(array($this, 'where'), $arguments);
+		}
+
 		if (strpos($method, 'filter_by_') === 0)
 		{
 			return $this->dynamic_filter(substr($method, 10), $arguments); // 10 is for: strlen('filter_by_')

@@ -605,6 +605,14 @@ Of course you can use multiple conditions:
 $model->where('is_online = ? AND is_home_excluded = ?', $_GET['online'], false);
 ```
 
+`and()` is alias to `where()` and should be prefered when linking adding conditions:
+
+```php
+<?php
+
+$model->where('is_online = ?', $_GET['online'])->and('is_home_excluded = ?', false);
+```
+
 
 
 
@@ -717,12 +725,12 @@ class Model extends \ICanBoogie\ActiveRecord\Model
 
 	protected function scope_similar_site(Query $query, $siteid=null)
 	{
-		return $query->where('siteid = 0 OR siteid = ?', $siteid !== null ? $siteid : Core::get()->site->siteid);
+		return $query->and('siteid = 0 OR siteid = ?', $siteid !== null ? $siteid : Core::get()->site->siteid);
 	}
 	
 	protected function scope_similar_language(Query $query, $language=null)
 	{
-		return $query->where('language = "" OR language = ?', $language !== null ? $language : Core::get()->site->language);
+		return $query->and('language = "" OR language = ?', $language !== null ? $language : Core::get()->site->language);
 	}
 
 	protected function scope_visible(Query $query, $visible=true)
@@ -1239,7 +1247,7 @@ Conditions:
 
 $model->where('is_online = ?', true);
 $model->where(array('is_online' => true, 'is_home_excluded' => false));
-$model->where('siteid = 0 OR siteid = ?', 1)->where('language = '' OR language = ?', "fr");
+$model->where('siteid = 0 OR siteid = ?', 1)->and('language = '' OR language = ?', "fr");
 
 # Sets
 
