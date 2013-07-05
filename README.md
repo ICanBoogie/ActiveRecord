@@ -1548,7 +1548,7 @@ $models['new'] = array
 ```
 
 You can modify the definition of a model until it is instantiated. A
-[ModelAlreadyInstanciated](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelAlreadyInstanciated.html)
+[ModelAlreadyInstantiated](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html)
 exception is thrown in attempt to modify the definition of an already instantiated model.
 
 
@@ -1605,7 +1605,7 @@ foreach ($models->definitions as $id => $definition)
 
 
 
-#### Instanciated models
+#### Instantiated models
 
 An array with the instantiated models can be retrieved using the `instances` magic property. The
 property is _read-only_.
