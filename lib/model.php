@@ -54,19 +54,6 @@ class Model extends Table implements \ArrayAccess
 	const ID = 'id';
 
 	/**
-	 * Formats a SQL table name given the module id and the model id.
-	 *
-	 * @param string $module_id
-	 * @param string $model_id
-	 *
-	 * @return string
-	 */
-	static public function format_name($module_id, $model_id='primary')
-	{
-		return strtr($module_id, '.', '_') . ($model_id == 'primary' ? '' : '__' . $model_id);
-	}
-
-	/**
 	 * Active record instances class.
 	 *
 	 * @var string
