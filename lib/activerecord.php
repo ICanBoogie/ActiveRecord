@@ -163,24 +163,41 @@ class ActiveRecord extends \ICanBoogie\Object
 	public function save()
 	{
 		$model = $this->volatile_get__model();
-		$primary = $model->primary;
 		$properties = $this->to_array();
-		$key = null;
+		$properties = $this->alter_persistent_properties($properties, $model);
 
 		# removes the primary key from the properties.
 
-		if (isset($properties[$primary]))
+		$key = null;
+		$primary = $model->primary;
+
+		if (!is_array($primary) && isset($properties[$primary]))
 		{
 			$key = $properties[$primary];
 
 			unset($properties[$primary]);
 		}
 
-		#
-		# Unless it's an acceptable value for a column, columns with `null` values are discarted.
-		# This way, we don't have to define every properties before saving our active record.
-		#
+		$rc = $model->save($properties, $key);
 
+		if ($key === null && $rc && !is_array($primary))
+		{
+			$this->$primary = $rc;
+		}
+
+		return $rc;
+	}
+
+	/**
+	 * Unless it's an acceptable value for a column, columns with `null` values are discarted.
+	 * This way, we don't have to define every properties before saving our active record.
+	 *
+	 * @param array $properties
+	 *
+	 * @return array The altered persistent properties
+	 */
+	protected function alter_persistent_properties(array $properties, Model $model)
+	{
 		$schema = $model->extended_schema;
 
 		foreach ($properties as $identifier => $value)
@@ -193,14 +210,7 @@ class ActiveRecord extends \ICanBoogie\Object
 			unset($properties[$identifier]);
 		}
 
-		$rc = $model->save($properties, $key);
-
-		if ($key === null && $rc)
-		{
-			$this->$primary = $rc;
-		}
-
-		return $rc;
+		return $properties;
 	}
 
 	/**
