@@ -269,18 +269,25 @@ class Table extends \ICanBoogie\Object
 			}
 		}
 
-		if (!$this->connection)
+		$connection = $this->connection;
+
+		if (!($connection instanceof Connection))
 		{
-			throw new \InvalidArgumentException('The <code>CONNECTION</code> attribute is empty.');
+			throw new \InvalidArgumentException
+			(
+				'<code>connection</code> must be an instance of Connection, given: '
+				. (is_object($connection) ? 'instance of ' . get_class($connection) : gettype($connection))
+				. '.'
+			);
 		}
 
-		$this->name = $this->connection->prefix . $this->name_unprefixed;
+		$this->name = $connection->prefix . $this->name_unprefixed;
 
 		#
 		# parse definition schema to have a complete schema
 		#
 
-		$this->schema = $this->connection->parse_schema($this->schema);
+		$this->schema = $connection->parse_schema($this->schema);
 
 		#
 		# retrieve primary key

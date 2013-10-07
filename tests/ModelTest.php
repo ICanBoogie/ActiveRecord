@@ -77,6 +77,27 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->model = $model;
 	}
 
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testInvalidConnection()
+	{
+		$model = new Model(array
+		(
+			Model::NAME => 'tests',
+			Model::CONNECTION => 'invalid_connection',
+			Model::SCHEMA => array
+			(
+				'fields' => array
+				(
+					'id' => 'serial',
+					'name' => 'varchar',
+					'date' => 'timestamp'
+				)
+			)
+		));
+	}
+
 	/*
 	 * Setters/Getters
 	 */
