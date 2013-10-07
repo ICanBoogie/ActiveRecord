@@ -207,6 +207,11 @@ class Table extends \ICanBoogie\Object
 			throw new \InvalidArgumentException('The <code>NAME</code> attribute is empty.');
 		}
 
+		if (preg_match('#([^0-9,a-z,A-Z$_])#', $this->name_unprefixed, $matches))
+		{
+			throw new \InvalidArgumentException("Invalid character in table name \"$this->name_unprefixed\": {$matches[0]}.");
+		}
+
 		if (!$this->schema)
 		{
 			throw new \InvalidArgumentException('The <code>SCHEMA</code> attribute is empty.');

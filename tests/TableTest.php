@@ -65,6 +65,19 @@ class TableTest extends \PHPUnit_Framework_TestCase
 		self::$dogs->install();
 	}
 
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function test_invalid_table_name()
+	{
+		new Table(array(
+
+			Table::NAME => 'invalid-name',
+			Table::CONNECTION => self::$connection
+
+		));
+	}
+
 	/*
 	 * getters and setters
 	 */
