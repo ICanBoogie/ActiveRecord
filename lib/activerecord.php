@@ -171,18 +171,25 @@ class ActiveRecord extends \ICanBoogie\Object
 		$key = null;
 		$primary = $model->primary;
 
-		if (!is_array($primary) && isset($properties[$primary]))
+		if (is_array($primary))
 		{
-			$key = $properties[$primary];
-
-			unset($properties[$primary]);
+			$rc = $model->insert($properties, array('on duplicate' => true));
 		}
-
-		$rc = $model->save($properties, $key);
-
-		if ($key === null && $rc && !is_array($primary))
+		else
 		{
-			$this->$primary = $rc;
+			if (isset($properties[$primary]))
+			{
+				$key = $properties[$primary];
+
+				unset($properties[$primary]);
+			}
+
+			$rc = $model->save($properties, $key);
+
+			if ($key === null && $rc)
+			{
+				$this->$primary = $rc;
+			}
 		}
 
 		return $rc;
