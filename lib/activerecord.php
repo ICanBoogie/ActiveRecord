@@ -162,7 +162,9 @@ class ActiveRecord extends \ICanBoogie\Object
 	 */
 	public function save()
 	{
-		$model = $this->volatile_get__model();
+		$model = $this->volatile_get_model();
+		$schema = $model->extended_schema;
+
 		$properties = $this->to_array();
 		$properties = $this->alter_persistent_properties($properties, $model);
 
@@ -170,8 +172,13 @@ class ActiveRecord extends \ICanBoogie\Object
 
 		$key = null;
 		$primary = $model->primary;
+		$primary_definition = $primary ? $schema['fields'][$primary] : null;
 
 		if (is_array($primary))
+		{
+			$rc = $model->insert($properties, array('on duplicate' => true));
+		}
+		else if (isset($properties[$primary]) && empty($primary_definition['auto increment']))
 		{
 			$rc = $model->insert($properties, array('on duplicate' => true));
 		}
@@ -180,7 +187,6 @@ class ActiveRecord extends \ICanBoogie\Object
 			if (isset($properties[$primary]))
 			{
 				$key = $properties[$primary];
-
 				unset($properties[$primary]);
 			}
 
