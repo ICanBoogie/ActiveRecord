@@ -172,29 +172,33 @@ class ActiveRecord extends \ICanBoogie\Object
 
 		$key = null;
 		$primary = $model->primary;
-		$primary_definition = $primary ? $schema['fields'][$primary] : null;
 
 		if (is_array($primary))
 		{
 			$rc = $model->insert($properties, array('on duplicate' => true));
 		}
-		else if (isset($properties[$primary]) && empty($primary_definition['auto increment']))
-		{
-			$rc = $model->insert($properties, array('on duplicate' => true));
-		}
 		else
 		{
-			if (isset($properties[$primary]))
+			$primary_definition = $primary ? $schema['fields'][$primary] : null;
+
+			if (isset($properties[$primary]) && empty($primary_definition['auto increment']))
 			{
-				$key = $properties[$primary];
-				unset($properties[$primary]);
+				$rc = $model->insert($properties, array('on duplicate' => true));
 			}
-
-			$rc = $model->save($properties, $key);
-
-			if ($key === null && $rc)
+			else
 			{
-				$this->$primary = $rc;
+				if (isset($properties[$primary]))
+				{
+					$key = $properties[$primary];
+					unset($properties[$primary]);
+				}
+
+				$rc = $model->save($properties, $key);
+
+				if ($key === null && $rc)
+				{
+					$this->$primary = $rc;
+				}
 			}
 		}
 
