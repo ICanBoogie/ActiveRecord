@@ -424,7 +424,7 @@ class Connection extends \PDO
 			# indexed
 			#
 
-			if (!empty($definition['indexed']))
+			if (!empty($definition['indexed']) && empty($definition['unique']))
 			{
 				$index = $definition['indexed'];
 
