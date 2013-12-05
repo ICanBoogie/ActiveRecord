@@ -24,6 +24,7 @@ use ICanBoogie\PropertyNotWritable;
  * @method Query group() group($group) The method is forwarded to {@link Query::group}.
  * @method Query order() order($order) The method is forwarded to {@link Query::order}.
  * @method Query limit() limit($limit, $offset=null) The method is forwarded to {@link Query::limit}.
+ * @method Query offset() offset($offset) The method is forwarded to {@link Query::offset}.
  * @method bool exists() exists($key=null) The method is forwarded to {@link Query::exists}.
  * @method mixed count() count($column=null) The method is forwarded to {@link Query::count}.
  * @method string average() average($column) The method is forwarded to {@link Query::average}.
@@ -187,8 +188,7 @@ class Model extends Table implements \ArrayAccess
 		}
 
 		$activerecord_class = $this->activerecord_class;
-// 		$getter_name = 'volatile_get_' . \ICanBoogie\singularize($belongs_to_id);
-		$getter_name = 'get_' . \ICanBoogie\singularize($belongs_to_id);
+		$getter_name = 'lazy_get_' . \ICanBoogie\singularize($belongs_to_id);
 
 		if (!$activerecord_class || $activerecord_class == 'ICanBoogie\ActiveRecord')
 		{
@@ -246,7 +246,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return string
 	 */
-	protected function volatile_get_id()
+	protected function get_id()
 	{
 		return $this->attributes[self::ID];
 	}
@@ -256,7 +256,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return string
 	 */
-	protected function volatile_get_activerecord_class()
+	protected function get_activerecord_class()
 	{
 		return $this->activerecord_class;
 	}
@@ -462,7 +462,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return bool
 	 */
-	protected function volatile_get_exists()
+	protected function get_exists()
 	{
 		return $this->exists();
 	}
@@ -472,7 +472,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return int
 	 */
-	protected function volatile_get_count()
+	protected function get_count()
 	{
 		return $this->count();
 	}
@@ -482,7 +482,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return array[]ActiveRecord
 	 */
-	protected function volatile_get_all()
+	protected function get_all()
 	{
 		return $this->all();
 	}
@@ -492,7 +492,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return ActiveRecord
 	 */
-	protected function volatile_get_one()
+	protected function get_one()
 	{
 		return $this->one();
 	}

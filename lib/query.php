@@ -622,7 +622,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * @return \ICanBoogie\Database\Statement
 	 */
-	protected function volatile_get_prepared()
+	protected function get_prepared()
 	{
 		return $this->prepare();
 	}
@@ -677,7 +677,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function volatile_get_all()
+	protected function get_all()
 	{
 		return $this->all();
 	}
@@ -721,7 +721,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * @see one()
 	 */
-	protected function volatile_get_one()
+	protected function get_one()
 	{
 		return $this->one();
 	}
@@ -732,7 +732,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function volatile_get_pairs()
+	protected function get_pairs()
 	{
 		return $this->all(\PDO::FETCH_KEY_PAIR);
 	}
@@ -742,7 +742,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function volatile_get_rc()
+	protected function get_rc()
 	{
 		$previous_limit = $this->limit;
 
@@ -824,7 +824,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * @see exists()
 	 */
-	protected function volatile_get_exists()
+	protected function get_exists()
 	{
 		return $this->exists();
 	}
@@ -885,7 +885,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * @return int
 	 */
-	protected function volatile_get_count()
+	protected function get_count()
 	{
 		return $this->count();
 	}

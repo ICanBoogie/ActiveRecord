@@ -82,17 +82,26 @@ class TableTest extends \PHPUnit_Framework_TestCase
 	 * getters and setters
 	 */
 
+	/**
+	 * @dataProvider provide_test_readonly_properties
+	 * @expectedException ICanBoogie\PropertyNotWritable
+	 *
+	 * @param string $property Property name.
+	 */
+	public function test_readonly_properties($property)
+	{
+		self::$animals->$property = null;
+	}
+
+	public function provide_test_readonly_properties()
+	{
+		$properties = 'connection|name|name_unprefixed|primary|alias|parent';
+		return array_map(function($v) { return (array) $v; }, explode('|', $properties));
+	}
+
 	public function test_get_connection()
 	{
 		$this->assertEquals(self::$connection, self::$animals->connection);
-	}
-
-	/**
-	 * @expectedException \ICanBoogie\PropertyNotWritable
-	 */
-	public function test_set_connection()
-	{
-		self::$animals->connection = null;
 	}
 
 	public function test_get_name()
@@ -100,25 +109,9 @@ class TableTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('prefix_animals', self::$animals->name);
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\PropertyNotWritable
-	 */
-	public function test_set_name()
-	{
-		self::$animals->name = null;
-	}
-
 	public function test_get_name_unprefixed()
 	{
 		$this->assertEquals('animals', self::$animals->name_unprefixed);
-	}
-
-	/**
-	 * @expectedException \ICanBoogie\PropertyNotWritable
-	 */
-	public function test_set_name_unprefixed()
-	{
-		self::$animals->name_unprefixed = null;
 	}
 
 	public function test_get_primary()
@@ -131,26 +124,10 @@ class TableTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('id', self::$dogs->primary);
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\PropertyNotWritable
-	 */
-	public function test_set_primary()
-	{
-		self::$animals->primary = null;
-	}
-
 	public function test_get_alias()
 	{
 		$this->assertEquals('animal', self::$animals->alias);
 		$this->assertEquals('dog', self::$dogs->alias);
-	}
-
-	/**
-	 * @expectedException \ICanBoogie\PropertyNotWritable
-	 */
-	public function test_set_alias()
-	{
-		self::$animals->alias = null;
 	}
 
 	// TODO-20130303: schema
@@ -158,14 +135,6 @@ class TableTest extends \PHPUnit_Framework_TestCase
 	public function test_get_parent()
 	{
 		$this->assertEquals(self::$animals, self::$dogs->parent);
-	}
-
-	/**
-	 * @expectedException \ICanBoogie\PropertyNotWritable
-	 */
-	public function test_set_parent()
-	{
-		self::$animals->parent = null;
 	}
 
 	public function test_extended_schema()

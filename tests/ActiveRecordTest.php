@@ -104,7 +104,6 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	{
 		$record = new ActiveRecord(self::$model);
 		$properties = $record->__sleep();
-
 		$this->assertNotContains('model', $properties);
 		$this->assertContains('model_id', $properties);
 	}
@@ -113,7 +112,6 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	{
 		$record = new ActiveRecord(self::$model);
 		$array = $record->to_array();
-
 		$this->assertNotContains('model', $array);
 		$this->assertNotContains('model_id', $array);
 	}
@@ -123,6 +121,7 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$record = new ActiveRecord(self::$model);
 		$serialized_record = serialize($record);
 		$unserialized_record = unserialize($serialized_record);
+
 		$this->assertEquals($record->model_id, $unserialized_record->model_id);
 
 		$record = new Extended(self::$model);

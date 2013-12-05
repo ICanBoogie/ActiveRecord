@@ -90,26 +90,13 @@ class ActiveRecord extends \ICanBoogie\Object
 	}
 
 	/**
-	 * Removes the {@link $model} and {@link $model_id} properties.
-	 */
-	public function to_array()
-	{
-		$array = parent::to_array();
-
-		unset($array['model']);
-		unset($array['model_id']);
-
-		return $array;
-	}
-
-	/**
 	 * Returns the model managing the active record.
 	 *
 	 * This getter is used when the model has been provided as a string during construct.
 	 *
 	 * @return Model
 	 */
-	protected function volatile_get_model()
+	protected function get_model()
 	{
 		if (!$this->model)
 		{
@@ -120,15 +107,15 @@ class ActiveRecord extends \ICanBoogie\Object
 	}
 
 	/**
-	 * Alias to {@link volatile_get_model}.
+	 * Alias to {@link get_model}.
 	 *
 	 * @deprecated
 	 *
-	 * @see volatile_get_model
+	 * @see get_model
 	 */
-	protected function volatile_get__model()
+	protected function get__model()
 	{
-		return $this->volatile_get_model();
+		return $this->get_model();
 	}
 
 	/**
@@ -138,21 +125,21 @@ class ActiveRecord extends \ICanBoogie\Object
 	 *
 	 * @return string
 	 */
-	protected function volatile_get_model_id()
+	protected function get_model_id()
 	{
 		return $this->model_id;
 	}
 
 	/**
-	 * Alias to {@link volatile_get_model_id}.
+	 * Alias to {@link get_model_id}.
 	 *
 	 * @deprecated
 	 *
-	 * @see volatile_get_model_id
+	 * @see get_model_id
 	 */
-	protected function volatile_get__model_id()
+	protected function get__model_id()
 	{
-		return $this->volatile_get_model_id();
+		return $this->get_model_id();
 	}
 
 	/**
@@ -162,7 +149,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	 */
 	public function save()
 	{
-		$model = $this->volatile_get_model();
+		$model = $this->get_model();
 		$schema = $model->extended_schema;
 
 		$properties = $this->to_array();
@@ -237,7 +224,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	 */
 	public function delete()
 	{
-		$model = $this->volatile_get__model();
+		$model = $this->get__model();
 		$primary = $model->primary;
 
 		return $model->delete($this->$primary);

@@ -54,7 +54,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return \ICanBoogie\ActiveRecord\Database
 	 */
-	protected function volatile_get_connection()
+	protected function get_connection()
 	{
 		return $this->connection;
 	}
@@ -71,7 +71,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return string
 	 */
-	protected function volatile_get_name()
+	protected function get_name()
 	{
 		return $this->name;
 	}
@@ -90,7 +90,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return string
 	 */
-	protected function volatile_get_name_unprefixed()
+	protected function get_name_unprefixed()
 	{
 		return $this->name_unprefixed;
 	}
@@ -107,7 +107,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return \ICanBoogie\ActiveRecord\mixed
 	 */
-	protected function volatile_get_primary()
+	protected function get_primary()
 	{
 		return $this->primary;
 	}
@@ -127,7 +127,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return string
 	 */
-	protected function volatile_get_alias()
+	protected function get_alias()
 	{
 		return $this->alias;
 	}
@@ -154,7 +154,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return string
 	 */
-	protected function volatile_get_parent()
+	protected function get_parent()
 	{
 		return $this->parent;
 	}
@@ -408,7 +408,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return array
 	 */
-	protected function get_extended_schema()
+	protected function lazy_get_extended_schema()
 	{
 		$table = $this;
 		$schemas = array();

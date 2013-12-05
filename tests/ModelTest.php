@@ -12,14 +12,16 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ModelTest\A;
+use ICanBoogie\DateTime;
 
 class ModelTest extends \PHPUnit_Framework_TestCase
 {
 	private $connection;
 	private $model;
 
-	static public $query_connection;
-	static public $query_model;
+	static private $query_connection;
+	static private $query_model;
+	static private $query_model_records_count;
 
 	static public function setUpBeforeClass()
 	{
@@ -42,7 +44,15 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 			)
 		);
 
+		$names = explode('|', 'one|two|three|four');
+
 		self::$query_model->install();
+		self::$query_model_records_count = count($names);
+
+		foreach ($names as $name)
+		{
+			self::$query_model->save(array('name' => $name, 'date' => DateTime::now()));
+		}
 	}
 
 	public function setUp()
@@ -78,6 +88,77 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * @dataProvider provide_test_readonly_properties
+	 * @expectedException ICanBoogie\PropertyNotWritable
+	 * @param string $property Property name.
+	 */
+	public function test_readonly_properties($property)
+	{
+		self::$query_model->$property = null;
+	}
+
+	public function provide_test_readonly_properties()
+	{
+		$properties = 'id|activerecord_class|exists|count|all|one';
+		return array_map(function($v) { return (array) $v; }, explode('|', $properties));
+	}
+
+	public function test_get_id()
+	{
+		$this->assertEquals('nodes', self::$query_model->id);
+	}
+
+	public function test_get_activerecord_class()
+	{
+		$this->assertEquals('nodes', self::$query_model->id);
+	}
+
+	public function test_get_exists()
+	{
+		$this->assertTrue(self::$query_model->exists);
+	}
+
+	public function test_get_count()
+	{
+		$this->assertEquals(self::$query_model_records_count, self::$query_model->count);
+	}
+
+	public function test_get_all()
+	{
+		$all = self::$query_model->all;
+		$this->assertInternalType('array', $all);
+		$this->assertEquals(self::$query_model_records_count, count($all));
+	}
+
+	public function test_get_one()
+	{
+		$one = self::$query_model->one;
+		$this->assertInstanceOf('ICanBoogie\ActiveRecord', $one);
+	}
+
+	/**
+	 * @dataProvider provide_test_initiate_query
+	 */
+	public function test_initiate_query($method, $args)
+	{
+		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Query', call_user_func_array(array(self::$query_model, $method), $args));
+	}
+
+	public function provide_test_initiate_query()
+	{
+		return array
+		(
+			array('select', array('id, name')),
+			array('joins', array('JOIN some_other_table')),
+			array('where', array('1=1')),
+			array('group', array('name')),
+			array('order', array('name')),
+			array('limit', array('12')),
+			array('offset', array('12'))
+		);
+	}
+
+	/**
 	 * @expectedException InvalidArgumentException
 	 */
 	public function testInvalidConnection()
@@ -96,42 +177,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 				)
 			)
 		));
-	}
-
-	/*
-	 * Setters/Getters
-	 */
-
-	/**
-	 * @expectedException ICanBoogie\PropertyNotWritable
-	 */
-	public function testIdIsNotWritable()
-	{
-		self::$query_model->id = true;
-	}
-
-	/**
-	 * @expectedException ICanBoogie\PropertyNotWritable
-	 */
-	public function testActiverecordClassIsNotWritable()
-	{
-		self::$query_model->activerecord_class = true;
-	}
-
-	/**
-	 * @expectedException ICanBoogie\PropertyNotWritable
-	 */
-	public function testExistsIsNotWritable()
-	{
-		self::$query_model->exists = true;
-	}
-
-	/**
-	 * @expectedException ICanBoogie\PropertyNotWritable
-	 */
-	public function testCountIsNotWritable()
-	{
-		self::$query_model->count = true;
 	}
 
 	/*
