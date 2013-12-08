@@ -18,7 +18,8 @@ use ICanBoogie\PropertyNotWritable;
  * A representation of a database table.
  *
  * @property-read Connection $connection Connection used by the table.
- * @property-read array $extended_schema Extended schema of the table.
+ * @property-read array $schema The schema of the table.
+ * @property-read array $extended_schema The extended schema of the table.
  * @property-read string $name_unprefixed Unprefixed name of the table.
  * @property-read mixed $primary Primary key of the table, or `null` if there is none.
  * @property-read string $alias The alias name of the table.
@@ -140,6 +141,16 @@ class Table extends \ICanBoogie\Object
 	 * @var array
 	 */
 	protected $schema;
+
+	/**
+	 * Returns the schema of the table.
+	 *
+	 * @return array
+	 */
+	protected function get_schema()
+	{
+		return $this->schema;
+	}
 
 	/**
 	 * The parent is used when the table is in a hierarchy, which is the case if the table

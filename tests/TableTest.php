@@ -95,8 +95,9 @@ class TableTest extends \PHPUnit_Framework_TestCase
 
 	public function provide_test_readonly_properties()
 	{
-		$properties = 'connection|name|name_unprefixed|primary|alias|parent';
-		return array_map(function($v) { return (array) $v; }, explode('|', $properties));
+		$properties = 'connection name name_unprefixed primary alias parent schema';
+
+		return array_map(function($v) { return (array) $v; }, explode(' ', $properties));
 	}
 
 	public function test_get_connection()
@@ -128,6 +129,11 @@ class TableTest extends \PHPUnit_Framework_TestCase
 	{
 		$this->assertEquals('animal', self::$animals->alias);
 		$this->assertEquals('dog', self::$dogs->alias);
+	}
+
+	public function test_get_schema()
+	{
+		$this->assertInternalType('array', self::$animals->schema);
 	}
 
 	// TODO-20130303: schema
