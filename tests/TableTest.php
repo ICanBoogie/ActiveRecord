@@ -151,4 +151,27 @@ class TableTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('name', $schema['fields']);
 		$this->assertArrayHasKey('bark_volume', $schema['fields']);
 	}
+
+	public function test_resolve_statement__multi_column_primary_key()
+	{
+		$table = new Table(array(
+
+			Table::CONNECTION => self::$connection,
+			Table::NAME => 'testing',
+			Table::SCHEMA => array
+			(
+				'fields' => array
+				(
+					'p1' => array('integer', 'big', 'primary' => true),
+					'p2' => array('integer', 'big', 'primary' => true),
+					'f1' => 'varchar'
+				)
+			)
+
+		));
+
+		$statement = 'SELECT FROM {self} WHERE {primary} = 1';
+
+		$this->assertEquals('SELECT FROM prefix_testing WHERE __multicolumn_primary__p1_p2 = 1', $table->resolve_statement($statement));
+	}
 }

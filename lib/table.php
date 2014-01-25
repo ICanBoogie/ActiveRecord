@@ -442,7 +442,7 @@ class Table extends \ICanBoogie\Object
 	/**
 	 * Resolve statement placeholders.
 	 *
-	 * The following placeholder are replaced :
+	 * The following placeholder are replaced:
 	 *
 	 * - `{alias}`: The alias of the table.
 	 * - `{prefix}`: The prefix used for the tables of the connection.
@@ -450,19 +450,28 @@ class Table extends \ICanBoogie\Object
 	 * - `{self}`: The name of the table.
 	 * - `{self_and_related}`: The escaped name of the table and the possible JOIN clauses.
 	 *
+	 * Note: If the table has a multi-column primary keys `{primary}` is replaced by
+	 * `__multicolumn_primary__<concatened_columns>` where `<concatened_columns>` is a the columns
+	 * concatenated with an underscore ("_") as separator. For instance, if a table primary key is
+	 * made of columns "p1" and "p2", `{primary}` is replaced by `__multicolumn_primary__p1_p2`.
+	 * It's not very helpful, but we still have to decide what to do with this.
+	 *
 	 * @param string $statement The statement to resolve.
 	 *
 	 * @return string
 	 */
 	public function resolve_statement($statement)
 	{
+		$primary = $this->primary;
+		$primary = is_array($primary) ? '__multicolumn_primary__' . implode('_', $primary) : $primary;
+
 		return strtr
 		(
 			$statement, array
 			(
 				'{alias}' => $this->alias,
 				'{prefix}' => $this->connection->prefix,
-				'{primary}' => $this->primary,
+				'{primary}' => $primary,
 				'{self}' => $this->name,
 				'{self_and_related}' => "`$this->name`" . ($this->select_join ? " $this->select_join" : '')
 			)
