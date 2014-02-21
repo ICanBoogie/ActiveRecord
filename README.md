@@ -1,4 +1,4 @@
-# Active Record [![Build Status](https://secure.travis-ci.org/ICanBoogie/ActiveRecord.png?branch=master)](http://travis-ci.org/ICanBoogie/ActiveRecord)
+# Active Record [![Build Status](https://secure.travis-ci.org/ICanBoogie/ActiveRecord.png?branch=2.0)](http://travis-ci.org/ICanBoogie/ActiveRecord)
 
 As described by Martin Flower, an active record "carries both data and behavior. Much of this
 data is persistent and needs to be stored in a database. Active Record uses the most obvious
@@ -463,6 +463,38 @@ The `delete()` method deletes the active record from the database:
 
 $record = $model[190];
 $record->delete();
+```
+
+
+
+
+
+### Date time properties
+
+The package comes with three trait properties especially designed to handle [DateTime][]
+instances: [DateTimeProperty][], [CreatedAtProperty][], [UpdatedAtProperty][]. Using this
+properties you are guaranted to always get a [DateTime][] instance, no matter what value type
+is used to set the date and time.
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord;
+
+class Node extends ActiveRecord
+{
+	public $title;
+
+	use CreatedAtProperty;
+	use UpdatedAtProperty;
+}
+
+$node = new Node;
+
+echo get_class($node->created_at);   // ICanBoogie\Datetime
+echo $node->created_at->is_empty;    // true
+$node->created_at = 'now';
+echo $node->created_at;              // 2014-02-21T15:00:00+0100
 ```
 
 
@@ -1726,7 +1758,7 @@ Helpers::patch('cache_eliminate', function(Model $model, $key) {
 
 ## Requirements
 
-The package requires PHP 5.3 or later and PDO.
+The package requires PHP 5.4 or later and PDO.
 
 
 
@@ -1741,7 +1773,7 @@ Create a `composer.json` file and run `php composer.phar install` command to ins
 {
 	"minimum-stability": "dev",
 	"require": {
-		"icanboogie/activerecord": "*"
+		"icanboogie/activerecord": "2.x"
 	}
 }
 ```
@@ -1790,3 +1822,8 @@ the `make clean` command.
 ## License
 
 ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](https://raw.github.com/ICanBoogie/ActiveRecord/master/LICENSE) file for details.
+
+[DateTime]: http://icanboogie.org/docs/class-ICanBoogie.DateTime.html
+[DateTimeProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
+[CreatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
+[UpdatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
