@@ -27,22 +27,19 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	{
 		self::$query_connection = new Connection('sqlite::memory:');
 		self::$query_model = new Model
-		(
-			array
-			(
-				Model::NAME => 'nodes',
-				Model::CONNECTION => self::$query_connection,
-				Model::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'id' => 'serial',
-						'name' => 'varchar',
-						'date' => 'timestamp'
-					)
-				)
-			)
-		);
+		([
+			Model::NAME => 'nodes',
+			Model::CONNECTION => self::$query_connection,
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'id' => 'serial',
+					'name' => 'varchar',
+					'date' => 'timestamp'
+				]
+			]
+		]);
 
 		$names = explode('|', 'one|two|three|four');
 
@@ -51,37 +48,34 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 		foreach ($names as $name)
 		{
-			self::$query_model->save(array('name' => $name, 'date' => DateTime::now()));
+			self::$query_model->save([ 'name' => $name, 'date' => DateTime::now() ]);
 		}
 	}
 
 	public function setUp()
 	{
-		$connection = new Connection('sqlite::memory:', null, null, array(Connection::TABLE_NAME_PREFIX => 'prefix'));
+		$connection = new Connection('sqlite::memory:', null, null, [ Connection::TABLE_NAME_PREFIX => 'prefix' ]);
 
-		$model = new A
-		(
-			array
-			(
-				Model::NAME => 'tests',
-				Model::CONNECTION => $connection,
-				Model::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'id' => 'serial',
-						'name' => 'varchar',
-						'date' => 'timestamp'
-					)
-				)
-			)
-		);
+		$model = new A([
+
+			Model::NAME => 'tests',
+			Model::CONNECTION => $connection,
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'id' => 'serial',
+					'name' => 'varchar',
+					'date' => 'timestamp'
+				]
+			]
+		]);
 
 		$model->install();
 
-		$model->save(array('name' => 'Madonna', 'date' => '1958-08-16'));
-		$model->save(array('name' => 'Lady Gaga', 'date' => '1986-03-28'));
-		$model->save(array('name' => 'Cat Power', 'date' => '1972-01-21'));
+		$model->save([ 'name' => 'Madonna', 'date' => '1958-08-16' ]);
+		$model->save([ 'name' => 'Lady Gaga', 'date' => '1986-03-28' ]);
+		$model->save([ 'name' => 'Cat Power', 'date' => '1972-01-21' ]);
 
 		$this->connection = $connection;
 		$this->model = $model;
@@ -141,21 +135,21 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function test_initiate_query($method, $args)
 	{
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Query', call_user_func_array(array(self::$query_model, $method), $args));
+		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Query', call_user_func_array([ self::$query_model, $method ], $args));
 	}
 
 	public function provide_test_initiate_query()
 	{
-		return array
-		(
-			array('select', array('id, name')),
-			array('joins', array('JOIN some_other_table')),
-			array('where', array('1=1')),
-			array('group', array('name')),
-			array('order', array('name')),
-			array('limit', array('12')),
-			array('offset', array('12'))
-		);
+		return [
+
+			[ 'select', array('id, name') ],
+			[ 'joins', array('JOIN some_other_table') ],
+			[ 'where', array('1=1') ],
+			[ 'group', array('name') ],
+			[ 'order', array('name') ],
+			[ 'limit', array('12') ],
+			[ 'offset', array('12') ]
+		];
 	}
 
 	/**
@@ -163,20 +157,20 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testInvalidConnection()
 	{
-		$model = new Model(array
-		(
+		$model = new Model([
+
 			Model::NAME => 'tests',
 			Model::CONNECTION => 'invalid_connection',
-			Model::SCHEMA => array
-			(
-				'fields' => array
-				(
+			Model::SCHEMA => [
+
+				'fields' => [
+
 					'id' => 'serial',
 					'name' => 'varchar',
 					'date' => 'timestamp'
-				)
-			)
-		));
+				]
+			]
+		]);
 	}
 
 	/*
@@ -201,14 +195,14 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testRecordNotFoundSet()
 	{
-		$this->model->find(array(123456780, 123456781, 123456782, 123456783));
+		$this->model->find([ 123456780, 123456781, 123456782, 123456783 ]);
 	}
 
 	public function testRecordNotFoundPartial()
 	{
 		try
 		{
-			$this->model->find(array(123456780, 1, 123456782, 123456783, 2));
+			$this->model->find([ 123456780, 1, 123456782, 123456783, 2 ]);
 
 			$this->fail("A RecordNotFound exception should have been raised");
 		}
@@ -287,7 +281,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$m = $this->model;
 		$this->assertTrue($m->exists(1));
 		$this->assertTrue($m->exists(1, 2, 3));
-		$this->assertTrue($m->exists(array(1, 2, 3)));
+		$this->assertTrue($m->exists([ 1, 2, 3 ]));
 	}
 
 	/**
@@ -300,7 +294,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 		$this->assertFalse($m->exists($u));
 		$this->assertFalse($m->exists($u+1, $u+2, $u+3));
-		$this->assertFalse($m->exists(array($u+1, $u+2, $u+3)));
+		$this->assertFalse($m->exists([ $u+1, $u+2, $u+3 ]));
 	}
 
 	/**
@@ -310,10 +304,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	{
 		$m = $this->model;
 		$u = rand(999, 9999);
-		$a = array(1 => true, $u => false, 3 => true);
+		$a = [ 1 => true, $u => false, 3 => true ];
 
 		$this->assertEquals($a, $m->exists(1, $u, 3));
-		$this->assertEquals($a, $m->exists(array(1, $u, 3)));
+		$this->assertEquals($a, $m->exists([ 1, $u, 3 ]));
 	}
 
 	public function testExistsCondition()
@@ -335,61 +329,52 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$connection = new Connection('sqlite::memory:');
 
 		$drivers = new Model
-		(
-			array
-			(
-				Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Driver',
-				Model::CONNECTION => $connection,
-				Model::NAME => 'drivers',
-				Model::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'driver_id' => 'serial',
-						'name' => 'varchar'
-					)
-				)
-			)
-		);
+		([
+			Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Driver',
+			Model::CONNECTION => $connection,
+			Model::NAME => 'drivers',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'driver_id' => 'serial',
+					'name' => 'varchar'
+				]
+			]
+		]);
 
 		$brands = new Model
-		(
-			array
-			(
-				Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Brand',
-				Model::CONNECTION => $connection,
-				Model::NAME => 'brands',
-				Model::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'brand_id' => 'serial',
-						'name' => 'varchar'
-					)
-				)
-			)
-		);
+		([
+			Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Brand',
+			Model::CONNECTION => $connection,
+			Model::NAME => 'brands',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'brand_id' => 'serial',
+					'name' => 'varchar'
+				]
+			]
+		]);
 
 		$cars = new Model
-		(
-			array
-			(
-				Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Car',
-// 				Model::BELONGS_TO => array($drivers, $brands),
-				Model::CONNECTION => $connection,
-				Model::NAME => 'cars',
-				Model::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'car_id' => 'serial',
-						'driver_id' => 'foreign',
-						'brand_id' => 'foreign',
-						'name' => 'varchar'
-					)
-				)
-			)
-		);
+		([
+			Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Car',
+// 			Model::BELONGS_TO => [ $drivers, $brands ],
+			Model::CONNECTION => $connection,
+			Model::NAME => 'cars',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'car_id' => 'serial',
+					'driver_id' => 'foreign',
+					'brand_id' => 'foreign',
+					'name' => 'varchar'
+				]
+			]
+		]);
 
 		$cars->belongs_to($drivers, $brands);
 
@@ -434,28 +419,25 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$connection = new Connection('sqlite::memory:');
 
 		$drivers = new Model
-		(
-			array
-			(
-				Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Driver',
-				Model::CONNECTION => $connection,
-				Model::NAME => 'drivers_3',
-				Model::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'driver_id' => 'serial',
-						'name' => 'varchar'
-					)
-				)
-			)
-		);
+		([
+			Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Driver',
+			Model::CONNECTION => $connection,
+			Model::NAME => 'drivers_3',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'driver_id' => 'serial',
+					'name' => 'varchar'
+				]
+			]
+		]);
 
 		$drivers->install();
 
-		$driver_id = $drivers->save(array('name' => 'madonna'));
+		$driver_id = $drivers->save([ 'name' => 'madonna' ]);
 		$driver = $drivers[$driver_id];
-		$drivers->save(array('name' => 'lady gaga'), $driver_id);
+		$drivers->save([ 'name' => 'lady gaga' ], $driver_id);
 		$driver_now = $drivers[$driver_id];
 
 		$this->assertEquals('madonna', $driver->name);

@@ -39,13 +39,13 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	protected $select;
 	protected $join;
 
-	protected $conditions = array();
-	protected $conditions_args = array();
+	protected $conditions = [];
+	protected $conditions_args = [];
 
 	protected $group;
 	protected $order;
 	protected $having;
-	protected $having_args = array();
+	protected $having_args = [];
 
 	protected $offset;
 	protected $limit;
@@ -83,7 +83,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 
 		if (in_array($property, $scopes))
 		{
-			return $this->model->scope($property, array($this));
+			return $this->model->scope($property, [ $this ]);
 		}
 
 		return parent::__get($property);
@@ -96,7 +96,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	{
 		if ($method === 'and')
 		{
-			return call_user_func_array(array($this, 'where'), $arguments);
+			return call_user_func_array([ $this, 'where' ], $arguments);
 		}
 
 		if (strpos($method, 'filter_by_') === 0)
@@ -141,7 +141,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * @var array[]string
 	 */
-	static protected $scopes_by_classes=array();
+	static protected $scopes_by_classes = [];
 
 	/**
 	 * Returns the available scopes for a model class.
@@ -162,7 +162,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 		$reflexion = new \ReflectionClass($class);
 		$methods = $reflexion->getMethods(\ReflectionMethod::IS_PROTECTED);
 
-		$scopes = array();
+		$scopes = [];
 
 		foreach ($methods as $method)
 		{
@@ -257,7 +257,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 		if (is_array($conditions))
 		{
 			$c = '';
-			$conditions_args = array();
+			$conditions_args = [];
 
 			foreach ($conditions as $column => $arg)
 			{
@@ -286,7 +286,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 		}
 		else
 		{
-			$conditions_args = array();
+			$conditions_args = [];
 
 			if ($args)
 			{
@@ -316,10 +316,10 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 			}
 		}
 
-		return array($conditions ? '(' . $conditions . ')' : null, $conditions_args);
+		return [ $conditions ? '(' . $conditions . ')' : null, $conditions_args ];
 	}
 
-	private function dynamic_filter($filter, array $conditions_args=array())
+	private function dynamic_filter($filter, array $conditions_args=[])
 	{
 		$conditions = explode('_and_', $filter);
 
@@ -346,7 +346,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * or
 	 *
-	 * `$model->where(array('order_count' => 2));`
+	 * `$model->where([ 'order_count' => 2 ]);`
 	 *
 	 * Or if you want to specify two conditions, you can do it like:
 	 *
@@ -354,11 +354,11 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 *
 	 * or
 	 *
-	 * `$model->where(array('order_count' => 2, 'locked' => false));`
+	 * `$model->where([ 'order_count' => 2, 'locked' => false ]);`
 	 *
 	 * Or if you want to specify subset conditions:
 	 *
-	 * `$model->where(array('order_id' => array(123, 456, 789)));`
+	 * `$model->where([ 'order_id' => [ 123, 456, 789 ] ]);`
 	 *
 	 * This will return the orders with the `order_id` 123, 456 or 789.
 	 *
@@ -367,11 +367,11 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 * When using the "identifier" => "value" notation, you can switch the comparison method by
 	 * prefixing the identifier with a bang "!"
 	 *
-	 * `$model->where(array('!order_id' => array(123, 456, 789)));`
+	 * `$model->where([ '!order_id' => [ 123, 456, 789 ]]);`
 	 *
 	 * This will return the orders with the `order_id` different than 123, 456 and 789.
 	 *
-	 * `$model->where(array('!order_count' => 2);`
+	 * `$model->where([ '!order_count' => 2 ];`
 	 *
 	 * This will return the orders with the `order_count` different than 2.
 	 *
@@ -645,15 +645,15 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 		}
 		else if ($this->select)
 		{
-			$args = array(\PDO::FETCH_ASSOC);
+			$args = [ \PDO::FETCH_ASSOC ];
 		}
 		else if ($this->model->activerecord_class)
 		{
-			$args = array(\PDO::FETCH_CLASS, $this->model->activerecord_class, array($this->model));
+			$args = [ \PDO::FETCH_CLASS, $this->model->activerecord_class, [ $this->model ]];
 		}
 		else
 		{
-			$args = array(\PDO::FETCH_CLASS, 'ICanBoogie\ActiveRecord', array($this->model));
+			$args = [ \PDO::FETCH_CLASS, 'ICanBoogie\ActiveRecord', [ $this->model ]];
 		}
 
 		return $args;
@@ -669,7 +669,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 		$statement = $this->query();
 		$args = $this->resolve_fetch_mode();
 
-		return call_user_func_array(array($statement, 'fetchAll'), $args);
+		return call_user_func_array([ $statement, 'fetchAll' ], $args);
 	}
 
 	/**
@@ -704,14 +704,14 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 		{
 			array_shift($args);
 
-			$rc = call_user_func_array(array($statement, 'fetchObject'), $args);
+			$rc = call_user_func_array([ $statement, 'fetchObject' ], $args);
 
 			$statement->closeCursor();
 
 			return $rc;
 		}
 
-		return call_user_func_array(array($statement, 'fetchAndClose'), $args);
+		return call_user_func_array([ $statement, 'fetchAndClose' ], $args);
 	}
 
 	/**
@@ -762,7 +762,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 * $model->where('name = "max"')->exists;
 	 * $model->exists(1);
 	 * $model->exists(1, 2);
-	 * $model->exists(array(1, 2));
+	 * $model->exists([ 1, 2 ]);
 	 *
 	 * @param mixed $key
 	 *
@@ -779,14 +779,17 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 				$key = func_get_args();
 			}
 
-			$this->where(array('{primary}' => $key));
+			$this->where([ '{primary}' => $key ]);
 		}
 		else if (!$this->limit)
 		{
 			$suffix = ' LIMIT 1';
 		}
 
-		$rc = $this->model->query('SELECT `{primary}` FROM {self_and_related}' . $this->build() . $suffix, array_merge($this->conditions_args, $this->having_args))->fetchAll(\PDO::FETCH_COLUMN);
+		$rc = $this
+		->model
+		->query('SELECT `{primary}` FROM {self_and_related}' . $this->build() . $suffix, array_merge($this->conditions_args, $this->having_args))
+		->fetchAll(\PDO::FETCH_COLUMN);
 
 		if ($rc && is_array($key))
 		{

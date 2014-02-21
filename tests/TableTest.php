@@ -21,45 +21,39 @@ class TableTest extends \PHPUnit_Framework_TestCase
 	{
 		self::$connection = new Connection
 		(
-			'sqlite::memory:', null, null, array
-			(
+			'sqlite::memory:', null, null, [
+
 				Connection::TABLE_NAME_PREFIX => 'prefix'
-			)
+			]
 		);
 
 		self::$animals = new Table
-		(
-			array
-			(
-				Table::NAME => 'animals',
-				Table::CONNECTION => self::$connection,
-				Table::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'id' => 'serial',
-						'name' => 'varchar',
-						'date' => 'timestamp'
-					)
-				)
-			)
-		);
+		([
+			Table::NAME => 'animals',
+			Table::CONNECTION => self::$connection,
+			Table::SCHEMA => [
+
+				'fields' => [
+
+					'id' => 'serial',
+					'name' => 'varchar',
+					'date' => 'timestamp'
+				]
+			]
+		]);
 
 		self::$dogs = new Table
-		(
-			array
-			(
-				Table::EXTENDING => self::$animals,
-				Table::NAME => 'dogs',
-				Table::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'bark_volume' => 'float'
-					)
-				)
-			)
-		);
+		([
+			Table::EXTENDING => self::$animals,
+			Table::NAME => 'dogs',
+			Table::SCHEMA => [
+
+				'fields' => [
+
+					'bark_volume' => 'float'
+				]
+			]
+		]);
 
 		self::$animals->install();
 		self::$dogs->install();
@@ -70,12 +64,12 @@ class TableTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function test_invalid_table_name()
 	{
-		new Table(array(
+		new Table([
 
 			Table::NAME => 'invalid-name',
 			Table::CONNECTION => self::$connection
 
-		));
+		]);
 	}
 
 	/*
@@ -154,21 +148,20 @@ class TableTest extends \PHPUnit_Framework_TestCase
 
 	public function test_resolve_statement__multi_column_primary_key()
 	{
-		$table = new Table(array(
+		$table = new Table([
 
 			Table::CONNECTION => self::$connection,
 			Table::NAME => 'testing',
-			Table::SCHEMA => array
-			(
-				'fields' => array
-				(
-					'p1' => array('integer', 'big', 'primary' => true),
-					'p2' => array('integer', 'big', 'primary' => true),
-					'f1' => 'varchar'
-				)
-			)
+			Table::SCHEMA => [
 
-		));
+				'fields' => [
+
+					'p1' => [ 'integer', 'big', 'primary' => true ],
+					'p2' => [ 'integer', 'big', 'primary' => true ],
+					'f1' => 'varchar'
+				]
+			]
+		]);
 
 		$statement = 'SELECT FROM {self} WHERE {primary} = 1';
 

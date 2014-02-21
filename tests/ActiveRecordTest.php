@@ -24,22 +24,19 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	{
 		self::$connection = new Connection('sqlite::memory:');
 		self::$model = new Model
-		(
-			array
-			(
-				Model::CONNECTION => self::$connection,
-				Model::NAME => 'testing',
-				Model::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'id' => 'serial',
-						'title' => 'varchar',
-						'date' => 'datetime'
-					)
-				)
-			)
-		);
+		([
+			Model::CONNECTION => self::$connection,
+			Model::NAME => 'testing',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'id' => 'serial',
+					'title' => 'varchar',
+					'date' => 'datetime'
+				]
+			]
+		]);
 
 		self::$model->install();
 	}

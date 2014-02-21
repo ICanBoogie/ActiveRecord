@@ -162,7 +162,7 @@ class ActiveRecord extends \ICanBoogie\Object
 
 		if (is_array($primary))
 		{
-			$rc = $model->insert($properties, array('on duplicate' => true));
+			$rc = $model->insert($properties, [ 'on duplicate' => true ]);
 		}
 		else
 		{
@@ -170,7 +170,7 @@ class ActiveRecord extends \ICanBoogie\Object
 
 			if (isset($properties[$primary]) && empty($primary_definition['auto increment']))
 			{
-				$rc = $model->insert($properties, array('on duplicate' => true));
+				$rc = $model->insert($properties, [ 'on duplicate' => true ]);
 			}
 			else
 			{

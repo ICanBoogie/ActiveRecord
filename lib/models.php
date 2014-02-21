@@ -25,14 +25,14 @@ class Models implements \ArrayAccess
 	 *
 	 * @var array[string]Model
 	 */
-	protected $instances = array();
+	protected $instances = [];
 
 	/**
 	 * Models definitions.
 	 *
 	 * @var array[string]array
 	 */
-	protected $definitions = array();
+	protected $definitions = [];
 
 	/**
 	 * Connections manager.
@@ -47,7 +47,7 @@ class Models implements \ArrayAccess
 	 * @param Connections $connections Connections manager.
 	 * @param array[string]array $definitions Model definitions.
 	 */
-	public function __construct(Connections $connections, array $definitions=array())
+	public function __construct(Connections $connections, array $definitions=[])
 	{
 		$this->connections = $connections;
 
@@ -95,11 +95,11 @@ class Models implements \ArrayAccess
 			throw new ModelAlreadyInstantiated($id);
 		}
 
-		$this->definitions[$id] = $definition + array
-		(
+		$this->definitions[$id] = $definition + [
+
 			Model::ID => $id,
 			Model::NAME => $id
-		);
+		];
 	}
 
 	/**
@@ -123,10 +123,10 @@ class Models implements \ArrayAccess
 			throw new ModelNotDefined($id);
 		}
 
-		$properties = $this->definitions[$id] + array
-		(
+		$properties = $this->definitions[$id] + [
+
 			Model::CONNECTION => 'primary'
-		);
+		];
 
 		if (is_string($properties[Model::CONNECTION]))
 		{

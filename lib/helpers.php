@@ -76,14 +76,14 @@ function create_cache_key(Model $model, $key)
  */
 class Helpers
 {
-	static private $jumptable = array
-	(
-		'get_model' => array(__CLASS__, 'get_model'),
-		'cache_store' => array(__CLASS__, 'cache_store'),
-		'cache_retrieve' => array(__CLASS__, 'cache_retrieve'),
-		'cache_eliminate' => array(__CLASS__, 'cache_eliminate'),
-		'create_cache_key' => array(__CLASS__, 'create_cache_key')
-	);
+	static private $jumptable = [
+
+		'get_model' => [ __CLASS__, 'get_model' ],
+		'cache_store' => [ __CLASS__, 'cache_store' ],
+		'cache_retrieve' => [ __CLASS__, 'cache_retrieve' ],
+		'cache_eliminate' => [ __CLASS__, 'cache_eliminate' ],
+		'create_cache_key' => [ __CLASS__, 'create_cache_key' ]
+	];
 
 	/**
 	 * Calls the callback of a patchable function.
@@ -125,7 +125,7 @@ class Helpers
 		throw new \RuntimeException("The function " . __FUNCTION__ . "() needs to be patched.");
 	}
 
-	static private $cached_records = array();
+	static private $cached_records = [];
 
 	static private function cache_store(Model $model, \ICanBoogie\ActiveRecord $record)
 	{

@@ -18,20 +18,18 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 	public function setUp()
 	{
 		$this->connections = new Connections
-		(
-			array
-			(
-				'one' => array
-				(
-					'dsn' => 'sqlite::memory:'
-				),
+		([
 
-				'bad' => array
-				(
-					'dsn' => 'mysql:dbname=bad_database' . uniqid()
-				)
-			)
-		);
+			'one' => [
+
+				'dsn' => 'sqlite::memory:'
+			],
+
+			'bad' => [
+
+				'dsn' => 'mysql:dbname=bad_database' . uniqid()
+			]
+		]);
 	}
 
 	public function testGetConnection()
@@ -42,20 +40,20 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 
 	public function testSetConnection()
 	{
-		$this->connections['two'] = array
-		(
+		$this->connections['two'] = [
+
 			'dsn' => 'sqlite::memory:'
-		);
+		];
 
 		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Connection', $this->connections['two']);
 	}
 
 	public function testUnsetConnection()
 	{
-		$this->connections['two'] = array
-		(
+		$this->connections['two'] = [
+
 			'dsn' => 'sqlite::memory:'
-		);
+		];
 
 		unset($this->connections['two']);
 
@@ -85,9 +83,9 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 	public function testConnectionAlreadyEstablished()
 	{
 		$connection = $this->connections['one'];
-		$this->connections['one'] = array
-		(
+		$this->connections['one'] = [
+
 			'dsn' => 'mysql:dbname=testing'
-		);
+		];
 	}
 }

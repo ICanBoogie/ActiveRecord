@@ -170,7 +170,7 @@ class Table extends \ICanBoogie\Object
 		return $this->parent;
 	}
 
-	protected $implements = array();
+	protected $implements = [];
 
 	/**
 	 * SQL fragment for the FROM clause of the query, made of the table's name and alias and those
@@ -273,7 +273,7 @@ class Table extends \ICanBoogie\Object
 
 			unset($primary_definition['serial']);
 
-			$this->schema['fields'] = array($primary => $primary_definition) + $this->schema['fields'];
+			$this->schema['fields'] = [ $primary => $primary_definition ] + $this->schema['fields'];
 
 			#
 			# implements are inherited too
@@ -376,7 +376,7 @@ class Table extends \ICanBoogie\Object
 	/**
 	 * Alias to the {@link query()} method.
 	 */
-	public function __invoke($query, array $args=array(), array $options=array())
+	public function __invoke($query, array $args=[], array $options=[])
 	{
 		return $this->query($query, $args, $options);
 	}
@@ -422,7 +422,7 @@ class Table extends \ICanBoogie\Object
 	protected function lazy_get_extended_schema()
 	{
 		$table = $this;
-		$schemas = array();
+		$schemas = [];
 
 		while ($table)
 		{
@@ -465,17 +465,14 @@ class Table extends \ICanBoogie\Object
 		$primary = $this->primary;
 		$primary = is_array($primary) ? '__multicolumn_primary__' . implode('_', $primary) : $primary;
 
-		return strtr
-		(
-			$statement, array
-			(
-				'{alias}' => $this->alias,
-				'{prefix}' => $this->connection->prefix,
-				'{primary}' => $primary,
-				'{self}' => $this->name,
-				'{self_and_related}' => "`$this->name`" . ($this->select_join ? " $this->select_join" : '')
-			)
-		);
+		return strtr($statement, [
+
+			'{alias}' => $this->alias,
+			'{prefix}' => $this->connection->prefix,
+			'{primary}' => $primary,
+			'{self}' => $this->name,
+			'{self_and_related}' => "`$this->name`" . ($this->select_join ? " $this->select_join" : '')
+		]);
 	}
 
 	/**
@@ -486,7 +483,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return Database\Statement
 	 */
-	public function prepare($query, $options=array())
+	public function prepare($query, $options=[])
 	{
 		$query = $this->resolve_statement($query);
 
@@ -505,7 +502,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return mixed
 	 */
-	public function execute($query, array $args=array(), array $options=array())
+	public function execute($query, array $args=[], array $options=[])
 	{
 		$statement = $this->prepare($query, $options);
 
@@ -523,7 +520,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return Database\Statement
 	 */
-	public function query($query, array $args=array(), array $options=array())
+	public function query($query, array $args=[], array $options=[])
 	{
 		$query = $this->resolve_statement($query);
 
@@ -535,9 +532,9 @@ class Table extends \ICanBoogie\Object
 
 	protected function filter_values(array $values, $extended=false)
 	{
-		$filtered = array();
-		$holders = array();
-		$identifiers = array();
+		$filtered = [];
+		$holders = [];
+		$identifiers = [];
 
 		$schema = $extended ? $this->extended_schema : $this->schema;
 		$fields = $schema['fields'];
@@ -560,10 +557,10 @@ class Table extends \ICanBoogie\Object
 			$identifiers[] = '`' . $identifier . '`';
 		}
 
-		return array($filtered, $holders, $identifiers);
+		return [ $filtered, $holders, $identifiers ];
 	}
 
-	public function save(array $values, $id=null, array $options=array())
+	public function save(array $values, $id=null, array $options=[])
 	{
 		if ($id)
 		{
@@ -573,7 +570,7 @@ class Table extends \ICanBoogie\Object
 		return $this->save_callback($values, $id, $options);
 	}
 
-	protected function save_callback(array $values, $id=null, array $options=array())
+	protected function save_callback(array $values, $id=null, array $options=[])
 	{
 		if ($id)
 		{
@@ -693,7 +690,7 @@ class Table extends \ICanBoogie\Object
 	 *
 	 * @return mixed
 	 */
-	public function insert(array $values, array $options=array())
+	public function insert(array $values, array $options=[])
 	{
 		list($values, $holders, $identifiers) = $this->filter_values($values);
 
@@ -805,7 +802,7 @@ class Table extends \ICanBoogie\Object
 
 		if (is_array($this->primary))
 		{
-			$parts = array();
+			$parts = [];
 
 			foreach ($this->primary as $identifier)
 			{
@@ -841,7 +838,7 @@ class Table extends \ICanBoogie\Object
 		return $this->execute('truncate table `{self}`');
 	}
 
-	public function drop(array $options=array())
+	public function drop(array $options=[])
 	{
 		$query = 'drop table ';
 

@@ -27,53 +27,47 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 		self::$connection = new Connection('sqlite::memory:');
 
 		self::$animals = new Model
-		(
-			array
-			(
-				Model::NAME => 'animals',
-				Model::CONNECTION => self::$connection,
-				Model::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'id' => 'serial',
-						'name' => 'varchar',
-						'date' => 'timestamp',
-						'legs' => 'integer'
-					)
-				)
-			)
-		);
+		([
+			Model::NAME => 'animals',
+			Model::CONNECTION => self::$connection,
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'id' => 'serial',
+					'name' => 'varchar',
+					'date' => 'timestamp',
+					'legs' => 'integer'
+				]
+			]
+		]);
 
 		self::$dogs = new Model
-		(
-			array
-			(
-				Model::ACTIVERECORD_CLASS => 'ICanBoogie\ActiveRecord\QueryTest\Dog',
-				Model::EXTENDING => self::$animals,
-				Model::NAME => 'dogs',
-				Model::SCHEMA => array
-				(
-					'fields' => array
-					(
-						'bark_volume' => 'float'
-					)
-				)
-			)
-		);
+		([
+			Model::ACTIVERECORD_CLASS => 'ICanBoogie\ActiveRecord\QueryTest\Dog',
+			Model::EXTENDING => self::$animals,
+			Model::NAME => 'dogs',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'bark_volume' => 'float'
+				]
+			]
+		]);
 
 		self::$animals->install();
 		self::$dogs->install();
 
 		for ($i = 0 ; $i < self::$n ; $i++)
 		{
-			$properties = array
-			(
+			$properties = [
+
 				'name' => uniqid('', true),
 				'date' => gmdate('Y-m-d H:i:s', time() + 60 * rand(1, 3600)),
 				'legs' => rand(2, 16),
 				'bark_volume' => rand(100, 1000) / 100
-			);
+			];
 
 			$key = self::$dogs->save($properties);
 
@@ -106,7 +100,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 	{
 		$m = self::$animals;
 
-		$q = $m->order('id', array(1, 2, 3));
+		$q = $m->order('id', [ 1, 2, 3 ]);
 		$this->assertEquals("SELECT * FROM `animals` `animal` ORDER BY FIELD(id, '1', '2', '3')", (string) $q);
 
 		$q = $m->order('id', 1, 2, 3);

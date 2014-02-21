@@ -33,7 +33,7 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * @var array[string]Database
 	 */
-	private $established = array();
+	private $established = [];
 
 	/**
 	 * Initialize the {@link $definitions} property.
@@ -63,7 +63,7 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 			case 'established': return $this->established;
 		}
 
-		throw new PropertyNotDefined(array($property, $this));
+		throw new PropertyNotDefined([ $property, $this ]);
 	}
 
 	/**
@@ -133,12 +133,12 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 			throw new ConnectionNotDefined($id);
 		}
 
-		$options = $this->definitions[$id] + array
-		(
+		$options = $this->definitions[$id] + [
+
 			'dsn' => null,
 			'username' => 'root',
 			'password' => null
-		);
+		];
 
 		$options['options'][Connection::ID] = $id;
 

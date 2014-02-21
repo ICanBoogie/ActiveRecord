@@ -89,7 +89,7 @@ class Connection extends \PDO
 	 *
 	 * @var array[]array
 	 */
-	public $profiling = array();
+	public $profiling = [];
 
 	/**
 	 * Establish a connection to a database.
@@ -110,7 +110,7 @@ class Connection extends \PDO
 	 * @param string $password
 	 * @param array $options
 	 */
-	public function __construct($dsn, $username=null, $password=null, $options=array())
+	public function __construct($dsn, $username=null, $password=null, $options=[])
 	{
 		list($driver_name) = explode(':', $dsn, 2);
 
@@ -140,16 +140,16 @@ class Connection extends \PDO
 				$init_command .= ', time_zone = "' . $timezone . '"';
 			}
 
-			$options += array
-			(
+			$options += [
+
 				self::MYSQL_ATTR_INIT_COMMAND => $init_command
-			);
+			];
 		}
 
 		parent::__construct($dsn, $username, $password, $options);
 
 		$this->setAttribute(self::ATTR_ERRMODE, self::ERRMODE_EXCEPTION);
-		$this->setAttribute(self::ATTR_STATEMENT_CLASS, array('ICanBoogie\ActiveRecord\Statement'));
+		$this->setAttribute(self::ATTR_STATEMENT_CLASS, [ 'ICanBoogie\ActiveRecord\Statement' ]);
 
 		if ($driver_name == 'oci')
 		{
@@ -164,7 +164,7 @@ class Connection extends \PDO
 	 */
 	public function __invoke()
 	{
-		return call_user_func_array(array($this, 'query'), func_get_args());
+		return call_user_func_array([ $this, 'query' ], func_get_args());
 	}
 
 	public function __get($property)
@@ -181,7 +181,7 @@ class Connection extends \PDO
 				return $this->table_name_prefix;
 		}
 
-		throw new PropertyNotDefined(array($property, $this));
+		throw new PropertyNotDefined([ $property, $this ]);
 	}
 
 	/**
@@ -195,7 +195,7 @@ class Connection extends \PDO
 	 *
 	 * @throws StatementInvalid if the statement cannot be prepared.
 	 */
-	public function prepare($statement, $options=array())
+	public function prepare($statement, $options=[])
 	{
 		$statement = $this->resolve_statement($statement);
 
@@ -214,7 +214,7 @@ class Connection extends \PDO
 		{
 			$mode = (array) $options['mode'];
 
-			call_user_func_array(array($statement, 'setFetchMode'), $mode);
+			call_user_func_array([ $statement, 'setFetchMode' ], $mode);
 		}
 
 		return $statement;
@@ -226,7 +226,7 @@ class Connection extends \PDO
 	 *
 	 * @return Statement
 	 */
-	public function query($statement, array $args=array(), array $options=array())
+	public function query($statement, array $args=[], array $options=[])
 	{
 		$statement = $this->prepare($statement, $options);
 		$statement->execute($args);
@@ -306,15 +306,12 @@ class Connection extends \PDO
 	 */
 	public function resolve_statement($statement)
 	{
-		return strtr
-		(
-			$statement, array
-			(
-				'{prefix}' => $this->table_name_prefix,
-				'{charset}' => $this->charset,
-				'{collate}' => $this->collate
-			)
-		);
+		return strtr($statement, [
+
+			'{prefix}' => $this->table_name_prefix,
+			'{charset}' => $this->charset,
+			'{collate}' => $this->collate
+		]);
 	}
 
 	/**
@@ -343,8 +340,8 @@ class Connection extends \PDO
 	{
 		$driver_name = $this->driver_name;
 
-		$schema['primary'] = array();
-		$schema['indexes'] = array();
+		$schema['primary'] = [];
+		$schema['indexes'] = [];
 
 		foreach ($schema['fields'] as $identifier => &$definition)
 		{
@@ -384,10 +381,10 @@ class Connection extends \PDO
 
 					if ($driver_name != 'sqlite')
 					{
-						$definition += array('size' => 'big', 'unsigned' => true);
+						$definition += [ 'size' => 'big', 'unsigned' => true ];
 					}
 
-					$definition += array('auto increment' => true, 'primary' => true);
+					$definition += [ 'auto increment' => true, 'primary' => true ];
 				}
 				break;
 
@@ -397,16 +394,16 @@ class Connection extends \PDO
 
 					if ($driver_name != 'sqlite')
 					{
-						$definition += array('size' => 'big', 'unsigned' => true);
+						$definition += [ 'size' => 'big', 'unsigned' => true ];
 					}
 
-					$definition += array('indexed' => true);
+					$definition += [ 'indexed' => true ];
 				}
 				break;
 
 				case 'varchar':
 				{
-					$definition += array('size' => 255);
+					$definition += [ 'size' => 255 ];
 				}
 				break;
 			}
@@ -501,7 +498,7 @@ class Connection extends \PDO
 
 		$schema = $this->parse_schema($schema);
 
-		$parts = array();
+		$parts = [];
 
 		foreach ($schema['fields'] as $identifier => $params)
 		{
@@ -555,7 +552,7 @@ class Connection extends \PDO
 
 				case 'enum':
 				{
-					$enum = array();
+					$enum = [];
 
 					foreach ($size as $identifier)
 					{
@@ -719,7 +716,9 @@ class Connection extends \PDO
 
 		if ($this->driver_name == 'sqlite')
 		{
-			$tables = $this->query('SELECT name FROM sqlite_master WHERE type = "table" AND name = ?', array($name))->fetchAll(self::FETCH_COLUMN);
+			$tables = $this
+			->query('SELECT name FROM sqlite_master WHERE type = "table" AND name = ?', [ $name ])
+			->fetchAll(self::FETCH_COLUMN);
 
 			return !empty($tables);
 		}

@@ -111,23 +111,20 @@ class Model extends \ICanBoogie\ActiveRecord\Model
 }
 
 $model = new Nodes
-(
-	array
-	(
-		Model::CONNECTION => $connection,
-		Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\Node',
-		Model::NAME => 'node',
-		Model::SCHEMA => array
-		(
-			'fields' => array
-			(
-				'id' => 'serial',
-				'title' => array('varchar', 80),
-				'number' => array('integer', 'unsigned' => true)
-			)
-		)
-	)
-);
+([
+	Model::CONNECTION => $connection,
+	Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\Node',
+	Model::NAME => 'node',
+	Model::SCHEMA => [
+	
+		'fields' => [
+		
+			'id' => 'serial',
+			'title' => [ 'varchar', 80 ],
+			'number' => [ 'integer', 'unsigned' => true ]
+		]
+	]
+]);
 ```
 
 
@@ -188,7 +185,7 @@ pattern:
 ```
 '<identifier>' => '<type_and_default_options>'
 # or
-'<identifier>' => array('<type>', <size>);
+'<identifier>' => [ '<type>', <size> ];
 ```
 
 The following types are available: `blob`, `char`, `integer`, `text`, `varchar`,
@@ -199,11 +196,10 @@ keys:
 ```php
 <?php
 
-array
-(
+[
 	'nid' => 'serial', // bigint(20) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (`nid`) 
 	'uid' => 'foreign' // bigint(20) unsigned NOT NULL, KEY `uid` (`uid`)
-);
+];
 ```
 
 The size of the field can be defined as an integer for the `blob`, `char`, `integer`, `varchar` and
@@ -212,14 +208,13 @@ The size of the field can be defined as an integer for the `blob`, `char`, `inte
 ```php
 <?php
 
-array
-(
+[
 	'title' => 'varchar', // varchar(255) NOT NULL
- 	'slug' => array('varchar', 80), // varchar(80) NOT NULL
- 	'weight' => 'integer', // int(11) NOT NULL
- 	'small_count' => array('integer', 8) // int(8) NOT NULL,
- 	'price' => array('float', array(10,3)) // float(10,3) NOT NULL
-);
+	'slug' => [ 'varchar', 80 ], // varchar(80) NOT NULL
+	'weight' => 'integer', // int(11) NOT NULL
+	'small_count' => [ 'integer', 8 ] // int(8) NOT NULL,
+	'price' => [ 'float', [ 10, 3 ] ] // float(10,3) NOT NULL
+];
 ```
 
 The size of the field can be defined using the qualifiers `tiny`, `small`, `medium`,
@@ -228,51 +223,48 @@ The size of the field can be defined using the qualifiers `tiny`, `small`, `medi
 ```php
 <?php
 
-array
-(
-	'body' => array('text', 'long') // longtext NOT NULL
-);
+[
+	'body' => [ 'text', 'long' ] // longtext NOT NULL
+];
 ```
 
 The qualifier `null` specifies that a field can be null, by default fields are not capable
 of receiving the `null`:
 
 ```
-array('varchar', 'null' => true) // varchar(255)
-array('integer', 'null' => true) // int(11)
-array('integer') // int(11) NOT NULL
+[ 'varchar', 'null' => true ] // varchar(255)
+[ 'integer', 'null' => true ] // int(11)
+[ 'integer' ] // int(11) NOT NULL
 ```
 
 The qualifier `unsigned` specifies that a numeric value is not signed:
 
 ```
-array('integer') // int(11)
-array('integer', 'unsigned' => true) // int(10) unsigned
+[ 'integer' ] // int(11)
+[ 'integer', 'unsigned' => true ] // int(10) unsigned
 ```
 
 The qualifier `indexed` specifies that a field should be indexed:
 
 ```php
-array
-(
-	'slug' => array('varchar', 'indexed' => true), // varchar(255) NOT NULL, KEY `slug` (`slug`)
-	'is_online' => array('boolean', 'indexed' => true) // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
+[
+	'slug' => [ 'varchar', 'indexed' => true ], // varchar(255) NOT NULL, KEY `slug` (`slug`)
+	'is_online' => [ 'boolean', 'indexed' => true ] // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
 
-	'pageid' => array('foreign', 'indexed' => 'page-content'), // bigint(20) unsigned NOT NULL
-	'contentid' => array('foreign', 'indexed' => 'page-content'), // bigint(20) unsigned NOT NULL, KEY `page-content` (`pageid`, `contentid`)
-);
+	'pageid' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL
+	'contentid' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL, KEY `page-content` (`pageid`, `contentid`)
+];
 ```
 
 The qualifier `primary` specifies that a column is a primary key. A multi-column primary key is
 created if multiple columns have the `primary` qualifier:
 
 ```php
-array
-(
-	'vtid' => array('foreign', 'primary' => true),
-	'nid' => array('foreign', 'primary' => true),
-	'weight' => array('integer', 'unsigned' => true)
-);
+[
+	'vtid' => [ 'foreign', 'primary' => true ],
+	'nid' => [ 'foreign', 'primary' => true ],
+	'weight' => [ 'integer', 'unsigned' => true ]
+];
 
 // ADD PRIMARY KEY ( `vtid` , `nid` )
 ```
@@ -338,39 +330,33 @@ The `EXTENDING` attribute specifies the model to extend.
 use ICanBoogie\ActiveRecord\Model;
 
 $nodes = new Model
-(
-	array
-	(
-		Model::NAME => 'nodes',
-		Model::CONNECTION => $connection,
-		Model::SCHEMA => array
-		(
-			'fields' => array
-			(
-				'nid' => 'serial',
-				'title' => 'varchar'
-			)
-		)
-	)
-);
+([
+	Model::NAME => 'nodes',
+	Model::CONNECTION => $connection,
+	Model::SCHEMA => [
+	
+		'fields' => [
+		
+			'nid' => 'serial',
+			'title' => 'varchar'
+		]
+	]
+]);
 
 $news = new Model
-(
-	array
-	(
-		Model::NAME => 'news',
-		Model::EXTENDING => $nodes,
-		Model::SCHEMA => array
-		(
-			'fields' => array
-			(
-				'date' => 'date'
-			)
-		)
-	)
-);
+([
+	Model::NAME => 'news',
+	Model::EXTENDING => $nodes,
+	Model::SCHEMA => [
+	
+		'fields' => [
+		
+			'date' => 'date'
+		]
+	]
+]);
 
-$news->save(array('title' => 'Testing!', 'date' => '2013-02-16'));
+$news->save([ 'title' => 'Testing!', 'date' => '2013-02-16' ]);
 ```
 
 
@@ -390,22 +376,19 @@ can then by obtained using the magic property `user`.
 <?php
 
 $news = new Model
-(
-	array
-	(
-		Model::NAME => 'news',
-		Model::EXTENDING => $nodes,
-		Model::BELONGS_TO => $users,
-		Model::SCHEMA => array
-		(
-			'fields' => array
-			(
-				'date' => 'date',
-				'uid' => 'foreign'
-			)
-		)
-	)
-);
+([
+	Model::NAME => 'news',
+	Model::EXTENDING => $nodes,
+	Model::BELONGS_TO => $users,
+	Model::SCHEMA => [
+	
+		'fields' => [
+		
+			'date' => 'date',
+			'uid' => 'foreign'
+		]
+	]
+]);
 
 $record = $news->one;
 
@@ -569,7 +552,7 @@ Retrieving a set or records using their primary key is really simple too:
 ```php
 <?php
 
-$articles = $model->find(array(10, 32, 89));
+$articles = $model->find([ 10, 32, 89 ]);
 
 # or
 
@@ -656,7 +639,7 @@ Conditions can also be specified as arrays:
 ```php
 <?php
 
-$model->where(array('is_online' => $_GET['online'], 'is_home_excluded' => false));
+$model->where([ 'is_online' => $_GET['online'], 'is_home_excluded' => false ]);
 ```
 
 
@@ -670,7 +653,7 @@ Records belonging to a subset can be retrieved using an array as condition value
 ```php
 <?php
 
-$model->where(array('orders_count' => array(1,3,5)));
+$model->where([ 'orders_count' => [ 1,3,5 ] ]);
 ```
 
 This generates something like: `... WHERE (orders_count IN (1,3,5))`.
@@ -690,7 +673,7 @@ different than "2":
 ```php
 <?php
 
-$model->where(array('!order_count' => 2));
+$model->where([ '!order_count' => 2 ]);
 ```
 
 ```
@@ -702,7 +685,7 @@ This also works with subsets:
 ```php
 <?php
 
-$model->where(array('!order_count' => array(1,3,5)));
+$model->where([ '!order_count' => [ 1,3,5 ] ]);
 ```
 
 ```
@@ -729,8 +712,8 @@ Is equivalent to:
 ```php
 <?php
 
-$model->where(array('slug' => 'creer-nuage-mots-cle'));
-$model->where(array('is_online' => true, 'uid' => 3));
+$model->where([ 'slug' => 'creer-nuage-mots-cle' ]);
+$model->where([ 'is_online' => true, 'uid' => 3 ]);
 ```
 
 
@@ -830,9 +813,9 @@ Records can also be ordered by field:
 ```php
 <?php
 
-$model->where(array('nid' => array(1, 2, 3)))->order('nid', array(2, 3, 1));
+$model->where([ 'nid' => [ 1, 2, 3 ] ])->order('nid', [ 2, 3, 1 ]);
 # or
-$model->where(array('nid' => array(1, 2, 3)))->order('nid', 2, 3, 1);
+$model->where([ 'nid' => [ 1, 2, 3 ] ])->order('nid', 2, 3, 1);
 ```
 
 
@@ -1143,7 +1126,7 @@ records exist, `false` when all the record don't exist, and an array otherwise.
 
 $model->exists(1, 2, 999)
 # or
-$model->exists(array(1, 2, 999));
+$model->exists([ 1, 2, 999 ]);
 ```
 
 The method would return the following result if records "1" and "2" exist but not record "999".
@@ -1269,7 +1252,7 @@ $record = $model->find(10);
 
 $records = $model->find(10, 15, 19);
 # or
-$records = $model->find(array(10, 15, 19));
+$records = $model->find([ 10, 15, 19 ]);
 ```
 
 Conditions:
@@ -1278,13 +1261,13 @@ Conditions:
 <?php
 
 $model->where('is_online = ?', true);
-$model->where(array('is_online' => true, 'is_home_excluded' => false));
+$model->where([ 'is_online' => true, 'is_home_excluded' => false ]);
 $model->where('siteid = 0 OR siteid = ?', 1)->and('language = '' OR language = ?', "fr");
 
 # Sets
 
-$model->where(array('order_count' => array(1, 2, 3));
-$model->where(array('!order_count' => array(1, 2, 3)); # NOT
+$model->where([ 'order_count' => [ 1, 2, 3 ] ]);
+$model->where([ '!order_count' => [ 1, 2, 3 ] ]); # NOT
 
 # Dynamic filters
 
@@ -1356,7 +1339,7 @@ Testing object existence:
 
 $model->exists;
 $model->exists(1, 2, 3);
-$model->exists(array(1, 2, 3));
+$model->exists([ 1, 2, 3 ]);
 $model->where('author = ?', 'madonna')->exists;
 ```
 
@@ -1405,20 +1388,17 @@ instance.
 use ICanBoogie\ActiveRecord\Connections;
 
 $connections = new Connections
-(
-	array
-	(
-		'one' => array
-		(
-			'dsn' => 'sqlite::memory:'
-		),
+([
+	'one' => [
+	
+		'dsn' => 'sqlite::memory:'
+	],
 
-		'bad' => array
-		(
-			'dsn' => 'mysql:dbname=bad_database' . uniqid()
-		)
-	)
-);
+	'bad' => [
+	
+		'dsn' => 'mysql:dbname=bad_database' . uniqid()
+	]
+]);
 ```
 
 Or after:
@@ -1426,12 +1406,12 @@ Or after:
 ```php
 <?php
 
-$connections['two'] = array
-(
+$connections['two'] = [
+
 	'dsn' => 'mysql:dbname=example',
 	'username' => 'root',
 	'password' => 'root'
-);
+];
 ```
 
 You can modify a connection definition until it is established. A [ConnectionAlreayEstablished](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html)
@@ -1548,28 +1528,25 @@ Note: If `CONNECTION` is not specified the `primary` connection is used.
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Models;
 
-$models = new Models
-(
-	$connections, array
-	(
-		'nodes' => array
-		(
+$models = new Models($connections, [
+	
+	'nodes' => [
+	
+		// …
+		Model::SCHEMA => [
+		
+			'nid' => 'serial',
+			'title' => 'varchar'
 			// …
-			Model::SCHEMA => array
-			(
-				'nid' => 'serial',
-				'title' => 'varchar'
-				// …
-			)
-		),
+		]
+	],
 
-		'contents' => array
-		(
-			// …
-			Model::EXTENDING => 'nodes'
-		)
-	)
-); 
+	'contents' => [
+	
+		// …
+		Model::EXTENDING => 'nodes'
+	]
+]); 
 ```
 
 Model definitions can be modified or added after the [Models](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Models.html)
@@ -1580,11 +1557,11 @@ instance has been created.
 
 use ICanBoogie\ActiveRecord\Model;
 
-$models['new'] = array
-(
+$models['new'] = [
+
 	// …
 	Model::EXTENDING => 'contents'
-);
+];
 ```
 
 You can modify the definition of a model until it is instantiated. A

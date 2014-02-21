@@ -84,14 +84,14 @@ class Model extends Table implements \ArrayAccess
 	 */
 	public function __construct(array $tags)
 	{
-		$tags += array
-		(
+		$tags += [
+
 			self::BELONGS_TO => null,
 			self::EXTENDING => null,
 			self::ID => null,
 			self::SCHEMA => null,
 			self::ACTIVERECORD_CLASS => null
-		);
+		];
 
 		if ($tags[self::EXTENDING] && !$tags[self::SCHEMA])
 		{
@@ -143,9 +143,9 @@ class Model extends Table implements \ArrayAccess
 	 * Handles the _belongs to_ relationship of the model.
 	 *
 	 * <pre>
-	 * $cars->belongs_to(array($drivers, $brands));
+	 * $cars->belongs_to([ $drivers, $brands ]);
 	 * # or
-	 * $cars->belongs_to(array('drivers', 'brands'));
+	 * $cars->belongs_to([ 'drivers', 'brands' ]);
 	 * # or
 	 * $cars->belongs_to($drivers, $brands);
 	 * # or
@@ -214,13 +214,13 @@ class Model extends Table implements \ArrayAccess
 	 */
 	public function __call($method, $arguments)
 	{
-		if (is_callable(array('ICanBoogie\ActiveRecord\Query', $method))
+		if (is_callable([ 'ICanBoogie\ActiveRecord\Query', $method ])
 		|| strpos($method, 'filter_by_') === 0
 		|| method_exists($this, 'scope_' . $method))
 		{
 			$query = new Query($this);
 
-			return call_user_func_array(array($query, $method), $arguments);
+			return call_user_func_array([ $query, $method ], $arguments);
 		}
 
 		return parent::__call($method, $arguments);
@@ -299,7 +299,7 @@ class Model extends Table implements \ArrayAccess
 			if ($missing)
 			{
 				$primary = $this->primary;
-				$query_records = $this->where(array($primary => array_keys($missing)))->all;
+				$query_records = $this->where([ $primary => array_keys($missing) ])->all;
 
 				foreach ($query_records as $record)
 				{
@@ -339,13 +339,13 @@ class Model extends Table implements \ArrayAccess
 
 		if ($record === null)
 		{
-			$record = $this->where(array($this->primary => $key))->one;
+			$record = $this->where([ $this->primary => $key ])->one;
 
 			if (!$record)
 			{
 				throw new RecordNotFound
 				(
-					"Record <q>{$key}</q> does not exists in model <q>{$this->name_unprefixed}</q>.", array($key => null)
+					"Record <q>{$key}</q> does not exists in model <q>{$this->name_unprefixed}</q>.", [ $key => null ]
 				);
 			}
 
@@ -359,7 +359,7 @@ class Model extends Table implements \ArrayAccess
 	 * Because records are cached, we need to removed the record from the cache when it is saved,
 	 * so that loading the record again returns the updated record, not the one in the cache.
 	 */
-	public function save(array $properties, $key=null, array $options=array())
+	public function save(array $properties, $key=null, array $options=[])
 	{
 		if ($key)
 		{
@@ -531,7 +531,7 @@ class Model extends Table implements \ArrayAccess
 			throw new ScopeNotDefined($scope_name, $this);
 		}
 
-		return call_user_func_array(array($this, $callback), $scope_args);
+		return call_user_func_array([ $this, $callback ], $scope_args);
 	}
 
 	/*
@@ -545,7 +545,7 @@ class Model extends Table implements \ArrayAccess
 	 */
 	public function offsetSet($offset, $value)
 	{
-		throw new OffsetNotWritable(array($offset, $this));
+		throw new OffsetNotWritable([ $offset, $this ]);
 	}
 
 	/**

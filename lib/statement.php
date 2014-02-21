@@ -35,7 +35,7 @@ class Statement extends \PDOStatement
 	 * The arguments can be provided as an array or a list of arguments:
 	 *
 	 *     $statement(1, 2, 3);
-	 *     $statement(array(1, 2, 3));
+	 *     $statement([ 1, 2, 3 ]);
 	 */
 	public function __invoke()
 	{
@@ -61,7 +61,7 @@ class Statement extends \PDOStatement
 			case 'rc': return $this->fetchColumnAndClose();
 		}
 
-		throw new PropertyNotDefined(array($property, $this));
+		throw new PropertyNotDefined([ $property, $this ]);
 	}
 
 	/**
@@ -71,7 +71,7 @@ class Statement extends \PDOStatement
 	 *
 	 * @throws StatementInvalid when the execution of the statement fails.
 	 */
-	public function execute($args=array())
+	public function execute($args=[])
 	{
 		$start = microtime(true);
 
@@ -82,13 +82,13 @@ class Statement extends \PDOStatement
 
 		try
 		{
-			$this->connection->profiling[] = array($start, microtime(true), $this->queryString . ' ' . json_encode($args));
+			$this->connection->profiling[] = [ $start, microtime(true), $this->queryString . ' ' . json_encode($args) ];
 
 			return parent::execute($args);
 		}
 		catch (\PDOException $e)
 		{
-			throw new StatementInvalid(array($this->queryString, $args), 500, $e);
+			throw new StatementInvalid([ $this->queryString, $args ], 500, $e);
 		}
 	}
 
@@ -106,7 +106,7 @@ class Statement extends \PDOStatement
 	public function fetchAndClose($fetch_style=\PDO::FETCH_BOTH, $cursor_orientation=\PDO::FETCH_ORI_NEXT, $cursor_offset=0)
 	{
 		$args = func_get_args();
-		$rc = call_user_func_array(array($this, 'parent::fetch'), $args);
+		$rc = call_user_func_array([ $this, 'parent::fetch' ], $args);
 
 		$this->closeCursor();
 
@@ -140,14 +140,14 @@ class Statement extends \PDOStatement
 	 *
 	 * @return array
 	 */
-	public function fetchGroups($fetch_style, $fetch_argument=null, array $ctor_args=array())
+	public function fetchGroups($fetch_style, $fetch_argument=null, array $ctor_args=[])
 	{
 		$args = func_get_args();
-		$rc = array();
+		$rc = [];
 
 		if($fetch_style === \PDO::FETCH_LAZY)
 		{
-			call_user_func_array(array($this, 'setFetchMode'), $args);
+			call_user_func_array([ $this, 'setFetchMode' ], $args);
 
 			foreach($this as $row)
 			{
@@ -159,7 +159,7 @@ class Statement extends \PDOStatement
 
 		$args[0] = \PDO::FETCH_GROUP | $fetch_style;
 
-		$rc = call_user_func_array(array($this, 'parent::fetchAll'), $args);
+		$rc = call_user_func_array([ $this, 'parent::fetchAll' ], $args);
 
 		return $rc;
 	}
@@ -179,7 +179,7 @@ class Statement extends \PDOStatement
 	{
 		$mode = func_get_args();
 
-		if (!call_user_func_array(array($this, 'setFetchMode'), $mode))
+		if (!call_user_func_array([ $this, 'setFetchMode' ], $mode))
 		{
 			throw new ActiveRecordException("Unable to set fetch mode.");
 		}
@@ -192,7 +192,7 @@ class Statement extends \PDOStatement
 	 */
 	public function all($fetch_style=null, $column_index=null, array $ctor_args=null)
 	{
-		return call_user_func_array(array($this, 'fetchAll'), func_get_args());
+		return call_user_func_array([ $this, 'fetchAll' ], func_get_args());
 	}
 }
 
@@ -242,6 +242,6 @@ class StatementInvalid extends ActiveRecordException
 			case 'statement': return $this->statement;
 		}
 
-		throw new PropertyNotDefined(array($property, $this));
+		throw new PropertyNotDefined([ $property, $this ]);
 	}
 }
