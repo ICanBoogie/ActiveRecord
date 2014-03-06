@@ -1733,6 +1733,12 @@ Helpers::patch('cache_eliminate', function(Model $model, $key) {
 
 
 
+----------
+
+
+
+
+
 ## Requirements
 
 The package requires PHP 5.4 or later and PDO.
@@ -1778,7 +1784,7 @@ clean the directory with the `make clean` command.
 
 The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
-[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.png?branch=master)](https://travis-ci.org/ICanBoogie/ActiveRecord)
+[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.png?branch=2.0)](https://travis-ci.org/ICanBoogie/ActiveRecord)
 
 
 
@@ -1798,7 +1804,7 @@ the `make clean` command.
 
 ## License
 
-ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](https://raw.github.com/ICanBoogie/ActiveRecord/master/LICENSE) file for details.
+ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](LICENSE) file for details.
 
 [DateTime]: http://icanboogie.org/docs/class-ICanBoogie.DateTime.html
 [DateTimeProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.DateTimeProperty.html

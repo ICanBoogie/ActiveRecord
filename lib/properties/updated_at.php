@@ -19,14 +19,14 @@ namespace ICanBoogie\ActiveRecord;
 trait UpdatedAtProperty
 {
 	/**
-	 * The date and time at which the record was created.
+	 * The date and time at which the record was updated.
 	 *
 	 * @var string
 	 */
 	private $updated_at;
 
 	/**
-	 * Returns the date and time at which the record was created.
+	 * Returns the date and time at which the record was updated.
 	 *
 	 * @return \ICanBoogie\DateTime
 	 */
@@ -36,9 +36,9 @@ trait UpdatedAtProperty
 	}
 
 	/**
-	 * Sets the date and time at which the record was created.
+	 * Sets the date and time at which the record was updated.
 	 *
-	 * @param mixed $value
+	 * @param mixed $datetime
 	 */
 	protected function set_updated_at($datetime)
 	{
