@@ -195,7 +195,7 @@ class Model extends Table implements \ArrayAccess
 			throw new ActiveRecordException('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a <em>belongs to</em> relationship.');
 		}
 
-		$prototype = \ICanBoogie\Prototype::get($activerecord_class);
+		$prototype = \ICanBoogie\Prototype::from($activerecord_class);
 
 		$prototype[$getter_name] = function(ActiveRecord $ar) use($belongs_to_model, $belongs_to_id)
 		{
