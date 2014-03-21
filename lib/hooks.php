@@ -15,6 +15,13 @@ use ICanBoogie\Core;
 
 class Hooks
 {
+	/**
+	 * Synthesizes the `activerecord_connections` config from `activerecord` fragments.
+	 *
+	 * @param array $fragments
+	 *
+	 * @return array
+	 */
 	static public function synthesize_connections_config(array $fragments)
 	{
 		$config = [];
