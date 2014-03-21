@@ -1,0 +1,9 @@
+{
+	"config-constructor": {
+
+		"activerecord_connections": "ICanBoogie\\ActiveRecord\\Hooks::synthesize_connections_config#activerecord"
+
+	},
+
+	"config-path": "config"
+}

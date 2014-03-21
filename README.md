@@ -116,9 +116,9 @@ $model = new Nodes
 	Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\Node',
 	Model::NAME => 'node',
 	Model::SCHEMA => [
-	
+
 		'fields' => [
-		
+
 			'id' => 'serial',
 			'title' => [ 'varchar', 80 ],
 			'number' => [ 'integer', 'unsigned' => true ]
@@ -189,7 +189,7 @@ pattern:
 ```
 
 The following types are available: `blob`, `char`, `integer`, `text`, `varchar`,
-`bit`, `boolean`, `date`, `datetime`, `time`, `timestamp`, `year`, `enum`, `double` et `float`. The 
+`bit`, `boolean`, `date`, `datetime`, `time`, `timestamp`, `year`, `enum`, `double` et `float`. The
 `serial` and `foreign` special types are used to defined auto incrementing primary keys and foreign
 keys:
 
@@ -197,7 +197,7 @@ keys:
 <?php
 
 [
-	'nid' => 'serial', // bigint(20) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (`nid`) 
+	'nid' => 'serial', // bigint(20) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (`nid`)
 	'uid' => 'foreign' // bigint(20) unsigned NOT NULL, KEY `uid` (`uid`)
 ];
 ```
@@ -334,9 +334,9 @@ $nodes = new Model
 	Model::NAME => 'nodes',
 	Model::CONNECTION => $connection,
 	Model::SCHEMA => [
-	
+
 		'fields' => [
-		
+
 			'nid' => 'serial',
 			'title' => 'varchar'
 		]
@@ -348,9 +348,9 @@ $news = new Model
 	Model::NAME => 'news',
 	Model::EXTENDING => $nodes,
 	Model::SCHEMA => [
-	
+
 		'fields' => [
-		
+
 			'date' => 'date'
 		]
 	]
@@ -381,9 +381,9 @@ $news = new Model
 	Model::EXTENDING => $nodes,
 	Model::BELONGS_TO => $users,
 	Model::SCHEMA => [
-	
+
 		'fields' => [
-		
+
 			'date' => 'date',
 			'uid' => 'foreign'
 		]
@@ -529,7 +529,7 @@ most simple of them.
 #### Retrieving a single record
 
 Retrieving a single record using its primary key is really simple. You can either use the `find()`
-method of the model, or use the model as an array. 
+method of the model, or use the model as an array.
 
 ```php
 <?php
@@ -742,7 +742,7 @@ class Model extends \ICanBoogie\ActiveRecord\Model
 	{
 		return $query->and('siteid = 0 OR siteid = ?', $siteid !== null ? $siteid : Core::get()->site->siteid);
 	}
-	
+
 	protected function scope_similar_language(Query $query, $language=null)
 	{
 		return $query->and('language = "" OR language = ?', $language !== null ? $language : Core::get()->site->language);
@@ -954,7 +954,7 @@ The same SQL statement will be created, but we don't have to care about the join
 notice the column ":" used to identify that a model identifier is used and not a raw fragement.
 
 Note: The method uses the `get_model()` helper. Checkout the "Patching" section for implementation
-details. 
+details.
 
 
 
@@ -1379,7 +1379,7 @@ The connections provider manages database connections.
 
 #### Defining connections
 
-Connection definitions can be specified while creating the [Connections](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html)
+Connection definitions can be specified while creating the [Connections][]
 instance.
 
 ```php
@@ -1390,12 +1390,12 @@ use ICanBoogie\ActiveRecord\Connections;
 $connections = new Connections
 ([
 	'one' => [
-	
+
 		'dsn' => 'sqlite::memory:'
 	],
 
 	'bad' => [
-	
+
 		'dsn' => 'mysql:dbname=bad_database' . uniqid()
 	]
 ]);
@@ -1423,7 +1423,7 @@ exception is thrown in attempt to modify the definition of an already establishe
 
 #### Obtaining a database connection
 
-[Connections](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html) instances
+[Connections][] instances
 are used as arrays. For instance, this is how you obtain a [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
 instance, which represent a database connection:
 
@@ -1445,10 +1445,10 @@ exception is thrown in attempt to obtain a connection that is not defined.
 
 #### Checking defined connections
 
-Because [Connections](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html)
-instances are used as arrays, the `isset()` function is used to check if a connection is defined.
+Because [Connections][] instances are used as arrays, the `isset()` function is used to check
+if a connection is defined.
 
-```php 
+```php
 <?php
 
 if (isset($connections['one']))
@@ -1460,13 +1460,13 @@ if (isset($connections['one']))
 The `definitions` magic property returns the current connection definitions. The property is
 _read-only_.
 
-```php 
+```php
 <?php
 
 foreach ($connections->definitions as $id => $definition)
 {
 	echo "The connection '$id' is defined.\n";
-} 
+}
 ```
 
 
@@ -1478,25 +1478,24 @@ foreach ($connections->definitions as $id => $definition)
 An array with the established connections can be retrieved using the `established` magic property.
 The property is _read-only_.
 
-```php 
+```php
 <?php
 
 foreach ($connections->established as $id => $connection)
 {
 	echo "The connection '$id' is established.\n";
-} 
+}
 ```
 
-The [Connections](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html) instance
-itself can be used to traverse established connections.
+The [Connections] instance itself can be used to traverse established connections.
 
-```php 
+```php
 <?php
 
 foreach ($connections as $id => $connection)
 {
 	echo "The connection '$id' is established.\n";
-} 
+}
 ```
 
 
@@ -1529,12 +1528,12 @@ use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Models;
 
 $models = new Models($connections, [
-	
+
 	'nodes' => [
-	
+
 		// …
 		Model::SCHEMA => [
-		
+
 			'nid' => 'serial',
 			'title' => 'varchar'
 			// …
@@ -1542,11 +1541,11 @@ $models = new Models($connections, [
 	],
 
 	'contents' => [
-	
+
 		// …
 		Model::EXTENDING => 'nodes'
 	]
-]); 
+]);
 ```
 
 Model definitions can be modified or added after the [Models](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Models.html)
@@ -1650,7 +1649,7 @@ this helper according to your application logic because the default implementati
 `\RuntimeException`.
 
 In the following example, the `get_model()` helper is patched to retrieve models from a provider
-similar to the one we've seen in previous examples. 
+similar to the one we've seen in previous examples.
 
 ```php
 <?php
@@ -1733,6 +1732,64 @@ Helpers::patch('cache_eliminate', function(Model $model, $key) {
 
 
 
+## Auto-config
+
+The package supports the auto-config feature of the framework [ICanBoogie][] and provides
+the following:
+
+- A synthesizer for the `activerecord_connections` config, created from the `activerecord`
+fragments.
+- A lazy getter for the `ICanBoogie\Core::$connections` property, that return a [Connections][]
+instance created with the `activerecord_connections` config.
+- A lazy getter for the `ICanBoogie\Core::$db` property, that return the connection named
+`primary` from the `ICanBoogie\Core::$connections` property.
+
+
+
+
+
+### The `activerecord` config
+
+Currently `activerecord` fragments are used synthesize the `activerecord_connections` config,
+suitable to create a [Connections][] instance.
+
+The following is an example of a config that defines two connections: `primary` is a connection
+to the MySQL server; `cache` is a connection to a SQLite database:
+
+```php
+<?php
+
+// config/activerecord.php
+
+return [
+
+	'connections' => [
+
+		'primary' => [
+
+			'dsn' => 'mysql:dbname=mydatabase',
+			'username' => 'root',
+			'password' => 'root',
+			'#timezone' => '+00.00',
+			'#table_name_prefix' => ''
+
+		],
+
+		'cache' => [
+
+			'dsn' => 'sqlite:' . ICanBoogie\REPOSITORY . 'cache.sqlite'
+
+		]
+
+	]
+
+];
+```
+
+
+
+
+
 ----------
 
 
@@ -1806,7 +1863,9 @@ the `make clean` command.
 
 ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](LICENSE) file for details.
 
+[Connections]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html
+[CreatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
 [DateTime]: http://icanboogie.org/docs/class-ICanBoogie.DateTime.html
 [DateTimeProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
-[CreatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
+[ICanBoogie]: http://icanboogie.org
 [UpdatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
