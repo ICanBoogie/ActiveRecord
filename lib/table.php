@@ -776,6 +776,38 @@ class Table extends \ICanBoogie\Object
 	 */
 	public function update(array $values, $key)
 	{
+		#
+		# SQLite doesn't support UPDATE with INNER JOIN.
+		#
+
+		if ($this->connection->driver_name == 'sqlite')
+		{
+			$table = $this;
+			$rc = true;
+
+			while ($table)
+			{
+				list($table_values, $holders) = $table->filter_values($values);
+
+				if ($holders)
+				{
+					$query = 'UPDATE `{self}` SET ' . implode(', ', $holders) . ' WHERE `{primary}` = ?';
+					$table_values[] = $key;
+
+					$rc = $table->execute($query, $table_values);
+
+					if (!$rc)
+					{
+						return $rc;
+					}
+				}
+
+				$table = $table->parent;
+			}
+
+			return $rc;
+		}
+
 		list($values, $holders) = $this->filter_values($values, true);
 
 		$query = 'UPDATE `{self}` ' . $this->update_join . ' SET ' . implode(', ', $holders) . ' WHERE `{primary}` = ?';
