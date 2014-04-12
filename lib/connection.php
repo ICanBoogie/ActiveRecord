@@ -685,7 +685,7 @@ class Connection extends \PDO
 
 			foreach ($schema['indexes'] as $key => $identifiers)
 			{
-				$statement = 'CREATE INDEX `' . $key . '` ON ' . $table_name;
+				$statement = 'CREATE INDEX IF NOT EXISTS `' . $key . '` ON ' . $table_name;
 
 				$identifiers = (array) $identifiers;
 
