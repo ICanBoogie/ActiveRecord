@@ -50,7 +50,7 @@ class Hooks
 	 */
 	static public function core_lazy_get_connections(Core $core)
 	{
-		return new Connections($core->configs['activerecord_connections']);
+		return new Connections($core->configs['activerecord_connections'] ?: []);
 	}
 
 	/**
