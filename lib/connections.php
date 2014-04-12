@@ -87,6 +87,11 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 			throw new ConnectionAlreadyEstablished($id);
 		}
 
+		if (is_string($definition))
+		{
+			$definition = [ 'dsn' => $definition ];
+		}
+
 		if (empty($definition['dsn']))
 		{
 			throw new \InvalidArgumentException("<q>dsn</q> is empty or not defined.");
