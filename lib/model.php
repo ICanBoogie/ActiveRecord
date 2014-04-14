@@ -357,7 +357,7 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Because records are cached, we need to removed the record from the cache when it is saved,
+	 * Because records are cached, we need to remove the record from the cache when it is saved,
 	 * so that loading the record again returns the updated record, not the one in the cache.
 	 */
 	public function save(array $properties, $key=null, array $options=[])
@@ -370,7 +370,15 @@ class Model extends Table implements \ArrayAccess
 		return parent::save($properties, $key, $options);
 	}
 
-	static protected $cached_records;
+	/**
+	 * Eliminates the record from the cache.
+	 */
+	public function delete($key)
+	{
+		$this->activerecord_cache->eliminate($key);
+
+		return parent::delete($key);
+	}
 
 	/**
 	 * Stores a record in the records cache.

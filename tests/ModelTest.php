@@ -525,13 +525,13 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 		for ($i = 1 ; $i < 5 ; $i++)
 		{
-			$records[$i] = $model->find($i);
+			$records[$i] = $model[$i];
 		}
 
 		for ($i = 1 ; $i < 5 ; $i++)
 		{
 			$this->assertSame($records[$i], $activerecord_cache->retrieve($i));
-			$this->assertSame($records[$i], $model->find($i));
+			$this->assertSame($records[$i], $model[$i]);
 		}
 
 		$activerecord_cache->clear();
@@ -539,8 +539,17 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		for ($i = 1 ; $i < 5 ; $i++)
 		{
 			$this->assertNull($activerecord_cache->retrieve($i));
-			$this->assertNotSame($records[$i], $model->find($i));
+			$this->assertNotSame($records[$i], $model[$i]);
 		}
+
+		#
+		# A deleted record must not be available in the cache.
+		#
+
+		$records[1]->delete();
+		$this->assertNull($activerecord_cache->retrieve(1));
+		$this->setExpectedException('ICanBoogie\ActiveRecord\RecordNotFound');
+		$record = $model[1];
 	}
 }
 

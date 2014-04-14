@@ -224,7 +224,7 @@ class ActiveRecord extends \ICanBoogie\Object
 	 */
 	public function delete()
 	{
-		$model = $this->get__model();
+		$model = $this->model;
 		$primary = $model->primary;
 
 		return $model->delete($this->$primary);
