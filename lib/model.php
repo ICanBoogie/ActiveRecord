@@ -40,6 +40,7 @@ use ICanBoogie\PropertyNotWritable;
  * @property-read bool $exists Whether the SQL table associated with the model exists.
  * @property-read string $id The identifier of the model.
  * @property-read ActiveRecord Retrieve the first record from the mode.
+ * @property ActiveRecordCacheInterface $activerecord_cache The cache use to store activerecords.
  */
 class Model extends Table implements \ArrayAccess
 {
@@ -375,19 +376,12 @@ class Model extends Table implements \ArrayAccess
 	 * Stores a record in the records cache.
 	 *
 	 * @param ActiveRecord $record The record to store.
+	 *
+	 * @TODO-20140414: Remove the method and use {@link $activerecord_cache}
 	 */
 	protected function store(ActiveRecord $record)
 	{
-		$cache_key = $this->create_cache_key($record->{$this->primary});
-
-		if (!$cache_key || isset(self::$cached_records[$cache_key]))
-		{
-			return;
-		}
-
-		self::$cached_records[$cache_key] = $record;
-
-		Helpers::cache_store($this, $record);
+		$this->activerecord_cache->store($record);
 	}
 
 	/**
@@ -397,64 +391,24 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return ActiveRecord|null Returns the active record found in the cache or null if it wasn't
 	 * there.
+	 *
+	 * @TODO-20140414: Remove the method and use {@link $activerecord_cache}
 	 */
 	protected function retrieve($key)
 	{
-		$cache_key = $this->create_cache_key($key);
-
-		if (!$cache_key)
-		{
-			return;
-		}
-
-		$record = null;
-
-		if (isset(self::$cached_records[$cache_key]))
-		{
-			$record = self::$cached_records[$cache_key];
-		}
-		else
-		{
-			$record = Helpers::cache_retrieve($this, $key);
-
-			if ($record)
-			{
-				self::$cached_records[$cache_key] = $record;
-			}
-		}
-
-		return $record;
+		return $this->activerecord_cache->retrieve($key);
 	}
 
 	/**
 	 * Eliminates an object from the cache.
 	 *
 	 * @param int $key
+	 *
+	 * @TODO-20140414: Remove the method and use {@link $activerecord_cache}
 	 */
 	protected function eliminate($key)
 	{
-		$cache_key = $this->create_cache_key($key);
-
-		if (!$cache_key)
-		{
-			return;
-		}
-
-		unset(self::$cached_records[$cache_key]);
-
-		Helpers::cache_eliminate($this, $key);
-	}
-
-	/**
-	 * Creates a unique cache key.
-	 *
-	 * @param int $key
-	 *
-	 * @return string A unique cache key.
-	 */
-	protected function create_cache_key($key)
-	{
-		return Helpers::create_cache_key($this, $key);
+		$this->activerecord_cache->eliminate($key);
 	}
 
 	/**

@@ -492,6 +492,56 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$m = self::$query_model;
 		$this->assertEquals("SELECT * FROM `nodes` `node` LIMIT 5, " . Query::LIMIT_MAX, (string) $m->offset(5));
 	}
+
+	public function test_activerecord_cache()
+	{
+		$model = new Model([
+
+			Model::CONNECTION => self::$query_connection,
+			Model::NAME => __FUNCTION__,
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'id' => 'serial',
+					'value' => 'varchar'
+
+				]
+
+			]
+
+		]);
+
+		$model->install();
+
+		foreach (array('one', 'two', 'three', 'four') as $value)
+		{
+			$model->save([ 'value' => $value ]);
+		}
+
+		$activerecord_cache = $model->activerecord_cache;
+
+		$this->assertInstanceOf('ICanBoogie\ActiveRecord\ActiveRecordCacheInterface', $activerecord_cache);
+
+		for ($i = 1 ; $i < 5 ; $i++)
+		{
+			$records[$i] = $model->find($i);
+		}
+
+		for ($i = 1 ; $i < 5 ; $i++)
+		{
+			$this->assertSame($records[$i], $activerecord_cache->retrieve($i));
+			$this->assertSame($records[$i], $model->find($i));
+		}
+
+		$activerecord_cache->clear();
+
+		for ($i = 1 ; $i < 5 ; $i++)
+		{
+			$this->assertNull($activerecord_cache->retrieve($i));
+			$this->assertNotSame($records[$i], $model->find($i));
+		}
+	}
 }
 
 namespace ICanBoogie\ActiveRecord\ModelTest;

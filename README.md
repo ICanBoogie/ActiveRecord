@@ -1,4 +1,4 @@
-# Active Record [![Build Status](https://secure.travis-ci.org/ICanBoogie/ActiveRecord.png?branch=2.0)](http://travis-ci.org/ICanBoogie/ActiveRecord)
+# Active Record [![Build Status](https://secure.travis-ci.org/ICanBoogie/ActiveRecord.png?branch=2.1)](http://travis-ci.org/ICanBoogie/ActiveRecord)
 
 As described by Martin Flower, an active record "carries both data and behavior. Much of this
 data is persistent and needs to be stored in a database. Active Record uses the most obvious
@@ -1639,6 +1639,52 @@ foreach ($models->instances as $id => $model)
 
 
 
+## Records caching
+
+By default, each model uses an instance of [RunTimeActiveRecordCache][] to cache its records.
+This cache stores the records for the duration of the request, it is brand new with each HTTP
+request. The cache is obtained using the prototype features of the model, through the
+`activerecord_cache` magic property.
+
+Third parties can provide a different cache instance simply by overriding the
+`lazy_get_activerecord_cache` method:
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\Prototype;
+
+Prototype::from('ICanBoogie\ActiveRecord\Model')['lazy_get_activerecord_cache'] = function(Model $model) {
+
+	return new MyActiveRecordCache($model);
+
+};
+```
+
+Or using the `hooks` configuration:
+
+```php
+<?php
+
+// config/hooks.php
+
+return [
+
+	'prototypes' => [
+
+		'ICanBoogie\ActiveRecord\Model::lazy_get_activerecord_cache' => 'my_activerecord_cache_provider'
+
+	]
+
+];
+```
+
+
+
+
+
+
 ## Patching
 
 ### Retrieving models from a provider
@@ -1664,68 +1710,6 @@ Helpers::patch('get_model', function($id) use($models) {
 });
 
 $nodes = ActiveRecord\get_model('nodes');
-```
-
-
-
-
-
-### Using APC to cache records between requests
-
-Records are cached during an HTTP request by the `Model` class, but performance can be improved
-by caching records _between_ HTTP requests.
-
-The following example illustrates how ActiveRecord could be patched to use APC. It could be
-adapted to use [MemCache](http://php.net/manual/en/book.memcache.php) or any other caching daemon.
-
-```php
-<?php
-
-use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Helpers;
-use ICanBoogie\ActiveRecord\Model;
-
-Helpers::patch('create_cache_key', function(Model $model, ActiveRecord $record) {
-
-	static $prefix;
-
-	if ($prefix === null)
-	{
-		$prefix = md5($_SERVER['DOCUMENT_ROOT']) . '/ActiveRecord/';
-	}
-
-	return $prefix . $this->connection->id . '/' . $this->name . '/' . $key;
-
-});
-
-Helpers::patch('cache_store', function(Model $model, ActiveRecord $record) {
-
-	$key = ActiveRecord\create_cache_key($model, $record->{$model->primary});
-
-	apc_store($key, $record, 3600);
-
-});
-
-Helpers::patch('cache_retrieve', function(Model $model, $key) {
-
-	$key = ActiveRecord\create_cache_key($model, $key);
-
-	$record = apc_fetch($key, $success);
-
-	if ($success)
-	{
-		return $record;
-	}
-
-});
-
-Helpers::patch('cache_eliminate', function(Model $model, $key) {
-
-	$key = ActiveRecord\create_cache_key($model, $key);
-
-	apc_delete($key);
-
-});
 ```
 
 
@@ -1813,7 +1797,7 @@ Create a `composer.json` file and run `php composer.phar install` command to ins
 {
 	"minimum-stability": "dev",
 	"require": {
-		"icanboogie/activerecord": "2.x"
+		"icanboogie/activerecord": "2.1.x"
 	}
 }
 ```
@@ -1841,7 +1825,7 @@ clean the directory with the `make clean` command.
 
 The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
-[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.png?branch=2.0)](https://travis-ci.org/ICanBoogie/ActiveRecord)
+[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.png?branch=2.1)](https://travis-ci.org/ICanBoogie/ActiveRecord)
 
 
 
@@ -1868,4 +1852,5 @@ ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE
 [DateTime]: http://icanboogie.org/docs/class-ICanBoogie.DateTime.html
 [DateTimeProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
 [ICanBoogie]: http://icanboogie.org
+[RunTimeActiveRecordCache]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RunTimeActiveRecordCache.html
 [UpdatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html

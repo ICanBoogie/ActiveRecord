@@ -62,4 +62,16 @@ class Hooks
 	{
 		return $core->connections['primary'];
 	}
+
+	/**
+	 * Returns the ActiveRecord cache associated with the model.
+	 *
+	 * @param Model $model
+	 *
+	 * @return \ICanBoogie\ActiveRecord\RuntimeCache
+	 */
+	static public function model_lazy_get_activerecord_cache(Model $model)
+	{
+		return new RunTimeActiveRecordCache($model);
+	}
 }
