@@ -770,26 +770,34 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 */
 	public function exists($key=null)
 	{
-		$suffix = '';
-
-		if ($key !== null)
+		if ($key !== null && func_num_args() > 1)
 		{
-			if (func_num_args() > 1)
-			{
-				$key = func_get_args();
-			}
-
-			$this->where([ '{primary}' => $key ]);
-		}
-		else if (!$this->limit)
-		{
-			$suffix = ' LIMIT 1';
+			$key = func_get_args();
 		}
 
-		$rc = $this
-		->model
-		->query('SELECT `{primary}` FROM {self_and_related}' . $this->build() . $suffix, array_merge($this->conditions_args, $this->having_args))
-		->fetchAll(\PDO::FETCH_COLUMN);
+		$query = clone $this;
+
+		#
+		# Checking if the query matches any record.
+		#
+
+		if ($key === null)
+		{
+			return !!$query
+			->select('1')
+			->limit(1)
+			->rc;
+		}
+
+		#
+		# Checking if the query matches the specified record keys.
+		#
+
+		$rc = $query
+		->select('`{primary}`')
+		->and([ '{primary}' => $key ])
+		->limit(0, 0)
+		->all(\PDO::FETCH_COLUMN);
 
 		if ($rc && is_array($key))
 		{
@@ -812,12 +820,8 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 
 			return true;
 		}
-		else
-		{
-			$rc = !empty($rc);
-		}
 
-		return $rc;
+		return !empty($rc);
 	}
 
 	/**
