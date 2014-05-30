@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\DateTime;
 use ICanBoogie\Prototype\MethodNotDefined;
+use ICanBoogie\PrototypeTrait;
 
 /**
  * The class offers many features to compose model queries. Most query related
@@ -32,8 +33,14 @@ use ICanBoogie\Prototype\MethodNotDefined;
  *
  * @see http://dev.mysql.com/doc/refman/5.6/en/select.html
  */
-class Query extends \ICanBoogie\Object implements \IteratorAggregate
+class Query implements \IteratorAggregate
 {
+	use PrototypeTrait
+	{
+		PrototypeTrait::__get as __prototype_get;
+		PrototypeTrait::__call as __prototype_call;
+	}
+
 	const LIMIT_MAX = '18446744073709551615';
 
 	protected $select;
@@ -74,7 +81,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 	 */
 	public function __get($property)
 	{
-		if ($property == 'model')
+		if ($property === 'model')
 		{
 			return $this->model;
 		}
@@ -86,7 +93,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 			return $this->model->scope($property, [ $this ]);
 		}
 
-		return parent::__get($property);
+		return self::__prototype_get($property);
 	}
 
 	/**
@@ -115,7 +122,7 @@ class Query extends \ICanBoogie\Object implements \IteratorAggregate
 
 		try
 		{
-			return parent::__call($method, $arguments);
+			return self::__prototype_call($method, $arguments);
 		}
 		catch (MethodNotDefined $e)
 		{
