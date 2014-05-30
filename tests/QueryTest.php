@@ -75,6 +75,22 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 		}
 	}
 
+	/**
+	 * @expectedException ICanBoogie\PropertyNotWritable
+	 * @dataProvider provide_test_readonly_properties
+	 */
+	public function test_readonly_properties($property)
+	{
+		$query = new Query(self::$animals);
+		$query->$property = null;
+	}
+
+	public function provide_test_readonly_properties()
+	{
+		$properties = 'all conditions conditions_args count exists model model_scope one pairs prepared rc';
+		return array_map(function($v) { return (array) $v; }, explode(' ', $properties));
+	}
+
 	public function test_one()
 	{
 		$this->assertInstanceOf('ICanBoogie\ActiveRecord\QueryTest\Dog', self::$dogs->one);
@@ -105,6 +121,31 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 		$q = $m->order('id', 1, 2, 3);
 		$this->assertEquals("SELECT * FROM `animals` `animal` ORDER BY FIELD(id, '1', '2', '3')", (string) $q);
+	}
+
+	public function test_conditions()
+	{
+		$query = new Query(self::$animals);
+
+		$query->where([ 'name' => 'madonna' ])
+		->filter_by_legs(2)
+		->and('YEAR(date) = ?', 1958);
+
+		$this->assertSame([
+
+			"(`name` = ?)",
+			"(`legs` = ?)",
+			"(YEAR(date) = ?)"
+
+		], $query->conditions);
+
+		$this->assertSame([
+
+			"madonna",
+			2,
+			1958
+
+		], $query->conditions_args);
 	}
 }
 

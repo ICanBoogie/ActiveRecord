@@ -29,9 +29,11 @@ use ICanBoogie\PrototypeTrait;
  * @property-read int $count The number of records matching the query.
  * @property-read bool|array $exists `true` if a record matching the query exists, `false`
  * otherwise. If there is multiple records, the property is an array of booleans.
- * @property-read Model $model The target model of the query.
  *
- * @see http://dev.mysql.com/doc/refman/5.6/en/select.html
+ * @property-read Model $model The target model of the query.
+ * @property-read array $conditions The conditions collected from {@link where()}, {@link and()},
+ * `filter_by_*`, and scopes.
+ * @property-read array $conditions_args The arguments to the conditions.
  */
 class Query implements \IteratorAggregate
 {
@@ -46,8 +48,40 @@ class Query implements \IteratorAggregate
 	protected $select;
 	protected $join;
 
+	/**
+	 * The conditions collected from {@link where()}, {@link and()}, `filter_by_*`, and scopes.
+	 *
+	 * @var array
+	 */
 	protected $conditions = [];
+
+	/**
+	 * Returns the conditions collected from {@link where()}, {@link and()}, `filter_by_*`,
+	 * and scopes.
+	 *
+	 * @return array
+	 */
+	protected function get_conditions()
+	{
+		return $this->conditions;
+	}
+
+	/**
+	 * Arguments for the conditions.
+	 *
+	 * @var array
+	 */
 	protected $conditions_args = [];
+
+	/**
+	 * Returns the arguments to the conditions.
+	 *
+	 * @return array
+	 */
+	protected function get_conditions_args()
+	{
+		return $this->conditions_args;
+	}
 
 	protected $group;
 	protected $order;
