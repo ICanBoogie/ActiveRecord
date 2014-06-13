@@ -32,7 +32,7 @@ trait UpdatedAtProperty
 	 */
 	protected function get_updated_at()
 	{
-		return DateTimePropertySupport::datetime_get($this->updated_at);
+		return DateTimePropertySupport::get($this->updated_at);
 	}
 
 	/**
@@ -42,6 +42,6 @@ trait UpdatedAtProperty
 	 */
 	protected function set_updated_at($datetime)
 	{
-		DateTimePropertySupport::datetime_set($this->updated_at, $datetime);
+		DateTimePropertySupport::set($this->updated_at, $datetime);
 	}
 }

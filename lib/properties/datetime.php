@@ -19,12 +19,12 @@ use ICanBoogie\DateTime;
 class DateTimePropertySupport
 {
 	/**
-	 * Sets the a datetime is a property.
+	 * Sets the datetime in a property.
 	 *
 	 * @param mixed $property Reference to the property to set.
 	 * @param mixed $datetime Date and time.
 	 */
-	static public function datetime_set(&$property, $datetime)
+	static public function set(&$property, $datetime)
 	{
 		$property = $datetime;
 	}
@@ -36,7 +36,7 @@ class DateTimePropertySupport
 	 *
 	 * @return DateTime The function always return a {@link DateTime} instance.
 	 */
-	static public function datetime_get(&$property)
+	static public function get(&$property)
 	{
 		if ($property instanceof DateTime)
 		{
@@ -66,7 +66,7 @@ trait DateTimeProperty
 	 */
 	protected function get_datetime()
 	{
-		return DateTimePropertySupport::datetime_get($this->datetime);
+		return DateTimePropertySupport::get($this->datetime);
 	}
 
 	/**
@@ -76,6 +76,6 @@ trait DateTimeProperty
 	 */
 	protected function set_datetime($datetime)
 	{
-		DateTimePropertySupport::datetime_set($this->datetime, $datetime);
+		DateTimePropertySupport::set($this->datetime, $datetime);
 	}
 }
