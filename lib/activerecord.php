@@ -221,11 +221,18 @@ class ActiveRecord extends \ICanBoogie\Object
 	 * Deletes the active record using its model.
 	 *
 	 * @return bool `true` if the record was deleted, `false` otherwise.
+	 *
+	 * @throws \Exception in attempt to delete a record from a model which primary key is empty.
 	 */
 	public function delete()
 	{
 		$model = $this->model;
 		$primary = $model->primary;
+
+		if (!$primary)
+		{
+			throw new \Exception("Unable to delete record, primary key is empty.");
+		}
 
 		return $model->delete($this->$primary);
 	}
