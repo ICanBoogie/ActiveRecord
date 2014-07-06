@@ -290,8 +290,7 @@ class Query implements \IteratorAggregate
 	 */
 	private function defered_parse_conditions()
 	{
-		$trace = debug_backtrace(false);
-		$args = $trace[1]['args'];
+		$args = debug_backtrace(0, 2)[1]['args'];
 
 		$conditions = array_shift($args);
 
