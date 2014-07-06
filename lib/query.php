@@ -34,6 +34,8 @@ use ICanBoogie\PrototypeTrait;
  * @property-read array $conditions The conditions collected from {@link where()}, {@link and()},
  * `filter_by_*`, and scopes.
  * @property-read array $conditions_args The arguments to the conditions.
+ * @property-read array $having_args The arguments to the `HAVING` clause.
+ * @property-read Query $prepared Return a prepared query.
  */
 class Query implements \IteratorAggregate
 {
@@ -45,7 +47,18 @@ class Query implements \IteratorAggregate
 
 	const LIMIT_MAX = '18446744073709551615';
 
+	/**
+	 * Part of the `SELECT` clause.
+	 *
+	 * @var string
+	 */
 	protected $select;
+
+	/**
+	 * Part of the `JOIN` clause.
+	 *
+	 * @var string
+	 */
 	protected $join;
 
 	/**
@@ -56,7 +69,7 @@ class Query implements \IteratorAggregate
 	protected $conditions = [];
 
 	/**
-	 * Returns the conditions collected from {@link where()}, {@link and()}, `filter_by_*`,
+	 * Return the conditions collected from {@link where()}, {@link and()}, `filter_by_*`,
 	 * and scopes.
 	 *
 	 * @return array
@@ -74,7 +87,7 @@ class Query implements \IteratorAggregate
 	protected $conditions_args = [];
 
 	/**
-	 * Returns the arguments to the conditions.
+	 * Return the arguments to the conditions.
 	 *
 	 * @return array
 	 */
@@ -83,14 +96,63 @@ class Query implements \IteratorAggregate
 		return $this->conditions_args;
 	}
 
+	/**
+	 * Part of the `GROUP BY` clause.
+	 *
+	 * @var string
+	 */
 	protected $group;
+
+	/**
+	 * Part of the `ORDER BY` clause.
+	 *
+	 * @var mixed
+	 */
 	protected $order;
+
+	/**
+	 * Part of the `HAVONG` clause.
+	 *
+	 * @var string
+	 */
 	protected $having;
+
+	/**
+	 * Arguments to the `HAVING` clause.
+	 *
+	 * @var array
+	 */
 	protected $having_args = [];
 
+	/**
+	 * Return the arguments to the `HAVING` clause.
+	 *
+	 * @return array
+	 */
+	protected function get_having_args()
+	{
+		return $this->having_args;
+	}
+
+	/**
+	 * The number of records the skip before fetching.
+	 *
+	 * @var int
+	 */
 	protected $offset;
+
+	/**
+	 * The maximum number of records to fetch.
+	 *
+	 * @var int
+	 */
 	protected $limit;
 
+	/**
+	 * Fetch mode.
+	 *
+	 * @var mixed
+	 */
 	protected $mode;
 
 	/**
@@ -169,7 +231,7 @@ class Query implements \IteratorAggregate
 	 */
 
 	/**
-	 * Converts the query into a string.
+	 * Convert the query into a string.
 	 *
 	 * @return string
 	 */
@@ -184,7 +246,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Renders the `SELECT` clause.
+	 * Render the `SELECT` clause.
 	 *
 	 * @return string
 	 */
@@ -194,7 +256,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Renders the `FROM` clause.
+	 * Render the `FROM` clause.
 	 *
 	 * The rendered `FROM` clause might include some JOINS too.
 	 *
@@ -206,7 +268,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Renders the main body of the query, without the `SELECT` and `FROM` clauses.
+	 * Render the main body of the query, without the `SELECT` and `FROM` clauses.
 	 *
 	 * @return string
 	 */
@@ -253,7 +315,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Renders the `ORDER` clause.
+	 * Render the `ORDER` clause.
 	 *
 	 * @param mixed $order
 	 *
@@ -280,7 +342,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Renders the `LIMIT` and `OFFSET` clauses.
+	 * Render the `LIMIT` and `OFFSET` clauses.
 	 *
 	 * @param mixed $offset
 	 * @param mixed $limit
@@ -323,14 +385,14 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Caches available scopes by model class.
+	 * Cache available scopes by model class.
 	 *
 	 * @var array[]string
 	 */
 	static protected $scopes_by_classes = [];
 
 	/**
-	 * Returns the available scopes for a model class.
+	 * Return the available scopes for a model class.
 	 *
 	 * The method uses reflexion to find the scopes, the result is cached.
 	 *
@@ -366,9 +428,9 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Defines the SELECT clause.
+	 * Define the `SELECT` clause.
 	 *
-	 * @param string $expression The expression of the SELECT clause. e.g. 'nid, title'.
+	 * @param string $expression The expression of the `SELECT` clause. e.g. 'nid, title'.
 	 *
 	 * @return Query
 	 */
@@ -380,10 +442,11 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Adds a JOIN clause.
+	 * Add a `JOIN` clause.
 	 *
-	 * @param string $expression The expression can be a full JOIN clause or a reference to a
-	 * model defined as ":<model_id>" e.g. ":nodes".
+	 * @param string $expression The expression can be a full `JOIN` clause or a reference to a
+	 * model defined as ":<model_id>" where `<model_id>` is the identifier of a model
+	 * that can be retrived with `get_model()` e.g. ":nodes".
 	 *
 	 * @return Query
 	 */
@@ -427,7 +490,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Parses the conditions for the {@link where()} and {@link having()} methods.
+	 * Parse the conditions for the {@link where()} and {@link having()} methods.
 	 *
 	 * {@link \DateTime} conditions are converted to strings.
 	 *
@@ -583,9 +646,9 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Defines the ORDER clause.
+	 * Define the `ORDER` clause.
 	 *
-	 * @param string $order The order for the ORDER clause e.g. 'weight, date DESC'.
+	 * @param string $order The order for the `ORDER` clause e.g. 'weight, date DESC'.
 	 *
 	 * @return Query
 	 */
@@ -597,7 +660,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Defines the GROUP clause.
+	 * Define the `GROUP` clause.
 	 *
 	 * @param $group
 	 *
@@ -611,7 +674,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Defines the HAVING clause.
+	 * Define the `HAVING` clause.
 	 *
 	 * @param $conditions
 	 * @param array|null $conditions_args
@@ -629,7 +692,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Defines the offset of the LIMIT clause.
+	 * Define the offset of the `LIMIT` clause.
 	 *
 	 * @param $offset
 	 *
@@ -682,7 +745,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param mixed $mode
 	 *
-	 * @return \ICanBoogie\ActiveRecord\Query
+	 * @return Query
 	 *
 	 * @see http://www.php.net/manual/en/pdostatement.setfetchmode.php
 	 */
@@ -694,12 +757,12 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Prepares the query.
+	 * Prepare the query.
 	 *
 	 * We use the connection's prepare() method because the statement has already been resolved
 	 * during the __toString() method and we don't want for the statement to be parsed twice.
 	 *
-	 * @return \ICanBoogie\Database\Statement
+	 * @return Statement
 	 */
 	protected function prepare()
 	{
@@ -707,9 +770,19 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Prepares and executes the query.
+	 * Return a prepared query.
 	 *
-	 * @return \ICanBoogie\ActiveRecord\Statement
+	 * @return Statement
+	 */
+	protected function get_prepared()
+	{
+		return $this->prepare();
+	}
+
+	/**
+	 * Prepare and executes the query.
+	 *
+	 * @return Statement
 	 */
 	public function query()
 	{
@@ -719,23 +792,13 @@ class Query implements \IteratorAggregate
 		return $statement;
 	}
 
-	/**
-	 * Returns a prepared query.
-	 *
-	 * @return \ICanBoogie\Database\Statement
-	 */
-	protected function get_prepared()
-	{
-		return $this->prepare();
-	}
-
 	/*
 	 * FINISHER
 	 */
 
 	private function resolve_fetch_mode()
 	{
-		$trace = debug_backtrace(false);
+		$trace = debug_backtrace(0, 2);
 
 		if ($trace[1]['args'])
 		{
@@ -762,7 +825,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Executes the query and returns an array of records.
+	 * Execute the query and returns an array of records.
 	 *
 	 * @return array
 	 */
@@ -785,7 +848,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Returns the first result of the query and close the cursor.
+	 * Return the first result of the query and close the cursor.
 	 *
 	 * @return mixed The return value of this function on success depends on the fetch mode. In
 	 * all cases, FALSE is returned on failure.
@@ -829,7 +892,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Execute que query and returns an array of key/value pairs, where the key is the value of
+	 * Execute que query and return an array of key/value pairs, where the key is the value of
 	 * the first column and the value of the key the value of the second column.
 	 *
 	 * @return array
@@ -840,7 +903,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Returns the value of the first column of the first row.
+	 * Return the value of the first column of the first row.
 	 *
 	 * @return string
 	 */
@@ -858,7 +921,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Checks the existence of records in the model.
+	 * Check the existence of records in the model.
 	 *
 	 * $model->exists;
 	 * $model->where('name = "max"')->exists;
@@ -939,7 +1002,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Handles all the computations.
+	 * Handle all the computations.
 	 *
 	 * @param string $method
 	 * @param string $column
@@ -968,7 +1031,7 @@ class Query implements \IteratorAggregate
 			$query .= $method . '(*)';
 		}
 
-		$query .= ' AS count FROM {self_and_related}' . $this->render_main();
+		$query .= ' AS count ' . $this->render_from() . $this->render_main();
 		$query = $this->model->query($query, array_merge($this->conditions_args, $this->having_args));
 
 		if ($method == 'COUNT' && $column)
@@ -980,7 +1043,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Implements the 'COUNT' computation.
+	 * Implement the 'COUNT' computation.
 	 *
 	 * @return int|array
 	 */
@@ -1000,7 +1063,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Implements the 'AVG' computation.
+	 * Implement the 'AVG' computation.
 	 *
 	 * @param string $column
 	 *
@@ -1012,7 +1075,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Implements the 'MIN' computation.
+	 * Implement the 'MIN' computation.
 	 *
 	 * @param string $column
 	 *
@@ -1024,7 +1087,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Implements the 'MAX' computation.
+	 * Implement the 'MAX' computation.
 	 *
 	 * @param string $column
 	 *
@@ -1036,7 +1099,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Implements the 'SUM' computation.
+	 * Implement the 'SUM' computation.
 	 *
 	 * @param string $column
 	 *
@@ -1048,7 +1111,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Deletes the records matching the conditions and limits of the query.
+	 * Delete the records matching the conditions and limits of the query.
 	 *
 	 * @return mixed The result of the operation.
 	 */
@@ -1060,7 +1123,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Returns an iterator for the query.
+	 * Return an iterator for the query.
 	 */
 	public function getIterator()
 	{
