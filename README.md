@@ -458,8 +458,36 @@ class Node extends \ICanBoogie\ActiveRecord
 }
 ```
 
-The active record holds both the data and the business logic. Most of its properties are
-persistent and are saved in the database. The `save()` method saves the active record.
+
+
+
+
+### Instantiating an active record
+
+Active record are instantiated just like any other object, but the `from()` method is 
+usually prefered for its shorter notation:
+
+```php
+<?php
+
+$record = Article::from([
+
+	'title' => "An example",
+	'body' => "My first article",
+	'language' => "en",
+	'is_online' => true
+
+]);
+```
+
+
+
+
+
+### Saving an active record
+
+Most properties of an active record are persistent. The `save()` method is used to save the active
+record to the database. The model is clever enough to filter the properties.
 
 ```php
 <?php
@@ -468,6 +496,16 @@ $record = $model[10];
 $record->is_online = false;
 $record->save();
 ```
+
+Before a record is saved its `alter_persistent_properties()` is invoked to alter the properties
+that will be sent to the model. One may extend the method to add, remove or alter properties
+without altering its instance.
+
+
+
+
+
+### Deleting an active record
 
 The `delete()` method deletes the active record from the database:
 
@@ -1263,6 +1301,45 @@ Of course, all query methods can be combined:
 <?php
 
 $model->filter_by_category('Toys')->joins(':content')->where('YEAR(date) = 2011')->average('price');
+```
+
+
+
+
+
+### Some usefull properties
+
+The following properties might be helpfull, especially when you are using the Query interface
+to create a query string to be used in the subquery of another query:
+
+- `conditions`: The conditions rendered as a string.
+- `conditions_args`: The arguments to the conditions.
+- `model`: The model associated with the query.
+
+The following example demonstrates how a query on some taxonomy models can be used as a subquery
+to obtain only the online articles in a "music" category:
+
+```php
+<?php
+
+// …
+
+$taxonomy_query = get_model('taxonomy.terms/nodes')
+->joins(':taxonomy.vocabulary')
+->joins(':taxonomy_vocabulary/scopes')
+->where([
+
+	'termslug' => "music",
+	'vocabularyslug' => "category",
+	'constructor' => "articles"
+
+])
+->select('nid');
+
+$articles = get_model('articles')
+->filter_by_is_online(true)
+->and("nid IN ($taxonomy_query)", $taxonomy_query->conditions_args)
+->all;
 ```
 
 
