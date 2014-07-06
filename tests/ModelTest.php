@@ -551,6 +551,57 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->setExpectedException('ICanBoogie\ActiveRecord\RecordNotFound');
 		$record = $model[1];
 	}
+
+	public function test_parent_model()
+	{
+		$nodes = new Model([
+
+			Model::ID => 'nodes',
+			Model::NAME => 'nodes',
+			Model::CONNECTION => self::$query_connection,
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'nid' => 'serial',
+					'title' => 'varchar'
+
+				]
+
+			]
+
+		]);
+
+		$contents = new Model([
+
+			Model::ID => 'contents',
+			Model::NAME => 'contents',
+			Model::EXTENDING => $nodes,
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'body' => 'text'
+
+				]
+
+			]
+
+		]);
+
+		$articles = new Model([
+
+			Model::ID => 'articles',
+			Model::NAME => 'articles',
+			Model::EXTENDING => $contents
+
+		]);
+
+		$this->assertSame($contents->parent, $nodes);
+		$this->assertSame($articles->parent, $nodes);
+		$this->assertSame($contents->parent_model, $nodes);
+		$this->assertSame($articles->parent_model, $contents);
+	}
 }
 
 namespace ICanBoogie\ActiveRecord\ModelTest;

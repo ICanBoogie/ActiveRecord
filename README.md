@@ -328,9 +328,10 @@ The `EXTENDING` attribute specifies the model to extend.
 <?php
 
 use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\DateTime;
 
-$nodes = new Model
-([
+$nodes = new Model([
+
 	Model::NAME => 'nodes',
 	Model::CONNECTION => $connection,
 	Model::SCHEMA => [
@@ -340,23 +341,50 @@ $nodes = new Model
 			'nid' => 'serial',
 			'title' => 'varchar'
 		]
+
 	]
+
 ]);
 
-$news = new Model
-([
-	Model::NAME => 'news',
-	Model::EXTENDING => $nodes,
+$contents = new Model([
+
+	Model::NAME => 'contents',
+	Model::EXTENDING => 'nodes',
 	Model::SCHEMA => [
 
 		'fields' => [
 
+			'body' => 'text',
 			'date' => 'date'
+
 		]
+
 	]
+
 ]);
 
-$news->save([ 'title' => 'Testing!', 'date' => '2013-02-16' ]);
+$news = new Model([
+
+	Model::NAME => 'news',
+	Model::EXTENDING => $contents
+
+]);
+
+$news->save([ 'title' => "Testing!", 'body' => "Testing..." 'date' => DateTime::now() ]);
+```
+
+Contrary to tables, models are not required to define a schema if they extend another model, but
+they may end with different parents.
+
+In the following example the parent _table_ of `news` is `nodes` but its parent _model_ is
+`contents`. That's because `news` doesn't define a schema and thus inherits the schema and some
+properties of its parent model.
+
+```php
+<?php
+
+echo $news->parent->unprefixed_name;       // nodes
+echo $news->parent_model->unprefixed_name; // contents
 ```
 
 
@@ -375,8 +403,8 @@ can then by obtained using the magic property `user`.
 ```php
 <?php
 
-$news = new Model
-([
+$news = new Model([
+
 	Model::NAME => 'news',
 	Model::EXTENDING => $nodes,
 	Model::BELONGS_TO => $users,
@@ -387,7 +415,9 @@ $news = new Model
 			'date' => 'date',
 			'uid' => 'foreign'
 		]
+
 	]
+
 ]);
 
 $record = $news->one;

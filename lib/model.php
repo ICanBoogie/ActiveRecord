@@ -13,7 +13,6 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
-use ICanBoogie\PropertyNotWritable;
 
 /**
  * Base class for activerecord models.
@@ -41,6 +40,7 @@ use ICanBoogie\PropertyNotWritable;
  * @property-read string $id The identifier of the model.
  * @property-read ActiveRecord Retrieve the first record from the mode.
  * @property ActiveRecordCacheInterface $activerecord_cache The cache use to store activerecords.
+ * @property-read Model $parent_model The parent model.
  */
 class Model extends Table implements \ArrayAccess
 {
@@ -70,6 +70,26 @@ class Model extends Table implements \ArrayAccess
 	protected $attributes;
 
 	/**
+	 * The parent model of the model.
+	 *
+	 * The parent model and the {@link parent} may be different if the model doesn't have a
+	 * schema but inherits it from its parent.
+	 *
+	 * @var Model
+	 */
+	protected $parent_model;
+
+	/**
+	 * Return the parent mode.
+	 *
+	 * @return Model
+	 */
+	protected function get_parent_model()
+	{
+		return $this->parent_model;
+	}
+
+	/**
 	 * Override the constructor to provide support for the {@link ACTIVERECORD_CLASS} tag and
 	 * extended support for the {@link EXTENDING} tag.
 	 *
@@ -92,12 +112,13 @@ class Model extends Table implements \ArrayAccess
 			self::ID => null,
 			self::SCHEMA => null,
 			self::ACTIVERECORD_CLASS => null
+
 		];
 
-		if ($tags[self::EXTENDING] && !$tags[self::SCHEMA])
-		{
-			$extends = $tags[self::EXTENDING];
+		$this->parent_model = $extends = $tags[self::EXTENDING];
 
+		if ($extends && !$tags[self::SCHEMA])
+		{
 			$tags[self::NAME] = $extends->name_unprefixed;
 			$tags[self::SCHEMA] = $extends->schema;
 			$tags[self::EXTENDING] = $extends->parent;
