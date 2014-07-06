@@ -509,16 +509,24 @@ class Query implements \IteratorAggregate
 
 			foreach ($conditions as $column => $arg)
 			{
-				if (is_array($arg))
+				if (is_array($arg) || $arg instanceof self)
 				{
 					$joined = '';
 
-					foreach ($arg as $value)
+					if (is_array($arg))
 					{
-						$joined .= ',' . (is_numeric($value) ? $value : $this->model->quote($value));
-					}
+						foreach ($arg as $value)
+						{
+							$joined .= ',' . (is_numeric($value) ? $value : $this->model->quote($value));
+						}
 
-					$joined = substr($joined, 1);
+						$joined = substr($joined, 1);
+					}
+					else
+					{
+						$joined = (string) $arg;
+						$conditions_args = array_merge($conditions_args, $arg->conditions_args, $arg->having_args);
+					}
 
 					$c .= ' AND `' . ($column{0} == '!' ? substr($column, 1) . '` NOT' : $column . '`') . ' IN(' . $joined . ')';
 				}

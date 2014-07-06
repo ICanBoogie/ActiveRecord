@@ -1316,6 +1316,12 @@ to create a query string to be used in the subquery of another query:
 - `conditions_args`: The arguments to the conditions.
 - `model`: The model associated with the query.
 
+
+
+
+
+### Using a query as a subquery
+
 The following example demonstrates how a query on some taxonomy models can be used as a subquery
 to obtain only the online articles in a "music" category:
 
@@ -1339,6 +1345,12 @@ $taxonomy_query = get_model('taxonomy.terms/nodes')
 $articles = get_model('articles')
 ->filter_by_is_online(true)
 ->and("nid IN ($taxonomy_query)", $taxonomy_query->conditions_args)
+->all;
+
+# or
+
+$articles = get_model('articles')
+->filter_by_is_online_and_nid(true, $taxonomy_query)
 ->all;
 ```
 
