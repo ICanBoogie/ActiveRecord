@@ -164,6 +164,10 @@ class Query implements \IteratorAggregate
 		}
 	}
 
+	/*
+	 * Renderers
+	 */
+
 	/**
 	 * Converts the query into a string.
 	 *
@@ -171,10 +175,151 @@ class Query implements \IteratorAggregate
 	 */
 	public function __toString()
 	{
-		return $this->model->resolve_statement
+		return $this->resolve_statement
 		(
-			'SELECT ' . ($this->select ? $this->select : '*') . ' FROM {self_and_related}' . $this->build()
+			$this->render_select() . ' ' .
+			$this->render_from() .
+			$this->render_main()
 		);
+	}
+
+	/**
+	 * Renders the `SELECT` clause.
+	 *
+	 * @return string
+	 */
+	protected function render_select()
+	{
+		return 'SELECT ' . ($this->select ? $this->select : '*');
+	}
+
+	/**
+	 * Renders the `FROM` clause.
+	 *
+	 * The rendered `FROM` clause might include some JOINS too.
+	 *
+	 * @return string
+	 */
+	protected function render_from()
+	{
+		return 'FROM {self_and_related}';
+	}
+
+	/**
+	 * Renders the main body of the query, without the `SELECT` and `FROM` clauses.
+	 *
+	 * @return string
+	 */
+	protected function render_main()
+	{
+		$query = '';
+
+		if ($this->join)
+		{
+			$query .= ' ' . $this->join;
+		}
+
+		if ($this->conditions)
+		{
+			$query .= ' WHERE ' . implode(' AND ', $this->conditions);
+		}
+
+		if ($this->group)
+		{
+			$query .= ' GROUP BY ' . $this->group;
+
+			if ($this->having)
+			{
+				$query .= ' HAVING ' . $this->having;
+			}
+		}
+
+		$order = $this->order;
+
+		if ($order)
+		{
+			$query .= ' ' . $this->render_order($order);
+		}
+
+		$offset = $this->offset;
+		$limit = $this->limit;
+
+		if ($offset || $limit)
+		{
+			$query .= ' ' . $this->render_offset_and_limit($offset, $limit);
+		}
+
+		return $query;
+	}
+
+	/**
+	 * Renders the `ORDER` clause.
+	 *
+	 * @param mixed $order
+	 *
+	 * @return string
+	 */
+	protected function render_order($order)
+	{
+		if (count($order) == 1)
+		{
+			return 'ORDER BY ' . $order[0];
+		}
+
+		$connection = $this->model->connection;
+
+		$field = array_shift($order);
+		$field_values = is_array($order[0]) ? $order[0] : $order;
+		$field_values = array_map(function($v) use($connection) {
+
+			return $connection->quote($v);
+
+		}, $field_values);
+
+		return "ORDER BY FIELD($field, " . implode(', ', $field_values) . ")";
+	}
+
+	/**
+	 * Renders the `LIMIT` and `OFFSET` clauses.
+	 *
+	 * @param mixed $offset
+	 * @param mixed $limit
+	 *
+	 * @return string
+	 */
+	protected function render_offset_and_limit($offset, $limit)
+	{
+		if ($offset && $limit)
+		{
+			return "LIMIT $offset, $limit";
+		}
+		else if ($offset)
+		{
+			return "LIMIT $offset, " . self::LIMIT_MAX;
+		}
+		else if ($limit)
+		{
+			return "LIMIT $limit";
+		}
+	}
+
+	/*
+	 *
+	 */
+
+	/**
+	 * Resolve the placeholders of a statement.
+	 *
+	 * Note: Currently, the method simply forwards the statement to the model's
+	 * resolve_statement() method.
+	 *
+	 * @param string $statement
+	 *
+	 * @return string
+	 */
+	protected function resolve_statement($statement)
+	{
+		return $this->model->resolve_statement($statement);
 	}
 
 	/**
@@ -549,89 +694,6 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Builds the query except for the SELECT and FROM parts.
-	 *
-	 * @return string The query as a string.
-	 */
-	protected function build()
-	{
-		$query = '';
-
-		if ($this->join)
-		{
-			$query .= ' ' . $this->join;
-		}
-
-		if ($this->conditions)
-		{
-			$query .= ' WHERE ' . implode(' AND ', $this->conditions);
-		}
-
-		if ($this->group)
-		{
-			$query .= ' GROUP BY ' . $this->group;
-
-			if ($this->having)
-			{
-				$query .= ' HAVING ' . $this->having;
-			}
-		}
-
-		$order = $this->order;
-
-		if ($order)
-		{
-			$query .= ' ' . $this->render_order($order);
-		}
-
-		$offset = $this->offset;
-		$limit = $this->limit;
-
-		if ($offset || $limit)
-		{
-			$query .= ' ' . $this->render_offset_and_limit($offset, $limit);
-		}
-
-		return $query;
-	}
-
-	protected function render_order($order)
-	{
-		if (count($order) == 1)
-		{
-			return 'ORDER BY ' . $order[0];
-		}
-
-		$connection = $this->model->connection;
-
-		$field = array_shift($order);
-		$field_values = is_array($order[0]) ? $order[0] : $order;
-		$field_values = array_map(function($v) use($connection) {
-
-			return $connection->quote($v);
-
-		}, $field_values);
-
-		return "ORDER BY FIELD($field, " . implode(', ', $field_values) . ")";
-	}
-
-	protected function render_offset_and_limit($offset, $limit)
-	{
-		if ($offset && $limit)
-		{
-			return "LIMIT $offset, $limit";
-		}
-		else if ($offset)
-		{
-			return "LIMIT $offset, " . self::LIMIT_MAX;
-		}
-		else if ($limit)
-		{
-			return "LIMIT $limit";
-		}
-	}
-
-	/**
 	 * Prepares the query.
 	 *
 	 * We use the connection's prepare() method because the statement has already been resolved
@@ -647,7 +709,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * Prepares and executes the query.
 	 *
-	 * @return \ICanBoogie\Database\Statement
+	 * @return \ICanBoogie\ActiveRecord\Statement
 	 */
 	public function query()
 	{
@@ -906,7 +968,7 @@ class Query implements \IteratorAggregate
 			$query .= $method . '(*)';
 		}
 
-		$query .= ' AS count FROM {self_and_related}' . $this->build();
+		$query .= ' AS count FROM {self_and_related}' . $this->render_main();
 		$query = $this->model->query($query, array_merge($this->conditions_args, $this->having_args));
 
 		if ($method == 'COUNT' && $column)
@@ -992,7 +1054,7 @@ class Query implements \IteratorAggregate
 	 */
 	public function delete()
 	{
-		$query = 'DELETE FROM {self} ' . $this->build();
+		$query = 'DELETE FROM {self} ' . $this->render_main();
 
 		return $this->model->execute($query, $this->conditions_args);
 	}
