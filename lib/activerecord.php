@@ -23,6 +23,13 @@ use ICanBoogie\ActiveRecord\Model;
 class ActiveRecord extends \ICanBoogie\Object
 {
 	/**
+	 * The identifier of the model managing the record.
+	 *
+	 *  @var string
+	 */
+	const MODEL_ID = null;
+
+	/**
 	 * Model managing the active record.
 	 *
 	 * @var Model
@@ -42,15 +49,21 @@ class ActiveRecord extends \ICanBoogie\Object
 	/**
 	 * Initializes the {@link $model} and {@link $model_id} properties.
 	 *
-	 * @param string|Model $model The model managing the active record. A {@link Model}
+	 * @param string|Model|null $model The model managing the active record. A {@link Model}
 	 * instance can be specified as well as a model identifier. If a model identifier is
-	 * specified, the model is resolved when the {@link $model} property is accessed.
+	 * specified, the model is resolved when the {@link $model} property is accessed. If `$model`
+	 * is empty, the identifier of the model is read from the {@link MODEL_ID} class constant.
 	 *
 	 * @throws \InvalidArgumentException if $model is neither a model identifier nor a
 	 * {@link Model} instance.
 	 */
-	public function __construct($model)
+	public function __construct($model=null)
 	{
+		if (!$model)
+		{
+			$model = static::MODEL_ID;
+		}
+
 		if (is_string($model))
 		{
 			$this->model_id = $model;

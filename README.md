@@ -433,7 +433,12 @@ echo "{$record->title} belongs to {$record->user->name}.";
 
 An active record is an object-oriented representation of a record in a database. Usually, the
 table columns are its public properties and it is not unusual that getters/setters and business
-logic methods are implemented by an active record class.
+logic methods are implemented by its class.
+
+The model managing the record needs to be specified when the instance is created. It can be
+specified through the `__construct` method as a model identifier or a [Model][] instance, or by
+defining the `MODEL_ID` constant, which is the favorite method since it can be easily
+introspected.
 
 ```php
 <?php
@@ -442,6 +447,8 @@ namespace Website;
 
 class Node extends \ICanBoogie\ActiveRecord
 {
+	const MODEL_ID = "nodes";
+
 	// …
 
 	protected function get_next()
@@ -1999,6 +2006,7 @@ ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE
 [DateTime]: http://icanboogie.org/docs/class-ICanBoogie.DateTime.html
 [DateTimeProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
 [ICanBoogie]: http://icanboogie.org
+[Model]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Model.html
 [Query]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html
 [RunTimeActiveRecordCache]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RunTimeActiveRecordCache.html
 [UpdatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
