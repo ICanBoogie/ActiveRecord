@@ -992,15 +992,28 @@ can be used to specify the join. The method can be used multiple times to create
 
 
 
-#### Joining tables using a raw string
+#### Joining tables using a subquery
 
-A join can be specified using a raw string, which will be included _as is_ in the final SQL
-statement.
+A [Query][] instance can be joined as a subquery. The following options are available:
+
+- `mode`: Specifies the join mode. Default: `INNER`.
+- `alias`: Alias for the subquery. Default: The alias of the model associated with the query.
+- `on`: The column used for the conditional expression. Depending on the columns available, the
+method tries to determine the best solution between `ON` and `USING`.
 
 ```php
 <?php
 
-$model->joins('INNER JOIN `contents` USING(`nid`)');
+// …
+
+$update_query = get_model('updates')
+->select('updated_at, subscriber_id, update_hash')
+->order('updated_at DESC');
+
+$subscribers = get_model('subscribers')
+->joins($update_query, [ 'on' => 'subscriber_id' ])
+->group("`{alias}`.subscriber_id")
+->all;
 ```
 
 
@@ -1023,6 +1036,21 @@ notice the column ":" used to identify that a model identifier is used and not a
 
 Note: The method uses the `get_model()` helper. Checkout the "Patching" section for implementation
 details.
+
+
+
+
+
+#### Joining tables using a raw string
+
+A join can be specified using a raw string, which will be included _as is_ in the final SQL
+statement.
+
+```php
+<?php
+
+$model->joins('INNER JOIN `contents` USING(`nid`)');
+```
 
 
 
@@ -1971,5 +1999,6 @@ ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE
 [DateTime]: http://icanboogie.org/docs/class-ICanBoogie.DateTime.html
 [DateTimeProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
 [ICanBoogie]: http://icanboogie.org
+[Query]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html
 [RunTimeActiveRecordCache]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RunTimeActiveRecordCache.html
 [UpdatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html

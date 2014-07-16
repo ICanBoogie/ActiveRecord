@@ -278,7 +278,7 @@ class Query implements \IteratorAggregate
 
 		if ($this->join)
 		{
-			$query .= ' ' . $this->join;
+			$query .= ' ' . trim($this->join);
 		}
 
 		if ($this->conditions)
@@ -444,14 +444,53 @@ class Query implements \IteratorAggregate
 	/**
 	 * Add a `JOIN` clause.
 	 *
-	 * @param string $expression The expression can be a full `JOIN` clause or a reference to a
-	 * model defined as ":<model_id>" where `<model_id>` is the identifier of a model
-	 * that can be retrived with `get_model()` e.g. ":nodes".
+	 * @param string|Query $expression A jointure can be created from a model reference,
+	 * another query, or a custom `JOIN` clause.
+	 *
+	 * - When `$expression` is a string starting with `:` it is considered as a model
+	 * reference matching the pattern ":<model_id>" where `<model_id>` is the identifier of a model
+	 * that can be retrieved with the {@link get_model()} function e.g. ":nodes".
+	 *
+	 * - When `$expression` is a {@link Query} instance, it is rendered as a string and used as a
+	 * subquery of the `JOIN` clause. The `$options` parameter can be used to customize the
+	 * ouput.
+	 *
+	 * - Otherwise `$expression` is considered as a raw `JOIN` clause.
+	 *
+	 * @param array $options Only used if `$expression` is a {@link Query} instance. The provided
+	 * options
+	 *
+	 * <pre>
+	 * <?php
+	 *
+	 * # using a model identifier
+	 *
+	 * $query->joins(':nodes');
+	 *
+	 * # using a subquery
+	 *
+	 * $subquery = get_model('updates')
+	 * ->select('updated_at, $subscriber_id, update_hash')
+	 * ->order('updated_at DESC')
+	 *
+	 * $query->joins($subquery, [ 'on' => 'subscriber_id' ]);
+	 *
+	 * # using a raw clause
+	 *
+	 * $query->joins("INNER JOIN `articles` USING(`nid`)");
+	 * </pre>
 	 *
 	 * @return Query
 	 */
-	public function joins($expression)
+	public function joins($expression, $options=[])
 	{
+		if ($expression instanceof self)
+		{
+			$this->join_with_query($expression, $options);
+
+			return $this;
+		}
+
 		if ($expression{0} == ':')
 		{
 			$primary = $this->model->primary;
@@ -487,6 +526,55 @@ class Query implements \IteratorAggregate
 		$this->join .= ($this->join ? ' ' : '') . $expression;
 
 		return $this;
+	}
+
+	/**
+	 * Join a subquery to the query.
+	 *
+	 * @param Query $query
+	 * @param array $options
+	 */
+	private function join_with_query(Query $query, array $options=[])
+	{
+		$options += [
+
+			'mode' => 'INNER',
+			'alias' => $query->model->alias,
+			'on' => null
+
+		];
+
+		$mode = $options['mode'];
+		$alias = $options['alias'];
+		$on = $options['on'];
+
+		if ($options['on'])
+		{
+			$on = $this->render_join_on($options['on'], $alias, $query);
+		}
+
+		$this->join .= " $mode JOIN($query) `$alias` $on";
+	}
+
+	/**
+	 * Render the `on` join option.
+	 *
+	 * The method tries to determine the best solution between `ON` and `USING`.
+	 *
+	 * @param string $column
+	 * @param string $alias
+	 * @param Query $query
+	 *
+	 * @return string
+	 */
+	private function render_join_on($column, $alias, Query $query)
+	{
+		if (isset($query->model->schema['fields'][$column]) && isset($this->model->schema['fields'][$column]))
+		{
+			return "USING(`$column`)";
+		}
+
+		return "ON `$alias`.`$column` = `{$this->model->alias}`.`$column`";
 	}
 
 	/**

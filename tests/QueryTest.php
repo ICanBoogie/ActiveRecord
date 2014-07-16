@@ -147,6 +147,54 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 		], $query->conditions_args);
 	}
+
+	public function test_join_with_query()
+	{
+		$subscribers = new Model([
+
+			Model::CONNECTION => self::$connection,
+			Model::NAME => 'subscribers',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'subscriber_id' => 'serial',
+					'email' => 'varchar'
+
+				]
+
+			]
+
+		]);
+
+		$updates = new Model([
+
+			Model::CONNECTION => self::$connection,
+			Model::NAME => 'updates',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'update_id' => 'serial',
+					'subscriber_id' => 'foreign',
+					'updated_at' => 'datetime',
+					'update_hash' => [ 'char', 40 ]
+
+				]
+
+			]
+
+		]);
+
+		$update_query = $updates->select('subscriber_id, updated_at, update_hash')
+		->order('updated_at DESC');
+
+		$subscriber_query = $subscribers
+		->joins($update_query, [ 'on' => 'subscriber_id' ])
+		->group("`{alias}`.subscriber_id");
+
+		$this->assertEquals("SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` ORDER BY updated_at DESC) `update` USING(`subscriber_id`) GROUP BY `subscriber`.subscriber_id", (string) $subscriber_query);
+	}
 }
 
 namespace ICanBoogie\ActiveRecord\QueryTest;
