@@ -33,20 +33,24 @@ The implementation of the query interface is vastly inspired by
 
 ## Establishing a connection to a database
 
-A connection to a database is created with a [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
-instance.
+A connection to a database is created with a [Connection][] instance.
 
-The following code establishes a connection to a MySQL database:
+The following code demonstrates how a connection can be established to a MySQL database and a
+SQLite temporary database:
 
 ```php
 <?php
 
 use ICanBoogie\ActiveRecord\Connection;
 
+# a connection to a MySQL database
 $connection = new Connection('mysql:dbname=example', 'username', 'password');
+
+# a connection to a SQLite temporary database stored in memory
+$connection = new Connection('sqlite::memory:');
 ```
 
-The `Connection` class extends `PDO`. It takes the same parameters, and custom options can
+The [Connection][] class extends [PDO][]. It takes the same parameters, and custom options can
 be provided with the driver options to specify a prefix to table names, specify the charset and
 collate of the connection or its timezone.
 
@@ -54,7 +58,7 @@ collate of the connection or its timezone.
 
 
 
-### Prefixing database tables
+### Defining the prefix of the database tables
 
 The `#table_name_prefix` option specifies the prefix for all the tables name of the connection.
 Thus, if the `icybee` prefix is defined the `nodes` table is renamed as `icybee_nodes`.
@@ -64,14 +68,14 @@ The `{table_name_prefix}` placeholder is replaced in queries by the prefix:
 ```php
 <?php
 
-$stmt = $connection('SELECT * FROM `{table_name_prefix}nodes` LIMIT 10');
+$statement = $connection('SELECT * FROM `{table_name_prefix}nodes` LIMIT 10');
 ```
 
 
 
 
 
-### Charset and collate of strings
+### Defining the charset and collate to use
 
 The `#charset` and `#collate` options specify the charset and the collate of the connection.
 
@@ -103,15 +107,27 @@ class, and usually implement a specific business logic.
 ```php
 <?php
 
-namespace Website\Nodes;
+namespace Website\Modules\Nodes;
 
-class Model extends \ICanBoogie\ActiveRecord\Model
+use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Model
+
+class NodeModel extends Model
 {
 	// …
 }
 
-$model = new Nodes
-([
+class Node extends ActiveRecord
+{
+	public $id;
+	public $title;
+	public $number;
+
+	// …
+}
+
+$model = new NodeModel([
+
 	Model::CONNECTION => $connection,
 	Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\Node',
 	Model::NAME => 'node',
@@ -122,25 +138,41 @@ $model = new Nodes
 			'id' => 'serial',
 			'title' => [ 'varchar', 80 ],
 			'number' => [ 'integer', 'unsigned' => true ]
+
 		]
+
 	]
+
 ]);
+
+$model->install();
+
+$node = Node::from([
+
+	'title' => "My first node",
+	'number' => 123
+
+], [ $model ]);
+// ^ because we don't use a model provider yet, we need to specify the model to the active record
+
+$id = $node->save();
+
+echo "Saved node, got id: $id\n";
 ```
 
 
 
 
 
-### Database connection
+### Defining the database connection
 
-The `CONNECTION` key specifies the database connection, an instance of the [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
-class.
-
+The `CONNECTION` key specifies the database connection, an instance of the [Connection][] class.
 
 
 
 
-### Active Record class
+
+### Defining the Active Record class
 
 The `ACTIVERECORD_CLASS` key specifies the class used to instantiate the active records of the
 model.
@@ -149,7 +181,7 @@ model.
 
 
 
-### Name of the table
+### Defining the name of the table
 
 The `NAME` key specifies the name of the table. If a table prefix is defined by the connection,
 it is used to prefix the table name. The `name` and `unprefixed_name` properties returns the
@@ -173,7 +205,7 @@ $stmt = $model('SELECT * FROM `{self}` LIMIT 10');
 
 
 
-### Schema
+### Defining the schema of the model
 
 The columns and properties of the table are defined with a schema, which is specified by the
 `SCHEMA` attribute.
@@ -313,7 +345,7 @@ The following placeholders are replaced in model queries:
 
 
 
-## Relations
+## Defining the relations of other models
 
 ### Extending another model
 
@@ -471,7 +503,7 @@ class Node extends \ICanBoogie\ActiveRecord
 
 ### Instantiating an active record
 
-Active record are instantiated just like any other object, but the `from()` method is 
+Active record are instantiated just like any other object, but the `from()` method is
 usually prefered for its shorter notation:
 
 ```php
@@ -506,7 +538,7 @@ $record->save();
 
 Before a record is saved its `alter_persistent_properties()` is invoked to alter the properties
 that will be sent to the model. One may extend the method to add, remove or alter properties
-without altering its instance.
+without altering its instance. 
 
 
 
@@ -1108,7 +1140,7 @@ The `all()` method retrieves the complete result set using a specific fetch mode
 <?php
 
 $array = $model->all(\PDO::FETCH_ASSOC);
-$array = $model->visible->order('created DESC')->(\PDO::FETCH_ASSOC)
+$array = $model->visible->order('created DESC')->all(\PDO::FETCH_ASSOC)
 ```
 
 
@@ -1166,7 +1198,7 @@ array
 
 
 
-#### Retrieve the first column of the first row
+#### Retrieving the first column of the first row
 
 The `rc` magic property retrieves the first colunm of the first row.
 
@@ -1303,7 +1335,7 @@ array
   1 => string '145' (length=3)
 ```
 
-In this example, there is 35 record online and 145 offline.
+In this example, there are 35 record online and 145 offline.
 
 
 
@@ -1311,7 +1343,7 @@ In this example, there is 35 record online and 145 offline.
 
 ### Calculations
 
-The `average()`, `minimum()`, `maximum()` and `sum()` method are respectively used, for a column,
+The `average()`, `minimum()`, `maximum()` and `sum()` methods are respectively used, for a column,
 to compute its average value, its minimum value, its maximum value and its sum.
 
 All calculation methods work directly on the model:
@@ -1469,8 +1501,9 @@ Joins:
 ```php
 <?php
 
-$model->joins('INNER JOIN contents USING(nid)');
+$model->joins($subquery, [ 'on' => 'nid' ]);
 $model->joins(':contents');
+$model->joins('INNER JOIN contents USING(nid)');
 ```
 
 Retrieving data:
@@ -1579,7 +1612,7 @@ exception is thrown in attempt to modify the definition of an already establishe
 
 [Connections][] instances
 are used as arrays. For instance, this is how you obtain a [Connection](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html)
-instance, which represent a database connection:
+instance, which represents a database connection:
 
 ```php
 <?php
@@ -1877,9 +1910,9 @@ the following:
 
 - A synthesizer for the `activerecord_connections` config, created from the `activerecord`
 fragments.
-- A lazy getter for the `ICanBoogie\Core::$connections` property, that return a [Connections][]
+- A lazy getter for the `ICanBoogie\Core::$connections` property, that returns a [Connections][]
 instance created with the `activerecord_connections` config.
-- A lazy getter for the `ICanBoogie\Core::$db` property, that return the connection named
+- A lazy getter for the `ICanBoogie\Core::$db` property, that returns the connection named
 `primary` from the `ICanBoogie\Core::$connections` property.
 
 
@@ -1936,7 +1969,7 @@ return [
 
 ## Requirements
 
-The package requires PHP 5.4 or later and PDO.
+The package requires PHP 5.4 or later and the [PDO extension](http://php.net/manual/en/intro.pdo.php).
 
 
 
@@ -1945,7 +1978,7 @@ The package requires PHP 5.4 or later and PDO.
 ## Installation
 
 The recommended way to install this package is through [Composer](http://getcomposer.org/).
-Create a `composer.json` file and run `php composer.phar install` command to install it:
+Create a `composer.json` file and run the `composer install` command to install it:
 
 ```json
 {
@@ -1965,7 +1998,7 @@ Create a `composer.json` file and run `php composer.phar install` command to ins
 The package is [available on GitHub](https://github.com/ICanBoogie/ActiveRecord), its repository
 can be cloned with the following command line:
 
-	$ git clone git://github.com/ICanBoogie/ActiveRecord.git
+	$ git clone https://github.com/ICanBoogie/ActiveRecord.git
 
 
 
@@ -2001,12 +2034,14 @@ the `make clean` command.
 
 ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](LICENSE) file for details.
 
+[Connection]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html
 [Connections]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html
 [CreatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
 [DateTime]: http://icanboogie.org/docs/class-ICanBoogie.DateTime.html
 [DateTimeProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
 [ICanBoogie]: http://icanboogie.org
 [Model]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Model.html
+[PDO]: http://php.net/manual/en/book.pdo.php
 [Query]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html
 [RunTimeActiveRecordCache]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RunTimeActiveRecordCache.html
 [UpdatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
