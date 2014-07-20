@@ -21,6 +21,7 @@ use ICanBoogie\PropertyNotWritable;
  * @property-read array $schema The schema of the table.
  * @property-read array $extended_schema The extended schema of the table.
  * @property-read string $name_unprefixed Unprefixed name of the table.
+ * @property-read string $unprefixed_name Unprefixed name of the table.
  * @property-read mixed $primary Primary key of the table, or `null` if there is none.
  * @property-read string $alias The alias name of the table.
  * @property-read Table|null $parent The parent of the table.
@@ -92,6 +93,16 @@ class Table extends \ICanBoogie\Object
 	 * @return string
 	 */
 	protected function get_name_unprefixed()
+	{
+		return $this->name_unprefixed;
+	}
+	
+	/**
+	 * Return the unprefixed name of the table.
+	 *
+	 * @return string
+	 */
+	protected function get_unprefixed_name()
 	{
 		return $this->name_unprefixed;
 	}
