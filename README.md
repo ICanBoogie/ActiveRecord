@@ -345,7 +345,7 @@ The following placeholders are replaced in model queries:
 
 
 
-## Defining the relations of other models
+## Defining the relations between models
 
 ### Extending another model
 
@@ -423,7 +423,7 @@ echo $news->parent_model->unprefixed_name; // contents
 
 
 
-### Belong to
+### One-to-one relation (belongs_to)
 
 Records of a model can belong to records of other models. For instance, a news article belonging
 to a user. The relation is specified with the `BELONGS_TO` attribute. When the _belongs to_
@@ -456,6 +456,97 @@ $record = $news->one;
 
 echo "{$record->title} belongs to {$record->user->name}.";
 ```
+
+
+
+
+
+### One-to-many relation (has_many)
+
+A one-to-many relation can be established between two models. For instance, an article having
+many comments. The relation is specified with the `HAS_MANY` attribute or the `has_many()` method
+of the parent model. A getter is added to the active record class of the model and returns a
+[Query][] instance when it is accessed.
+
+The following example demonstrates how a one-to-many relation can be established between the
+"articles" and "comments" models, while creating the models:
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Models;
+
+// …
+
+$models = new Models($connections, [
+
+	'comments' => [
+
+		Model::ACTIVERECORD_CLASS => 'Comment',
+		Model::SCHEMA => [
+
+			'fields' => [
+
+				'comment_id' => 'serial',
+				'article_id' => 'foreign',
+				'body' => 'text'
+
+			]
+
+		]
+
+	],
+
+	'articles' => [
+
+		Model::ACTIVERECORD_CLASS => 'Article',
+		Model::HAS_MANY => 'comments',
+		Model::SCHEMA => [
+
+			'fields' => [
+
+				'article_id' => 'serial',
+				'title' => 'varchar'
+
+			]
+
+		]
+
+	]
+
+]);
+```
+
+The relation can also be established after the models are created using the `has_many` method:
+
+```php
+<?php
+
+$articles = $models['articles'];
+$comments = $models['comments'];
+
+$articles->has_many($comments);
+# or, if the model can be obtained with `get_model()`
+$articles->has_many('comments');
+
+# The local and foreign keys can be specified if they cannot be obtained from the models
+$articles->has_many('comments', [ 'local_key' => 'article_id', 'related_key' => 'comment_id' ]);
+
+# The name of the magic property can also be specified
+$articles->has_many('comments', [ 'as' => 'article_comments' ]);
+```
+
+The following example demonstrates how all the comments of the author called "me"
+can be retrieved in order from an article:
+
+```php
+<?php
+
+$comments = $articles->one->comments->filter_by_author("me")->ordered->all;
+```
+
+
 
 
 
@@ -538,7 +629,7 @@ $record->save();
 
 Before a record is saved its `alter_persistent_properties()` is invoked to alter the properties
 that will be sent to the model. One may extend the method to add, remove or alter properties
-without altering its instance. 
+without altering its instance.
 
 
 

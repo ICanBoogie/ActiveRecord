@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
+use ICanBoogie\Prototype;
 
 /**
  * Base class for activerecord models.
@@ -41,6 +42,7 @@ use ICanBoogie\OffsetNotWritable;
  * @property-read ActiveRecord Retrieve the first record from the mode.
  * @property ActiveRecordCacheInterface $activerecord_cache The cache use to store activerecords.
  * @property-read Model $parent_model The parent model.
+ * @property-read array $relations The relations of this model to other models.
  */
 class Model extends Table implements \ArrayAccess
 {
@@ -53,6 +55,7 @@ class Model extends Table implements \ArrayAccess
 	const ACTIVERECORD_CLASS = 'activerecord_class';
 	const BELONGS_TO = 'belongs_to';
 	const CLASSNAME = 'class';
+	const HAS_MANY = 'has_many';
 	const ID = 'id';
 
 	/**
@@ -90,6 +93,23 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
+	 * The relations of this model to other models.
+	 *
+	 * @var array
+	 */
+	protected $relations = [];
+
+	/**
+	 * Return the relations of this model to other models.
+	 *
+	 * @return array
+	 */
+	protected function get_relations()
+	{
+		return $this->relations;
+	}
+
+	/**
 	 * Override the constructor to provide support for the {@link ACTIVERECORD_CLASS} tag and
 	 * extended support for the {@link EXTENDING} tag.
 	 *
@@ -111,7 +131,8 @@ class Model extends Table implements \ArrayAccess
 			self::EXTENDING => null,
 			self::ID => null,
 			self::SCHEMA => null,
-			self::ACTIVERECORD_CLASS => null
+			self::ACTIVERECORD_CLASS => null,
+			self::HAS_MANY => null
 
 		];
 
@@ -158,6 +179,15 @@ class Model extends Table implements \ArrayAccess
 		if ($belongs_to)
 		{
 			$this->belongs_to($belongs_to);
+		}
+
+		# has_many
+
+		$has_many = $tags[self::HAS_MANY];
+
+		if ($has_many)
+		{
+			$this->has_many($has_many);
 		}
 	}
 
@@ -210,14 +240,14 @@ class Model extends Table implements \ArrayAccess
 		}
 
 		$activerecord_class = $this->activerecord_class;
-		$getter_name = 'lazy_get_' . \ICanBoogie\singularize($belongs_to_id);
 
 		if (!$activerecord_class || $activerecord_class == 'ICanBoogie\ActiveRecord')
 		{
 			throw new ActiveRecordException('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a <em>belongs to</em> relationship.');
 		}
 
-		$prototype = \ICanBoogie\Prototype::from($activerecord_class);
+		$prototype = Prototype::from($activerecord_class);
+		$getter_name = 'lazy_get_' . \ICanBoogie\singularize($belongs_to_id);
 
 		$prototype[$getter_name] = function(ActiveRecord $ar) use($belongs_to_model, $belongs_to_id)
 		{
@@ -229,6 +259,38 @@ class Model extends Table implements \ArrayAccess
 		};
 
 		return $this;
+	}
+
+	/**
+	 * Define a one-to-many relation.
+	 *
+	 * <pre>
+	 * $this->has_many('comments');
+	 * $this->has_many([ 'comments', 'attachments' ]);
+	 * $this->has_many([ [ 'comments', [ 'as' => 'comments' ] ], 'attachments' ]);
+	 * </pre>
+	 *
+	 * @param Model|string $related The related model can be specified using its instance or its
+	 * identifier.
+	 * @param array $options Relation options.
+	 */
+	public function has_many($related, array $options=[])
+	{
+		if (is_array($related))
+		{
+			$relation_list = $related;
+
+			foreach ($relation_list as $relation)
+			{
+				list($related, $options) = ((array) $relation) + [ 1 => [] ];
+
+				$this->relations[] = new HasManyRelation($this, $related, $options);
+			}
+
+			return;
+		}
+
+		$this->relations[] = new HasManyRelation($this, $related, $options);
 	}
 
 	/**
