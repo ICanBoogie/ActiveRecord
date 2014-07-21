@@ -452,25 +452,7 @@ class Connection extends \PDO
 
 		if ($schema['indexes'] && $schema['primary'])
 		{
-// 			echo "<h3>DIFF</h3>";
-
-// 			var_dump($schema['primary'], $schema['indexes'], array_diff($schema['indexes'], $schema['primary']));
-
 			$schema['indexes'] = array_diff($schema['indexes'], $schema['primary']);
-
-			/*
-			$primary = (array) $schema['primary'];
-
-			foreach ($schema['indexes'] as $identifier => $dummy)
-			{
-				if (!in_array($identifier, $primary))
-				{
-					continue;
-				}
-
-				unset($schema['indexes'][$identifier]);
-			}
-			*/
 		}
 
 		if (count($schema['primary']) == 1)
@@ -495,6 +477,7 @@ class Connection extends \PDO
 
 		$collate = $this->collate;
 		$driver_name = $this->driver_name;
+		$unique_list = [];
 
 		$schema = $this->parse_schema($schema);
 
@@ -624,7 +607,16 @@ class Connection extends \PDO
 			}
 			else if (!empty($params['unique']))
 			{
-				$definition .= ' UNIQUE';
+				$unique_id = $params['unique'];
+
+				if ($unique_id === true)
+				{
+					$definition .= ' UNIQUE';
+				}
+				else
+				{
+					$unique_list[$unique_id][] = $identifier;
+				}
 			}
 
 			$parts[] = $definition;
@@ -700,7 +692,28 @@ class Connection extends \PDO
 			}
 		}
 
+		#
+		# UNIQUE indexes
+		#
+
+		foreach ($unique_list as $unique_id => $columns)
+		{
+			$columns = implode(", ", $this->escape_column_names($columns));
+			$statement = "ALTER TABLE `$table_name` ADD UNIQUE `$unique_id` ($columns)";
+
+			$this->exec($statement);
+		}
+
 		return $rc;
+	}
+
+	private function escape_column_names($column_names)
+	{
+		return array_map(function($v) {
+
+			return "`$v`";
+
+		}, $column_names);
 	}
 
 	/**
