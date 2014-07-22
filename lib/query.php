@@ -469,7 +469,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * # using a model identifier
 	 *
-	 * $query->joins(':nodes');
+	 * $query->join(':nodes');
 	 *
 	 * # using a subquery
 	 *
@@ -477,16 +477,16 @@ class Query implements \IteratorAggregate
 	 * ->select('updated_at, $subscriber_id, update_hash')
 	 * ->order('updated_at DESC')
 	 *
-	 * $query->joins($subquery, [ 'on' => 'subscriber_id' ]);
+	 * $query->join($subquery, [ 'on' => 'subscriber_id' ]);
 	 *
 	 * # using a raw clause
 	 *
-	 * $query->joins("INNER JOIN `articles` USING(`nid`)");
+	 * $query->join("INNER JOIN `articles` USING(`nid`)");
 	 * </pre>
 	 *
 	 * @return Query
 	 */
-	public function joins($expression, $options=[])
+	public function join($expression, $options=[])
 	{
 		if ($expression instanceof self)
 		{
@@ -530,6 +530,18 @@ class Query implements \IteratorAggregate
 		$this->join .= ' ' . $expression;
 
 		return $this;
+	}
+
+	/**
+	 * Alias to {@link join}.
+	 *
+	 * @deprecated
+	 *
+	 * @return Query
+	 */
+	public function joins($expression, $options=[])
+	{
+		return $this->join($expression, $options);
 	}
 
 	/**

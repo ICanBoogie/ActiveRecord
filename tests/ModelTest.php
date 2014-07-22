@@ -458,7 +458,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	public function testForwardJoins()
 	{
 		$m = self::$query_model;
-		$this->assertEquals("SELECT * FROM `nodes` `node` INNER JOIN other USING(nid)", (string) $m->joins('INNER JOIN other USING(nid)'));
+		$this->assertEquals("SELECT * FROM `nodes` `node` INNER JOIN other USING(nid)", (string) $m->join('INNER JOIN other USING(nid)'));
 	}
 
 	public function testForwardWhere()

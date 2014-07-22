@@ -190,7 +190,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 		->order('updated_at DESC');
 
 		$subscriber_query = $subscribers
-		->joins($update_query, [ 'on' => 'subscriber_id' ])
+		->join($update_query, [ 'on' => 'subscriber_id' ])
 		->group("`{alias}`.subscriber_id");
 
 		$this->assertEquals("SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` ORDER BY updated_at DESC) `update` USING(`subscriber_id`) GROUP BY `subscriber`.subscriber_id", (string) $subscriber_query);

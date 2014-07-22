@@ -1141,7 +1141,7 @@ $update_query = get_model('updates')
 ->order('updated_at DESC');
 
 $subscribers = get_model('subscribers')
-->joins($update_query, [ 'on' => 'subscriber_id' ])
+->join($update_query, [ 'on' => 'subscriber_id' ])
 ->group("`{alias}`.subscriber_id")
 ->all;
 ```
@@ -1158,7 +1158,7 @@ are used to create the join:
 ```php
 <?php
 
-$model->joins(':contents');
+$model->join(':contents');
 ```
 
 The same SQL statement will be created, but we don't have to care about the join conditions. Please
@@ -1179,7 +1179,7 @@ statement.
 ```php
 <?php
 
-$model->joins('INNER JOIN `contents` USING(`nid`)');
+$model->join('INNER JOIN `contents` USING(`nid`)');
 ```
 
 
@@ -1409,7 +1409,7 @@ Of course, all query methods can be combined:
 ```php
 <?php
 
-$model->filter_by_firstname('Ryan')->joins(':content')->where('YEAR(date) = 2011')->count;
+$model->filter_by_firstname('Ryan')->join(':content')->where('YEAR(date) = 2011')->count;
 ```
 
 The `count()` method returns an array with the number of recond for each value of a field:
@@ -1458,7 +1458,7 @@ Of course, all query methods can be combined:
 ```php
 <?php
 
-$model->filter_by_category('Toys')->joins(':content')->where('YEAR(date) = 2011')->average('price');
+$model->filter_by_category('Toys')->join(':content')->where('YEAR(date) = 2011')->average('price');
 ```
 
 
@@ -1489,8 +1489,8 @@ to obtain only the online articles in a "music" category:
 // …
 
 $taxonomy_query = get_model('taxonomy.terms/nodes')
-->joins(':taxonomy.vocabulary')
-->joins(':taxonomy_vocabulary/scopes')
+->join(':taxonomy.vocabulary')
+->join(':taxonomy_vocabulary/scopes')
 ->where([
 
 	'termslug' => "music",
@@ -1592,9 +1592,9 @@ Joins:
 ```php
 <?php
 
-$model->joins($subquery, [ 'on' => 'nid' ]);
-$model->joins(':contents');
-$model->joins('INNER JOIN contents USING(nid)');
+$model->join($subquery, [ 'on' => 'nid' ]);
+$model->join(':contents');
+$model->join('INNER JOIN contents USING(nid)');
 ```
 
 Retrieving data:
