@@ -125,7 +125,9 @@ class Models implements \ArrayAccess
 
 		$properties = $this->definitions[$id] + [
 
-			Model::CONNECTION => 'primary'
+			Model::CONNECTION => 'primary',
+			Model::CLASSNAME => __NAMESPACE__ . '\Model'
+
 		];
 
 		if (is_string($properties[Model::CONNECTION]))
@@ -133,7 +135,9 @@ class Models implements \ArrayAccess
 			$properties[Model::CONNECTION] = $this->connections[$properties[Model::CONNECTION]];
 		}
 
-		return new Model($properties);
+		$class = $properties[Model::CLASSNAME];
+
+		return new $class($properties);
 	}
 
 	/**
