@@ -274,25 +274,26 @@ class Query implements \IteratorAggregate
 	 */
 	protected function render_main()
 	{
-		$query = '';
+		$query = $this->join;
 
-		if ($this->join)
+		$conditions = $this->conditions;
+
+		if ($conditions)
 		{
-			$query .= ' ' . trim($this->join);
+			$query .= ' WHERE ' . implode(' AND ', $conditions);
 		}
 
-		if ($this->conditions)
-		{
-			$query .= ' WHERE ' . implode(' AND ', $this->conditions);
-		}
+		$group = $this->group;
 
-		if ($this->group)
+		if ($group)
 		{
-			$query .= ' GROUP BY ' . $this->group;
+			$query .= ' GROUP BY ' . $group;
 
-			if ($this->having)
+			$having = $this->having;
+
+			if ($having)
 			{
-				$query .= ' HAVING ' . $this->having;
+				$query .= ' HAVING ' . $having;
 			}
 		}
 
@@ -300,7 +301,7 @@ class Query implements \IteratorAggregate
 
 		if ($order)
 		{
-			$query .= ' ' . $this->render_order($order);
+			$query .= ' ' .$this->render_order($order);
 		}
 
 		$offset = $this->offset;
@@ -526,7 +527,7 @@ class Query implements \IteratorAggregate
 			$expression = $model->resolve_statement("INNER JOIN `{self}` AS `{alias}` USING(`{$primary}`)");
 		}
 
-		$this->join .= ($this->join ? ' ' : '') . $expression;
+		$this->join .= ' ' . $expression;
 
 		return $this;
 	}
@@ -559,7 +560,12 @@ class Query implements \IteratorAggregate
 			$on = $this->render_join_on($options['on'], $alias, $query);
 		}
 
-		$this->join .= " $mode JOIN($query) `$alias` $on";
+		if ($on)
+		{
+			$on = ' ' . $on;
+		}
+
+		$this->join .= " $mode JOIN($query) `$alias`{$on}";
 	}
 
 	/**

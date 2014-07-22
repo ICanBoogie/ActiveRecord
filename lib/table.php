@@ -96,7 +96,7 @@ class Table extends \ICanBoogie\Object
 	{
 		return $this->name_unprefixed;
 	}
-	
+
 	/**
 	 * Return the unprefixed name of the table.
 	 *
@@ -335,14 +335,14 @@ class Table extends \ICanBoogie\Object
 
 		while ($parent)
 		{
-			$join .= "INNER JOIN `{$parent->name}` `{$parent->alias}` USING(`{$this->primary}`) ";
+			$join .= " INNER JOIN `{$parent->name}` `{$parent->alias}` USING(`{$this->primary}`)";
 
 			$parent = $parent->parent;
 		}
 
 		$this->update_join = $join;
 
-		$join = "`{$this->alias}`" . ($join ? " $join" : '');
+		$join = "`{$this->alias}`" . $join;
 
 		#
 		# resolve implements
@@ -375,7 +375,7 @@ class Table extends \ICanBoogie\Object
 				$primary = $table->primary;
 
 				$join .= empty($implement['loose']) ? 'INNER' : 'LEFT';
-				$join .= " JOIN `$name` AS {$table->alias} USING(`$primary`) ";
+				$join .= " JOIN `$name` AS {$table->alias} USING(`$primary`)";
 
 				$i++;
 			}
