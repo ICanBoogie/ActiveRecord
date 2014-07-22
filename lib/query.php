@@ -457,8 +457,11 @@ class Query implements \IteratorAggregate
 	 *
 	 * - Otherwise `$expression` is considered as a raw `JOIN` clause.
 	 *
-	 * @param array $options Only used if `$expression` is a {@link Query} instance. The provided
-	 * options
+	 * @param array $options Only used if `$expression` is a {@link Query} instance. The following
+	 * options are available:
+	 * - `mode`: Join mode. Default: "INNER"
+	 * - `alias`: The alias of the subquery. Default: The query's model alias.
+	 * - `on`: The column on which to joint is created. Default: The query's model primary key.
 	 *
 	 * <pre>
 	 * <?php
@@ -532,7 +535,10 @@ class Query implements \IteratorAggregate
 	 * Join a subquery to the query.
 	 *
 	 * @param Query $query
-	 * @param array $options
+	 * @param array $options The following options are available:
+	 * - `mode`: Join mode. Default: "INNER"
+	 * - `alias`: The alias of the subquery. Default: The query's model alias.
+	 * - `on`: The column on which to joint is created. Default: The query's model primary key.
 	 */
 	private function join_with_query(Query $query, array $options=[])
 	{
@@ -540,7 +546,7 @@ class Query implements \IteratorAggregate
 
 			'mode' => 'INNER',
 			'alias' => $query->model->alias,
-			'on' => null
+			'on' => $query->model->primary
 
 		];
 
