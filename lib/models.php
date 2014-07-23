@@ -162,6 +162,69 @@ class Models implements \ArrayAccess
 
 		unset($this->definitions[$id]);
 	}
+
+	/**
+	 * Install all the models.
+	 *
+	 * @return Models
+	 */
+	public function install()
+	{
+		foreach (array_keys($this->definitions) as $id)
+		{
+			$model = $this[$id];
+
+			if ($model->is_installed())
+			{
+				continue;
+			}
+
+			$model->install();
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Uninstall all the models.
+	 *
+	 * @return Models
+	 */
+	public function uninstall()
+	{
+		foreach (array_keys($this->definitions) as $id)
+		{
+			$model = $this[$id];
+
+			if (!$model->is_installed())
+			{
+				continue;
+
+			}
+
+			$model->uninstall();
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Check if model are installed.
+	 *
+	 * @return array[string]bool An array of key/value pair where _key_ is a model identifier and
+	 * _value_ `true` if the model is installed, `false` otherwise.
+	 */
+	public function is_installed()
+	{
+		$rc = [];
+
+		foreach (array_keys($this->definitions) as $id)
+		{
+			$rc[$id] = $this[$id]->is_installed();
+		}
+
+		return $rc;
+	}
 }
 
 /*

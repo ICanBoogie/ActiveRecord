@@ -91,6 +91,38 @@ class ModelsTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals([ 'articles', 'comments', 'other' ], array_keys(self::$models->definitions));
 	}
 
+	public function test_install()
+	{
+		self::$models->install();
+	}
+
+	public function test_is_installed_true()
+	{
+		$this->assertSame([
+
+			"articles" => true,
+			"comments" => true,
+			"other" => true
+
+		], self::$models->is_installed());
+	}
+
+	public function test_uninstall()
+	{
+		self::$models->uninstall();
+	}
+
+	public function test_is_installed_false()
+	{
+		$this->assertSame([
+
+			"articles" => false,
+			"comments" => false,
+			"other" => false
+
+		], self::$models->is_installed());
+	}
+
 	public function test_class_name()
 	{
 		$this->assertInstanceOf(__CLASS__ . '\ArticlesModel', self::$models['articles']);

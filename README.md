@@ -1917,6 +1917,26 @@ foreach ($models->instances as $id => $model)
 
 
 
+#### Installing / Uninstalling models
+
+All the models managed by the provider can be installed and uninstalled with a single command
+using the `install()` and `uninstall()` methods. The `is_installed()` method returns an array
+of key/value pair where _key_ is a model identifier and _value_ `true` if the model is
+installed, `false` otherwise.
+
+```php
+<?php
+
+$models->install();
+var_dump($models->is_installed()); // [ "nodes" => true, "contents" => true ]
+$models->uninstall();
+var_dump($models->is_installed()); // [ "nodes" => false, "contents" => false ]
+```
+
+
+
+
+
 ## Records caching
 
 By default, each model uses an instance of [RunTimeActiveRecordCache][] to cache its records.
