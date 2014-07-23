@@ -48,13 +48,6 @@ class HasManyRelation
 	protected $related;
 
 	/**
-	 * The query used to retrieve the records.
-	 *
-	 * @var Query
-	 */
-	protected $query;
-
-	/**
 	 * Initialize the {@link $parent}, {@link $related} and {@link $primary} properties.
 	 *
 	 * @param Model $parent The parent model of the relation.
@@ -99,25 +92,14 @@ class HasManyRelation
 	 */
 	public function __invoke(ActiveRecord $record)
 	{
-		#
-		# The query is created once and cloned everytime the relation is invoked.
-		#
+		$related = $this->related;
 
-		$query = $this->query;
-
-		if (!$query)
+		if (!($related instanceof Model))
 		{
-			$related = $this->related;
-
-			if (!($related instanceof Model))
-			{
-				$this->related = $related = get_model($related);
-			}
-
-			$this->query = $query = $related->where([ $this->foreign_key => $record->{ $this->local_key }]);
+			$this->related = $related = get_model($related);
 		}
 
-		return clone $query;
+		return $related->where([ $this->foreign_key => $record->{ $this->local_key }]);
 	}
 
 	/**
