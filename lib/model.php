@@ -19,7 +19,7 @@ use ICanBoogie\Prototype;
  * Base class for activerecord models.
  *
  * @method Query select() select($expression) The method is forwarded to {@link Query::select}.
- * @method Query joins() joins($expression) The method is forwarded to {@link Query::joins}.
+ * @method Query join() join($expression) The method is forwarded to {@link Query::join}.
  * @method Query where() where($conditions, $conditions_args=null) The method is forwarded to {@link Query::where}.
  * @method Query group() group($group) The method is forwarded to {@link Query::group}.
  * @method Query order() order($order) The method is forwarded to {@link Query::order}.
@@ -272,7 +272,14 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @param Model|string $related The related model can be specified using its instance or its
 	 * identifier.
-	 * @param array $options Relation options.
+	 * @param array $options the following options are available:
+	 *
+	 * - `local_key`: The name of the local key. Default: The parent model's primary key.
+	 * - `foreign_key`: The name of the foreign key. Default: The parent model's primary key.
+	 * - `as`: The name of the magic property to add to the prototype. Default: a plural name
+	 * resolved from the foreign model's id.
+	 *
+	 * @see HasManyRelation
 	 */
 	public function has_many($related, array $options=[])
 	{
