@@ -56,7 +56,8 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		catch (\Exception $e)
 		{
 			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementInvalid', $e);
-			$this->assertInstanceOf('PDOException', $e->getPrevious());
+			$this->assertInstanceOf('PDOException', $e->original);
+			$this->assertNull($e->getPrevious());
 
 			$this->assertInternalType('string', $e->statement);
 			$this->assertEquals($statement, $e->statement);
@@ -83,7 +84,8 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		catch (\Exception $e)
 		{
 			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementInvalid', $e);
-			$this->assertInstanceOf('PDOException', $e->getPrevious());
+			$this->assertInstanceOf('PDOException', $e->original);
+			$this->assertNull($e->getPrevious());
 
 			$this->assertInstanceOf('ICanBoogie\ActiveRecord\Statement', $e->statement);
 			$this->assertEquals($statement, $e->statement);
@@ -118,7 +120,8 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		catch (\Exception $e)
 		{
 			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementInvalid', $e);
-			$this->assertInstanceOf('PDOException', $e->getPrevious());
+			$this->assertInstanceOf('PDOException', $e->original);
+			$this->assertNull($e->getPrevious());
 
 			$this->assertInternalType('string', $e->statement);
 			$this->assertEquals($statement, $e->statement);

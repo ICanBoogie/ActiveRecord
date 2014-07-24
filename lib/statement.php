@@ -209,13 +209,34 @@ class Statement extends \PDOStatement
  *
  * @property-read string $statement The invalid statement.
  * @property-read array $args The arguments of the statement.
+ * @property-read \PDOException $original The original exception.
  */
 class StatementInvalid extends ActiveRecordException
 {
+	use \ICanBoogie\PrototypeTrait;
+
 	private $statement;
+
+	protected function get_statement()
+	{
+		return $this->statement;
+	}
+
 	private $args;
 
-	public function __construct($statement, $code=500, \PDOException $previous)
+	protected function get_args()
+	{
+		return $this->args;
+	}
+
+	private $original;
+
+	protected function get_original()
+	{
+		return $this->original;
+	}
+
+	public function __construct($statement, $code=500, \PDOException $original)
 	{
 		$message = null;
 		$args = null;
@@ -227,10 +248,11 @@ class StatementInvalid extends ActiveRecordException
 
 		$this->statement = $statement;
 		$this->args = $args;
+		$this->original = $original;
 
-		if ($previous)
+		if ($original)
 		{
-			$er = array_pad($previous->errorInfo, 3, '');
+			$er = array_pad($original->errorInfo, 3, '');
 
 			$message = sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
 		}
@@ -242,17 +264,6 @@ class StatementInvalid extends ActiveRecordException
 			$message .= " " . ($args ? json_encode($args) : "[]");
 		}
 
-		parent::__construct($message, $code, $previous);
-	}
-
-	public function __get($property)
-	{
-		switch ($property)
-		{
-			case 'args': return $this->args;
-			case 'statement': return $this->statement;
-		}
-
-		throw new PropertyNotDefined([ $property, $this ]);
+		parent::__construct($message, $code);
 	}
 }
