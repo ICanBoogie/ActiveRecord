@@ -65,6 +65,14 @@ class Statement extends \PDOStatement
 	}
 
 	/**
+	 * Return the {@link queryString} property of the statement.
+	 */
+	public function __toString()
+	{
+		return $this->queryString;
+	}
+
+	/**
 	 * Executes the statement.
 	 *
 	 * The connection queries count is incremented.
@@ -88,7 +96,7 @@ class Statement extends \PDOStatement
 		}
 		catch (\PDOException $e)
 		{
-			throw new StatementInvalid([ $this->queryString, $args ], 500, $e);
+			throw new StatementInvalid([ $this, $args ], 500, $e);
 		}
 	}
 
@@ -217,18 +225,21 @@ class StatementInvalid extends ActiveRecordException
 			list($statement, $args) = $statement;
 		}
 
+		$this->statement = $statement;
+		$this->args = $args;
+
 		if ($previous)
 		{
 			$er = array_pad($previous->errorInfo, 3, '');
 
-			$message = sprintf('%s(%s) <code>%s</code> &mdash; ', $er[0], $er[1], $er[2]);
+			$message = sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
 		}
 
-		$message .= sprintf('<code>%s</code>', htmlentities($statement));
+		$message .= "`$statement`";
 
 		if ($args)
 		{
-			$message .= sprintf(', arguments: <code>%s</code>', htmlentities(json_encode($args)));
+			$message .= " " . ($args ? json_encode($args) : "[]");
 		}
 
 		parent::__construct($message, $code, $previous);
