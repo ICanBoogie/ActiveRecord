@@ -1,4 +1,4 @@
-# Active Record [![Build Status](https://secure.travis-ci.org/ICanBoogie/ActiveRecord.png?branch=2.1)](http://travis-ci.org/ICanBoogie/ActiveRecord)
+# Active Record [![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.svg?branch=2.1)](http://travis-ci.org/ICanBoogie/ActiveRecord)
 
 As described by Martin Flower, an active record "carries both data and behavior. Much of this
 data is persistent and needs to be stored in a database. Active Record uses the most obvious
@@ -2103,7 +2103,7 @@ clean the directory with the `make clean` command.
 
 The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
-[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.png?branch=2.1)](https://travis-ci.org/ICanBoogie/ActiveRecord)
+[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.svg?branch=2.1)](https://travis-ci.org/ICanBoogie/ActiveRecord)
 
 
 
