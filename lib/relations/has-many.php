@@ -59,8 +59,6 @@ class HasManyRelation
 	 * - `foreign_key`: The name of the foreign key. Default: The parent model's primary key.
 	 * - `as`: The name of the magic property to add to the prototype. Default: a plural name
 	 * resolved from the foreign model's id.
-	 *
-	 * @throws ActiveRecordException if the active record class of the parent model is {@link ActiveRecord}.
 	 */
 	public function __construct(Model $parent, $related, array $options=[])
 	{
@@ -107,7 +105,7 @@ class HasManyRelation
 	 *
 	 * @param Model $model
 	 *
-	 * @throws ActiveRecordException if the class is {@link ActiveRecord}.
+	 * @throws RelationError if the class is {@link ActiveRecord}.
 	 *
 	 * @return string
 	 */
@@ -117,7 +115,7 @@ class HasManyRelation
 
 		if (!$activerecord_class || $activerecord_class == 'ICanBoogie\ActiveRecord')
 		{
-			throw new ActiveRecordException('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a relationship.');
+			throw new RelationError('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a relationship.');
 		}
 
 		return $activerecord_class;

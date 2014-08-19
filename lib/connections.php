@@ -178,7 +178,7 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 /**
  * Exception thrown when a connection is not defined.
  */
-class ConnectionNotDefined extends ActiveRecordException
+class ConnectionNotDefined extends \LogicException implements Exception
 {
 	public function __construct($id, $code=500, \Exception $previous=null)
 	{
@@ -189,7 +189,7 @@ class ConnectionNotDefined extends ActiveRecordException
 /**
  * Exception thrown when a connection cannot be established.
  */
-class ConnectionNotEstablished extends ActiveRecordException
+class ConnectionNotEstablished extends \RuntimeException implements Exception
 {
 
 }
@@ -197,7 +197,7 @@ class ConnectionNotEstablished extends ActiveRecordException
 /**
  * Exception thrown in attempt to set the definition of an already established connection.
  */
-class ConnectionAlreadyEstablished extends ActiveRecordException
+class ConnectionAlreadyEstablished extends \LogicException implements Exception
 {
 	public function __construct($id, $code=500, \Exception $previous=null)
 	{

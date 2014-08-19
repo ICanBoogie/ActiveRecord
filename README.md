@@ -1962,6 +1962,32 @@ return [
 
 
 
+## Exceptions
+
+The exception classes defined by the package implement the `ICanBoogie\ActiveRecord\Exception`
+interface so that they can easily be identified:
+
+```php
+<?php
+
+try
+{
+	// …
+}
+catch (\ICanBoogie\ActiveRecord\Exception $e)
+{
+	// an ActiveRecord exception
+}
+catch (\Exception $e)
+{
+	// some other exception
+}
+```
+
+
+
+
+
 
 ## Patching
 

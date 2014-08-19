@@ -209,7 +209,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return Model
 	 *
-	 * @throws ActiveRecordException if the class of the active record is `ICanBoogie\ActiveRecord`.
+	 * @throws RelationError if the class of the active record is `ICanBoogie\ActiveRecord`.
 	 */
 	public function belongs_to($belongs_to)
 	{
@@ -243,7 +243,7 @@ class Model extends Table implements \ArrayAccess
 
 		if (!$activerecord_class || $activerecord_class == 'ICanBoogie\ActiveRecord')
 		{
-			throw new ActiveRecordException('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a <em>belongs to</em> relationship.');
+			throw new RelationError('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a <em>belongs to</em> relationship.');
 		}
 
 		$prototype = Prototype::from($activerecord_class);
@@ -650,7 +650,7 @@ class Model extends Table implements \ArrayAccess
  *
  * @property-read array[int]ActiveRecord|null $records
  */
-class RecordNotFound extends ActiveRecordException
+class RecordNotFound extends \LogicException implements Exception
 {
 	/**
 	 * A key/value array where keys are the identifier of the record, and the value is the result
@@ -691,7 +691,7 @@ class RecordNotFound extends ActiveRecordException
  * @property-read string $scope_name
  * @property-read Model $model
  */
-class ScopeNotDefined extends ActiveRecordException
+class ScopeNotDefined extends \LogicException implements Exception
 {
 	/**
 	 * Name of the scope.
@@ -715,7 +715,7 @@ class ScopeNotDefined extends ActiveRecordException
 	 * @param int $code Default to 404.
 	 * @param \Exception $previous Previous exception.
 	 */
-	public function __construct($scope_name, Model $model, $code=500, \Exception $previous)
+	public function __construct($scope_name, Model $model, $code=500, \Exception $previous=null)
 	{
 		$this->scope_name = $scope_name;
 		$this->model = $model;

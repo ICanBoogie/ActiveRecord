@@ -250,13 +250,3 @@ class ActiveRecord extends \ICanBoogie\Object
 		return $model->delete($this->$primary);
 	}
 }
-
-namespace ICanBoogie\ActiveRecord;
-
-/**
- * Generic Active Record exception class.
- */
-class ActiveRecordException extends \Exception
-{
-
-}
