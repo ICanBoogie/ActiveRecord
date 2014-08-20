@@ -21,6 +21,8 @@ use ICanBoogie\PropertyNotDefined;
  */
 class Connections implements \ArrayAccess, \IteratorAggregate
 {
+	use \ICanBoogie\GetterTrait;
+
 	/**
 	 * Connection definitions.
 	 *
@@ -28,12 +30,22 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 	 */
 	private $definitions;
 
+	protected function get_definitions()
+	{
+		return $this->definitions;
+	}
+
 	/**
 	 * Established connections.
 	 *
 	 * @var array[string]Database
 	 */
 	private $established = [];
+
+	protected function get_established()
+	{
+		return $this->established;
+	}
 
 	/**
 	 * Initialize the {@link $definitions} property.
@@ -46,24 +58,6 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 		{
 			$this[$id] = $definition;
 		}
-	}
-
-	/**
-	 * Returns the read-only properties {@link $definitions} and {@link $established}.
-	 *
-	 * @param string $property
-	 *
-	 * @return mixed
-	 */
-	public function __get($property)
-	{
-		switch ($property)
-		{
-			case 'definitions': return $this->definitions;
-			case 'established': return $this->established;
-		}
-
-		throw new PropertyNotDefined([ $property, $this ]);
 	}
 
 	/**

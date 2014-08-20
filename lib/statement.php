@@ -23,6 +23,8 @@ use ICanBoogie\PrototypeTrait;
  */
 class Statement extends \PDOStatement
 {
+	use \ICanBoogie\GetterTrait;
+
 	/**
 	 * The database connection that created this statement.
 	 *
@@ -48,21 +50,6 @@ class Statement extends \PDOStatement
 		}
 
 		return $this->execute($args);
-	}
-
-	/**
-	 * @throws PropertyNotDefined in attempt to get a property that is not defined.
-	 */
-	public function __get($property)
-	{
-		switch ($property)
-		{
-			case 'all': return $this->fetchAll();
-			case 'one': return $this->fetchAndClose();
-			case 'rc': return $this->fetchColumnAndClose();
-		}
-
-		throw new PropertyNotDefined([ $property, $this ]);
 	}
 
 	/**
@@ -123,6 +110,14 @@ class Statement extends \PDOStatement
 	}
 
 	/**
+	 * Alias for `fetchAndClose()`.
+	 */
+	protected function get_one()
+	{
+		return $this->fetchAndClose();
+	}
+
+	/**
 	 * Fetches a column of the first row of the result set and closes the cursor.
 	 *
 	 * @param int $column_number
@@ -138,6 +133,14 @@ class Statement extends \PDOStatement
 		$this->closeCursor();
 
 		return $rc;
+	}
+
+	/**
+	 * Alias for `fetchColumnAndClose()`.
+	 */
+	protected function get_rc()
+	{
+		return $this->fetchColumnAndClose();
 	}
 
 	/**
@@ -202,6 +205,14 @@ class Statement extends \PDOStatement
 	public function all($fetch_style=null, $column_index=null, array $ctor_args=null)
 	{
 		return call_user_func_array([ $this, 'fetchAll' ], func_get_args());
+	}
+
+	/**
+	 * Alias for `all()`.
+	 */
+	protected function get_all()
+	{
+		return $this->fetchAll();
 	}
 }
 

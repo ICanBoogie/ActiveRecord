@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 class ModelsTest extends \PHPUnit_Framework_TestCase
 {
 	static private $connections;
+	static private $definitions;
 	static private $models;
 
 	static public function setupBeforeClass()
@@ -24,7 +25,7 @@ class ModelsTest extends \PHPUnit_Framework_TestCase
 
 		]);
 
-		self::$models = new Models(self::$connections, [
+		self::$definitions = [
 
 			'articles' => [
 
@@ -74,7 +75,20 @@ class ModelsTest extends \PHPUnit_Framework_TestCase
 
 			]
 
-		]);
+		];
+
+		self::$models = new Models(self::$connections, self::$definitions);
+	}
+
+	public function test_get_connections()
+	{
+		$this->assertSame(self::$connections, self::$models->connections);
+	}
+
+	public function test_get_definitions()
+	{
+		$this->assertInternalType('array', self::$models->definitions);
+		$this->assertEquals([ 'articles', 'comments', 'other' ], array_keys(self::$models->definitions));
 	}
 
 	public function test_class_name()

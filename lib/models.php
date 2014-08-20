@@ -20,12 +20,19 @@ namespace ICanBoogie\ActiveRecord;
  */
 class Models implements \ArrayAccess
 {
+	use \ICanBoogie\GetterTrait;
+
 	/**
 	 * Instanciated models.
 	 *
 	 * @var array[string]Model
 	 */
 	protected $instances = [];
+
+	protected function get_instances()
+	{
+		return $this->instances;
+	}
 
 	/**
 	 * Models definitions.
@@ -34,12 +41,22 @@ class Models implements \ArrayAccess
 	 */
 	protected $definitions = [];
 
+	protected function get_definitions()
+	{
+		return $this->definitions;
+	}
+
 	/**
 	 * Connections manager.
 	 *
 	 * @var Connections
 	 */
 	protected $connections;
+
+	protected function get_connections()
+	{
+		return $this->connections;
+	}
 
 	/**
 	 * Initializes the {@link $connections} and {@link $definitions} properties.
@@ -54,16 +71,6 @@ class Models implements \ArrayAccess
 		foreach ($definitions as $id => $definition)
 		{
 			$this[$id] = $definition;
-		}
-	}
-
-	public function __get($property)
-	{
-		switch ($property)
-		{
-			case 'connections': return $this->connections;
-			case 'definitions': return new \ArrayIterator($this->definitions);
-			case 'instances': return new \ArrayIterator($this->instances);
 		}
 	}
 

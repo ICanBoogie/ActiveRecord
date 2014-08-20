@@ -88,4 +88,24 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 			'dsn' => 'mysql:dbname=testing'
 		];
 	}
+
+	public function test_get_established()
+	{
+		$connections = new Connections([
+
+			'one' => 'sqlite::memory:',
+			'two' => 'sqlite::memory:'
+
+		]);
+
+		$this->assertEmpty($connections->established);
+
+		$connection = $connections['one'];
+
+		$this->assertSame([
+
+			'one' => $connection
+
+		], $connections->established);
+	}
 }

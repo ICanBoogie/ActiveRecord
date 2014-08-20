@@ -652,6 +652,8 @@ class Model extends Table implements \ArrayAccess
  */
 class RecordNotFound extends \LogicException implements Exception
 {
+	use \ICanBoogie\GetterTrait;
+
 	/**
 	 * A key/value array where keys are the identifier of the record, and the value is the result
 	 * of finding the record. If the record was found the value is a {@link ActiveRecord}
@@ -660,6 +662,11 @@ class RecordNotFound extends \LogicException implements Exception
 	 * @var array[int]ActiveRecord|null
 	 */
 	private $records;
+
+	protected function get_records()
+	{
+		return $this->records;
+	}
 
 	/**
 	 * Initializes the {@link $records} property.
@@ -675,14 +682,6 @@ class RecordNotFound extends \LogicException implements Exception
 
 		parent::__construct($message, $code, $previous);
 	}
-
-	public function __get($property)
-	{
-		switch ($property)
-		{
-			case 'records': return $this->records;
-		}
-	}
 }
 
 /**
@@ -693,6 +692,8 @@ class RecordNotFound extends \LogicException implements Exception
  */
 class ScopeNotDefined extends \LogicException implements Exception
 {
+	use \ICanBoogie\GetterTrait;
+
 	/**
 	 * Name of the scope.
 	 *
@@ -700,12 +701,22 @@ class ScopeNotDefined extends \LogicException implements Exception
 	 */
 	private $scope_name;
 
+	protected function get_scope_name()
+	{
+		return $this->scope_name;
+	}
+
 	/**
 	 * Model on which the scope was invoked.
 	 *
 	 * @var Model
 	 */
 	private $model;
+
+	protected function get_model()
+	{
+		return $this->model;
+	}
 
 	/**
 	 * Initializes the {@link $scope_name} and {@link $model} properties.
@@ -720,15 +731,6 @@ class ScopeNotDefined extends \LogicException implements Exception
 		$this->scope_name = $scope_name;
 		$this->model = $model;
 
-		parent::__construct("Unknown scope <q>{$scope_name}</q> for model <q>{$model->name_unprefixed}</q>.", $code, $previous);
-	}
-
-	public function __get($property)
-	{
-		switch ($property)
-		{
-			case 'scope_name': return $this->scope_name;
-			case 'model': return $this->model;
-		}
+		parent::__construct("Unknown scope `{$scope_name}` for model `{$model->name_unprefixed}`.", $code, $previous);
 	}
 }
