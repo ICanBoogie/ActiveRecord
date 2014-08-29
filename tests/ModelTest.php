@@ -124,6 +124,22 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals(self::$query_model_records_count, count($all));
 	}
 
+	public function test_get_pairs()
+	{
+		$query_model = self::$query_model;
+		$pairs = $query_model('SELECT id, name FROM {self}')->pairs;
+		$this->assertInternalType('array', $pairs);
+		$this->assertEquals(self::$query_model_records_count, count($pairs));
+		$this->assertSame([
+
+			1 => "one",
+			2 => "two",
+			3 => "three",
+			4 => "four"
+
+		], $pairs);
+	}
+
 	public function test_get_one()
 	{
 		$one = self::$query_model->one;

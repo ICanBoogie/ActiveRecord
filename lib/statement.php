@@ -18,6 +18,8 @@ use ICanBoogie\PrototypeTrait;
  * A database statement.
  *
  * @property-read array $all An array with the matching records.
+ * @property-read array $pairs An array of key/value pairs, where _key_ is the value of the first
+ * column and _value_ the value of the second column.
  * @property-read mixed $one The first matching record.
  * @property-read string $rc The value of the first column of the first row.
  */
@@ -213,6 +215,17 @@ class Statement extends \PDOStatement
 	protected function get_all()
 	{
 		return $this->fetchAll();
+	}
+
+	/**
+	 * Alias for `all(\PDO::FETCH_KEY_PAIR`).
+	 *
+	 * @return array An array of key/value pairs, where _key_ is the value of the first
+	 * column and _value_ the value of the second column.
+	 */
+	protected function get_pairs()
+	{
+		return $this->fetchAll(\PDO::FETCH_KEY_PAIR);
 	}
 }
 
