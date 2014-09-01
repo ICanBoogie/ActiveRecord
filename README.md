@@ -1127,7 +1127,7 @@ can be used to specify the join. The method can be used multiple times to create
 A [Query][] instance can be joined as a subquery. The following options are available:
 
 - `mode`: Specifies the join mode. Default: `INNER`.
-- `alias`: Alias for the subquery. Default: The alias of the model associated with the query.
+- `as`: Alias for the subquery. Default: The alias of the model associated with the query.
 - `on`: The column used for the conditional expression. Depending on the columns available, the
 method tries to determine the best solution between `ON` and `USING`.
 
@@ -1157,7 +1157,7 @@ between that model and the model associated with the query is used to create the
 following options are available:
 
 - `mode`: Specifies the join mode. Default: `INNER`.
-- `alias`: Alias for the joining model. Default: The alias of the joining model.
+- `as`: Alias for the joining model. Default: The alias of the joining model.
 
 The column character ":" is used to distinguish a model identifier from a raw fragement.
 
@@ -1168,7 +1168,7 @@ $model->join($contents_model);
 # or
 $model->join(':contents');
 
-$model->join(':contents', [ 'mode' => 'LEFT', 'alias' => 'cnt' ]);
+$model->join(':contents', [ 'mode' => 'LEFT', 'as' => 'cnt' ]);
 ```
 
 Note: If a model identifier is provided, the `get_model()` helper is used to object the model

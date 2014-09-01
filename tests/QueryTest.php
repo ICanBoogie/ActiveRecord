@@ -238,10 +238,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 		, (string) $updates->select('update_id, email')->join($subscribers));
 
 		$this->assertEquals("SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `sub` USING(`subscriber_id`)"
-		, (string) $updates->select('update_id, email')->join($subscribers, [ 'alias' => 'sub' ]));
+		, (string) $updates->select('update_id, email')->join($subscribers, [ 'as' => 'sub' ]));
 
 		$this->assertEquals("SELECT update_id, email FROM `updates` `update` LEFT JOIN `subscribers` AS `sub` USING(`subscriber_id`)"
-		, (string) $updates->select('update_id, email')->join($subscribers, [ 'alias' => 'sub', 'mode' => 'LEFT' ]));
+		, (string) $updates->select('update_id, email')->join($subscribers, [ 'as' => 'sub', 'mode' => 'LEFT' ]));
 	}
 }
 

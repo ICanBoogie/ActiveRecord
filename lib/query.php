@@ -530,7 +530,7 @@ class Query implements \IteratorAggregate
 	 * @param Query $query
 	 * @param array $options The following options are available:
 	 * - `mode`: Join mode. Default: "INNER".
-	 * - `alias`: The alias of the subquery. Default: The query's model alias.
+	 * - `as`: The alias of the subquery. Default: The query's model alias.
 	 * - `on`: The column on which the joint is created. Default: The query's model primary key.
 	 */
 	private function join_with_query(Query $query, array $options=[])
@@ -538,18 +538,18 @@ class Query implements \IteratorAggregate
 		$options += [
 
 			'mode' => 'INNER',
-			'alias' => $query->model->alias,
+			'as' => $query->model->alias,
 			'on' => $query->model->primary
 
 		];
 
 		$mode = $options['mode'];
-		$alias = $options['alias'];
+		$as = $options['as'];
 		$on = $options['on'];
 
 		if ($options['on'])
 		{
-			$on = $this->render_join_on($options['on'], $alias, $query);
+			$on = $this->render_join_on($options['on'], $as, $query);
 		}
 
 		if ($on)
@@ -557,7 +557,7 @@ class Query implements \IteratorAggregate
 			$on = ' ' . $on;
 		}
 
-		$this->join .= " $mode JOIN($query) `$alias`{$on}";
+		$this->join .= " $mode JOIN($query) `$as`{$on}";
 	}
 
 	/**
@@ -600,15 +600,15 @@ class Query implements \IteratorAggregate
 		$options += [
 
 			'mode' => 'INNER',
-			'alias' => $model->alias,
+			'as' => $model->alias,
 			'on' => $primary
 
 		];
 
 		$mode = $options['mode'];
-		$alias = $options['alias'];
+		$as = $options['as'];
 
-		$this->join .= " $mode JOIN `$model->name` AS `$alias` USING(`$primary`)";
+		$this->join .= " $mode JOIN `$model->name` AS `$as` USING(`$primary`)";
 	}
 
 	/**
@@ -617,19 +617,19 @@ class Query implements \IteratorAggregate
 	 * The method tries to determine the best solution between `ON` and `USING`.
 	 *
 	 * @param string $column
-	 * @param string $alias
+	 * @param string $as
 	 * @param Query $query
 	 *
 	 * @return string
 	 */
-	private function render_join_on($column, $alias, Query $query)
+	private function render_join_on($column, $as, Query $query)
 	{
 		if (isset($query->model->schema['fields'][$column]) && isset($this->model->schema['fields'][$column]))
 		{
 			return "USING(`$column`)";
 		}
 
-		return "ON `$alias`.`$column` = `{$this->model->alias}`.`$column`";
+		return "ON `$as`.`$column` = `{$this->model->alias}`.`$column`";
 	}
 
 	/**
