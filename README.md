@@ -1146,6 +1146,26 @@ $subscribers = get_model('subscribers')
 ->all;
 ```
 
+The following example demonstrates how to fetch the available categories and their usage by the
+articles of a blog. We use the join mode `LEFT` so that categories with no articles are also
+fetched.
+
+```php
+<?php
+
+// …
+
+$usage = get_model('articles')
+->select('category_id, COUNT(category_id) AS `usage`')
+->group('category_id');
+
+$categories = get_model('categories')
+->join($usage, [ 'as' => 'usage', 'on' => 'category_id', 'mode' => 'LEFT' ])
+->all;
+```
+
+
+
 
 
 
