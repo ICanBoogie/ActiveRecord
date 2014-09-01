@@ -1282,10 +1282,14 @@ class Query implements \IteratorAggregate
 
 		if ($tables)
 		{
-			$tables .= ' ';
+			$query = "DELETE {$tables} FROM {self} AS `{alias}`";
+		}
+		else
+		{
+			$query = "DELETE FROM {self}";
 		}
 
-		$query = "DELETE {$tables}FROM {self} `{alias}`" . $this->render_main();
+		$query .= $this->render_main();
 
 		return $this->model->execute($query, $this->conditions_args);
 	}
