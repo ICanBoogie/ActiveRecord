@@ -1264,11 +1264,28 @@ class Query implements \IteratorAggregate
 	/**
 	 * Delete the records matching the conditions and limits of the query.
 	 *
+	 * @param string $tables When using a JOIN, `$tables` is used to specify the tables in which
+	 * records should be deleted. Default: The alias of queried model, only if at least one join
+	 * clause has been defined using the {@link join()} method.
+	 *
 	 * @return mixed The result of the operation.
+	 *
+	 * @todo-20140901: reflect on join to add the required tables by default, descarting tables
+	 * joined with the LEFT mode.
 	 */
-	public function delete()
+	public function delete($tables=null)
 	{
-		$query = 'DELETE FROM {self} ' . $this->render_main();
+		if (!$tables && $this->join)
+		{
+			$tables = "`{alias}`";
+		}
+
+		if ($tables)
+		{
+			$tables .= ' ';
+		}
+
+		$query = "DELETE {$tables}FROM {self} `{alias}`" . $this->render_main();
 
 		return $this->model->execute($query, $this->conditions_args);
 	}

@@ -1523,6 +1523,48 @@ $articles = get_model('articles')
 
 
 
+### Deleting the records matching a query
+
+The records matching a query can be deleted using the `delete()` method:
+
+```php
+<?php
+
+get_model('nodes')
+->filter_by_is_deleted_and_uid(true, 123)
+->limit(10)
+->delete();
+```
+
+You might need to join tables to decide which record to delete, in which case you might
+want to define in which tables the records should be deleted. The following example demonstrates
+how to delete the nodes and comments of nodes belonging to user 123 and marked as deleted:
+
+```php
+<?php
+
+get_model('comments')
+->filter_by_is_deleted_and_uid(true, 123)
+->join(':nodes')
+->delete('comments, nodes');
+```
+
+When using `join()` the table associated with the query is used by default. The following
+example demontrastes how to delete nodes that lack content:
+
+```php
+<?php
+
+get_model('nodes')
+->join(':contents', [ 'mode' => 'LEFT' ])
+->where('content.nid IS NULL')
+->delete()
+```
+
+
+
+
+
 ### Query interface summary
 
 Retrieving records:
