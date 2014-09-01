@@ -1150,22 +1150,29 @@ $subscribers = get_model('subscribers')
 
 
 
-#### Joining tables using a model identifier
+#### Joining tables using a model
 
-A join can be specified using a model identifier, in which case relationship between models
-are used to create the join:
+A join can be specified using a model or a model identifier, in which case the relationship
+between that model and the model associated with the query is used to create the join. The
+following options are available:
+
+- `mode`: Specifies the join mode. Default: `INNER`.
+- `alias`: Alias for the joining model. Default: The alias of the joining model.
+
+The column character ":" is used to distinguish a model identifier from a raw fragement.
 
 ```php
 <?php
 
+$model->join($contents_model);
+# or
 $model->join(':contents');
+
+$model->join(':contents', [ 'mode' => 'LEFT', 'alias' => 'cnt' ]);
 ```
 
-The same SQL statement will be created, but we don't have to care about the join conditions. Please
-notice the column ":" used to identify that a model identifier is used and not a raw fragement.
-
-Note: The method uses the `get_model()` helper. Checkout the "Patching" section for implementation
-details.
+Note: If a model identifier is provided, the `get_model()` helper is used to object the model
+instance. Checkout the "Patching" section for implementation details.
 
 
 
@@ -1173,8 +1180,8 @@ details.
 
 #### Joining tables using a raw string
 
-A join can be specified using a raw string, which will be included _as is_ in the final SQL
-statement.
+Finally, a join can be specified using a raw string, which will be included _as is_ in the
+final SQL statement.
 
 ```php
 <?php
@@ -1199,7 +1206,7 @@ conditions.
 #### Retrieving data by iteration
 
 Instances of [Query](http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html)
-are traversable, it's the easiest way the retrieve the rows of the result set:
+are traversable, it's the easiest way the retrieve the rows of a result set:
 
 ```php
 <?php

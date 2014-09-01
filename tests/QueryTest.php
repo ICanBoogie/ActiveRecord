@@ -195,6 +195,54 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 		$this->assertEquals("SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` ORDER BY updated_at DESC) `update` USING(`subscriber_id`) GROUP BY `subscriber`.subscriber_id", (string) $subscriber_query);
 	}
+
+	public function test_join_with_model()
+	{
+		$subscribers = new Model([
+
+			Model::CONNECTION => self::$connection,
+			Model::NAME => 'subscribers',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'subscriber_id' => 'serial',
+					'email' => 'varchar'
+
+				]
+
+			]
+
+		]);
+
+		$updates = new Model([
+
+			Model::CONNECTION => self::$connection,
+			Model::NAME => 'updates',
+			Model::SCHEMA => [
+
+				'fields' => [
+
+					'update_id' => 'serial',
+					'subscriber_id' => 'foreign',
+					'updated_at' => 'datetime',
+					'update_hash' => [ 'char', 40 ]
+
+				]
+
+			]
+
+		]);
+
+		$this->assertEquals("SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `subscriber` USING(`subscriber_id`)"
+		, (string) $updates->select('update_id, email')->join($subscribers));
+
+		$this->assertEquals("SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `sub` USING(`subscriber_id`)"
+		, (string) $updates->select('update_id, email')->join($subscribers, [ 'alias' => 'sub' ]));
+
+		$this->assertEquals("SELECT update_id, email FROM `updates` `update` LEFT JOIN `subscribers` AS `sub` USING(`subscriber_id`)"
+		, (string) $updates->select('update_id, email')->join($subscribers, [ 'alias' => 'sub', 'mode' => 'LEFT' ]));
+	}
 }
 
 namespace ICanBoogie\ActiveRecord\QueryTest;

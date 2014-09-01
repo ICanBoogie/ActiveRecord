@@ -488,6 +488,11 @@ class Query implements \IteratorAggregate
 	 */
 	public function join($expression, $options=[])
 	{
+		if (is_string($expression) && $expression{0} == ':')
+		{
+			$expression = get_model(substr($expression, 1));
+		}
+
 		if ($expression instanceof self)
 		{
 			$this->join_with_query($expression, $options);
@@ -495,36 +500,11 @@ class Query implements \IteratorAggregate
 			return $this;
 		}
 
-		if ($expression{0} == ':')
+		if ($expression instanceof Model)
 		{
-			$primary = $this->model->primary;
+			$this->join_with_model($expression, $options);
 
-			$model = get_model(substr($expression, 1));
-			$model_schema = $model->extended_schema;
-
-			if (is_array($primary))
-			{
-				foreach ($primary as $column)
-				{
-					if (isset($model_schema['fields'][$column]))
-					{
-						$primary = $column;
-
-						break;
-					}
-				}
-			}
-			else if (empty($model_schema['fields'][$primary]))
-			{
-				$primary = $model_schema['primary'];
-
-				if (is_array($primary))
-				{
-					$primary = current($primary);
-				}
-			}
-
-			$expression = $model->resolve_statement("INNER JOIN `{self}` AS `{alias}` USING(`{$primary}`)");
+			return $this;
 		}
 
 		$this->join .= ' ' . $expression;
@@ -549,9 +529,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param Query $query
 	 * @param array $options The following options are available:
-	 * - `mode`: Join mode. Default: "INNER"
+	 * - `mode`: Join mode. Default: "INNER".
 	 * - `alias`: The alias of the subquery. Default: The query's model alias.
-	 * - `on`: The column on which to joint is created. Default: The query's model primary key.
+	 * - `on`: The column on which the joint is created. Default: The query's model primary key.
 	 */
 	private function join_with_query(Query $query, array $options=[])
 	{
@@ -578,6 +558,57 @@ class Query implements \IteratorAggregate
 		}
 
 		$this->join .= " $mode JOIN($query) `$alias`{$on}";
+	}
+
+	/**
+	 * Join a model to the query.
+	 *
+	 * @param Model $model
+	 * @param array $options The following options are available:
+	 * - `mode`: Join mode. Default: "INNER".
+	 * - `alias`: The alias of the model. Default: The model's alias.
+	 * - `on`: The column on which the joint is created, or an _ON_ expression. Default:
+	 * The model's primary key. @todo
+	 */
+	private function join_with_model(Model $model, array $options=[])
+	{
+		$primary = $this->model->primary;
+		$model_schema = $model->extended_schema;
+
+		if (is_array($primary))
+		{
+			foreach ($primary as $column)
+			{
+				if (isset($model_schema['fields'][$column]))
+				{
+					$primary = $column;
+
+					break;
+				}
+			}
+		}
+		else if (empty($model_schema['fields'][$primary]))
+		{
+			$primary = $model_schema['primary'];
+
+			if (is_array($primary))
+			{
+				$primary = current($primary);
+			}
+		}
+
+		$options += [
+
+			'mode' => 'INNER',
+			'alias' => $model->alias,
+			'on' => $primary
+
+		];
+
+		$mode = $options['mode'];
+		$alias = $options['alias'];
+
+		$this->join .= " $mode JOIN `$model->name` AS `$alias` USING(`$primary`)";
 	}
 
 	/**
