@@ -37,5 +37,19 @@
 		"classmap": [ "lib/ActiveRecord.php" ],
 
 		"files": [ "bootstrap.php", "helpers.php" ]
+	},
+
+	"extra": {
+
+		"icanboogie": {
+
+			"config-constructor": {
+
+				"activerecord_connections": "ICanBoogie\\ActiveRecord\\Hooks::synthesize_connections_config#activerecord"
+
+			},
+
+			"config-path": "config"
+		}
 	}
 }
