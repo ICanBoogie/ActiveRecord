@@ -13,11 +13,28 @@ namespace ICanBoogie\ActiveRecord;
 
 /**
  * Exception thrown when a connection is not defined.
+ *
+ * @property-read string $id The identifier of the connection.
  */
 class ConnectionNotDefined extends \LogicException implements Exception
 {
+	use \ICanBoogie\GetterTrait;
+
+	private $id;
+
+	protected function get_id()
+	{
+		return $this->id;
+	}
+
 	public function __construct($id, $code=500, \Exception $previous=null)
 	{
-		parent::__construct("Connection not defined: {$id}.", $code, $previous);
+		$this->id = $id;
+
+		parent::__construct(\ICanBoogie\format("Connection not defined: %id.", [
+
+			'id' => $id
+
+		]), $code, $previous);
 	}
 }

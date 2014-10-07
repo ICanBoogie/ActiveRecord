@@ -13,8 +13,24 @@ namespace ICanBoogie\ActiveRecord;
 
 /**
  * Exception thrown when a connection cannot be established.
+ *
+ * @property-read string $id The identifier of the connection.
  */
 class ConnectionNotEstablished extends \RuntimeException implements Exception
 {
+	use \ICanBoogie\GetterTrait;
 
+	private $id;
+
+	protected function get_id()
+	{
+		return $this->id;
+	}
+
+	public function __construct($id, $message, $code=500, \Exception $previous=null)
+	{
+		$this->id = $id;
+
+		parent::__construct($message, $code, $previous);
+	}
 }

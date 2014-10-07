@@ -150,7 +150,7 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 		}
 		catch (\PDOException $e)
 		{
-			throw new ConnectionNotEstablished("Connection not established: " . $e->getMessage() . ".", 500);
+			throw new ConnectionNotEstablished($id, "Connection not established: " . $e->getMessage() . ".", 500);
 		}
 	}
 

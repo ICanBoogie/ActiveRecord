@@ -44,7 +44,7 @@ class ExceptionTest extends \PHPUnit_Framework_TestCase
 		return [
 
 			[ 'ConnectionNotDefined', [ 'connection-name' ] ],
-			[ 'ConnectionNotEstablished', [ 'connection-name' ] ],
+			[ 'ConnectionNotEstablished', [ 'connection-name', 'message' ] ],
 			[ 'ConnectionAlreadyEstablished', [ 'connection-name' ] ],
 
 			[ 'RecordNotFound', [ "message", [] ] ],

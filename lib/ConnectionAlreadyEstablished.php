@@ -13,11 +13,28 @@ namespace ICanBoogie\ActiveRecord;
 
 /**
  * Exception thrown in attempt to set the definition of an already established connection.
+ *
+ * @property-read string $id The identifier of the connection.
  */
 class ConnectionAlreadyEstablished extends \LogicException implements Exception
 {
+	use \ICanBoogie\GetterTrait;
+
+	private $id;
+
+	protected function get_id()
+	{
+		return $this->id;
+	}
+
 	public function __construct($id, $code=500, \Exception $previous=null)
 	{
-		parent::__construct("Connection already established: {$id}.", $code, $previous);
+		$this->id = $id;
+
+		parent::__construct(\ICanBoogie\format("Connection already established: %id.", [
+
+			'id' => $id
+
+		]), $code, $previous);
 	}
 }

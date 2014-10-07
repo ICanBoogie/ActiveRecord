@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 /**
  * Exception thrown when an active record cannot be found.
  *
- * @property-read array[int]ActiveRecord|null $records
+ * @property-read \ICanBoogie\ActiveRecord[] $records
  */
 class RecordNotFound extends \LogicException implements Exception
 {
@@ -25,7 +25,7 @@ class RecordNotFound extends \LogicException implements Exception
 	 * of finding the record. If the record was found the value is a {@link \ICanBoogie\ActiveRecord}
 	 * object, otherwise the `null` value.
 	 *
-	 * @var array[int]\ICanBoogie\ActiveRecord|null
+	 * @var \ICanBoogie\ActiveRecord[]
 	 */
 	private $records;
 
@@ -42,7 +42,7 @@ class RecordNotFound extends \LogicException implements Exception
 	 * @param int $code Defaults to 404.
 	 * @param \Exception $previous Previous exception.
 	 */
-	public function __construct($message, array $records, $code=404, \Exception $previous=null)
+	public function __construct($message, array $records=[], $code=404, \Exception $previous=null)
 	{
 		$this->records = $records;
 

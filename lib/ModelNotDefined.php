@@ -13,11 +13,24 @@ namespace ICanBoogie\ActiveRecord;
 
 /**
  * Exception thrown when a requested model is not defined.
+ *
+ * @property-read string $id The identifier of the model.
  */
 class ModelNotDefined extends \LogicException implements Exception
 {
+	use \ICanBoogie\GetterTrait;
+
+	private $id;
+
+	protected function get_id()
+	{
+		return $this->id;
+	}
+
 	public function __construct($id, $code=500, \Exception $previous=null)
 	{
+		$this->id = $id;
+
 		parent::__construct("Model not defined: $id.", $code, $previous);
 	}
 }

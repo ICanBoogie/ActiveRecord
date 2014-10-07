@@ -13,11 +13,24 @@ namespace ICanBoogie\ActiveRecord;
 
 /**
  * Exception thrown in attempt to set/unset the definition of an already instantiated model.
+ *
+ * @property-read string $id The identifier of the model.
  */
 class ModelAlreadyInstantiated extends \LogicException implements Exception
 {
+	use \ICanBoogie\GetterTrait;
+
+	private $id;
+
+	protected function get_id()
+	{
+		return $this->id;
+	}
+
 	public function __construct($id, $code=500, \Exception $previous=null)
 	{
+		$this->id = $id;
+
 		parent::__construct("Model already instanciated: $id.", $code, $previous);
 	}
 }
