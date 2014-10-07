@@ -41,8 +41,8 @@ class Query implements \IteratorAggregate
 {
 	use PrototypeTrait
 	{
-		PrototypeTrait::__get as __prototype_get;
-		PrototypeTrait::__call as __prototype_call;
+		PrototypeTrait::__get as private __prototype_get;
+		PrototypeTrait::__call as private __prototype_call;
 	}
 
 	const LIMIT_MAX = '18446744073709551615';
