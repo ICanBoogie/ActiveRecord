@@ -53,7 +53,7 @@ class ExceptionTest extends \PHPUnit_Framework_TestCase
 			[ 'ModelNotDefined' , [ 'model-name' ] ],
 			[ 'ModelAlreadyInstantiated' , [ 'model-name' ] ],
 
-			[ 'StatementInvalid' , [ 'statement' ] ],
+			[ 'StatementNotValid' , [ 'statement' ] ],
 			[ 'UnableToSetFetchMode' , [ 'mode' ] ]
 
 		];

@@ -37,7 +37,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * Query statements are always prepared, so if the preparation fails a StatementInvalid
+	 * Query statements are always prepared, so if the preparation fails a StatementNotValid
 	 * expection is thrown with the only the statement string and not the arguments,
 	 * which are applied later when the preparation is successful.
 	 *
@@ -51,11 +51,11 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		{
 			$statement = $connection($statement, [ 3 ]);
 
-			$this->fail('Expected StatementInvalid excpetion');
+			$this->fail('Expected StatementNotValid excpetion');
 		}
 		catch (\Exception $e)
 		{
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementInvalid', $e);
+			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementNotValid', $e);
 			$this->assertInstanceOf('PDOException', $e->original);
 			$this->assertNull($e->getPrevious());
 
@@ -68,7 +68,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 
 	/**
 	 * Query statements are always prepared, so if the query fails during its execution a
-	 * StatementInvalid expection is thrown with the Statement instance and its arguments.
+	 * StatementNotValid expection is thrown with the Statement instance and its arguments.
 	 */
 	public function test_invalid_query()
 	{
@@ -79,11 +79,11 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		{
 			$statement = $connection($statement, [ 1, "oneone" ]);
 
-			$this->fail('Expected StatementInvalid excpetion');
+			$this->fail('Expected StatementNotValid excpetion');
 		}
 		catch (\Exception $e)
 		{
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementInvalid', $e);
+			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementNotValid', $e);
 			$this->assertInstanceOf('PDOException', $e->original);
 			$this->assertNull($e->getPrevious());
 
@@ -103,7 +103,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * Exec statements are not prepared, if the execution fails a StatementInvalid
+	 * Exec statements are not prepared, if the execution fails a StatementNotValid
 	 * expection is thrown with the only the statement string.
 	 */
 	public function test_invalid_exec()
@@ -115,11 +115,11 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		{
 			$statement = $connection($statement);
 
-			$this->fail('Expected StatementInvalid excpetion');
+			$this->fail('Expected StatementNotValid excpetion');
 		}
 		catch (\Exception $e)
 		{
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementInvalid', $e);
+			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementNotValid', $e);
 			$this->assertInstanceOf('PDOException', $e->original);
 			$this->assertNull($e->getPrevious());
 

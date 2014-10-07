@@ -193,7 +193,7 @@ class Connection extends \PDO
 	 *
 	 * @return Database\Statement The prepared statement.
 	 *
-	 * @throws StatementInvalid if the statement cannot be prepared.
+	 * @throws StatementNotValid if the statement cannot be prepared.
 	 */
 	public function prepare($statement, $options=[])
 	{
@@ -205,7 +205,7 @@ class Connection extends \PDO
 		}
 		catch (\PDOException $e)
 		{
-			throw new StatementInvalid($statement, 500, $e);
+			throw new StatementNotValid($statement, 500, $e);
 		}
 
 		$statement->connection = $this;
@@ -241,12 +241,12 @@ class Connection extends \PDO
 	 * executed.
 	 *
 	 * The execution of the statement is wrapped in a try/catch block. {@link PDOException} are
-	 * caught and {@link StatementInvalid} exception are thrown with additional information
+	 * caught and {@link StatementNotValid} exception are thrown with additional information
 	 * instead.
 	 *
 	 * Using this method increments the `queries_by_connection` stat.
 	 *
-	 * @throws StatementInvalid if the statement cannot be executed.
+	 * @throws StatementNotValid if the statement cannot be executed.
 	 */
 	public function exec($statement)
 	{
@@ -260,7 +260,7 @@ class Connection extends \PDO
 		}
 		catch (\PDOException $e)
 		{
-			throw new StatementInvalid($statement, 500, $e);
+			throw new StatementNotValid($statement, 500, $e);
 		}
 	}
 

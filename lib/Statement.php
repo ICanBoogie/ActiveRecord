@@ -64,7 +64,7 @@ class Statement extends \PDOStatement
 	 *
 	 * The connection queries count is incremented.
 	 *
-	 * @throws StatementInvalid when the execution of the statement fails.
+	 * @throws StatementNotValid when the execution of the statement fails.
 	 */
 	public function execute($args=[])
 	{
@@ -83,7 +83,7 @@ class Statement extends \PDOStatement
 		}
 		catch (\PDOException $e)
 		{
-			throw new StatementInvalid([ $this, $args ], 500, $e);
+			throw new StatementNotValid([ $this, $args ], 500, $e);
 		}
 	}
 

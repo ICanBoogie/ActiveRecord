@@ -12,7 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Exception thrown when a requested model is not defined.
+ * Exception thrown in attempt to obtain a model that is not defined.
  *
  * @property-read string $id The identifier of the model.
  */

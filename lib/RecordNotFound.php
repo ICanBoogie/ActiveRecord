@@ -12,7 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Exception thrown when an active record cannot be found.
+ * Exception thrown when one or several records cannot be found.
  *
  * @property-read \ICanBoogie\ActiveRecord[] $records
  */

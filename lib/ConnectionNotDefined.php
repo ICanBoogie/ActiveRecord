@@ -12,7 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Exception thrown when a connection is not defined.
+ * Exception thrown in attempt to obtain a connection that is not defined.
  *
  * @property-read string $id The identifier of the connection.
  */

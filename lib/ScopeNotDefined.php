@@ -12,7 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Exception thrown when a scope is not defined.
+ * Exception thrown in attempt to obtain a scope that is not defined.
  *
  * @property-read string $scope_name
  * @property-read Model $model

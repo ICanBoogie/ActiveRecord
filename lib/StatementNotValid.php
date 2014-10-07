@@ -12,13 +12,13 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Exception thrown when a statement execution failed because of an error.
+ * Exception thrown in attempt to execute a statement that is not valid.
  *
  * @property-read string $statement The invalid statement.
  * @property-read array $args The arguments of the statement.
  * @property-read \PDOException $original The original exception.
  */
-class StatementInvalid extends \RuntimeException implements Exception
+class StatementNotValid extends \RuntimeException implements Exception
 {
 	use \ICanBoogie\GetterTrait;
 

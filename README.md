@@ -2073,6 +2073,20 @@ catch (\Exception $e)
 }
 ```
 
+The following exceptions are defined:
+
+- [ConnectionAlreadyEstablished][]: Exception thrown in attempt to set/unset the definition of an
+already established connection.
+- [ConnectionNotDefined][]: Exception thrown in attempt to obtain a connection that is not defined.
+- [ConnectionNotEstablished][]: Exception thrown when a connection cannot be established.
+- [ModelAlreadyInstantiated][]: Exception thrown in attempt to set/unset the definition of an
+already instantiated model.
+- [ModelNotDefined][]: Exception thrown in attempt to obtain a model that is not defined.
+- [RecordNotFound][]: Exception thrown when one or several records cannot be found.
+- [RelationNotDefined][]: Exception thrown in attempt to obtain a relation that is not defined.
+- [ScopeNotDefined][]: Exception thrown in attempt to obtain a scope that is not defined.
+- [StatementNotValid][]: Exception thrown in attempt to execute a statement that is not valid.
+- [UnableToSetFetchMode][]: Exception thrown when the fetch mode of a statement fails to be set.
 
 
 
@@ -2251,3 +2265,14 @@ ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE
 [Query]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html
 [RunTimeActiveRecordCache]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RunTimeActiveRecordCache.html
 [UpdatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
+
+[ConnectionAlreadyEstablished]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
+[ConnectionNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
+[ConnectionNotEstablished]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
+[ModelAlreadyInstantiated]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
+[ModelNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
+[RecordNotFound]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RecordNotFound.html
+[RelationNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
+[ScopeNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
+[StatementNotValid]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.StatementNotValid.html
+[UnableToSetFetchMode]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
