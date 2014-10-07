@@ -34,6 +34,9 @@ use ICanBoogie\Prototype;
  * @method array all() all() The method is forwarded to {@link Query::all}.
  * @method ActiveRecord one() one() The method is forwarded to {@link Query::one}.
  *
+ * @method Model belongs_to() belongs_to($definition) Add a _belongs_to_ relation.
+ * @method Model has_many() has_many($related, $options) Add a _has_many_ relation.
+ *
  * @property-read array $all Retrieve all the records from the model.
  * @property-read string $activerecord_class Class of the active records of the model.
  * @property-read int $count The number of records of the model.
@@ -42,7 +45,7 @@ use ICanBoogie\Prototype;
  * @property-read ActiveRecord Retrieve the first record from the mode.
  * @property ActiveRecordCacheInterface $activerecord_cache The cache use to store activerecords.
  * @property-read Model $parent_model The parent model.
- * @property-read array $relations The relations of this model to other models.
+ * @property-read Relation[] $relations The relations of this model to other models.
  */
 class Model extends Table implements \ArrayAccess
 {
@@ -95,14 +98,14 @@ class Model extends Table implements \ArrayAccess
 	/**
 	 * The relations of this model to other models.
 	 *
-	 * @var array
+	 * @var RelationCollection
 	 */
-	protected $relations = [];
+	protected $relations;
 
 	/**
 	 * Return the relations of this model to other models.
 	 *
-	 * @return array
+	 * @return RelationCollection
 	 */
 	protected function get_relations()
 	{
@@ -125,6 +128,8 @@ class Model extends Table implements \ArrayAccess
 	 */
 	public function __construct(array $tags)
 	{
+		$this->relations = new RelationCollection($this);
+
 		$tags += [
 
 			self::BELONGS_TO => null,
@@ -192,116 +197,7 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Handles the _belongs to_ relationship of the model.
-	 *
-	 * <pre>
-	 * $cars->belongs_to([ $drivers, $brands ]);
-	 * # or
-	 * $cars->belongs_to([ 'drivers', 'brands' ]);
-	 * # or
-	 * $cars->belongs_to($drivers, $brands);
-	 * # or
-	 * $cars->belongs_to($drivers);
-	 * $cars->belongs_to($brands);
-	 * </pre>
-	 *
-	 * @param string|array $belongs_to
-	 *
-	 * @return Model
-	 *
-	 * @throws RelationError if the class of the active record is `ICanBoogie\ActiveRecord`.
-	 */
-	public function belongs_to($belongs_to)
-	{
-		if (func_num_args() > 1)
-		{
-			$belongs_to = func_get_args();
-		}
-
-		if (is_array($belongs_to))
-		{
-			foreach ($belongs_to as $b)
-			{
-				$this->belongs_to($b);
-			}
-
-			return $this;
-		}
-
-		if ($belongs_to instanceof self)
-		{
-			$belongs_to_model = $belongs_to;
-			$belongs_to_id = $belongs_to->id;
-		}
-		else
-		{
-			$belongs_to_model = null;
-			$belongs_to_id = $belongs_to;
-		}
-
-		$activerecord_class = $this->activerecord_class;
-
-		if (!$activerecord_class || $activerecord_class == 'ICanBoogie\ActiveRecord')
-		{
-			throw new RelationError('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a <em>belongs to</em> relationship.');
-		}
-
-		$prototype = Prototype::from($activerecord_class);
-		$getter_name = 'lazy_get_' . \ICanBoogie\singularize($belongs_to_id);
-
-		$prototype[$getter_name] = function(ActiveRecord $ar) use($belongs_to_model, $belongs_to_id)
-		{
-			$model = $belongs_to_model ? $belongs_to_model : get_model($belongs_to_id);
-			$primary = $model->primary;
-			$key = $ar->$primary;
-
-			return $key ? $model[$key] : null;
-		};
-
-		return $this;
-	}
-
-	/**
-	 * Define a one-to-many relation.
-	 *
-	 * <pre>
-	 * $this->has_many('comments');
-	 * $this->has_many([ 'comments', 'attachments' ]);
-	 * $this->has_many([ [ 'comments', [ 'as' => 'comments' ] ], 'attachments' ]);
-	 * </pre>
-	 *
-	 * @param Model|string $related The related model can be specified using its instance or its
-	 * identifier.
-	 * @param array $options the following options are available:
-	 *
-	 * - `local_key`: The name of the local key. Default: The parent model's primary key.
-	 * - `foreign_key`: The name of the foreign key. Default: The parent model's primary key.
-	 * - `as`: The name of the magic property to add to the prototype. Default: a plural name
-	 * resolved from the foreign model's id.
-	 *
-	 * @see HasManyRelation
-	 */
-	public function has_many($related, array $options=[])
-	{
-		if (is_array($related))
-		{
-			$relation_list = $related;
-
-			foreach ($relation_list as $relation)
-			{
-				list($related, $options) = ((array) $relation) + [ 1 => [] ];
-
-				$this->relations[] = new HasManyRelation($this, $related, $options);
-			}
-
-			return;
-		}
-
-		$this->relations[] = new HasManyRelation($this, $related, $options);
-	}
-
-	/**
-	 * Handles query methods, dynamic filters and scopes.
+	 * Handles query methods, dynamic filters, scopes, and relations.
 	 */
 	public function __call($method, $arguments)
 	{
@@ -312,6 +208,11 @@ class Model extends Table implements \ArrayAccess
 			$query = new Query($this);
 
 			return call_user_func_array([ $query, $method ], $arguments);
+		}
+
+		if (is_callable([ 'ICanBoogie\ActiveRecord\RelationCollection', $method ]))
+		{
+			return call_user_func_array([ $this->relations, $method ], $arguments);
 		}
 
 		return parent::__call($method, $arguments);

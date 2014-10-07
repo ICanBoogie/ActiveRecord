@@ -11,10 +11,10 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\RelationHasManyTest\Article;
-use ICanBoogie\ActiveRecord\RelationHasManyTest\Comment;
+use ICanBoogie\ActiveRecord\HasManyRelationTest\Article;
+use ICanBoogie\ActiveRecord\HasManyRelationTest\Comment;
 
-class RelationHasManyTest extends \PHPUnit_Framework_TestCase
+class HasManyRelationTest extends \PHPUnit_Framework_TestCase
 {
 	static private $connection;
 	static private $articles;
@@ -88,6 +88,28 @@ class RelationHasManyTest extends \PHPUnit_Framework_TestCase
 		}
 	}
 
+	public function test_getters()
+	{
+		$relations = self::$articles->relations;
+		$this->assertInstanceOf('ICanBoogie\ActiveRecord\RelationCollection', $relations);
+
+		$relation = $relations['comments'];
+		$this->assertInstanceOf('ICanBoogie\ActiveRecord\HasManyRelation', $relation);
+		$this->assertSame('comments', $relation->as);
+		$this->assertSame(self::$articles, $relation->parent);
+		$this->assertSame(self::$comments, $relation->related);
+		$this->assertSame(self::$articles->primary, $relation->local_key);
+		$this->assertSame(self::$articles->primary, $relation->foreign_key);
+	}
+
+	/**
+	 * @expectedException ICanBoogie\ActiveRecord\RelationNotDefined
+	 */
+	public function test_undefined_relation()
+	{
+		self::$articles->relations['undefined_relation'];
+	}
+
 	public function test_getter()
 	{
 		$article = self::$articles[1];
@@ -109,7 +131,7 @@ class RelationHasManyTest extends \PHPUnit_Framework_TestCase
 	}
 }
 
-namespace ICanBoogie\ActiveRecord\RelationHasManyTest;
+namespace ICanBoogie\ActiveRecord\HasManyRelationTest;
 
 use ICanBoogie\ActiveRecord;
 

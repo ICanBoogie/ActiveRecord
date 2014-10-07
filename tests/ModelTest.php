@@ -423,11 +423,13 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$car->brand_id = $brand_id;
 		$car->save();
 
-		unset($car->driver);
-		unset($car->brand);
-
 		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Driver', $car->driver);
 		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Brand', $car->brand);
+
+		$car->driver_id = null;
+		$this->assertNull($car->driver_id);
+		$car->driver = $driver;
+		$this->assertEquals($driver->driver_id, $car->driver_id);
 	}
 
 	public function testCacheRevokedOnSave()
