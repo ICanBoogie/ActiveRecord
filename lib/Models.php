@@ -226,29 +226,3 @@ class Models implements \ArrayAccess
 		return $rc;
 	}
 }
-
-/*
- * EXCEPTIONS
- */
-
-/**
- * Exception thrown when a requested model is not defined.
- */
-class ModelNotDefined extends \LogicException implements Exception
-{
-	public function __construct($id, $code=500, \Exception $previous=null)
-	{
-		parent::__construct("Model not defined: $id.", $code, $previous);
-	}
-}
-
-/**
- * Exception thrown in attempt to set/unset the definition of an already instantiated model.
- */
-class ModelAlreadyInstantiated extends \LogicException implements Exception
-{
-	public function __construct($id, $code=500, \Exception $previous=null)
-	{
-		parent::__construct("Model already instanciated: $id.", $code, $previous);
-	}
-}

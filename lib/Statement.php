@@ -11,9 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\PropertyNotDefined;
-use ICanBoogie\PrototypeTrait;
-
 /**
  * A database statement.
  *
@@ -226,96 +223,5 @@ class Statement extends \PDOStatement
 	protected function get_pairs()
 	{
 		return $this->fetchAll(\PDO::FETCH_KEY_PAIR);
-	}
-}
-
-/**
- * Exception thrown when a statement execution failed because of an error.
- *
- * @property-read string $statement The invalid statement.
- * @property-read array $args The arguments of the statement.
- * @property-read \PDOException $original The original exception.
- */
-class StatementInvalid extends \RuntimeException implements Exception
-{
-	use PrototypeTrait;
-
-	private $statement;
-
-	protected function get_statement()
-	{
-		return $this->statement;
-	}
-
-	private $args;
-
-	protected function get_args()
-	{
-		return $this->args;
-	}
-
-	private $original;
-
-	protected function get_original()
-	{
-		return $this->original;
-	}
-
-	public function __construct($statement, $code=500, \PDOException $original=null)
-	{
-		$message = null;
-		$args = null;
-
-		if (is_array($statement))
-		{
-			list($statement, $args) = $statement;
-		}
-
-		$this->statement = $statement;
-		$this->args = $args;
-		$this->original = $original;
-
-		if ($original)
-		{
-			$er = array_pad($original->errorInfo, 3, '');
-
-			$message = sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
-		}
-
-		$message .= "`$statement`";
-
-		if ($args)
-		{
-			$message .= " " . ($args ? json_encode($args) : "[]");
-		}
-
-		parent::__construct($message, $code);
-	}
-}
-
-/**
- * Exception thrown when the fetch mode of a statement fails to be set.
- */
-class UnableToSetFetchMode extends \RuntimeException implements Exception
-{
-	use PrototypeTrait;
-
-	private $mode;
-
-	protected function get_mode()
-	{
-		return $this->mode;
-	}
-
-	public function __construct($mode, $message=null, $code=500, \Exception $previous=null)
-	{
-		$this->mode = $mode;
-
-		if (!$message)
-		{
-			$message = \ICanBoogie\format("Unable to set fetch mode: %mode", [ 'mode' => $mode ]);
-		}
-
-		parent::__construct($message, $code, $previous);
 	}
 }

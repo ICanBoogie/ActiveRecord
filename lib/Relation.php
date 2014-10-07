@@ -151,7 +151,7 @@ abstract class Relation
 	 *
 	 * @param Model $model
 	 *
-	 * @throws ActiveRecordException if the class is {@link ActiveRecord}.
+	 * @throws \LogicException if the class is {@link ActiveRecord}.
 	 *
 	 * @return string
 	 */
@@ -161,7 +161,7 @@ abstract class Relation
 
 		if (!$activerecord_class || $activerecord_class == 'ICanBoogie\ActiveRecord')
 		{
-			throw new ActiveRecordException('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a relationship.');
+			throw new \LogicException('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a relationship.');
 		}
 
 		return $activerecord_class;

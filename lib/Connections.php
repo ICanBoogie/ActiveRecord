@@ -11,8 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\PropertyNotDefined;
-
 /**
  * Connection collection.
  *
@@ -162,39 +160,5 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 	public function getIterator()
 	{
 		return new \ArrayIterator($this->established);
-	}
-}
-
-/*
- * EXCEPTIONS
- */
-
-/**
- * Exception thrown when a connection is not defined.
- */
-class ConnectionNotDefined extends \LogicException implements Exception
-{
-	public function __construct($id, $code=500, \Exception $previous=null)
-	{
-		parent::__construct("Connection not defined: {$id}.", $code, $previous);
-	}
-}
-
-/**
- * Exception thrown when a connection cannot be established.
- */
-class ConnectionNotEstablished extends \RuntimeException implements Exception
-{
-
-}
-
-/**
- * Exception thrown in attempt to set the definition of an already established connection.
- */
-class ConnectionAlreadyEstablished extends \LogicException implements Exception
-{
-	public function __construct($id, $code=500, \Exception $previous=null)
-	{
-		parent::__construct("Connection already established: {$id}.", $code, $previous);
 	}
 }

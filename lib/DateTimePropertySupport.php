@@ -46,36 +46,3 @@ class DateTimePropertySupport
 		return $property = $property === null ? DateTime::none() : new DateTime($property, 'utc');
 	}
 }
-
-/**
- * Implements a `datetime` property.
- */
-trait DateTimeProperty
-{
-	/**
-	 * The date and time at which the record was created.
-	 *
-	 * @var string
-	 */
-	private $datetime;
-
-	/**
-	 * Returns the date and time at which the record was created.
-	 *
-	 * @return \ICanBoogie\DateTime
-	 */
-	protected function get_datetime()
-	{
-		return DateTimePropertySupport::get($this->datetime);
-	}
-
-	/**
-	 * Sets the date and time at which the record was created.
-	 *
-	 * @param mixed $value
-	 */
-	protected function set_datetime($datetime)
-	{
-		DateTimePropertySupport::set($this->datetime, $datetime);
-	}
-}

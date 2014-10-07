@@ -25,8 +25,17 @@
 		"icanboogie/inflector": "*",
 		"icanboogie/datetime": "*"
 	},
+
 	"autoload": {
-		"classmap": [ "lib/" ],
-		"files": [ "bootstrap.php", "lib/helpers.php" ]
+
+		"psr-4": {
+
+			"ICanBoogie\\ActiveRecord\\": "lib"
+
+		},
+
+		"classmap": [ "lib/ActiveRecord.php" ],
+
+		"files": [ "bootstrap.php", "helpers.php" ]
 	}
 }

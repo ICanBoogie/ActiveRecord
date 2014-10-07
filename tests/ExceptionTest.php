@@ -47,8 +47,6 @@ class ExceptionTest extends \PHPUnit_Framework_TestCase
 			[ 'ConnectionNotEstablished', [ 'connection-name' ] ],
 			[ 'ConnectionAlreadyEstablished', [ 'connection-name' ] ],
 
-			[ 'RelationError', [ "message" ] ],
-
 			[ 'RecordNotFound', [ "message", [] ] ],
 			[ 'ScopeNotDefined', [ 'scope-name', $fake_model ] ],
 

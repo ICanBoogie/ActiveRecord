@@ -94,8 +94,6 @@ class RelationCollection implements \ArrayAccess
 	 * @param string|array $belongs_to
 	 *
 	 * @return Model
-	 *
-	 * @throws RelationError if the class of the active record is `ICanBoogie\ActiveRecord`.
 	 */
 	public function belongs_to($belongs_to)
 	{
@@ -166,48 +164,5 @@ class RelationCollection implements \ArrayAccess
 		$this->relations[$relation->as] = $relation;
 
 		return $this->model;
-	}
-}
-
-/**
- * Exception thrown in attempt to obtain a relation that is not defined.
- *
- * @property-read string $relation_name Name of the undefined relation.
- * @property-read RelationCollection $collection Relation collection.
- */
-class RelationNotDefined extends OffsetNotDefined
-{
-	use \ICanBoogie\GetterTrait;
-
-	/**
-	 * Name of the undefined relation.
-	 *
-	 * @var string
-	 */
-	private $relation_name;
-
-	protected function get_relation_name()
-	{
-		return $this->relation_name;
-	}
-
-	/**
-	 * Relation collection.
-	 *
-	 * @var RelationCollection
-	 */
-	private $collection;
-
-	protected function get_collection()
-	{
-		return $this->collection;
-	}
-
-	public function __construct($relation_name, $collection, $code=500, \Exception $previous=null)
-	{
-		$this->relation_name = $relation_name;
-		$this->collection = $collection;
-
-		parent::__construct([ $relation_name, $collection ], $code, $previous);
 	}
 }

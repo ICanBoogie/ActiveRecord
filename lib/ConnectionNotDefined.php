@@ -12,17 +12,12 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * The interface is implemented by ActiveRecord exceptions so that they can be easily recognized.
+ * Exception thrown when a connection is not defined.
  */
-interface Exception
+class ConnectionNotDefined extends \LogicException implements Exception
 {
-
-}
-
-/**
- * Exception thrown when a relation error occurs.
- */
-class RelationError extends \LogicException implements Exception
-{
-
+	public function __construct($id, $code=500, \Exception $previous=null)
+	{
+		parent::__construct("Connection not defined: {$id}.", $code, $previous);
+	}
 }

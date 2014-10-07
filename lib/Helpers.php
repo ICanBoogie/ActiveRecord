@@ -12,18 +12,6 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Returns the requested model.
- *
- * @param string $id Model identifier.
- *
- * @return Model
- */
-function get_model($id)
-{
-	return Helpers::get_model($id);
-}
-
-/**
  * Patchable helpers of the ActiveRecord package.
  */
 class Helpers
