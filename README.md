@@ -2197,16 +2197,10 @@ The package requires PHP 5.4 or later and the [PDO extension](http://php.net/man
 
 ## Installation
 
-The recommended way to install this package is through [Composer](http://getcomposer.org/).
-Create a `composer.json` file and run the `composer install` command to install it:
+The recommended way to install this package is through [Composer](http://getcomposer.org/):
 
-```json
-{
-	"minimum-stability": "dev",
-	"require": {
-		"icanboogie/activerecord": "2.1.x"
-	}
-}
+```
+$ composer require icanboogie/activerecord
 ```
 
 
