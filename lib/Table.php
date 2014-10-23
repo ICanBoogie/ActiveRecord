@@ -12,7 +12,6 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\DateTime;
-use ICanBoogie\PropertyNotWritable;
 
 /**
  * A representation of a database table.

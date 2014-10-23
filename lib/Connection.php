@@ -475,7 +475,6 @@ class Connection extends \PDO
 	{
 		// FIXME-20091201: I don't think 'UNIQUE' is properly implemented
 
-		$collate = $this->collate;
 		$driver_name = $this->driver_name;
 		$unique_list = [];
 

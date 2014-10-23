@@ -13,7 +13,6 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
-use ICanBoogie\Prototype;
 
 /**
  * Base class for activerecord models.

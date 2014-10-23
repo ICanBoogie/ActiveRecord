@@ -22,7 +22,7 @@ hundreds of them.
 
 
 
-### Acknowledgements
+### Acknowledgments
 
 The implementation of the query interface is vastly inspired by
 [Ruby On Rails's Active Record Query Interface](http://guides.rubyonrails.org/active_record_querying.html).
@@ -654,7 +654,7 @@ $record->delete();
 
 The package comes with three trait properties especially designed to handle [DateTime][]
 instances: [DateTimeProperty][], [CreatedAtProperty][], [UpdatedAtProperty][]. Using this
-properties you are guaranted to always get a [DateTime][] instance, no matter what value type
+properties you are guaranteed to always get a [DateTime][] instance, no matter what value type
 is used to set the date and time.
 
 ```php
@@ -771,7 +771,7 @@ exception.
 
 #### Records caching
 
-Records retrived using `find()` are cached, they are reused by subsequent calls. This also
+Records retrieved using `find()` are cached, they are reused by subsequent calls. This also
 applies to the array notation.
 
 ```php
@@ -818,7 +818,7 @@ Of course you can use multiple conditions:
 $model->where('is_online = ? AND is_home_excluded = ?', $_GET['online'], false);
 ```
 
-`and()` is alias to `where()` and should be prefered when linking adding conditions:
+`and()` is alias to `where()` and should be preferred when linking adding conditions:
 
 ```php
 <?php
@@ -963,7 +963,7 @@ Now you can easily retrieve the first ten records that are visible on your websi
 $model->visible->limit(10);
 ```
 
-Or retrieve the first ten french records:
+Or retrieve the first ten French records:
 
 ```php
 <?php
