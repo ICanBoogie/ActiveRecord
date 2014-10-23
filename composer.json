@@ -17,13 +17,13 @@
 		"issues": "https://github.com/ICanBoogie/ActiveRecord/issues",
 		"source": "https://github.com/ICanBoogie/ActiveRecord"
 	},
-	"minimum-stability": "dev",
+
 	"require": {
 		"php": ">=5.4.0",
 		"ext-pdo": "*",
-		"icanboogie/prototype": "2.x",
-		"icanboogie/inflector": "*",
-		"icanboogie/datetime": "*"
+		"icanboogie/prototype": ">=2.0",
+		"icanboogie/inflector": ">=1.3",
+		"icanboogie/datetime": ">=1.1"
 	},
 
 	"autoload": {
