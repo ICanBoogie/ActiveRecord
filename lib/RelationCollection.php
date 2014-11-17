@@ -89,6 +89,13 @@ class RelationCollection implements \ArrayAccess
 	 * $cars->belongs_to($drivers, $brands);
 	 * # or
 	 * $cars->belongs_to($drivers)->belongs_to($brands);
+	 * # or
+	 * $cars->belongs_to([
+	 *
+	 *     [ $drivers, [ 'local_key' => 'card_id', 'foreign_key' => 'driver_id' ] ]
+	 *     [ $brands, [ 'local_key' => 'brand_id', 'foreign_key' => 'brand_id' ] ]
+	 *
+	 * ]);
 	 * </pre>
 	 *
 	 * @param string|array $belongs_to
@@ -102,19 +109,14 @@ class RelationCollection implements \ArrayAccess
 			$belongs_to = func_get_args();
 		}
 
-		if (is_array($belongs_to))
+		foreach ((array) $belongs_to as $definition)
 		{
-			foreach ($belongs_to as $b)
-			{
-				$this->belongs_to($b);
-			}
+			list($related, $options) = ((array) $definition) + [ 1 => [] ];
 
-			return $this;
+			$relation = new BelongsToRelation($this->model, $related, $options);
+
+			$this->relations[$relation->as] = $relation;
 		}
-
-		$relation = new BelongsToRelation($this->model, $belongs_to);
-
-		$this->relations[$relation->as] = $relation;
 
 		return $this->model;
 	}
@@ -147,9 +149,9 @@ class RelationCollection implements \ArrayAccess
 		{
 			$relation_list = $related;
 
-			foreach ($relation_list as $relation)
+			foreach ($relation_list as $definition)
 			{
-				list($related, $options) = ((array) $relation) + [ 1 => [] ];
+				list($related, $options) = ((array) $definition) + [ 1 => [] ];
 
 				$relation = new HasManyRelation($this->model, $related, $options);
 
