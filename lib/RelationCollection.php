@@ -111,7 +111,12 @@ class RelationCollection implements \ArrayAccess
 
 		foreach ((array) $belongs_to as $definition)
 		{
-			list($related, $options) = ((array) $definition) + [ 1 => [] ];
+			if (!is_array($definition))
+			{
+				$definition = [ $definition ];
+			}
+
+			list($related, $options) = $definition + [ 1 => [] ];
 
 			$relation = new BelongsToRelation($this->model, $related, $options);
 
