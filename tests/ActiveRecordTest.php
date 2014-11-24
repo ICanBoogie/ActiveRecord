@@ -33,7 +33,8 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 
 					'id' => 'serial',
 					'title' => 'varchar',
-					'date' => 'datetime'
+					'date' => 'datetime',
+					'possible' => [ 'varchar', 8, 'null' => true ]
 				]
 			]
 		]);
@@ -207,6 +208,23 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('int', $properties);
 		$this->assertArrayHasKey('text', $properties);
 		$this->assertArrayNotHasKey('record', $properties);
+	}
+
+	public function test_save_null()
+	{
+		$record = new ActiveRecord(self::$model);
+		$record->title = "Testing";
+		$record->date = DateTime::now();
+		$record->possible = null;
+		$key = $record->save();
+
+		$cmp = self::$model->filter_by_id($key)->one;
+		$this->assertNull($cmp->possible);
+
+		$record->possible = "yes";
+		$record->save();
+		$cmp = self::$model->filter_by_id($key)->one;
+		$this->assertNotNull($cmp->possible);
 	}
 }
 
