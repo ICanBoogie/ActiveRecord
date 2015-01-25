@@ -41,7 +41,7 @@ class RunTimeActiveRecordCache extends ActiveRecordCache implements \IteratorAgg
 	{
 		if (empty($this->records[$key]))
 		{
-			return;
+			return null;
 		}
 
 		return $this->records[$key];

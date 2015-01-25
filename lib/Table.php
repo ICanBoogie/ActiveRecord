@@ -12,6 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\DateTime;
+use ICanBoogie\Object;
 
 /**
  * A representation of a database table.
@@ -19,28 +20,79 @@ use ICanBoogie\DateTime;
  * @property-read Connection $connection Connection used by the table.
  * @property-read array $schema The schema of the table.
  * @property-read array $extended_schema The extended schema of the table.
+ * @property-read string $name Name of the table, which might include a prefix.
  * @property-read string $name_unprefixed Unprefixed name of the table.
  * @property-read string $unprefixed_name Unprefixed name of the table.
  * @property-read mixed $primary Primary key of the table, or `null` if there is none.
  * @property-read string $alias The alias name of the table.
  * @property-read Table|null $parent The parent of the table.
  */
-class Table extends \ICanBoogie\Object
+class Table extends Object
 {
-	// TODO-20130216: deprecate all T_*
-
+	/**
+	 * @deprecated
+	 */
 	const T_ALIAS = 'alias';
+
+	/**
+	 * @deprecated
+	 */
 	const T_CONNECTION = 'connection';
+
+	/**
+	 * @deprecated
+	 */
 	const T_EXTENDS = 'extends';
+
+	/**
+	 * @deprecated
+	 */
 	const T_IMPLEMENTS = 'implements';
+
+	/**
+	 * @deprecated
+	 */
 	const T_NAME = 'name';
+
+	/**
+	 * @deprecated
+	 */
 	const T_SCHEMA = 'schema';
 
+	/**
+	 * Alias of the table.
+	 *
+	 * @var string
+	 */
 	const ALIAS = 'alias';
+
+	/**
+	 * Connection.
+	 *
+	 * @var Connection
+	 */
 	const CONNECTION = 'connection';
+
+	/**
+	 * Extended model.
+	 *
+	 * @var Model
+	 */
 	const EXTENDING = 'extends';
 	const IMPLEMENTING = 'implements';
+
+	/**
+	 * Unprefixed Name of the table.
+	 *
+	 * @var string
+	 */
 	const NAME = 'name';
+
+	/**
+	 * Schema of the table.
+	 *
+	 * @var array
+	 */
 	const SCHEMA = 'schema';
 
 	/**
@@ -53,7 +105,7 @@ class Table extends \ICanBoogie\Object
 	/**
 	 * Returns the connection used by the table.
 	 *
-	 * @return \ICanBoogie\ActiveRecord\Database
+	 * @return Connection
 	 */
 	protected function get_connection()
 	{
@@ -67,11 +119,6 @@ class Table extends \ICanBoogie\Object
 	 */
 	protected $name;
 
-	/**
-	 * Returns the name of the table.
-	 *
-	 * @return string
-	 */
 	protected function get_name()
 	{
 		return $this->name;
@@ -86,11 +133,6 @@ class Table extends \ICanBoogie\Object
 	 */
 	protected $name_unprefixed;
 
-	/**
-	 * Returns the unprefixed name of the table.
-	 *
-	 * @return string
-	 */
 	protected function get_name_unprefixed()
 	{
 		return $this->name_unprefixed;
@@ -113,11 +155,6 @@ class Table extends \ICanBoogie\Object
 	 */
 	protected $primary;
 
-	/**
-	 * Returns the name of the primary key.
-	 *
-	 * @return \ICanBoogie\ActiveRecord\mixed
-	 */
 	protected function get_primary()
 	{
 		return $this->primary;
@@ -133,11 +170,6 @@ class Table extends \ICanBoogie\Object
 	 */
 	protected $alias;
 
-	/**
-	 * Returns the alias of the table.
-	 *
-	 * @return string
-	 */
 	protected function get_alias()
 	{
 		return $this->alias;
@@ -152,11 +184,6 @@ class Table extends \ICanBoogie\Object
 	 */
 	protected $schema;
 
-	/**
-	 * Returns the schema of the table.
-	 *
-	 * @return array
-	 */
 	protected function get_schema()
 	{
 		return $this->schema;
@@ -170,11 +197,6 @@ class Table extends \ICanBoogie\Object
 	 */
 	protected $parent;
 
-	/**
-	 * Returns the parent of the table.
-	 *
-	 * @return string
-	 */
 	protected function get_parent()
 	{
 		return $this->parent;
@@ -201,7 +223,7 @@ class Table extends \ICanBoogie\Object
 	protected $select_join;
 
 	/**
-	 * Initialiazes the following properties: {@link $alias}, {@link $connection},
+	 * Initializes the following properties: {@link $alias}, {@link $connection},
 	 * {@link implements}, {@link $name_unprefixed}, {@link $schema} and {@link $parent}.
 	 *
 	 * @param array $attributes
@@ -307,7 +329,7 @@ class Table extends \ICanBoogie\Object
 			);
 		}
 
-		$this->name = $connection->prefix . $this->name_unprefixed;
+		$this->name = $connection->table_name_prefix . $this->name_unprefixed;
 
 		#
 		# parse definition schema to have a complete schema
@@ -384,7 +406,13 @@ class Table extends \ICanBoogie\Object
 	}
 
 	/**
-	 * Alias to the {@link query()} method.
+	 * Alias to {@link query()}.
+	 *
+	 * @param string $query
+	 * @param array $args
+	 * @param array $options
+	 *
+	 * @return Statement
 	 */
 	public function __invoke($query, array $args=[], array $options=[])
 	{
@@ -491,7 +519,9 @@ class Table extends \ICanBoogie\Object
 	 * The statement is resolved by the {@link resolve_statement()} method before the call is
 	 * forwarded.
 	 *
-	 * @return Database\Statement
+	 * @inheritdoc
+	 *
+	 * @return Statement
 	 */
 	public function prepare($query, $options=[])
 	{
@@ -509,6 +539,8 @@ class Table extends \ICanBoogie\Object
 	 * Executes a statement.
 	 *
 	 * The statement is prepared by the {@link prepare()} method before it is executed.
+	 *
+	 * @inheritdoc
 	 *
 	 * @return mixed
 	 */
@@ -528,7 +560,7 @@ class Table extends \ICanBoogie\Object
 	 * @param array $args
 	 * @param array $options
 	 *
-	 * @return Database\Statement
+	 * @return Statement
 	 */
 	public function query($query, array $args=[], array $options=[])
 	{
@@ -693,7 +725,7 @@ class Table extends \ICanBoogie\Object
 	 * Inserts values into the table.
 	 *
 	 * @param array $values The values to insert.
-	 * @param array $options The folowing options can be used:
+	 * @param array $options The following options can be used:
 	 * - `ignore`: Ignore duplicate errors.
 	 * - `on duplicate`: specifies the column to update on duplicate, and the values to update
 	 * them. If `true` the `$values` array is used, after the primary keys has been removed.
@@ -706,7 +738,7 @@ class Table extends \ICanBoogie\Object
 
 		if (!$values)
 		{
-			return;
+			return null;
 		}
 
 		$driver_name = $this->connection->driver_name;
@@ -768,6 +800,10 @@ class Table extends \ICanBoogie\Object
 			$holders = array_fill(0, count($identifiers), '?');
 
 			$query = 'INSERT' . ($on_duplicate ? ' OR REPLACE' : '') . ' INTO `{self}` (' . implode(', ', $identifiers) . ') VALUES (' . implode(', ', $holders) . ')';
+		}
+		else
+		{
+			throw new \LogicException("Unsupported drive: $driver_name.");
 		}
 
 		return $this->execute($query, $values);
@@ -882,7 +918,7 @@ class Table extends \ICanBoogie\Object
 
 	public function drop(array $options=[])
 	{
-		$query = 'drop table ';
+		$query = 'DROP TABLE ';
 
 		if (!empty($options['if exists']))
 		{

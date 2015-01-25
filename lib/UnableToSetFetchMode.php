@@ -11,12 +11,16 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\GetterTrait;
+
 /**
  * Exception thrown when the fetch mode of a statement fails to be set.
+ *
+ * @property-read mixed $mode Requested fetch mode.
  */
 class UnableToSetFetchMode extends \RuntimeException implements Exception
 {
-	use \ICanBoogie\PrototypeTrait;
+	use GetterTrait;
 
 	private $mode;
 

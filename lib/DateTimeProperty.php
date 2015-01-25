@@ -36,7 +36,7 @@ trait DateTimeProperty
 	/**
 	 * Sets the date and time at which the record was created.
 	 *
-	 * @param mixed $value
+	 * @param mixed $datetime
 	 */
 	protected function set_datetime($datetime)
 	{

@@ -11,6 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\GetterTrait;
+
 /**
  * Exception thrown in attempt to set the definition of an already established connection.
  *
@@ -18,7 +20,7 @@ namespace ICanBoogie\ActiveRecord;
  */
 class ConnectionAlreadyEstablished extends \LogicException implements Exception
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	private $id;
 

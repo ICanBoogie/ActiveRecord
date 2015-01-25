@@ -14,13 +14,13 @@ namespace ICanBoogie;
 use ICanBoogie\ActiveRecord\Model;
 
 /**
- * Active Record faciliates the creation and use of business objects whose data require persistent
+ * Active Record facilitates the creation and use of business objects whose data require persistent
  * storage via database.
  *
  * @property-read Model $model The model managing the active record.
  * @property-read string $model_id The identifier of the model managing the active record.
  */
-class ActiveRecord extends \ICanBoogie\Object
+class ActiveRecord extends Object
 {
 	/**
 	 * The identifier of the model managing the record.
@@ -75,7 +75,7 @@ class ActiveRecord extends \ICanBoogie\Object
 		}
 		else
 		{
-			throw new \InvalidArgumentException("\$model must be an instance of ICanBoogie\ActiveRecord\Model or a model identifier. Given:" . (is_object($model) ? get_class($model) : gettype($model)));
+			throw new \InvalidArgumentException("\$model must be an instance of ICanBoogie\\ActiveRecord\\Model or a model identifier. Given:" . (is_object($model) ? get_class($model) : gettype($model)));
 		}
 	}
 
@@ -206,10 +206,11 @@ class ActiveRecord extends \ICanBoogie\Object
 	}
 
 	/**
-	 * Unless it's an acceptable value for a column, columns with `null` values are discarted.
+	 * Unless it's an acceptable value for a column, columns with `null` values are discarded.
 	 * This way, we don't have to define every properties before saving our active record.
 	 *
 	 * @param array $properties
+	 * @param Model $model
 	 *
 	 * @return array The altered persistent properties
 	 */

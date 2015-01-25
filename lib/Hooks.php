@@ -46,21 +46,21 @@ class Hooks
 	/**
 	 * Returns the connections accessor.
 	 *
-	 * @return ActiveRecord\Connections
+	 * @return Connections
 	 */
-	static public function core_lazy_get_connections(Core $core)
+	static public function core_lazy_get_connections(Core $app)
 	{
-		return new Connections($core->configs['activerecord_connections'] ?: []);
+		return new Connections($app->configs['activerecord_connections'] ?: []);
 	}
 
 	/**
 	 * Getter for the "primary" database connection.
 	 *
-	 * @return Database
+	 * @return Connection
 	 */
-	static public function core_lazy_get_db(Core $core)
+	static public function core_lazy_get_db(Core $app)
 	{
-		return $core->connections['primary'];
+		return $app->connections['primary'];
 	}
 
 	/**
@@ -68,7 +68,7 @@ class Hooks
 	 *
 	 * @param Model $model
 	 *
-	 * @return \ICanBoogie\ActiveRecord\RuntimeCache
+	 * @return \ICanBoogie\ActiveRecord\RunTimeActiveRecordCache
 	 */
 	static public function model_lazy_get_activerecord_cache(Model $model)
 	{

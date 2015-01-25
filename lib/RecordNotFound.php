@@ -11,21 +11,24 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord;
+use ICanBoogie\GetterTrait;
+
 /**
  * Exception thrown when one or several records cannot be found.
  *
- * @property-read \ICanBoogie\ActiveRecord[] $records
+ * @property-read ActiveRecord[] $records
  */
 class RecordNotFound extends \LogicException implements Exception
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	/**
 	 * A key/value array where keys are the identifier of the record, and the value is the result
-	 * of finding the record. If the record was found the value is a {@link \ICanBoogie\ActiveRecord}
+	 * of finding the record. If the record was found the value is a {@link ActiveRecord}
 	 * object, otherwise the `null` value.
 	 *
-	 * @var \ICanBoogie\ActiveRecord[]
+	 * @var ActiveRecord[]
 	 */
 	private $records;
 

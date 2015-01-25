@@ -11,6 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\GetterTrait;
+
 /**
  * Exception thrown in attempt to obtain a connection that is not defined.
  *
@@ -18,7 +20,7 @@ namespace ICanBoogie\ActiveRecord;
  */
 class ConnectionNotDefined extends \LogicException implements Exception
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	private $id;
 

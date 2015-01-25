@@ -11,6 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\GetterTrait;
+
 /**
  * A database statement.
  *
@@ -22,7 +24,7 @@ namespace ICanBoogie\ActiveRecord;
  */
 class Statement extends \PDOStatement
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	/**
 	 * The database connection that created this statement.
@@ -63,6 +65,8 @@ class Statement extends \PDOStatement
 	 * Executes the statement.
 	 *
 	 * The connection queries count is incremented.
+	 *
+	 * @inheritdoc
 	 *
 	 * @throws StatementNotValid when the execution of the statement fails.
 	 */

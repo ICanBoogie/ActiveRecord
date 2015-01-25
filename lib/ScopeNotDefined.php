@@ -11,6 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\GetterTrait;
+
 /**
  * Exception thrown in attempt to obtain a scope that is not defined.
  *
@@ -19,7 +21,7 @@ namespace ICanBoogie\ActiveRecord;
  */
 class ScopeNotDefined extends \LogicException implements Exception
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	/**
 	 * Name of the scope.

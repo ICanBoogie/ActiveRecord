@@ -12,7 +12,6 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\GetterTrait;
-use ICanBoogie\OffsetNotDefined;
 use ICanBoogie\OffsetNotWritable;
 
 /**
@@ -22,7 +21,7 @@ use ICanBoogie\OffsetNotWritable;
  */
 class RelationCollection implements \ArrayAccess
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	/**
 	 * Parent model.
@@ -116,7 +115,7 @@ class RelationCollection implements \ArrayAccess
 				$definition = [ $definition ];
 			}
 
-			list($related, $options) = $definition + [ 1 => [] ];
+			list($related, $options) = ((array) $definition) + [ 1 => [] ];
 
 			$relation = new BelongsToRelation($this->model, $related, $options);
 
@@ -163,7 +162,7 @@ class RelationCollection implements \ArrayAccess
 				$this->relations[$relation->as] = $relation;
 			}
 
-			return;
+			return null;
 		}
 
 		$relation = new HasManyRelation($this->model, $related, $options);

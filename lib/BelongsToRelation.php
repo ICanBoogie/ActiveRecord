@@ -45,7 +45,7 @@ class BelongsToRelation extends Relation
 
 		if (!$key)
 		{
-			return;
+			return null;
 		}
 
 		return $this->resolve_related()[$key];

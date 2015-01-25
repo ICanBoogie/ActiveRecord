@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\PropertyNotDefined;
 
 /**
- * A connection to a databse.
+ * A connection to a database.
  *
  * @property-read string $charset The character set used to communicate with the database. Defaults to "utf8".
  * @property-read string $collate The collation of the character set. Defaults to "utf8_general_ci".
@@ -191,7 +191,7 @@ class Connection extends \PDO
 	 * @param string $statement Query statement.
 	 * @param array $options
 	 *
-	 * @return Database\Statement The prepared statement.
+	 * @return Statement The prepared statement.
 	 *
 	 * @throws StatementNotValid if the statement cannot be prepared.
 	 */
@@ -201,6 +201,7 @@ class Connection extends \PDO
 
 		try
 		{
+			/* @var $statement Statement */
 			$statement = parent::prepare($statement, $options);
 		}
 		catch (\PDOException $e)
@@ -224,6 +225,8 @@ class Connection extends \PDO
 	 * Overrides the method in order to prepare (and resolve) the statement and execute it with
 	 * the specified arguments and options.
 	 *
+	 * @inheritdoc
+	 *
 	 * @return Statement
 	 */
 	public function query($statement, array $args=[], array $options=[])
@@ -245,6 +248,8 @@ class Connection extends \PDO
 	 * instead.
 	 *
 	 * Using this method increments the `queries_by_connection` stat.
+	 *
+	 * @inheritdoc
 	 *
 	 * @throws StatementNotValid if the statement cannot be executed.
 	 */
@@ -311,6 +316,7 @@ class Connection extends \PDO
 			'{prefix}' => $this->table_name_prefix,
 			'{charset}' => $this->charset,
 			'{collate}' => $this->collate
+
 		]);
 	}
 
@@ -536,7 +542,7 @@ class Connection extends \PDO
 				{
 					$enum = [];
 
-					foreach ($size as $identifier)
+					foreach ((array) $size as $identifier)
 					{
 						$enum[] = '\'' . $identifier . '\'';
 					}
@@ -724,7 +730,7 @@ class Connection extends \PDO
 	 */
 	public function table_exists($unprefixed_name)
 	{
-		$name = $this->prefix . $unprefixed_name;
+		$name = $this->table_name_prefix . $unprefixed_name;
 
 		if ($this->driver_name == 'sqlite')
 		{
@@ -734,14 +740,10 @@ class Connection extends \PDO
 
 			return !empty($tables);
 		}
-		else
-		{
-			$tables = $this->query('SHOW TABLES')->fetchAll(self::FETCH_COLUMN);
 
-			return in_array($name, $tables);
-		}
+		$tables = $this->query('SHOW TABLES')->fetchAll(self::FETCH_COLUMN);
 
-		return false;
+		return in_array($name, $tables);
 	}
 
 	/**

@@ -12,12 +12,13 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\GetterTrait;
 use ICanBoogie\Prototype;
 
 /**
  * Representation of a relation.
  *
- * @property-read Model $parent The parent model of the ralation.
+ * @property-read Model $parent The parent model of the relation.
  * @property-read Model $related The related model of the relation.
  * @property-read string $as The name of the relation.
  * @property-read string $local_key The local key.
@@ -25,7 +26,7 @@ use ICanBoogie\Prototype;
  */
 abstract class Relation
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	/**
 	 * The parent model of the relation.
@@ -100,9 +101,6 @@ abstract class Relation
 	 * resolved from the foreign model's id.
 	 * - `local_key`: The name of the local key. Default: The parent model's primary key.
 	 * - `foreign_key`: The name of the foreign key. Default: The parent model's primary key.
-	 *
-	 * @throws ActiveRecordException if the active record class of the parent model
-	 * is {@link ActiveRecord}.
 	 */
 	public function __construct(Model $parent, $related, array $options=[])
 	{
@@ -139,7 +137,7 @@ abstract class Relation
 	 * Add a getter for the relation to the prototype.
 	 *
 	 * @param Prototype $prototype The activerecord prototype.
-	 * @param string $as The name of the property.
+	 * @param string $property The name of the property.
 	 */
 	protected function alter_prototype(Prototype $prototype, $property)
 	{

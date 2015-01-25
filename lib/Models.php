@@ -11,6 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\GetterTrait;
+
 /**
  * Model collection.
  *
@@ -20,10 +22,10 @@ namespace ICanBoogie\ActiveRecord;
  */
 class Models implements \ArrayAccess
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	/**
-	 * Instanciated models.
+	 * Instantiated models.
 	 *
 	 * @var array[string]Model
 	 */
@@ -77,6 +79,8 @@ class Models implements \ArrayAccess
 	/**
 	 * Checks if a model is defined.
 	 *
+	 * @param string $id Model identifier.
+	 *
 	 * @return bool
 	 */
 	public function offsetExists($id)
@@ -90,8 +94,8 @@ class Models implements \ArrayAccess
 	 * The {@link Model::ID} and {@link Model::NAME} are set to the provided id if they are not
 	 * defined.
 	 *
-	 * @param string $id Identifier of the model.
-	 * @param array $definition Definition of the model.
+	 * @param string $id Model identifier.
+	 * @param array $definition Model definition.
 	 *
 	 * @throws ModelAlreadyInstantiated in attempt to write a model already instantiated.
 	 */
@@ -106,13 +110,14 @@ class Models implements \ArrayAccess
 
 			Model::ID => $id,
 			Model::NAME => $id
+
 		];
 	}
 
 	/**
 	 * Returns a {@link Model} instance.
 	 *
-	 * @param string $id Identifier of the model.
+	 * @param string $id Model identifier.
 	 *
 	 * @return Model
 	 *
@@ -149,6 +154,8 @@ class Models implements \ArrayAccess
 
 	/**
 	 * Unset the definition of a model.
+	 *
+	 * @param string $id Model identifier.
 	 *
 	 * @throws ModelAlreadyInstantiated in attempt to unset the definition of an already
 	 * instantiated model.
@@ -209,7 +216,7 @@ class Models implements \ArrayAccess
 	}
 
 	/**
-	 * Check if model are installed.
+	 * Check if models are installed.
 	 *
 	 * @return array[string]bool An array of key/value pair where _key_ is a model identifier and
 	 * _value_ `true` if the model is installed, `false` otherwise.

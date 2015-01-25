@@ -111,7 +111,7 @@ class Query implements \IteratorAggregate
 	protected $order;
 
 	/**
-	 * Part of the `HAVONG` clause.
+	 * Part of the `HAVING` clause.
 	 *
 	 * @var string
 	 */
@@ -174,6 +174,8 @@ class Query implements \IteratorAggregate
 
 	/**
 	 * Adds support for model's scopes.
+	 *
+	 * @inheritdoc
 	 */
 	public function __get($property)
 	{
@@ -194,6 +196,8 @@ class Query implements \IteratorAggregate
 
 	/**
 	 * Override the method to handle magic 'filter_by_' methods.
+	 *
+	 * @inheritdoc
 	 */
 	public function __call($method, $arguments)
 	{
@@ -227,7 +231,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/*
-	 * Renderers
+	 * Rendering
 	 */
 
 	/**
@@ -364,6 +368,8 @@ class Query implements \IteratorAggregate
 		{
 			return "LIMIT $limit";
 		}
+
+		return '';
 	}
 
 	/*
@@ -445,7 +451,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * Add a `JOIN` clause.
 	 *
-	 * @param string|Query $expression A jointure can be created from a model reference,
+	 * @param string|Query $expression A join can be created from a model reference,
 	 * another query, or a custom `JOIN` clause.
 	 *
 	 * - When `$expression` is a string starting with `:` it is considered as a model
@@ -454,7 +460,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * - When `$expression` is a {@link Query} instance, it is rendered as a string and used as a
 	 * subquery of the `JOIN` clause. The `$options` parameter can be used to customize the
-	 * ouput.
+	 * output.
 	 *
 	 * - Otherwise `$expression` is considered as a raw `JOIN` clause.
 	 *
@@ -516,6 +522,9 @@ class Query implements \IteratorAggregate
 	 * Alias to {@link join}.
 	 *
 	 * @deprecated
+	 *
+	 * @param mixed $expression
+	 * @param array $options
 	 *
 	 * @return Query
 	 */
@@ -639,7 +648,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array An array made of the condition string and its arguments.
 	 */
-	private function defered_parse_conditions()
+	private function deferred_parse_conditions()
 	{
 		$args = debug_backtrace(0, 2)[1]['args'];
 
@@ -781,7 +790,7 @@ class Query implements \IteratorAggregate
 	 */
 	public function where($conditions, $conditions_args=null)
 	{
-		list($conditions, $conditions_args) = $this->defered_parse_conditions();
+		list($conditions, $conditions_args) = $this->deferred_parse_conditions();
 
 		if ($conditions)
 		{
@@ -797,9 +806,11 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Define the `ORDER` clause.
+	 * Defines the `ORDER` clause.
 	 *
-	 * @param string $order The order for the `ORDER` clause e.g. 'weight, date DESC'.
+	 * @param string $order_or_field_name The order for the `ORDER` clause e.g.
+	 * 'weight, date DESC', or field to order with, in which case `$field_values` is required.
+	 * @param array $field_values Values of the field specified by `$order_or_field_name`.
 	 *
 	 * @return Query
 	 */
@@ -811,7 +822,7 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Define the `GROUP` clause.
+	 * Defines the `GROUP` clause.
 	 *
 	 * @param $group
 	 *
@@ -825,16 +836,16 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Define the `HAVING` clause.
+	 * Defines the `HAVING` clause.
 	 *
-	 * @param $conditions
-	 * @param array|null $conditions_args
+	 * @param mixed $conditions
+	 * @param mixed $conditions_args
 	 *
 	 * @return Query
 	 */
 	public function having($conditions, $conditions_args=null)
 	{
-		list($having, $having_args) = $this->defered_parse_conditions();
+		list($having, $having_args) = $this->deferred_parse_conditions();
 
 		$this->having = $having;
 		$this->having_args = $having_args;
@@ -1006,15 +1017,10 @@ class Query implements \IteratorAggregate
 	 */
 	public function one()
 	{
-		$previous_limit = $this->limit;
-
-		$this->limit = 1;
-
-		$statement = $this->query();
-
-		$this->limit = $previous_limit;
-
-		$args = $this->resolve_fetch_mode();
+		$query = clone $this;
+		$query->limit = 1;
+		$statement = $query->query();
+		$args = $query->resolve_fetch_mode();
 
 		if (count($args) > 1 && $args[0] == \PDO::FETCH_CLASS)
 		{
@@ -1196,6 +1202,8 @@ class Query implements \IteratorAggregate
 	/**
 	 * Implement the 'COUNT' computation.
 	 *
+	 * @param string $column The name of the column to count.
+	 *
 	 * @return int|array
 	 */
 	public function count($column=null)
@@ -1270,7 +1278,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return mixed The result of the operation.
 	 *
-	 * @todo-20140901: reflect on join to add the required tables by default, descarting tables
+	 * @todo-20140901: reflect on join to add the required tables by default, discarding tables
 	 * joined with the LEFT mode.
 	 */
 	public function delete($tables=null)

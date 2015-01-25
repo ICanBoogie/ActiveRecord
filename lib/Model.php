@@ -34,7 +34,7 @@ use ICanBoogie\OffsetNotWritable;
  * @method ActiveRecord one() one() The method is forwarded to {@link Query::one}.
  *
  * @method Model belongs_to() belongs_to($definition) Add a _belongs_to_ relation.
- * @method Model has_many() has_many($related, $options) Add a _has_many_ relation.
+ * @method Model has_many() has_many($related, $options=[]) Add a _has_many_ relation.
  *
  * @property-read array $all Retrieve all the records from the model.
  * @property-read string $activerecord_class Class of the active records of the model.
@@ -197,6 +197,8 @@ class Model extends Table implements \ArrayAccess
 
 	/**
 	 * Handles query methods, dynamic filters, scopes, and relations.
+	 *
+	 * @inheritdoc
 	 */
 	public function __call($method, $arguments)
 	{
@@ -219,6 +221,8 @@ class Model extends Table implements \ArrayAccess
 
 	/**
 	 * Overrides the method to handle scopes.
+	 *
+	 * @inheritdoc
 	 */
 	public function __get($property)
 	{
@@ -349,6 +353,8 @@ class Model extends Table implements \ArrayAccess
 	/**
 	 * Because records are cached, we need to remove the record from the cache when it is saved,
 	 * so that loading the record again returns the updated record, not the one in the cache.
+	 *
+	 * @inheritdoc
 	 */
 	public function save(array $properties, $key=null, array $options=[])
 	{
@@ -362,6 +368,8 @@ class Model extends Table implements \ArrayAccess
 
 	/**
 	 * Eliminates the record from the cache.
+	 *
+	 * @inheritdoc
 	 */
 	public function delete($key)
 	{
@@ -375,7 +383,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @param ActiveRecord $record The record to store.
 	 *
-	 * @TODO-20140414: Remove the method and use {@link $activerecord_cache}
+	 * @deprecated Use {@link $activerecord_cache}
 	 */
 	protected function store(ActiveRecord $record)
 	{
@@ -390,7 +398,7 @@ class Model extends Table implements \ArrayAccess
 	 * @return ActiveRecord|null Returns the active record found in the cache or null if it wasn't
 	 * there.
 	 *
-	 * @TODO-20140414: Remove the method and use {@link $activerecord_cache}
+	 * @deprecated Use {@link $activerecord_cache}
 	 */
 	protected function retrieve($key)
 	{
@@ -402,7 +410,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @param int $key
 	 *
-	 * @TODO-20140414: Remove the method and use {@link $activerecord_cache}
+	 * @deprecated Use {@link $activerecord_cache}
 	 */
 	protected function eliminate($key)
 	{
@@ -491,7 +499,7 @@ class Model extends Table implements \ArrayAccess
 	 */
 
 	/**
-	 * Offsets are not settable.
+	 * @inheritdoc
 	 *
 	 * @throws OffsetNotWritable when one tries to write an offset.
 	 */
@@ -501,9 +509,11 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Checks if the record identified by the given key exists.
+	 * Alias to {@link exists()}.
 	 *
-	 * The call is forwarded to {@link exists()}.
+	 * @param int $key ActiveRecord identifier.
+	 *
+	 * @return bool
 	 */
 	public function offsetExists($key)
 	{
@@ -511,9 +521,9 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Deletes the record specified by the given key.
+	 * Alias to {@link delete()}.
 	 *
-	 * @see Model::delete();
+	 * @param int $key ActiveRecord identifier.
 	 */
 	public function offsetUnset($key)
 	{
@@ -521,9 +531,11 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Alias for the {@link find()} method.
+	 * Alias to {@link find()}.
 	 *
-	 * @see Model::find()
+	 * @param int $key ActiveRecord identifier.
+	 *
+	 * @return ActiveRecord
 	 */
 	public function offsetGet($key)
 	{
@@ -531,7 +543,7 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Creates a new active record instance.
+	 * Creates a new ActiveRecord instance.
 	 *
 	 * The class of the instance is defined by the {@link $activerecord_class} property.
 	 *

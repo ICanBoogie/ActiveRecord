@@ -11,6 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\GetterTrait;
+
 /**
  * Exception thrown in attempt to execute a statement that is not valid.
  *
@@ -20,7 +22,7 @@ namespace ICanBoogie\ActiveRecord;
  */
 class StatementNotValid extends \RuntimeException implements Exception
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	private $statement;
 

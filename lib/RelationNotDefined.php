@@ -11,15 +11,18 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\GetterTrait;
+use ICanBoogie\OffsetNotDefined;
+
 /**
  * Exception thrown in attempt to obtain a relation that is not defined.
  *
  * @property-read string $relation_name Name of the undefined relation.
  * @property-read RelationCollection $collection Relation collection.
  */
-class RelationNotDefined extends \ICanBoogie\OffsetNotDefined implements Exception
+class RelationNotDefined extends OffsetNotDefined implements Exception
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	/**
 	 * Name of the undefined relation.

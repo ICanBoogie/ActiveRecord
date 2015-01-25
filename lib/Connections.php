@@ -11,20 +11,22 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\GetterTrait;
+
 /**
  * Connection collection.
  *
- * @property-read array[string]array $definitions Connection definitions.
- * @property-read Database $established Established connections.
+ * @property-read array $definitions Connection definitions.
+ * @property-read Connection[] $established Established connections.
  */
 class Connections implements \ArrayAccess, \IteratorAggregate
 {
-	use \ICanBoogie\GetterTrait;
+	use GetterTrait;
 
 	/**
-	 * Connection definitions.
+	 * Connections definitions.
 	 *
-	 * @var array[string]array
+	 * @var array
 	 */
 	private $definitions;
 
@@ -36,7 +38,7 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 	/**
 	 * Established connections.
 	 *
-	 * @var array[string]Database
+	 * @var Connection[]
 	 */
 	private $established = [];
 
@@ -46,7 +48,7 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 	}
 
 	/**
-	 * Initialize the {@link $definitions} property.
+	 * Initializes the {@link $definitions} property.
 	 *
 	 * @param array $definitions Connection definitions.
 	 */
@@ -60,6 +62,10 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Checks if a connection definition exists.
+	 *
+	 * @param string $id Connection identifier.
+	 *
+	 * @return bool
 	 */
 	public function offsetExists($id)
 	{
@@ -68,6 +74,9 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Sets the definition of a connection.
+	 *
+	 * @param string $id Connection identifier.
+	 * @param array|string $definition Connection definition.
 	 *
 	 * @throws ConnectionAlreadyEstablished in attempt to set the definition of an already
 	 * established connection.
@@ -93,6 +102,10 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 	}
 
 	/**
+	 * Removes a connection definition.
+	 *
+	 * @param string $id Connection identifier.
+	 *
 	 * @throws ConnectionAlreadyEstablished in attempt to unset the definition of an already
 	 * established connection.
 	 */
@@ -111,9 +124,9 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * If the connection has not been established yet, it is created on the fly.
 	 *
-	 * @param string $id The name of the connection to get.
+	 * @param string $id Connection identifier.
 	 *
-	 * @return Database
+	 * @return Connection
 	 *
 	 * @throws ConnectionNotDefined when the connection requested is not defined.
 	 * @throws ConnectionNotEstablished when the connection failed.
