@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\GetterTrait;
+use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\OffsetNotWritable;
 
 /**
@@ -21,7 +21,7 @@ use ICanBoogie\OffsetNotWritable;
  */
 class RelationCollection implements \ArrayAccess
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	/**
 	 * Parent model.

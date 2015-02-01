@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\GetterTrait;
+use ICanBoogie\Accessor\AccessorTrait;
 
 /**
  * Exception thrown when a connection cannot be established.
@@ -20,7 +20,7 @@ use ICanBoogie\GetterTrait;
  */
 class ConnectionNotEstablished extends \RuntimeException implements Exception
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	private $id;
 

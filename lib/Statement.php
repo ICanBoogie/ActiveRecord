@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\GetterTrait;
+use ICanBoogie\Accessor\AccessorTrait;
 
 /**
  * A database statement.
@@ -24,7 +24,7 @@ use ICanBoogie\GetterTrait;
  */
 class Statement extends \PDOStatement
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	/**
 	 * The database connection that created this statement.

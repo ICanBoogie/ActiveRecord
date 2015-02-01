@@ -21,7 +21,7 @@
 	"require": {
 		"php": ">=5.4.0",
 		"ext-pdo": "*",
-		"icanboogie/prototype": ">=2.0",
+		"icanboogie/prototype": "dev-using_accessor",
 		"icanboogie/inflector": ">=1.3",
 		"icanboogie/datetime": ">=1.1"
 	},

@@ -8,16 +8,20 @@ usage:
 	@echo "test:  Runs the test suite.\ndoc:   Creates the documentation.\nclean: Removes the documentation, the dependencies and the Composer files."
 
 vendor:
-	@composer install --prefer-source --dev
+	@composer install --dev
 
 update:
-	@composer update --prefer-source --dev
+	@composer update --dev
 
 autoload: vendor
 	@composer dump-autoload
 
 test: vendor
 	@phpunit
+
+test-coverage: vendor
+	@mkdir -p build/coverage
+	@phpunit --coverage-html build/coverage
 
 doc: vendor
 	@mkdir -p "docs"

@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\GetterTrait;
+use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\OffsetNotDefined;
 
 /**
@@ -22,7 +22,7 @@ use ICanBoogie\OffsetNotDefined;
  */
 class RelationNotDefined extends OffsetNotDefined implements Exception
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	/**
 	 * Name of the undefined relation.

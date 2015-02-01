@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\GetterTrait;
+use ICanBoogie\Accessor\AccessorTrait;
 
 /**
  * Exception thrown in attempt to set/unset the definition of an already instantiated model.
@@ -20,7 +20,7 @@ use ICanBoogie\GetterTrait;
  */
 class ModelAlreadyInstantiated extends \LogicException implements Exception
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	private $id;
 

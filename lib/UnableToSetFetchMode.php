@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\GetterTrait;
+use ICanBoogie\Accessor\AccessorTrait;
 
 /**
  * Exception thrown when the fetch mode of a statement fails to be set.
@@ -20,7 +20,7 @@ use ICanBoogie\GetterTrait;
  */
 class UnableToSetFetchMode extends \RuntimeException implements Exception
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	private $mode;
 

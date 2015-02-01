@@ -11,8 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\GetterTrait;
 use ICanBoogie\Prototype;
 
 /**
@@ -26,7 +26,7 @@ use ICanBoogie\Prototype;
  */
 abstract class Relation
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	/**
 	 * The parent model of the relation.

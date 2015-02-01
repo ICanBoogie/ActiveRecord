@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\GetterTrait;
+use ICanBoogie\Accessor\AccessorTrait;
 
 /**
  * Exception thrown in attempt to obtain a model that is not defined.
@@ -20,7 +20,7 @@ use ICanBoogie\GetterTrait;
  */
 class ModelNotDefined extends \LogicException implements Exception
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	private $id;
 

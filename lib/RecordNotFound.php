@@ -11,8 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\GetterTrait;
 
 /**
  * Exception thrown when one or several records cannot be found.
@@ -21,7 +21,7 @@ use ICanBoogie\GetterTrait;
  */
 class RecordNotFound extends \LogicException implements Exception
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	/**
 	 * A key/value array where keys are the identifier of the record, and the value is the result

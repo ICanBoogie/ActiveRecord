@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\GetterTrait;
+use ICanBoogie\Accessor\AccessorTrait;
 
 /**
  * Model collection.
@@ -22,7 +22,7 @@ use ICanBoogie\GetterTrait;
  */
 class Models implements \ArrayAccess
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	/**
 	 * Instantiated models.

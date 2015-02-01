@@ -1,9 +1,11 @@
-# Active Record [![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.svg?branch=master)](http://travis-ci.org/ICanBoogie/ActiveRecord)
+# Active Record
 
-As described by Martin Flower, an active record "carries both data and behavior. Much of this
-data is persistent and needs to be stored in a database. Active Record uses the most obvious
-approach, putting data access logic in the domain object. This way all people know how
-to read and write their data to and from the database."
+[![Release](https://img.shields.io/github/release/ICanBoogie/ActiveRecord.svg)](https://github.com/ICanBoogie/ActiveRecord/releases)
+[![Build Status](https://img.shields.io/travis/ICanBoogie/ActiveRecord.svg)](http://travis-ci.org/ICanBoogie/ActiveRecord)
+[![HHVM](https://img.shields.io/hhvm/icanboogie/activerecord.svg)](http://hhvm.h4cc.de/package/icanboogie/activerecord)
+[![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
+[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
+[![Packagist](https://img.shields.io/packagist/dt/icanboogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
 
 __Connections__, __models__ and __active records__ are the foundations of everything that concerns
 database access and management. They are used to establish database connections, manage tables and
@@ -2216,7 +2218,8 @@ clean the directory with the `make clean` command.
 
 The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
-[![Build Status](https://travis-ci.org/ICanBoogie/ActiveRecord.svg?branch=master)](https://travis-ci.org/ICanBoogie/ActiveRecord)
+[![Build Status](https://img.shields.io/travis/ICanBoogie/ActiveRecord.svg)](https://travis-ci.org/ICanBoogie/ActiveRecord)
+[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
 
 
 

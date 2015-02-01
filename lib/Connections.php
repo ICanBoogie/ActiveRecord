@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\GetterTrait;
+use ICanBoogie\Accessor\AccessorTrait;
 
 /**
  * Connection collection.
@@ -21,7 +21,7 @@ use ICanBoogie\GetterTrait;
  */
 class Connections implements \ArrayAccess, \IteratorAggregate
 {
-	use GetterTrait;
+	use AccessorTrait;
 
 	/**
 	 * Connections definitions.
