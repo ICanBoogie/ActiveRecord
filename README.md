@@ -33,6 +33,32 @@ The implementation of the query interface is vastly inspired by
 
 
 
+## Getting started
+
+Unless you bound **ActiveRecord** to [ICanBoogie][] using the [icanboogie/bind-activerecord][]
+package, you need to define the lazy getter for the `activerecord_cache` property of
+the [Model][] class.
+
+The following code should do the trick:
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord\ActiveRecordCache;
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\Prototype;
+
+Prototype::from('ICanBoogie\ActiveRecord\Model')['lazy_get_activerecord_cache'] = function(Model $model) {
+
+	return new ActiveRecordCache;
+
+};
+```
+
+
+
+
+
 ## Establishing a connection to a database
 
 A connection to a database is created with a [Connection][] instance.

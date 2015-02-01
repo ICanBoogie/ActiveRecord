@@ -26,20 +26,15 @@
 		"icanboogie/datetime": ">=1.1"
 	},
 
+	"suggest": {
+		"icanboogie/bind-activerecord": "Binds ActiveRecord to ICanBoogie"
+	},
+
 	"autoload": {
 		"psr-4": {
 			"ICanBoogie\\ActiveRecord\\": "lib"
 		},
 		"classmap": [ "lib/ActiveRecord.php" ],
-		"files": [ "bootstrap.php", "helpers.php" ]
-	},
-
-	"extra": {
-		"icanboogie": {
-			"config-constructor": {
-				"activerecord_connections": "ICanBoogie\\ActiveRecord\\Hooks::synthesize_connections_config#activerecord"
-			},
-			"config-path": "config"
-		}
+		"files": [ "helpers.php" ]
 	}
 }
