@@ -32,13 +32,43 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 		]);
 	}
 
-	public function testGetConnection()
+	public function test_should_get_definitions()
+	{
+		$names = [];
+
+		foreach ($this->connections->definitions as $name => $definition)
+		{
+			$names[] = $name;
+		}
+
+		$this->assertEquals([ 'one', 'bad' ], $names);
+	}
+
+	public function test_should_get_connection()
 	{
 		$connection = $this->connections['one'];
 		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Connection', $connection);
 	}
 
-	public function testSetConnection()
+	/**
+	 * @depends test_should_get_connection
+	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished
+	 */
+	public function test_should_throw_an_exception_on_setting_established_connection()
+	{
+		$this->connections['one'];
+		$this->connections['one'] = [ 'dsn' => 'sqlite::memory:' ];
+	}
+
+	/**
+	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionNotDefined
+	 */
+	public function test_should_throw_an_exception_on_getting_undefined_connection()
+	{
+		$this->connections['undefined'];
+	}
+
+	public function test_should_set_connection_while_it_is_not_established()
 	{
 		$this->connections['two'] = [
 
@@ -48,7 +78,18 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Connection', $this->connections['two']);
 	}
 
-	public function testUnsetConnection()
+	/**
+	 * @expectedException \InvalidArgumentException
+	 */
+	public function test_should_throw_an_exception_on_setting_invalid_connection()
+	{
+		$this->connections['invalid'] = [
+
+			'd_s_n' => 'sqlite::memory:'
+		];
+	}
+
+	public function test_should_unset_connection_definition()
 	{
 		$this->connections['two'] = [
 
@@ -61,7 +102,17 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * @expectedException ICanBoogie\ActiveRecord\ConnectionNotDefined
+	 * @depends test_should_get_connection
+	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished
+	 */
+	public function test_should_throw_exception_on_unsetting_established_connection()
+	{
+		$this->connections['one'];
+		unset($this->connections['one']);
+	}
+
+	/**
+	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionNotDefined
 	 */
 	public function testConnectionNotDefined()
 	{
@@ -69,24 +120,11 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * @expectedException ICanBoogie\ActiveRecord\ConnectionNotEstablished
+	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionNotEstablished
 	 */
 	public function testConnectionNotEstablished()
 	{
 		$this->connections['bad'];
-	}
-
-	/**
-	 * @depends testGetConnection
-	 * @expectedException ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished
-	 */
-	public function testConnectionAlreadyEstablished()
-	{
-		$connection = $this->connections['one'];
-		$this->connections['one'] = [
-
-			'dsn' => 'mysql:dbname=testing'
-		];
 	}
 
 	public function test_get_established()
@@ -107,5 +145,27 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 			'one' => $connection
 
 		], $connections->established);
+	}
+
+	public function test_iterator()
+	{
+		$connections = $this->connections;
+		$names = [];
+
+		foreach ($connections as $id => $definition)
+		{
+			$name[] = $id;
+		}
+
+		$this->assertEmpty($names);
+		$connection = $connections['one'];
+
+		foreach ($connections as $id => $definition)
+		{
+			$names[] = $id;
+		}
+
+		$this->assertCount(1, $names);
+		$this->assertEquals([ 'one' ], $names);
 	}
 }
