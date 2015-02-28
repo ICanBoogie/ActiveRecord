@@ -21,44 +21,13 @@ use ICanBoogie\Object;
  * @property-read array $schema The schema of the table.
  * @property-read array $extended_schema The extended schema of the table.
  * @property-read string $name Name of the table, which might include a prefix.
- * @property-read string $name_unprefixed Unprefixed name of the table.
  * @property-read string $unprefixed_name Unprefixed name of the table.
- * @property-read mixed $primary Primary key of the table, or `null` if there is none.
+ * @property-read string|array|null $primary Primary key of the table, or `null` if there is none.
  * @property-read string $alias The alias name of the table.
  * @property-read Table|null $parent The parent of the table.
  */
 class Table extends Object
 {
-	/**
-	 * @deprecated
-	 */
-	const T_ALIAS = 'alias';
-
-	/**
-	 * @deprecated
-	 */
-	const T_CONNECTION = 'connection';
-
-	/**
-	 * @deprecated
-	 */
-	const T_EXTENDS = 'extends';
-
-	/**
-	 * @deprecated
-	 */
-	const T_IMPLEMENTS = 'implements';
-
-	/**
-	 * @deprecated
-	 */
-	const T_NAME = 'name';
-
-	/**
-	 * @deprecated
-	 */
-	const T_SCHEMA = 'schema';
-
 	/**
 	 * Alias of the table.
 	 *
@@ -69,14 +38,14 @@ class Table extends Object
 	/**
 	 * Connection.
 	 *
-	 * @var Connection
+	 * @var string
 	 */
 	const CONNECTION = 'connection';
 
 	/**
 	 * Extended model.
 	 *
-	 * @var Model
+	 * @var string
 	 */
 	const EXTENDING = 'extends';
 	const IMPLEMENTING = 'implements';
@@ -91,7 +60,7 @@ class Table extends Object
 	/**
 	 * Schema of the table.
 	 *
-	 * @var array
+	 * @var string
 	 */
 	const SCHEMA = 'schema';
 
@@ -125,27 +94,15 @@ class Table extends Object
 	}
 
 	/**
-	 * Unprefixed version of the table's name.
-	 *
-	 * The "{self}" placeholder used in queries is replaced by the properties value.
-	 *
-	 * @var string
-	 */
-	protected $name_unprefixed;
-
-	protected function get_name_unprefixed()
-	{
-		return $this->name_unprefixed;
-	}
-
-	/**
-	 * Return the unprefixed name of the table.
+	 * The unprefixed name of the table.
 	 *
 	 * @return string
 	 */
+	protected $unprefixed_name;
+
 	protected function get_unprefixed_name()
 	{
-		return $this->name_unprefixed;
+		return $this->unprefixed_name;
 	}
 
 	/**
@@ -224,7 +181,7 @@ class Table extends Object
 
 	/**
 	 * Initializes the following properties: {@link $alias}, {@link $connection},
-	 * {@link implements}, {@link $name_unprefixed}, {@link $schema} and {@link $parent}.
+	 * {@link implements}, {@link $unprefixed_name}, {@link $schema} and {@link $parent}.
 	 *
 	 * @param array $attributes
 	 *
@@ -239,20 +196,20 @@ class Table extends Object
 				case self::ALIAS: $this->alias = $value; break;
 				case self::CONNECTION: $this->connection = $value; break;
 				case self::IMPLEMENTING: $this->implements = $value; break;
-				case self::NAME: $this->name_unprefixed = $value; break;
+				case self::NAME: $this->unprefixed_name = $value; break;
 				case self::SCHEMA: $this->schema = $value; break;
 				case self::EXTENDING: $this->parent = $value; break;
 			}
 		}
 
-		if (!$this->name_unprefixed)
+		if (!$this->unprefixed_name)
 		{
 			throw new \InvalidArgumentException('The <code>NAME</code> attribute is empty.');
 		}
 
-		if (preg_match('#([^0-9,a-z,A-Z$_])#', $this->name_unprefixed, $matches))
+		if (preg_match('#([^0-9,a-z,A-Z$_])#', $this->unprefixed_name, $matches))
 		{
-			throw new \InvalidArgumentException("Invalid character in table name \"$this->name_unprefixed\": {$matches[0]}.");
+			throw new \InvalidArgumentException("Invalid character in table name \"$this->unprefixed_name\": {$matches[0]}.");
 		}
 
 		if (!$this->schema)
@@ -262,7 +219,7 @@ class Table extends Object
 
 		if (empty($this->schema['fields']))
 		{
-			throw new \InvalidArgumentException("Schema fields are empty for table \"{$this->name_unprefixed}\".");
+			throw new \InvalidArgumentException("Schema fields are empty for table \"{$this->unprefixed_name}\".");
 		}
 
 		if ($this->parent && !($this->parent instanceof self))
@@ -276,7 +233,7 @@ class Table extends Object
 
 		if (!$this->alias)
 		{
-			$alias = $this->name_unprefixed;
+			$alias = $this->unprefixed_name;
 
 			$pos = strrpos($alias, '_');
 
@@ -329,7 +286,7 @@ class Table extends Object
 			);
 		}
 
-		$this->name = $connection->table_name_prefix . $this->name_unprefixed;
+		$this->name = $connection->table_name_prefix . $this->unprefixed_name;
 
 		#
 		# parse definition schema to have a complete schema
@@ -414,7 +371,7 @@ class Table extends Object
 	 *
 	 * @return Statement
 	 */
-	public function __invoke($query, array $args=[], array $options=[])
+	public function __invoke($query, array $args = [], array $options = [])
 	{
 		return $this->query($query, $args, $options);
 	}
@@ -431,10 +388,10 @@ class Table extends Object
 	{
 		if (!$this->schema)
 		{
-			throw new \Exception("Missing schema to install table {$this->name_unprefixed}.");
+			throw new \Exception("Missing schema to install table {$this->unprefixed_name}.");
 		}
 
-		return $this->connection->create_table($this->name_unprefixed, $this->schema);
+		return $this->connection->create_table($this->unprefixed_name, $this->schema);
 	}
 
 	public function uninstall()
@@ -449,7 +406,7 @@ class Table extends Object
 	 */
 	public function is_installed()
 	{
-		return $this->connection->table_exists($this->name_unprefixed);
+		return $this->connection->table_exists($this->unprefixed_name);
 	}
 
 	/**
@@ -506,7 +463,7 @@ class Table extends Object
 		return strtr($statement, [
 
 			'{alias}' => $this->alias,
-			'{prefix}' => $this->connection->prefix,
+			'{prefix}' => $this->connection->table_name_prefix,
 			'{primary}' => $primary,
 			'{self}' => $this->name,
 			'{self_and_related}' => "`$this->name`" . ($this->select_join ? " $this->select_join" : '')
@@ -523,7 +480,7 @@ class Table extends Object
 	 *
 	 * @return Statement
 	 */
-	public function prepare($query, $options=[])
+	public function prepare($query, $options = [])
 	{
 		$query = $this->resolve_statement($query);
 
@@ -544,7 +501,7 @@ class Table extends Object
 	 *
 	 * @return mixed
 	 */
-	public function execute($query, array $args=[], array $options=[])
+	public function execute($query, array $args = [], array $options = [])
 	{
 		$statement = $this->prepare($query, $options);
 
@@ -562,7 +519,7 @@ class Table extends Object
 	 *
 	 * @return Statement
 	 */
-	public function query($query, array $args=[], array $options=[])
+	public function query($query, array $args = [], array $options = [])
 	{
 		$query = $this->resolve_statement($query);
 
@@ -572,7 +529,7 @@ class Table extends Object
 		return $statement;
 	}
 
-	protected function filter_values(array $values, $extended=false)
+	protected function filter_values(array $values, $extended = false)
 	{
 		$filtered = [];
 		$holders = [];
@@ -602,7 +559,7 @@ class Table extends Object
 		return [ $filtered, $holders, $identifiers ];
 	}
 
-	public function save(array $values, $id=null, array $options=[])
+	public function save(array $values, $id = null, array $options = [])
 	{
 		if ($id)
 		{
@@ -612,7 +569,7 @@ class Table extends Object
 		return $this->save_callback($values, $id, $options);
 	}
 
-	protected function save_callback(array $values, $id=null, array $options=[])
+	protected function save_callback(array $values, $id = null, array $options = [])
 	{
 		if ($id)
 		{
@@ -640,7 +597,7 @@ class Table extends Object
 
 		$driver_name = $this->connection->driver_name;
 
-		list($filtered, $holders) = $this->filter_values($values);
+		list($filtered, $holders, $identifiers) = $this->filter_values($values);
 
 		// FIXME: ALL THIS NEED REWRITE !
 
@@ -686,14 +643,16 @@ class Table extends Object
 			# a new entry has been created, but we don't have any other fields then the primary key
 			#
 
-			if (empty($holders[$this->primary]))
+			if (empty($identifiers[$this->primary]))
 			{
+				$identifiers[] = '`{primary}`';
 				$filtered[] = $parent_id;
-				$holders[] = '`{primary}` = ?';
 			}
 
-			$statement = 'INSERT INTO `{self}` SET ' . implode(', ', $holders);
+			$identifiers = implode(', ', $identifiers);
+			$placeholders = implode(', ', array_fill(0, count($filtered), '?'));
 
+			$statement = "INSERT INTO `{self}` ($identifiers) VALUES ($placeholders)";
 			$statement = $this->prepare($statement);
 
 			$rc = $statement->execute($filtered);
@@ -732,7 +691,7 @@ class Table extends Object
 	 *
 	 * @return mixed
 	 */
-	public function insert(array $values, array $options=[])
+	public function insert(array $values, array $options = [])
 	{
 		list($values, $holders, $identifiers) = $this->filter_values($values);
 

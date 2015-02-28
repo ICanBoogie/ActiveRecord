@@ -11,7 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\PropertyNotDefined;
+use ICanBoogie\Accessor\AccessorTrait;
+use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
 
 /**
  * A connection to a database.
@@ -24,58 +25,83 @@ use ICanBoogie\PropertyNotDefined;
  */
 class Connection extends \PDO
 {
-	// TODO-20130216: deprecate all T_*
-
-	const T_ID = '#id';
-	const T_TABLE_NAME_PREFIX = '#table_name_prefix';
-	const T_CHARSET = '#charset';
-	const T_COLLATE = '#collate';
-	const T_TIMEZONE = '#timezone';
-
-	const ID = '#id';
-	const TABLE_NAME_PREFIX = '#table_name_prefix';
-	const CHARSET = '#charset';
-	const COLLATE = '#collate';
-	const TIMEZONE = '#timezone';
+	use AccessorTrait;
 
 	/**
 	 * Connection identifier.
 	 *
 	 * @var string
 	 */
-	protected $id;
+	private $id;
+
+	protected function get_id()
+	{
+		return $this->id;
+	}
 
 	/**
 	 * Prefix to prepend to every table name.
 	 *
-	 * So if set to "dev", all table names will be named like "dev_nodes", "dev_contents", etc.
+	 * If set to "dev", all table names will be named like "dev_nodes", "dev_contents", etc.
 	 * This is a convenient way of creating a namespace for tables in a shared database.
-	 * By default, the prefix is the empty string.
+	 * By default, the prefix is the empty string, that is there is not prefix.
 	 *
 	 * @var string
 	 */
-	protected $table_name_prefix = '';
+	private $table_name_prefix = Options::DEFAULT_TIMEZONE;
+
+	protected function get_table_name_prefix()
+	{
+		return $this->table_name_prefix;
+	}
 
 	/**
 	 * Charset for the connection. Also used to specify the charset while creating tables.
 	 *
 	 * @var string
 	 */
-	protected $charset = 'utf8';
+	private $charset = Options::DEFAULT_CHARSET;
+
+	protected function get_charset()
+	{
+		return $this->charset;
+	}
 
 	/**
 	 * Used to specify the collate while creating tables.
 	 *
 	 * @var string
 	 */
-	protected $collate = 'utf8_general_ci';
+	private $collate = Options::DEFAULT_COLLATE;
+
+	protected function get_collate()
+	{
+		return $this->collate;
+	}
+
+	/**
+	 * Timezone of the connection.
+	 *
+	 * @var string
+	 */
+	private $timezone = Options::DEFAULT_TIMEZONE;
+
+	protected function get_timezone()
+	{
+		return $this->timezone;
+	}
 
 	/**
 	 * Driver name for the connection.
 	 *
 	 * @var string
 	 */
-	protected $driver_name;
+	private $driver_name;
+
+	protected function get_driver_name()
+	{
+		return $this->driver_name;
+	}
 
 	/**
 	 * The number of database queries and executions, used for statistics purpose.
@@ -94,13 +120,8 @@ class Connection extends \PDO
 	/**
 	 * Establish a connection to a database.
 	 *
-	 * Custom options can be specified using the driver-specific connection options:
-	 *
-	 * - {@link ID}: Connection identifier.
-	 * - {@link TABLE_NAME_PREFIX}: Prefix for the database tables.
-	 * - {@link CHARSET} and {@link COLLATE}: Charset and collate used for the connection
-	 * to the database, and to create tables.
-	 * - {@link TIMEZONE}: Timezone for the connection.
+	 * Custom options can be specified using the driver-specific connection options. See
+	 * {@link Options}.
 	 *
 	 * @link http://www.php.net/manual/en/pdo.construct.php
 	 * @link http://dev.mysql.com/doc/refman/5.5/en/time-zone-support.html
@@ -110,78 +131,93 @@ class Connection extends \PDO
 	 * @param string $password
 	 * @param array $options
 	 */
-	public function __construct($dsn, $username=null, $password=null, $options=[])
+	public function __construct($dsn, $username = null, $password = null, $options = [])
 	{
-		list($driver_name) = explode(':', $dsn, 2);
-
-		$this->driver_name = $driver_name;
-
-		$timezone = null;
-
-		foreach ($options as $option => $value)
-		{
-			switch ($option)
-			{
-				case self::ID: $this->id = $value; break;
-				case '#prefix': // COMPAT-20120913
-				case self::TABLE_NAME_PREFIX: $this->table_name_prefix = $value ? $value . '_' : null; break;
-				case self::CHARSET: $this->charset = $value; $this->collate = null; break;
-				case self::COLLATE: $this->collate = $value; break;
-				case self::TIMEZONE: $timezone = $value; break;
-			}
-		}
-
-		if ($driver_name == 'mysql')
-		{
-			$init_command = 'SET NAMES ' . $this->charset;
-
-			if ($timezone)
-			{
-				$init_command .= ', time_zone = "' . $timezone . '"';
-			}
-
-			$options += [
-
-				self::MYSQL_ATTR_INIT_COMMAND => $init_command
-			];
-		}
+		$this->driver_name = $this->resolve_driver_name($dsn);
+		$this->apply_options($options);
+		$this->before_connection($options);
 
 		parent::__construct($dsn, $username, $password, $options);
 
-		$this->setAttribute(self::ATTR_ERRMODE, self::ERRMODE_EXCEPTION);
-		$this->setAttribute(self::ATTR_STATEMENT_CLASS, [ 'ICanBoogie\ActiveRecord\Statement' ]);
-
-		if ($driver_name == 'oci')
-		{
-			$this->exec("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD'");
-		}
+		$this->after_connection();
 	}
 
 	/**
-	 * Alias to {@link exec}.
+	 * Alias to {@link query}.
 	 *
-	 * @return mixed
+	 * @return Statement
 	 */
 	public function __invoke()
 	{
 		return call_user_func_array([ $this, 'query' ], func_get_args());
 	}
 
-	public function __get($property)
+	/**
+	 * Resolve the driver name from the DSN string.
+	 *
+	 * @param string $dsn
+	 *
+	 * @return string
+	 */
+	protected function resolve_driver_name($dsn)
 	{
-		switch ($property)
+		return explode(':', $dsn, 2)[0];
+	}
+
+	/**
+	 * Applies options to the instance.
+	 *
+	 * @param array $options
+	 */
+	protected function apply_options(array $options)
+	{
+		$options = Options::normalize($options);
+
+		$this->id = $options[Options::ID];
+		$this->table_name_prefix = $options[Options::TABLE_NAME_PREFIX];
+
+		if ($this->table_name_prefix)
 		{
-			case 'charset':
-			case 'collate':
-			case 'driver_name':
-			case 'id':
-			case 'table_name_prefix':
-				return $this->$property;
-			case 'prefix': // COMPAT-20120913
-				return $this->table_name_prefix;
+			$this->table_name_prefix .= '_';
 		}
 
-		throw new PropertyNotDefined([ $property, $this ]);
+		list($this->charset, $this->collate) = extract_charset_and_collate($options[Options::CHARSET_AND_COLLATE]);
+
+		$this->timezone = $options[Options::TIMEZONE];
+	}
+
+	/**
+	 * Called before the connection.
+	 *
+	 * May alter the options according to the driver.
+	 *
+	 * @param array $options
+	 */
+	protected function before_connection(array &$options)
+	{
+		if ($this->driver_name != 'mysql')
+		{
+			return;
+		}
+
+		$init_command = 'SET NAMES ' . $this->charset;
+
+		if ($this->timezone)
+		{
+			$init_command .= ', time_zone = "' . $this->timezone . '"';
+		}
+
+		$options += [
+
+			self::MYSQL_ATTR_INIT_COMMAND => $init_command
+
+		];
+	}
+
+	protected function after_connection()
+	{
+		$this->setAttribute(self::ATTR_ERRMODE, self::ERRMODE_EXCEPTION);
+		$this->setAttribute(self::ATTR_STATEMENT_CLASS, [ Statement::class ]);
 	}
 
 	/**
@@ -195,7 +231,7 @@ class Connection extends \PDO
 	 *
 	 * @throws StatementNotValid if the statement cannot be prepared.
 	 */
-	public function prepare($statement, $options=[])
+	public function prepare($statement, $options = [])
 	{
 		$statement = $this->resolve_statement($statement);
 
@@ -229,7 +265,7 @@ class Connection extends \PDO
 	 *
 	 * @return Statement
 	 */
-	public function query($statement, array $args=[], array $options=[])
+	public function query($statement, array $args = [], array $options = [])
 	{
 		$statement = $this->prepare($statement, $options);
 		$statement->execute($args);
@@ -282,15 +318,11 @@ class Connection extends \PDO
 
 		if (is_array($identifier))
 		{
-			return array_map
-			(
-				function($v) use ($quote)
-				{
-					return $quote . $v . $quote;
-				},
+			return array_map(function($v) use ($quote) {
 
-				$identifier
-			);
+				return $quote . $v . $quote;
+
+			}, $identifier);
 		}
 
 		return $quote . $identifier . $quote;
@@ -659,7 +691,7 @@ class Connection extends \PDO
 			}
 		}
 
-		$table_name = $this->prefix . $unprefixed_name;
+		$table_name = $this->table_name_prefix . $unprefixed_name;
 		$statement = 'CREATE TABLE `' . $table_name . '` (' . implode(', ', $parts) . ')';
 
 		if ($driver_name == 'mysql')
@@ -703,22 +735,13 @@ class Connection extends \PDO
 
 		foreach ($unique_list as $unique_id => $columns)
 		{
-			$columns = implode(", ", $this->escape_column_names($columns));
+			$columns = implode(", ", $this->quote_identifier($columns));
 			$statement = "ALTER TABLE `$table_name` ADD UNIQUE `$unique_id` ($columns)";
 
 			$this->exec($statement);
 		}
 
 		return $rc;
-	}
-
-	private function escape_column_names($column_names)
-	{
-		return array_map(function($v) {
-
-			return "`$v`";
-
-		}, $column_names);
 	}
 
 	/**

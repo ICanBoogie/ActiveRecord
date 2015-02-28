@@ -45,7 +45,7 @@ class RecordNotFound extends \LogicException implements Exception
 	 * @param int $code Defaults to 404.
 	 * @param \Exception $previous Previous exception.
 	 */
-	public function __construct($message, array $records=[], $code=404, \Exception $previous=null)
+	public function __construct($message, array $records = [], $code = 404, \Exception $previous = null)
 	{
 		$this->records = $records;
 

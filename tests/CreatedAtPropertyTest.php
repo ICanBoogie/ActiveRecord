@@ -23,7 +23,7 @@ class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 		$r = new $classname;
 		$datetime = new DateTime();
 
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->created_at);
+		$this->assertInstanceOf(DateTime::class, $r->created_at);
 		$this->assertTrue($r->created_at->is_empty);
 
 		$r->created_at = $datetime;
@@ -34,7 +34,7 @@ class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('created_at', $r->__sleep());
 
 		$r->created_at = null;
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->created_at);
+		$this->assertInstanceOf(DateTime::class, $r->created_at);
 		$this->assertTrue($r->created_at->is_empty);
 	}
 

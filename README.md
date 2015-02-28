@@ -1,6 +1,6 @@
 # Active Record
 
-[![Release](https://img.shields.io/github/release/ICanBoogie/ActiveRecord.svg)](https://github.com/ICanBoogie/ActiveRecord/releases)
+[![Release](https://img.shields.io/packagist/v/ICanBoogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
 [![Build Status](https://img.shields.io/travis/ICanBoogie/ActiveRecord.svg)](http://travis-ci.org/ICanBoogie/ActiveRecord)
 [![HHVM](https://img.shields.io/hhvm/icanboogie/activerecord.svg)](http://hhvm.h4cc.de/package/icanboogie/activerecord)
 [![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
@@ -44,13 +44,13 @@ The following code should do the trick:
 ```php
 <?php
 
-use ICanBoogie\ActiveRecord\ActiveRecordCache;
+use ICanBoogie\ActiveRecord\RuntimeActiveRecordCache;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\Prototype;
 
-Prototype::from('ICanBoogie\ActiveRecord\Model')['lazy_get_activerecord_cache'] = function(Model $model) {
+Prototype::from(Model::class)['lazy_get_activerecord_cache'] = function(Model $model) {
 
-	return new ActiveRecordCache;
+	return new RuntimeActiveRecordCache;
 
 };
 ```
@@ -88,8 +88,9 @@ collate of the connection or its timezone.
 
 ### Defining the prefix of the database tables
 
-The `#table_name_prefix` option specifies the prefix for all the tables name of the connection.
-Thus, if the `icybee` prefix is defined the `nodes` table is renamed as `icybee_nodes`.
+The `ConnectionOptions::TABLE_NAME_PREFIX` option specifies the prefix for all the tables name
+of the connection. Thus, if the `icybee` prefix is defined the `nodes` table is
+renamed as `icybee_nodes`.
 
 The `{table_name_prefix}` placeholder is replaced in queries by the prefix:
 
@@ -105,7 +106,9 @@ $statement = $connection('SELECT * FROM `{table_name_prefix}nodes` LIMIT 10');
 
 ### Defining the charset and collate to use
 
-The `#charset` and `#collate` options specify the charset and the collate of the connection.
+The `ConnectionOptions::CHARSET_AND_COLLATE` option specify the charset and the collate
+of the connection in a single string e.g. "utf8/general_ci" for the "utf8" charset and the
+"utf8_general_ci" collate.
 
 The `{charset}` and `{collate}` placeholders are replaced in queries:
 
@@ -120,13 +123,13 @@ $connection('ALTER TABLE nodes CHARACTER SET "{charset}" COLLATE "{collate}"');
 
 ### Specifying a time zone
 
-The `#timezone` option specifies the time zone of the connection.
+The `ConnectionOptions::TIMEZONE` option specifies the time zone of the connection.
 
 
 
 
 
-## Models overview
+## Model overview
 
 A _model_ is an object-oriented representation of a database table, or a group of tables.
 A model is used to create, update, delete and query records. Models are instances of the [Model][]
@@ -135,10 +138,11 @@ class, and usually implement a specific business logic.
 ```php
 <?php
 
-namespace Website\Modules\Nodes;
+namespace App\Modules\Nodes;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Model
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelCollection;
 
 class NodeModel extends Model
 {
@@ -154,34 +158,44 @@ class Node extends ActiveRecord
 	// …
 }
 
-$model = new NodeModel([
+$models = new ModelCollection($connections, [
 
-	Model::CONNECTION => $connection,
-	Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\Node',
-	Model::NAME => 'node',
-	Model::SCHEMA => [
+	'nodes' => [
 
-		'fields' => [
+		Model::ACTIVERECORD_CLASS => Node::class,
+		Model::SCHEMA => [
 
-			'id' => 'serial',
-			'title' => [ 'varchar', 80 ],
-			'number' => [ 'integer', 'unsigned' => true ]
+			'fields' => [
 
+				'id' => 'serial',
+				'title' => [ 'varchar', 80 ],
+				'number' => [ 'integer', 'unsigned' => true ]
+
+			]
 		]
-
 	]
-
 ]);
 
-$model->install();
+$models->install();
+
+$node_model = $models['nodes'];
 
 $node = Node::from([
 
 	'title' => "My first node",
 	'number' => 123
 
-], [ $model ]);
+], [ $node_model ]);
 // ^ because we don't use a model provider yet, we need to specify the model to the active record
+
+# or
+
+$node = $node_model->new([
+
+	'title' => "My first node",
+	'number' => 123
+
+]);
 
 $id = $node->save();
 
@@ -390,47 +404,49 @@ The `EXTENDING` attribute specifies the model to extend.
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\DateTime;
 
-$nodes = new Model([
+$models = new ModelCollection($connections, [
 
-	Model::NAME => 'nodes',
-	Model::CONNECTION => $connection,
-	Model::SCHEMA => [
+	'nodes' => [
 
-		'fields' => [
+		Model::SCHEMA => [
 
-			'nid' => 'serial',
-			'title' => 'varchar'
+			'fields' => [
+
+				'nid' => 'serial',
+				'title' => 'varchar'
+
+			]
 		]
+	],
+	
+	'contents' => [
+
+		Model::EXTENDING => 'nodes',
+		Model::SCHEMA => [
+
+			'fields' => [
+
+				'body' => 'text',
+				'date' => 'date'
+
+			]
+		]
+	],
+
+	'news' => [
+	
+		Model::EXTENDING => 'contents'
 
 	]
+];
+
+$models['news']->save([
+
+	'title' => "Testing!",
+	'body' => "Testing...",
+	'date' => DateTime::now()
 
 ]);
-
-$contents = new Model([
-
-	Model::NAME => 'contents',
-	Model::EXTENDING => 'nodes',
-	Model::SCHEMA => [
-
-		'fields' => [
-
-			'body' => 'text',
-			'date' => 'date'
-
-		]
-
-	]
-
-]);
-
-$news = new Model([
-
-	Model::NAME => 'news',
-	Model::EXTENDING => $contents
-
-]);
-
-$news->save([ 'title' => "Testing!", 'body' => "Testing..." 'date' => DateTime::now() ]);
 ```
 
 Contrary to tables, models are not required to define a schema if they extend another model, but
@@ -443,8 +459,8 @@ properties of its parent model.
 ```php
 <?php
 
-echo $news->parent->unprefixed_name;       // nodes
-echo $news->parent_model->unprefixed_name; // contents
+echo $news->parent->id;       // nodes
+echo $news->parent_model->id; // contents
 ```
 
 
@@ -463,19 +479,38 @@ can then by obtained using the magic property `user`.
 ```php
 <?php
 
-$news = new Model([
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelCollection;
 
-	Model::NAME => 'news',
-	Model::EXTENDING => $nodes,
-	Model::BELONGS_TO => $users,
-	Model::SCHEMA => [
+$models = new ModelCollection($this->connections, [
 
-		'fields' => [
+	'news' => [
+	
+		Model::BELONGS_TO => 'users',
+		Model::SCHEMA => [
+	
+			'fields' => [
 
-			'date' => 'date',
-			'uid' => 'foreign'
+				'news_id' => 'serial',
+				'uid' => 'foreign'
+				// …
+				
+			]
 		]
-
+	],
+	
+	'users' => [
+	
+		Model::SCHEMA => [
+    
+            'fields' => [
+    
+                'uid' => 'serial',
+                'name' => 'varchar'
+                // …
+                
+            ]
+        ]
 	]
 
 ]);
@@ -503,15 +538,15 @@ The following example demonstrates how a one-to-many relation can be established
 <?php
 
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\Models;
+use ICanBoogie\ActiveRecord\ModelCollection;
 
 // …
 
-$models = new Models($connections, [
+$models = new ModelCollection($connections, [
 
 	'comments' => [
 
-		Model::ACTIVERECORD_CLASS => 'Comment',
+		Model::ACTIVERECORD_CLASS => Comment::class,
 		Model::SCHEMA => [
 
 			'fields' => [
@@ -521,14 +556,12 @@ $models = new Models($connections, [
 				'body' => 'text'
 
 			]
-
 		]
-
 	],
 
 	'articles' => [
 
-		Model::ACTIVERECORD_CLASS => 'Article',
+		Model::ACTIVERECORD_CLASS => Article::class,
 		Model::HAS_MANY => 'comments',
 		Model::SCHEMA => [
 
@@ -538,9 +571,7 @@ $models = new Models($connections, [
 				'title' => 'varchar'
 
 			]
-
 		]
-
 	]
 
 ]);
@@ -594,9 +625,11 @@ introspected.
 ```php
 <?php
 
-namespace Website;
+namespace App;
 
-class Node extends \ICanBoogie\ActiveRecord
+use ICanBoogie\ActiveRecord;
+
+class Node extends ActiveRecord
 {
 	const MODEL_ID = "nodes";
 
@@ -688,6 +721,8 @@ is used to set the date and time.
 ```php
 <?php
 
+namespace App;
+
 use ICanBoogie\ActiveRecord;
 
 class Node extends ActiveRecord
@@ -739,7 +774,7 @@ The methods are:
 * order
 * limit
 * offset
-* joins
+* join
 
 All of the above methods return a [Query][] instance, allowing you to chain them.
 
@@ -1140,7 +1175,7 @@ $model->select('nid, created, CONCAT_WS(":", title, language)');
 
 ### Joining tables
 
-The `joins()` method specifies the `JOIN` clause. A raw string or a model identifier
+The `join()` method specifies the `JOIN` clause. A raw string or a model identifier
 can be used to specify the join. The method can be used multiple times to create multiple joins.
 
 
@@ -1161,11 +1196,11 @@ method tries to determine the best solution between `ON` and `USING`.
 
 // …
 
-$update_query = get_model('updates')
+$update_query = $models['updates']
 ->select('updated_at, subscriber_id, update_hash')
 ->order('updated_at DESC');
 
-$subscribers = get_model('subscribers')
+$subscribers = $models['subscribers']
 ->join($update_query, [ 'on' => 'subscriber_id' ])
 ->group("`{alias}`.subscriber_id")
 ->all;
@@ -1180,11 +1215,11 @@ fetched.
 
 // …
 
-$usage = get_model('articles')
+$usage = $models['articles']
 ->select('category_id, COUNT(category_id) AS `usage`')
 ->group('category_id');
 
-$categories = get_model('categories')
+$categories = $models['categories']
 ->join($usage, [ 'as' => 'usage', 'on' => 'category_id', 'mode' => 'LEFT' ])
 ->all;
 ```
@@ -1540,7 +1575,7 @@ to obtain only the online articles in a "music" category:
 
 // …
 
-$taxonomy_query = get_model('taxonomy.terms/nodes')
+$taxonomy_query = $models['taxonomy.terms/nodes']
 ->join(':taxonomy.vocabulary')
 ->join(':taxonomy_vocabulary/scopes')
 ->where([
@@ -1552,14 +1587,14 @@ $taxonomy_query = get_model('taxonomy.terms/nodes')
 ])
 ->select('nid');
 
-$articles = get_model('articles')
+$articles = $models['articles']
 ->filter_by_is_online(true)
 ->and("nid IN ($taxonomy_query)", $taxonomy_query->conditions_args)
 ->all;
 
 # or
 
-$articles = get_model('articles')
+$articles = $models['articles']
 ->filter_by_is_online_and_nid(true, $taxonomy_query)
 ->all;
 ```
@@ -1575,7 +1610,7 @@ The records matching a query can be deleted using the `delete()` method:
 ```php
 <?php
 
-get_model('nodes')
+$models['nodes']
 ->filter_by_is_deleted_and_uid(true, 123)
 ->limit(10)
 ->delete();
@@ -1588,7 +1623,7 @@ how to delete the nodes and comments of nodes belonging to user 123 and marked a
 ```php
 <?php
 
-get_model('comments')
+$models['comments']
 ->filter_by_is_deleted_and_uid(true, 123)
 ->join(':nodes')
 ->delete('comments, nodes');
@@ -1600,7 +1635,7 @@ example demonstrates how to delete nodes that lack content:
 ```php
 <?php
 
-get_model('nodes')
+$models['nodes']
 ->join(':contents', [ 'mode' => 'LEFT' ])
 ->where('content.nid IS NULL')
 ->delete()
@@ -1751,15 +1786,15 @@ The connections provider manages database connections.
 
 #### Defining connections
 
-Connection definitions can be specified while creating the [Connections][]
+Connection definitions can be specified while creating the [ConnectionCollection][]
 instance.
 
 ```php
 <?php
 
-use ICanBoogie\ActiveRecord\Connections;
+use ICanBoogie\ActiveRecord\ConnectionCollection;
 
-$connections = new Connections
+$connections = new ConnectionCollection
 ([
 	'one' => [
 
@@ -1795,7 +1830,7 @@ exception is thrown in attempt to modify the definition of an already establishe
 
 #### Obtaining a database connection
 
-[Connections][] instances are used as arrays. For instance, this is how you obtain a [Connection][]
+[ConnectionCollection][] instances are used as arrays. For instance, this is how you obtain a [Connection][]
 instance, which represents a database connection:
 
 ```php
@@ -1816,7 +1851,7 @@ that is not defined.
 
 #### Checking defined connections
 
-Because [Connections][] instances are used as arrays, the `isset()` function is used to check
+Because [ConnectionCollection][] instances are used as arrays, the `isset()` function is used to check
 if a connection is defined.
 
 ```php
@@ -1858,7 +1893,7 @@ foreach ($connections->established as $id => $connection)
 }
 ```
 
-The [Connections][] instance itself can be used to traverse established connections.
+The [ConnectionCollection][] instance itself can be used to traverse established connections.
 
 ```php
 <?php
@@ -1883,7 +1918,7 @@ The models provider manages models.
 
 #### Defining models
 
-Model definitions can be specified while creating the [Models][] instance.
+Model definitions can be specified while creating the [ModelCollection][] instance.
 
 Note: You don't have to create the [Connection][] instances used by the models, you can use their
 identifier which will get resolved when the model is needed.
@@ -1894,9 +1929,9 @@ Note: If `CONNECTION` is not specified the `primary` connection is used.
 <?php
 
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\Models;
+use ICanBoogie\ActiveRecord\ModelCollection;
 
-$models = new Models($connections, [
+$models = new ModelCollection($connections, [
 
 	'nodes' => [
 
@@ -1917,7 +1952,7 @@ $models = new Models($connections, [
 ]);
 ```
 
-Model definitions can be modified or added after the [Models][] instance has been created.
+Model definitions can be modified or added after the [ModelCollection][] instance has been created.
 
 ```php
 <?php
@@ -1940,7 +1975,7 @@ exception is thrown in attempt to modify the definition of an already instantiat
 
 #### Obtaining a model
 
-Use the [Models][] instance as an array to obtain a [Model][] instance.
+Use the [ModelCollection][] instance as an array to obtain a [Model][] instance.
 
 ```php
 <?php
@@ -2141,73 +2176,9 @@ $nodes = ActiveRecord\get_model('nodes');
 
 
 
-## Autoconfig
-
-The package supports the _autoconfig_ feature of the framework [ICanBoogie][] and provides
-the following:
-
-- A synthesizer for the `activerecord_connections` config, created from the `activerecord`
-fragments.
-- A lazy getter for the `ICanBoogie\Core::$connections` property, that returns a [Connections][]
-instance created with the `activerecord_connections` config.
-- A lazy getter for the `ICanBoogie\Core::$db` property, that returns the connection named
-`primary` from the `ICanBoogie\Core::$connections` property.
-
-
-
-
-
-### The `activerecord` config
-
-Currently `activerecord` fragments are used synthesize the `activerecord_connections` config,
-suitable to create a [Connections][] instance.
-
-The following is an example of a config that defines two connections: `primary` is a connection
-to the MySQL server; `cache` is a connection to a SQLite database:
-
-```php
-<?php
-
-// config/activerecord.php
-
-return [
-
-	'connections' => [
-
-		'primary' => [
-
-			'dsn' => 'mysql:dbname=mydatabase',
-			'username' => 'root',
-			'password' => 'root',
-			'#timezone' => '+00.00',
-			'#table_name_prefix' => ''
-
-		],
-
-		'cache' => [
-
-			'dsn' => 'sqlite:' . ICanBoogie\REPOSITORY . 'cache.sqlite'
-
-		]
-
-	]
-
-];
-```
-
-
-
-
-
-----------
-
-
-
-
-
 ## Requirements
 
-The package requires PHP 5.4 or later and the [PDO extension](http://php.net/manual/en/intro.pdo.php).
+The package requires PHP 5.6 or later and the [PDO extension](http://php.net/manual/en/intro.pdo.php).
 
 
 
@@ -2236,11 +2207,18 @@ can be cloned with the following command line:
 
 
 
+## Documentation
+
+The package is documented as part of the [ICanBoogie][] framework
+[documentation](http://icanboogie.org/docs/). You can generate the documentation for the package and its dependencies with the `make doc` command. The documentation is generated in the `build/docs` directory. [ApiGen](http://apigen.org/) is required. The directory can later be cleaned with the `make clean` command.
+
+
+
+
+
 ## Testing
 
-The test suite is ran with the `make test` command. [Composer](http://getcomposer.org/) is
-automatically installed as well as all dependencies required to run the suite. You can later
-clean the directory with the `make clean` command.
+The test suite is ran with the `make test` command. [PHPUnit](https://phpunit.de/) and [Composer](http://getcomposer.org/) need to be globally available to run the suite. The command installs dependencies as required. The `make test-coverage` command runs test suite and also creates an HTML coverage report in "build/coverage". The directory can later be cleaned with the `make clean` command.
 
 The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
@@ -2251,27 +2229,20 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
 
 
-## Documentation
-
-The package is documented as part of the [ICanBoogie](http://icanboogie.org/) framework
-[documentation](http://icanboogie.org/docs/). You can generate the documentation for the package
-and its dependencies with the `make doc` command. The documentation is generated in the `docs`
-directory. [ApiGen](http://apigen.org/) is required. You can later clean the directory with
-the `make clean` command.
-
-
-
-
-
 ## License
 
 ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](LICENSE) file for details.
 
+
+
+
+
+[icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord
 [Connection]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html
 [ConnectionAlreadyEstablished]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
 [ConnectionNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
 [ConnectionNotEstablished]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
-[Connections]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connections.html
+[ConnectionCollection]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
 [CreatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
 [DateTime]: http://icanboogie.org/docs/class-ICanBoogie.DateTime.html
 [DateTimeProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
@@ -2279,7 +2250,7 @@ ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE
 [Model]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Model.html
 [ModelAlreadyInstantiated]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
 [ModelNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
-[Models]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Models.html
+[ModelCollection]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelCollection.html
 [PDO]: http://php.net/manual/en/book.pdo.php
 [Query]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html
 [RecordNotFound]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RecordNotFound.html

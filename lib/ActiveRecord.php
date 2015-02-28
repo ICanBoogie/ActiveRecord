@@ -57,7 +57,7 @@ class ActiveRecord extends Object
 	 * @throws \InvalidArgumentException if $model is neither a model identifier nor a
 	 * {@link Model} instance.
 	 */
-	public function __construct($model=null)
+	public function __construct($model = null)
 	{
 		if (!$model)
 		{
@@ -105,8 +105,6 @@ class ActiveRecord extends Object
 	/**
 	 * Returns the model managing the active record.
 	 *
-	 * This getter is used when the model has been provided as a string during construct.
-	 *
 	 * @return Model
 	 */
 	protected function get_model()
@@ -120,39 +118,13 @@ class ActiveRecord extends Object
 	}
 
 	/**
-	 * Alias to {@link get_model}.
-	 *
-	 * @deprecated
-	 *
-	 * @see get_model
-	 */
-	protected function get__model()
-	{
-		return $this->get_model();
-	}
-
-	/**
 	 * Returns the identifier of the model managing the active record.
-	 *
-	 * The getter is used to provide read-only access to the property.
 	 *
 	 * @return string
 	 */
 	protected function get_model_id()
 	{
 		return $this->model_id;
-	}
-
-	/**
-	 * Alias to {@link get_model_id}.
-	 *
-	 * @deprecated
-	 *
-	 * @see get_model_id
-	 */
-	protected function get__model_id()
-	{
-		return $this->get_model_id();
 	}
 
 	/**
@@ -245,7 +217,7 @@ class ActiveRecord extends Object
 
 		if (!$primary)
 		{
-			throw new \Exception("Unable to delete record, primary key is empty.");
+			throw new \LogicException("Unable to delete record, primary key is empty.");
 		}
 
 		return $model->delete($this->$primary);

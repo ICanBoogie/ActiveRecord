@@ -16,70 +16,75 @@ use ICanBoogie\ActiveRecord\HasManyRelationTest\Comment;
 
 class HasManyRelationTest extends \PHPUnit_Framework_TestCase
 {
-	static private $connection;
-	static private $articles;
-	static private $comments;
+	private $articles;
+	private $comments;
 
-	static public function setupBeforeClass()
+	public function setUp()
 	{
-		self::$connection = new Connection('sqlite::memory:');
+		$connections = new ConnectionCollection([
 
-		self::$comments = new Model([
+			'primary' => 'sqlite::memory:'
 
-			Model::ACTIVERECORD_CLASS => __CLASS__ . '\Comment',
-			Model::CONNECTION => self::$connection,
-			Model::ID => 'comments',
-			Model::NAME => 'comments',
-			Model::SCHEMA => [
+		]);
 
-				'fields' => [
+		$models = new ModelCollection($connections, [
 
-					'comment_id' => 'serial',
-					'article_id' => 'foreign',
-					'body' => 'text'
+			'comments' => [
+
+				Model::ACTIVERECORD_CLASS => __CLASS__ . '\Comment',
+				Model::ID => 'comments',
+				Model::NAME => 'comments',
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'comment_id' => 'serial',
+						'article_id' => 'foreign',
+						'body' => 'text'
+
+					]
+
+				]
+
+			],
+
+			'articles' => [
+
+				Model::ACTIVERECORD_CLASS => __CLASS__ . '\Article',
+				Model::HAS_MANY => 'comments',
+				Model::ID => 'articles',
+				Model::NAME => 'articles',
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'article_id' => 'serial',
+						'title' => 'varchar'
+
+					]
 
 				]
 
 			]
-
 		]);
 
-		self::$articles = new Model([
-
-			Model::ACTIVERECORD_CLASS => __CLASS__ . '\Article',
-			Model::CONNECTION => self::$connection,
-			Model::HAS_MANY => self::$comments,
-			Model::ID => 'articles',
-			Model::NAME => 'articles',
-			Model::SCHEMA => [
-
-				'fields' => [
-
-					'article_id' => 'serial',
-					'title' => 'varchar'
-
-				]
-
-			]
-
-		]);
-
-		self::$articles->install();
+		$models->install();
+		$this->articles = $articles = $models['articles'];
 
 		for ($i = 1 ; $i < 4 ; $i++)
 		{
-			self::$articles->save([
+			$articles->save([
 
 				'title' => "Article $i"
 
 			]);
 		}
 
-		self::$comments->install();
+		$this->comments = $comments = $models['comments'];
 
 		for ($i = 1 ; $i < 13 ; $i++)
 		{
-			self::$comments->save([
+			$comments->save([
 
 				'article_id' => ($i - 1) % 3,
 				'body' => "Comment $i"
@@ -90,44 +95,44 @@ class HasManyRelationTest extends \PHPUnit_Framework_TestCase
 
 	public function test_getters()
 	{
-		$relations = self::$articles->relations;
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\RelationCollection', $relations);
+		$relations = $this->articles->relations;
+		$this->assertInstanceOf(RelationCollection::class, $relations);
 
 		$relation = $relations['comments'];
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\HasManyRelation', $relation);
+		$this->assertInstanceOf(HasManyRelation::class, $relation);
 		$this->assertSame('comments', $relation->as);
-		$this->assertSame(self::$articles, $relation->parent);
-		$this->assertSame(self::$comments, $relation->related);
-		$this->assertSame(self::$articles->primary, $relation->local_key);
-		$this->assertSame(self::$articles->primary, $relation->foreign_key);
+		$this->assertSame($this->articles, $relation->parent);
+		$this->assertSame($this->comments, $relation->related);
+		$this->assertSame($this->articles->primary, $relation->local_key);
+		$this->assertSame($this->articles->primary, $relation->foreign_key);
 	}
 
 	/**
-	 * @expectedException ICanBoogie\ActiveRecord\RelationNotDefined
+	 * @expectedException \ICanBoogie\ActiveRecord\RelationNotDefined
 	 */
 	public function test_undefined_relation()
 	{
-		self::$articles->relations['undefined_relation'];
+		$this->articles->relations['undefined_relation'];
 	}
 
 	public function test_getter()
 	{
-		$article = self::$articles[1];
+		$article = $this->articles[1];
 		$article_comments = $article->comments;
 
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Query', $article_comments);
-		$this->assertSame(self::$comments, $article_comments->model);
+		$this->assertInstanceOf(Query::class, $article_comments);
+		$this->assertSame($this->comments, $article_comments->model);
 	}
 
 	public function test_getter_as()
 	{
-		$articles = self::$articles;
-		$articles->has_many(self::$comments, [ 'as' => 'article_comments' ]);
-		$article = self::$articles[1];
+		$articles = $this->articles;
+		$articles->has_many($this->comments, [ 'as' => 'article_comments' ]);
+		$article = $this->articles[1];
 		$article_comments = $article->article_comments;
 
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Query', $article_comments);
-		$this->assertSame(self::$comments, $article_comments->model);
+		$this->assertInstanceOf(Query::class, $article_comments);
+		$this->assertSame($this->comments, $article_comments->model);
 	}
 }
 

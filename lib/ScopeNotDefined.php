@@ -55,11 +55,11 @@ class ScopeNotDefined extends \LogicException implements Exception
 	 * @param int $code Default to 404.
 	 * @param \Exception $previous Previous exception.
 	 */
-	public function __construct($scope_name, Model $model, $code=500, \Exception $previous=null)
+	public function __construct($scope_name, Model $model, $code = 500, \Exception $previous = null)
 	{
 		$this->scope_name = $scope_name;
 		$this->model = $model;
 
-		parent::__construct("Unknown scope `{$scope_name}` for model `{$model->name_unprefixed}`.", $code, $previous);
+		parent::__construct("Unknown scope `{$scope_name}` for model `{$model->unprefixed_name}`.", $code, $previous);
 	}
 }

@@ -57,6 +57,9 @@ class Helpers
 	 * Default implementations
 	 */
 
+	/**
+	 * @param string $id
+	 */
 	static private function get_model($id)
 	{
 		throw new \RuntimeException("The function " . __FUNCTION__ . "() needs to be patched.");

@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
+use ICanBoogie\Prototype\MethodNotDefined;
 
 /**
  * Base class for activerecord models.
@@ -32,33 +33,40 @@ use ICanBoogie\OffsetNotWritable;
  * @method int sum() sum($column) The method is forwarded to {@link Query::sum}.
  * @method array all() all() The method is forwarded to {@link Query::all}.
  * @method ActiveRecord one() one() The method is forwarded to {@link Query::one}.
+ * @method ActiveRecord new() new(array $properties = []) Instantiate a new record.
  *
  * @method Model belongs_to() belongs_to($definition) Add a _belongs_to_ relation.
- * @method Model has_many() has_many($related, $options=[]) Add a _has_many_ relation.
+ * @method Model has_many() has_many($related, $options=[]) Adds a _has_many_ relation.
  *
+ * @property-read Model|null $parent Parent model.
+ * @property-read ModelCollection $models
  * @property-read array $all Retrieve all the records from the model.
  * @property-read string $activerecord_class Class of the active records of the model.
  * @property-read int $count The number of records of the model.
  * @property-read bool $exists Whether the SQL table associated with the model exists.
  * @property-read string $id The identifier of the model.
- * @property-read ActiveRecord Retrieve the first record from the mode.
- * @property ActiveRecordCacheInterface $activerecord_cache The cache use to store activerecords.
+ * @property-read ActiveRecord $one Retrieve the first record from the mode.
+ * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
  * @property-read Model $parent_model The parent model.
  * @property-read Relation[] $relations The relations of this model to other models.
  */
 class Model extends Table implements \ArrayAccess
 {
-	// TODO-20130216: deprecate all T_*
-
-	const T_ACTIVERECORD_CLASS = 'activerecord_class';
-	const T_CLASS = 'class';
-	const T_ID = 'id';
-
 	const ACTIVERECORD_CLASS = 'activerecord_class';
 	const BELONGS_TO = 'belongs_to';
 	const CLASSNAME = 'class';
 	const HAS_MANY = 'has_many';
 	const ID = 'id';
+
+	/**
+	 * @var ModelCollection
+	 */
+	private $models;
+
+	protected function get_models()
+	{
+		return $this->models;
+	}
 
 	/**
 	 * Active record instances class.
@@ -77,7 +85,7 @@ class Model extends Table implements \ArrayAccess
 	/**
 	 * The parent model of the model.
 	 *
-	 * The parent model and the {@link parent} may be different if the model doesn't have a
+	 * The parent model and the {@link parent} may be different if the model does not have a
 	 * schema but inherits it from its parent.
 	 *
 	 * @var Model
@@ -123,62 +131,97 @@ class Model extends Table implements \ArrayAccess
 	 * If {@link ACTIVERECORD_CLASS} is set, its value is saved in the
 	 * {@link $activerecord_class} property.
 	 *
-	 * @param array $tags Tags used to construct the model.
+	 * @param ModelCollection $models
+	 * @param array $attributes Attributes used to construct the model.
 	 */
-	public function __construct(array $tags)
+	public function __construct(ModelCollection $models, array $attributes)
 	{
+		$this->models = $models;
+		$this->attributes = $attributes = $this->resolve_attributes($attributes);
+		$this->parent = $attributes[self::EXTENDING];
 		$this->relations = new RelationCollection($this);
 
-		$tags += [
-
-			self::BELONGS_TO => null,
-			self::EXTENDING => null,
-			self::ID => null,
-			self::SCHEMA => null,
-			self::ACTIVERECORD_CLASS => null,
-			self::HAS_MANY => null
-
-		];
-
-		$this->parent_model = $extends = $tags[self::EXTENDING];
-
-		if ($extends && !$tags[self::SCHEMA])
-		{
-			$tags[self::NAME] = $extends->name_unprefixed;
-			$tags[self::SCHEMA] = $extends->schema;
-			$tags[self::EXTENDING] = $extends->parent;
-
-			if (!$tags[self::ACTIVERECORD_CLASS])
-			{
-				$tags[self::ACTIVERECORD_CLASS] = $extends->activerecord_class;
-			}
-		}
-
-		if (empty($tags[self::ID]))
-		{
-			$tags[self::ID] = $tags[self::NAME];
-		}
-
-		$this->attributes = $tags;
-
-		parent::__construct($tags);
+		parent::__construct($attributes);
 
 		#
 		# Resolve the active record class.
 		#
 
-		$activerecord_class = $tags[self::ACTIVERECORD_CLASS];
+		$this->activerecord_class = $this->resolve_activerecord_class();
+		$this->resolve_relations();
+	}
+
+	/**
+	 * Resolves constructor attributes.
+	 *
+	 * The method may initialize the {@link $parent_model} property.
+	 *
+	 * @param array $attributes
+	 *
+	 * @return array
+	 */
+	private function resolve_attributes(array $attributes)
+	{
+		$attributes += [
+
+			self::ACTIVERECORD_CLASS => null,
+			self::BELONGS_TO => null,
+			self::EXTENDING => null,
+			self::HAS_MANY => null,
+			self::ID => null,
+			self::SCHEMA => null
+
+		];
+
+		if (!$attributes[self::ID])
+		{
+			$attributes[self::ID] = $attributes[self::NAME];
+		}
+
+		$this->parent_model = $extends = $attributes[self::EXTENDING];
+
+		if ($extends && !$attributes[self::SCHEMA])
+		{
+			$attributes[self::NAME] = $extends->unprefixed_name;
+			$attributes[self::SCHEMA] = $extends->schema;
+			$attributes[self::EXTENDING] = $extends->parent;
+
+			if (!$attributes[self::ACTIVERECORD_CLASS])
+			{
+				$attributes[self::ACTIVERECORD_CLASS] = $extends->activerecord_class;
+			}
+		}
+
+		return $attributes;
+	}
+
+	/**
+	 * Resolves ActiveRecord class.
+	 *
+	 * @return string
+	 */
+	private function resolve_activerecord_class()
+	{
+		$activerecord_class = $this->attributes[self::ACTIVERECORD_CLASS];
 
 		if (!$activerecord_class && $this->parent)
 		{
 			$activerecord_class = $this->parent->activerecord_class;
 		}
 
-		$this->activerecord_class = $activerecord_class;
+		return $activerecord_class;
+	}
+
+	/**
+	 * Resolves relations with other models.
+	 */
+	private function resolve_relations()
+	{
+		$attributes = $this->attributes;
 
 		# belongs_to
 
-		$belongs_to = $tags[self::BELONGS_TO];
+		$belongs_to = $attributes[self::BELONGS_TO];
 
 		if ($belongs_to)
 		{
@@ -187,7 +230,7 @@ class Model extends Table implements \ArrayAccess
 
 		# has_many
 
-		$has_many = $tags[self::HAS_MANY];
+		$has_many = $attributes[self::HAS_MANY];
 
 		if ($has_many)
 		{
@@ -202,6 +245,11 @@ class Model extends Table implements \ArrayAccess
 	 */
 	public function __call($method, $arguments)
 	{
+		if ($method == 'new')
+		{
+			return call_user_func_array([ $this, 'new_record' ], $arguments);
+		}
+
 		if (is_callable([ 'ICanBoogie\ActiveRecord\Query', $method ])
 		|| strpos($method, 'filter_by_') === 0
 		|| method_exists($this, 'scope_' . $method))
@@ -259,78 +307,48 @@ class Model extends Table implements \ArrayAccess
 	/**
 	 * Finds a record or a collection of records.
 	 *
-	 * @param mixed $key A key or an array of keys.
+	 * @param mixed $key A key, multiple keys, or an array of keys.
 	 *
 	 * @throws RecordNotFound when the record, or one or more records of the records
 	 * set, could not be found.
 	 *
-	 * @return ActiveRecord|array A record or a set of records.
+	 * @return ActiveRecord|ActiveRecord[] A record or a set of records.
 	 */
 	public function find($key)
 	{
-		if (func_num_args() > 1)
+		$args = func_get_args();
+		$n = count($args);
+
+		if (!$n)
 		{
-			$key = func_get_args();
+			throw new \BadMethodCallException("Expected at least one argument.");
 		}
 
-		if (is_array($key))
+		if (count($args) == 1)
 		{
-			$records = array_combine($key, array_fill(0, count($key), null));
-			$missing = $records;
+			$key = $args[0];
 
-			foreach ($records as $key => $dummy)
+			if (!is_array($key))
 			{
-				$record = $this->retrieve($key);
-
-				if (!$record)
-				{
-					continue;
-				}
-
-				$records[$key] = $record;
-				unset($missing[$key]);
+				return $this->find_one($key);
 			}
 
-			if ($missing)
-			{
-				$primary = $this->primary;
-				$query_records = $this->where([ $primary => array_keys($missing) ])->all;
-
-				foreach ($query_records as $record)
-				{
-					$key = $record->$primary;
-					$records[$key] = $record;
-					unset($missing[$key]);
-
-					$this->store($record);
-				}
-			}
-
-			if ($missing)
-			{
-				if (count($missing) > 1)
-				{
-					throw new RecordNotFound
-					(
-						"Records " . implode(', ', array_keys($missing)) . " do not exists in model <q>{$this->name_unprefixed}</q>.", $records
-					);
-				}
-				else
-				{
-					$key = array_keys($missing);
-					$key = array_shift($key);
-
-					throw new RecordNotFound
-					(
-						"Record <q>{$key}</q> does not exists in model <q>{$this->name_unprefixed}</q>.", $records
-					);
-				}
-			}
-
-			return $records;
+			$args = $key;
 		}
 
-		$record = $this->retrieve($key);
+		return $this->find_many($args);
+	}
+
+	/**
+	 * Finds one records.
+	 *
+	 * @param string|int $key
+	 *
+	 * @return ActiveRecord
+	 */
+	private function find_one($key)
+	{
+		$record = $this->activerecord_cache->retrieve($key);
 
 		if ($record === null)
 		{
@@ -340,14 +358,78 @@ class Model extends Table implements \ArrayAccess
 			{
 				throw new RecordNotFound
 				(
-					"Record <q>{$key}</q> does not exists in model <q>{$this->name_unprefixed}</q>.", [ $key => null ]
+					"Record <q>{$key}</q> does not exists in model <q>{$this->id}</q>.", [ $key => null ]
 				);
 			}
 
-			$this->store($record);
+			$this->activerecord_cache->store($record);
 		}
 
 		return $record;
+	}
+
+	/**
+	 * Finds many records.
+	 *
+	 * @param array $keys
+	 *
+	 * @return ActiveRecord[]
+	 */
+	private function find_many(array $keys)
+	{
+		$records = array_combine($keys, array_fill(0, count($keys), null));
+		$missing = $records;
+
+		foreach ($records as $key => $dummy)
+		{
+			$record = $this->activerecord_cache->retrieve($key);
+
+			if (!$record)
+			{
+				continue;
+			}
+
+			$records[$key] = $record;
+			unset($missing[$key]);
+		}
+
+		if ($missing)
+		{
+			$primary = $this->primary;
+			$query_records = $this->where([ $primary => array_keys($missing) ])->all;
+
+			foreach ($query_records as $record)
+			{
+				$key = $record->$primary;
+				$records[$key] = $record;
+				unset($missing[$key]);
+
+				$this->activerecord_cache->store($record);
+			}
+		}
+
+		if ($missing)
+		{
+			if (count($missing) > 1)
+			{
+				throw new RecordNotFound
+				(
+					"Records " . implode(', ', array_keys($missing)) . " do not exists in model <q>{$this->id}</q>.", $records
+				);
+			}
+			else
+			{
+				$key = array_keys($missing);
+				$key = array_shift($key);
+
+				throw new RecordNotFound
+				(
+					"Record <q>{$key}</q> does not exists in model <q>{$this->id}</q>.", $records
+				);
+			}
+		}
+
+		return $records;
 	}
 
 	/**
@@ -356,11 +438,11 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @inheritdoc
 	 */
-	public function save(array $properties, $key=null, array $options=[])
+	public function save(array $properties, $key = null, array $options = [])
 	{
 		if ($key)
 		{
-			$this->eliminate($key);
+			$this->activerecord_cache->eliminate($key);
 		}
 
 		return parent::save($properties, $key, $options);
@@ -376,45 +458,6 @@ class Model extends Table implements \ArrayAccess
 		$this->activerecord_cache->eliminate($key);
 
 		return parent::delete($key);
-	}
-
-	/**
-	 * Stores a record in the records cache.
-	 *
-	 * @param ActiveRecord $record The record to store.
-	 *
-	 * @deprecated Use {@link $activerecord_cache}
-	 */
-	protected function store(ActiveRecord $record)
-	{
-		$this->activerecord_cache->store($record);
-	}
-
-	/**
-	 * Retrieves a record from the records cache.
-	 *
-	 * @param int $key
-	 *
-	 * @return ActiveRecord|null Returns the active record found in the cache or null if it wasn't
-	 * there.
-	 *
-	 * @deprecated Use {@link $activerecord_cache}
-	 */
-	protected function retrieve($key)
-	{
-		return $this->activerecord_cache->retrieve($key);
-	}
-
-	/**
-	 * Eliminates an object from the cache.
-	 *
-	 * @param int $key
-	 *
-	 * @deprecated Use {@link $activerecord_cache}
-	 */
-	protected function eliminate($key)
-	{
-		$this->activerecord_cache->eliminate($key);
 	}
 
 	/**
@@ -440,7 +483,7 @@ class Model extends Table implements \ArrayAccess
 	/**
 	 * Returns all the records of the model.
 	 *
-	 * @return array[]ActiveRecord
+	 * @return ActiveRecord[]
 	 */
 	protected function get_all()
 	{
@@ -473,30 +516,27 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Calls a given scope on the active record query specified in the scope_args.
+	 * Invokes a given scope.
 	 *
 	 * @param string $scope_name Name of the scope to apply to the query.
-	 * @param array $scope_args Arguments to forward to the scope method.
+	 * @param array $scope_args Arguments to forward to the scope method. The first argument must
+	 * be a {@link Query} instance.
 	 *
 	 * @throws ScopeNotDefined when the specified scope is not defined.
 	 *
 	 * @return Query
 	 */
-	public function scope($scope_name, $scope_args=null)
+	public function scope($scope_name, array $scope_args = [])
 	{
-		$callback = 'scope_' . $scope_name;
-
-		if (!method_exists($this, $callback))
+		try
+		{
+			return call_user_func_array([ $this, 'scope_' . $scope_name ], $scope_args);
+		}
+		catch (MethodNotDefined $e)
 		{
 			throw new ScopeNotDefined($scope_name, $this);
 		}
-
-		return call_user_func_array([ $this, $callback ], $scope_args);
 	}
-
-	/*
-	 * ArrayAccess implementation
-	 */
 
 	/**
 	 * @inheritdoc
@@ -547,12 +587,14 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * The class of the instance is defined by the {@link $activerecord_class} property.
 	 *
+	 * @param array $properties Optional properties to instantiate the record with.
+	 *
 	 * @return ActiveRecord
 	 */
-	public function new_record()
+	protected function new_record(array $properties = [])
 	{
 		$class = $this->activerecord_class;
 
-		return new $class($this);
+		return $properties ? $class::from($properties, [ $this ]) : new $class($this);
 	}
 }

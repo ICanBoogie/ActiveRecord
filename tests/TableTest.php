@@ -23,7 +23,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
 		(
 			'sqlite::memory:', null, null, [
 
-				Connection::TABLE_NAME_PREFIX => 'prefix'
+				ConnectionOptions::TABLE_NAME_PREFIX => 'prefix'
 			]
 		);
 
@@ -89,7 +89,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
 
 	public function provide_test_readonly_properties()
 	{
-		$properties = 'connection name name_unprefixed primary alias parent schema';
+		$properties = 'connection name unprefixed_name primary alias parent schema';
 
 		return array_map(function($v) { return (array) $v; }, explode(' ', $properties));
 	}
@@ -104,9 +104,9 @@ class TableTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('prefix_animals', self::$animals->name);
 	}
 
-	public function test_get_name_unprefixed()
+	public function test_get_unprefixed_name()
 	{
-		$this->assertEquals('animals', self::$animals->name_unprefixed);
+		$this->assertEquals('animals', self::$animals->unprefixed_name);
 	}
 
 	public function test_get_primary()

@@ -41,7 +41,6 @@ class Query implements \IteratorAggregate
 {
 	use PrototypeTrait
 	{
-		PrototypeTrait::__get as private __prototype_get;
 		PrototypeTrait::__call as private __prototype_call;
 	}
 
@@ -162,6 +161,11 @@ class Query implements \IteratorAggregate
 	 */
 	protected $model;
 
+	protected function get_model()
+	{
+		return $this->model;
+	}
+
 	/**
 	 * Constructor.
 	 *
@@ -179,11 +183,6 @@ class Query implements \IteratorAggregate
 	 */
 	public function __get($property)
 	{
-		if ($property === 'model')
-		{
-			return $this->model;
-		}
-
 		$scopes = $this->get_model_scope();
 
 		if (in_array($property, $scopes))
@@ -191,7 +190,7 @@ class Query implements \IteratorAggregate
 			return $this->model->scope($property, [ $this ]);
 		}
 
-		return self::__prototype_get($property);
+		return self::accessor_get($property);
 	}
 
 	/**
@@ -349,8 +348,8 @@ class Query implements \IteratorAggregate
 	/**
 	 * Render the `LIMIT` and `OFFSET` clauses.
 	 *
-	 * @param mixed $offset
-	 * @param mixed $limit
+	 * @param int $offset
+	 * @param int $limit
 	 *
 	 * @return string
 	 */
@@ -394,7 +393,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * Cache available scopes by model class.
 	 *
-	 * @var array[]string
+	 * @var array
 	 */
 	static protected $scopes_by_classes = [];
 
@@ -403,7 +402,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * The method uses reflexion to find the scopes, the result is cached.
 	 *
-	 * @return array[]string
+	 * @return array
 	 */
 	protected function get_model_scope()
 	{
@@ -492,7 +491,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Query
 	 */
-	public function join($expression, $options=[])
+	public function join($expression, $options = [])
 	{
 		if (is_string($expression) && $expression{0} == ':')
 		{
@@ -519,21 +518,6 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
-	 * Alias to {@link join}.
-	 *
-	 * @deprecated
-	 *
-	 * @param mixed $expression
-	 * @param array $options
-	 *
-	 * @return Query
-	 */
-	public function joins($expression, $options=[])
-	{
-		return $this->join($expression, $options);
-	}
-
-	/**
 	 * Join a subquery to the query.
 	 *
 	 * @param Query $query
@@ -542,7 +526,7 @@ class Query implements \IteratorAggregate
 	 * - `as`: The alias of the subquery. Default: The query's model alias.
 	 * - `on`: The column on which the joint is created. Default: The query's model primary key.
 	 */
-	private function join_with_query(Query $query, array $options=[])
+	private function join_with_query(Query $query, array $options = [])
 	{
 		$options += [
 
@@ -579,7 +563,7 @@ class Query implements \IteratorAggregate
 	 * - `on`: The column on which the joint is created, or an _ON_ expression. Default:
 	 * The model's primary key. @todo
 	 */
-	private function join_with_model(Model $model, array $options=[])
+	private function join_with_model(Model $model, array $options = [])
 	{
 		$primary = $this->model->primary;
 		$model_schema = $model->extended_schema;
@@ -727,7 +711,15 @@ class Query implements \IteratorAggregate
 		return [ $conditions ? '(' . $conditions . ')' : null, $conditions_args ];
 	}
 
-	private function dynamic_filter($filter, array $conditions_args=[])
+	/**
+	 * Handles dynamic filters.
+	 *
+	 * @param string $filter
+	 * @param array $conditions_args
+	 *
+	 * @return Query
+	 */
+	private function dynamic_filter($filter, array $conditions_args = [])
 	{
 		$conditions = explode('_and_', $filter);
 
@@ -814,7 +806,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Query
 	 */
-	public function order($order_or_field_name, $field_values=null)
+	public function order($order_or_field_name, $field_values = null)
 	{
 		$this->order = func_get_args();
 
@@ -824,7 +816,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * Defines the `GROUP` clause.
 	 *
-	 * @param $group
+	 * @param string $group
 	 *
 	 * @return Query
 	 */
@@ -958,6 +950,11 @@ class Query implements \IteratorAggregate
 	 * FINISHER
 	 */
 
+	/**
+	 * Resolves fetch mode from backtrace.
+	 *
+	 * @return array
+	 */
 	private function resolve_fetch_mode()
 	{
 		$trace = debug_backtrace(0, 2);
@@ -1090,7 +1087,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return bool|array
 	 */
-	public function exists($key=null)
+	public function exists($key = null)
 	{
 		if ($key !== null && func_num_args() > 1)
 		{
@@ -1206,7 +1203,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return int|array
 	 */
-	public function count($column=null)
+	public function count($column = null)
 	{
 		return $this->compute('COUNT', $column);
 	}
@@ -1276,12 +1273,12 @@ class Query implements \IteratorAggregate
 	 * records should be deleted. Default: The alias of queried model, only if at least one join
 	 * clause has been defined using the {@link join()} method.
 	 *
-	 * @return mixed The result of the operation.
+	 * @return bool The result of the operation.
 	 *
 	 * @todo-20140901: reflect on join to add the required tables by default, discarding tables
 	 * joined with the LEFT mode.
 	 */
-	public function delete($tables=null)
+	public function delete($tables = null)
 	{
 		if (!$tables && $this->join)
 		{

@@ -11,20 +11,38 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord;
+
 /**
- * Abstract root class for an active records cache.
+ * Interface for ActiveRecord cache.
  */
-abstract class ActiveRecordCache implements ActiveRecordCacheInterface
+interface ActiveRecordCache
 {
 	/**
-	 * Model using the cache.
+	 * Stores an {@link ActiveRecord} instance in the cache.
 	 *
-	 * @var Model
+	 * @param ActiveRecord $record
 	 */
-	protected $model;
+	public function store(ActiveRecord $record);
 
-	public function __construct(Model $model)
-	{
-		$this->model = $model;
-	}
+	/**
+	 * Retrieves an {@link ActiveRecord} instance from the cache.
+	 *
+	 * @param int $key
+	 *
+	 * @return ActiveRecord|null
+	 */
+	public function retrieve($key);
+
+	/**
+	 * Eliminates an {@link ActiveRecord} instance from the cache.
+	 *
+	 * @param int $key
+	 */
+	public function eliminate($key);
+
+	/**
+	 * Clears the cache.
+	 */
+	public function clear();
 }

@@ -11,84 +11,390 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+/*
 use ICanBoogie\ActiveRecord\ModelTest\A;
 use ICanBoogie\DateTime;
+*/
+
+use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\ModelTest\Article;
+use ICanBoogie\ActiveRecord\ModelTest\ArticleModel;
+use ICanBoogie\ActiveRecord\ModelTest\Brand;
+use ICanBoogie\ActiveRecord\ModelTest\Car;
+use ICanBoogie\ActiveRecord\ModelTest\Comment;
+use ICanBoogie\ActiveRecord\ModelTest\Driver;
+use ICanBoogie\DateTime;
+use ICanBoogie\OffsetNotWritable;
 
 class ModelTest extends \PHPUnit_Framework_TestCase
 {
-	private $connection;
+	private $prefix = 'myprefix';
+
+	/**
+	 * @var ConnectionCollection
+	 */
+	private $connections;
+
+	/**
+	 * @var ModelCollection
+	 */
+	private $models;
+
+	/**
+	 * @var Model
+	 */
 	private $model;
 
-	static private $query_connection;
-	static private $query_model;
-	static private $query_model_records_count;
+	/**
+	 * @var int
+	 */
+	private $model_records_count;
 
-	static public function setUpBeforeClass()
-	{
-		self::$query_connection = new Connection('sqlite::memory:');
-		self::$query_model = new Model
-		([
-			Model::NAME => 'nodes',
-			Model::CONNECTION => self::$query_connection,
-			Model::SCHEMA => [
+	/**
+	 * @var Model
+	 */
+	private $counts_model;
 
-				'fields' => [
-
-					'id' => 'serial',
-					'name' => 'varchar',
-					'date' => 'timestamp'
-				]
-			]
-		]);
-
-		$names = explode('|', 'one|two|three|four');
-
-		self::$query_model->install();
-		self::$query_model_records_count = count($names);
-
-		foreach ($names as $name)
-		{
-			self::$query_model->save([ 'name' => $name, 'date' => DateTime::now() ]);
-		}
-	}
+	/**
+	 * @var int
+	 */
+	private $counts_records_count;
 
 	public function setUp()
 	{
-		$connection = new Connection('sqlite::memory:', null, null, [ Connection::TABLE_NAME_PREFIX => 'prefix' ]);
+		$connections = new ConnectionCollection([
 
-		$model = new A([
+			'primary' => [ 'dsn' => 'sqlite::memory:', 'options' => [
 
-			Model::NAME => 'tests',
+				ConnectionOptions::TABLE_NAME_PREFIX => $this->prefix
+
+			] ]
+
+		]);
+
+		$models = new ModelCollection($connections, [
+
+			'nodes' => [
+
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'nid' => 'serial',
+						'title' => 'varchar'
+
+					]
+				]
+			],
+
+			'contents' => [
+
+				Model::EXTENDING => 'nodes',
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'body' => 'text',
+						'date' => 'datetime'
+
+					]
+				]
+			],
+
+			'articles' => [
+
+				Model::ACTIVERECORD_CLASS => Article::class,
+				Model::CLASSNAME => ArticleModel::class,
+				Model::HAS_MANY => 'comments',
+				Model::EXTENDING => 'contents'
+
+			],
+
+			'comments' => [
+
+				Model::ACTIVERECORD_CLASS => Comment::class,
+				Model::BELONGS_TO => 'articles',
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'comment_id' => 'serial',
+						'nid' => 'foreign',
+						'body' => 'text'
+
+					]
+				]
+			],
+
+			'counts' => [
+
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'id' => 'serial',
+						'name' => 'varchar',
+						'date' => 'datetime'
+
+					]
+				]
+			]
+
+		]);
+
+		$models->install();
+
+		$nodes = $models['articles'];
+		$nodes->save([ 'title' => 'Madonna', 'body' => uniqid(), 'date' => '1958-08-16' ]);
+		$nodes->save([ 'title' => 'Lady Gaga', 'body' => uniqid(), 'date' => '1986-03-28' ]);
+		$nodes->save([ 'title' => 'Cat Power', 'body' => uniqid(), 'date' => '1972-01-21' ]);
+
+		$counts = $models['counts'];
+		$names = explode('|', 'one|two|three|four');
+
+		foreach ($names as $name)
+		{
+			$counts->save([ 'name' => $name, 'date' => DateTime::now() ]);
+		}
+
+		$this->connections = $connections;
+		$this->models = $models;
+		$this->model = $nodes;
+		$this->model_records_count = 3;
+		$this->counts_model = $counts;
+		$this->counts_records_count = count($names);
+	}
+
+	/**
+	 * @expectedException \ICanBoogie\Prototype\MethodNotDefined
+	 */
+	public function test_call_undefined_method()
+	{
+		$this->models['nodes']->undefined_method();
+	}
+
+	public function test_should_instantiate_model()
+	{
+		/* @var $model Model */
+		$models = $this->models;
+		$model = $models['nodes'];
+
+		$this->assertSame($models, $model->models);
+		$this->assertSame($this->connections['primary'], $model->connection);
+		$this->assertSame('nodes', $model->id);
+		$this->assertSame($this->prefix . '_' . 'nodes', $model->name);
+		$this->assertSame('nodes', $model->unprefixed_name);
+	}
+
+	public function test_get_parent()
+	{
+		$models = $this->models;
+		$this->assertSame($models['nodes'], $models['contents']->parent);
+		$this->assertSame($models['nodes'], $models['articles']->parent);
+	}
+
+	public function test_get_parent_model()
+	{
+		$models = $this->models;
+		$this->assertSame($models['nodes'], $models['contents']->parent_model);
+		$this->assertSame($models['contents'], $models['articles']->parent_model);
+	}
+
+	public function test_should_default_id_from_name()
+	{
+		$models = $this
+			->getMockBuilder(ModelCollection::class)
+			->disableOriginalConstructor()
+			->getMock();
+
+		$connection = $this
+			->getMockBuilder(Connection::class)
+			->disableOriginalConstructor()
+			->getMock();
+
+		$model = new Model($models, [
+
 			Model::CONNECTION => $connection,
+			Model::NAME => 'nodes',
 			Model::SCHEMA => [
 
 				'fields' => [
 
-					'id' => 'serial',
-					'name' => 'varchar',
-					'date' => 'timestamp'
+					'id' => 'serial'
+
 				]
+
 			]
+
 		]);
 
-		$model->install();
+		$this->assertEquals('nodes', $model->id);
+	}
 
-		$model->save([ 'name' => 'Madonna', 'date' => '1958-08-16' ]);
-		$model->save([ 'name' => 'Lady Gaga', 'date' => '1986-03-28' ]);
-		$model->save([ 'name' => 'Cat Power', 'date' => '1972-01-21' ]);
+	public function test_should_throw_not_found_when_record_does_not_exists()
+	{
+		$id = rand();
 
-		$this->connection = $connection;
-		$this->model = $model;
+		try
+		{
+			$this->models['nodes']->find($id);
+			$this->fail("Expected RecordNotFound");
+		}
+		catch (RecordNotFound $e)
+		{
+			$this->assertSame([ $id => null ], $e->records);
+		}
+	}
+
+	public function test_should_throw_not_found_when_one_record_does_not_exists()
+	{
+		$id = rand();
+		$model = $this->models['nodes'];
+		$model->save([ 'title' => uniqid() ]);
+		$model->save([ 'title' => uniqid() ]);
+
+		try
+		{
+			$model->find(1, 2, $id);
+			$this->fail("Expected RecordNotFound");
+		}
+		catch (RecordNotFound $e)
+		{
+			$records = $e->records;
+			$message = $e->getMessage();
+
+			$this->assertContains((string) $id, $message);
+
+			$this->assertInstanceOf(ActiveRecord::class, $records[1]);
+			$this->assertInstanceOf(ActiveRecord::class, $records[2]);
+			$this->assertNull($records[$id]);
+		}
+	}
+
+	public function test_should_throw_not_found_when_all_record_do_not_exists()
+	{
+		$id1 = rand();
+		$id2 = rand();
+		$id3 = rand();
+
+		$model = $this->models['nodes'];
+
+		try
+		{
+			$model->find($id1, $id2, $id3);
+			$this->fail("Expected RecordNotFound");
+		}
+		catch (RecordNotFound $e)
+		{
+			$records = $e->records;
+			$message = $e->getMessage();
+
+			$this->assertContains((string) $id1, $message);
+			$this->assertContains((string) $id2, $message);
+			$this->assertContains((string) $id2, $message);
+
+			$this->assertNull($records[$id1]);
+			$this->assertNull($records[$id2]);
+			$this->assertNull($records[$id3]);
+		}
+	}
+
+	public function test_find_one()
+	{
+		$model = $this->models['articles'];
+		$id = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$this->assertNotEmpty($id);
+
+		$record = $model->find($id);
+		$this->assertInstanceOf(Article::class, $record);
+		$this->assertSame($record, $model->find($id));
+	}
+
+	public function test_find_many()
+	{
+		$model = $this->models['articles'];
+		$id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$id2 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$id3 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$this->assertNotEmpty($id1);
+		$this->assertNotEmpty($id2);
+		$this->assertNotEmpty($id3);
+
+		$records = $model->find($id1, $id2, $id3);
+
+		$this->assertInternalType('array', $records);
+		$this->assertInstanceOf(Article::class, $records[$id1]);
+		$this->assertInstanceOf(Article::class, $records[$id2]);
+		$this->assertInstanceOf(Article::class, $records[$id3]);
+
+		$records2 = $model->find($id1, $id2, $id3);
+		$this->assertSame($records[$id1], $records2[$id1]);
+		$this->assertSame($records[$id2], $records2[$id2]);
+		$this->assertSame($records[$id3], $records2[$id3]);
+	}
+
+	public function test_find_many_with_an_array()
+	{
+		$model = $this->models['articles'];
+		$id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$id2 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$id3 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$this->assertNotEmpty($id1);
+		$this->assertNotEmpty($id2);
+		$this->assertNotEmpty($id3);
+
+		$records = $model->find([ $id1, $id2, $id3 ]);
+
+		$this->assertInternalType('array', $records);
+		$this->assertInstanceOf(Article::class, $records[$id1]);
+		$this->assertInstanceOf(Article::class, $records[$id2]);
+		$this->assertInstanceOf(Article::class, $records[$id3]);
+
+		$records2 = $model->find([ $id1, $id2, $id3 ]);
+		$this->assertSame($records[$id1], $records2[$id1]);
+		$this->assertSame($records[$id2], $records2[$id2]);
+		$this->assertSame($records[$id3], $records2[$id3]);
+	}
+
+	public function test_offsets()
+	{
+		$model = $this->models['nodes'];
+		$this->assertFalse(isset($model[uniqid()]));
+		$id = $model->save([ 'title' => uniqid() ]);
+		$this->assertTrue(isset($model[$id]));
+		unset($model[$id]);
+		$this->assertFalse(isset($model[$id]));
+
+		try
+		{
+			$model[$id] = null;
+			$this->fail("Expected OffsetNotWritable");
+		}
+		catch (OffsetNotWritable $e)
+		{
+
+		}
+	}
+
+	public function test_new_record()
+	{
+		$model = $this->models['articles'];
+		$title = 'Title ' . uniqid();
+		$record = $model->new([ 'title' => $title ]);
+
+		$this->assertInstanceOf(Article::class, $record);
+		$this->assertSame($title, $record->title);
+		$this->assertSame($model, $record->model);
 	}
 
 	/**
 	 * @dataProvider provide_test_readonly_properties
-	 * @expectedException ICanBoogie\PropertyNotWritable
+	 * @expectedException \ICanBoogie\PropertyNotWritable
 	 * @param string $property Property name.
 	 */
 	public function test_readonly_properties($property)
 	{
-		self::$query_model->$property = null;
+		$this->model->$property = null;
 	}
 
 	public function provide_test_readonly_properties()
@@ -97,83 +403,67 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		return array_map(function($v) { return (array) $v; }, explode('|', $properties));
 	}
 
-	public function test_get_id()
-	{
-		$this->assertEquals('nodes', self::$query_model->id);
-	}
-
-	public function test_get_activerecord_class()
-	{
-		$this->assertEquals('nodes', self::$query_model->id);
-	}
-
 	public function test_get_exists()
 	{
-		$this->assertTrue(self::$query_model->exists);
+		$this->assertTrue($this->model->exists);
 	}
 
 	public function test_get_count()
 	{
-		$this->assertEquals(self::$query_model_records_count, self::$query_model->count);
+		$this->assertEquals($this->model_records_count, $this->model->count);
 	}
 
 	public function test_get_all()
 	{
-		$all = self::$query_model->all;
+		$all = $this->model->all;
 		$this->assertInternalType('array', $all);
-		$this->assertEquals(self::$query_model_records_count, count($all));
-	}
-
-	public function test_get_pairs()
-	{
-		$query_model = self::$query_model;
-		$pairs = $query_model('SELECT id, name FROM {self}')->pairs;
-		$this->assertInternalType('array', $pairs);
-		$this->assertEquals(self::$query_model_records_count, count($pairs));
-		$this->assertSame([
-
-			1 => "one",
-			2 => "two",
-			3 => "three",
-			4 => "four"
-
-		], $pairs);
+		$this->assertEquals($this->model_records_count, count($all));
+		$this->assertContainsOnlyInstancesOf(ActiveRecord::class, $all);
 	}
 
 	public function test_get_one()
 	{
-		$one = self::$query_model->one;
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord', $one);
+		$one = $this->model->one;
+		$this->assertInstanceOf(ActiveRecord::class, $one);
 	}
 
 	/**
 	 * @dataProvider provide_test_initiate_query
+	 *
+	 * @param $method
+	 * @param $args
 	 */
 	public function test_initiate_query($method, $args)
 	{
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Query', call_user_func_array([ self::$query_model, $method ], $args));
+		$this->assertInstanceOf(Query::class, call_user_func_array([ $this->model, $method], $args));
 	}
 
 	public function provide_test_initiate_query()
 	{
 		return [
 
-			[ 'select', array('id, name') ],
-			[ 'joins', array('JOIN some_other_table') ],
-			[ 'where', array('1=1') ],
-			[ 'group', array('name') ],
-			[ 'order', array('name') ],
-			[ 'limit', array('12') ],
-			[ 'offset', array('12') ]
+			[ 'select', [ 'id, name' ] ],
+			[ 'join', [ 'JOIN some_other_table' ] ],
+			[ 'where', [ '1=1' ] ],
+			[ 'group', [ 'name' ] ],
+			[ 'order', [ 'name' ] ],
+			[ 'limit', [ '12' ] ],
+			[ 'offset', [ '12' ] ]
+
 		];
 	}
 
 	/**
-	 * @expectedException InvalidArgumentException
+	 * @expectedException \InvalidArgumentException
 	 */
 	public function testInvalidConnection()
 	{
-		$model = new Model([
+		$models = $this
+			->getMockBuilder(ModelCollection::class)
+			->disableOriginalConstructor()
+			->getMock();
+
+		$model = new Model($models, [
 
 			Model::NAME => 'tests',
 			Model::CONNECTION => 'invalid_connection',
@@ -189,112 +479,62 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		]);
 	}
 
-	/*
-	 *
-	 */
-
-	public function testFind()
+	public function test_has_scope()
 	{
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord', $this->model[1]);
+		$model = $this->models['articles'];
+
+		$this->assertTrue($model->has_scope('ordered'));
+		$this->assertFalse($model->has_scope(uniqid()));
 	}
 
-	/**
-	 * @expectedException ICanBoogie\ActiveRecord\RecordNotFound
-	 */
-	public function testRecordNotFound()
-	{
-		$this->model[123456789];
-	}
-
-	/**
-	 * @expectedException ICanBoogie\ActiveRecord\RecordNotFound
-	 */
-	public function testRecordNotFoundSet()
-	{
-		$this->model->find([ 123456780, 123456781, 123456782, 123456783 ]);
-	}
-
-	public function testRecordNotFoundPartial()
-	{
-		try
-		{
-			$this->model->find([ 123456780, 1, 123456782, 123456783, 2 ]);
-
-			$this->fail("A RecordNotFound exception should have been raised");
-		}
-		catch (RecordNotFound $e)
-		{
-			$records = $e->records;
-
-			$this->assertNull($records[123456780]);
-			$this->assertNotNull($records[1]);
-			$this->assertNull($records[123456782]);
-			$this->assertNull($records[123456783]);
-			$this->assertNotNull($records[2]);
-
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord', $records[1]);
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord', $records[2]);
-		}
-	}
-
-	public function testScopeAsProperty()
+	public function test_scope_as_property()
 	{
 		$a = $this->model;
-
-		try
-		{
-			$q = $a->ordered;
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord\Query', $q);
-		}
-		catch (\Exception $e)
-		{
-			$this->fail("An exception was raised: " . $e->getMessage());
-		}
+		$q = $a->ordered;
+		$this->assertInstanceOf(Query::class, $q);
 
 		$record = $q->one;
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord', $record);
-		$this->assertEquals('Lady Gaga', $record->name);
+		$this->assertInstanceOf(ActiveRecord::class, $record);
+		$this->assertEquals('Lady Gaga', $record->title);
 	}
 
-	public function testScopeAsMethod()
+	public function test_scope_as_method()
 	{
 		$a = $this->model;
-
-		try
-		{
-			$q = $a->ordered('asc');
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord\Query', $q);
-		}
-		catch (\Exception $e)
-		{
-			$this->fail("An exception was raised: " . $e->getMessage());
-		}
+		$q = $a->ordered(1);
+		$this->assertInstanceOf(Query::class, $q);
 
 		$record = $q->one;
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord', $record);
-		$this->assertEquals('Madonna', $record->name);
+		$this->assertInstanceOf(ActiveRecord::class, $record);
+		$this->assertEquals('Madonna', $record->title);
 	}
 
 	/**
-	 * @expectedException ICanBoogie\ActiveRecord\ScopeNotDefined
+	 * @expectedException \ICanBoogie\ActiveRecord\ScopeNotDefined
 	 */
-	public function testScopeNotDefined()
+	public function test_scope_not_defined()
 	{
-		$a = $this->model;
-		$q = $a->ordered('asc');
-		$q->undefined_scope();
+		$this->model->scope('undefined' . uniqid());
+	}
+
+	/**
+	 * @expectedException \ICanBoogie\ActiveRecord\ScopeNotDefined
+	 */
+	public function test_scope_not_defined_from_query()
+	{
+		$this->model->ordered->undefined_scope();
 	}
 
 	/*
-	 * Record existance
+	 * Record existence
 	 */
 
 	/**
 	 * `exists()` must return `true` when a record or all the records of a subset exist.
 	 */
-	public function testExistsTrue()
+	public function test_exists_true()
 	{
-		$m = $this->model;
+		$m = $this->counts_model;
 		$this->assertTrue($m->exists(1));
 		$this->assertTrue($m->exists(1, 2, 3));
 		$this->assertTrue($m->exists([ 1, 2, 3 ]));
@@ -303,9 +543,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	/**
 	 * `exists()` must return `false` when a record or all the records of a subset don't exist.
 	 */
-	public function testExistsFalse()
+	public function test_exists_false()
 	{
-		$m = $this->model;
+		$m = $this->counts_model;
 		$u = rand(999, 9999);
 
 		$this->assertFalse($m->exists($u));
@@ -316,9 +556,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	/**
 	 * `exists()` must return an array when some records of a subset don't exist.
 	 */
-	public function testExistsMixed()
+	public function test_exists_mixed()
 	{
-		$m = $this->model;
+		$m = $this->counts_model;
 		$u = rand(999, 9999);
 		$a = [ 1 => true, $u => false, 3 => true ];
 
@@ -326,105 +566,91 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($a, $m->exists([ 1, $u, 3 ]));
 	}
 
-	public function testExistsCondition()
+	public function test_exists_condition()
 	{
-		$this->assertTrue($this->model->filter_by_name('Madonna')->exists);
-		$this->assertFalse($this->model->filter_by_name('Madonna ' . uniqid())->exists);
-	}
-
-	public function testCache()
-	{
-		$a = $this->model[1];
-		$b = $this->model[1];
-
-		$this->assertEquals(spl_object_hash($a), spl_object_hash($b));
+		$this->assertTrue($this->counts_model->filter_by_name('one')->exists);
+		$this->assertFalse($this->counts_model->filter_by_name('one ' . uniqid())->exists);
 	}
 
 	public function test_belongs_to()
 	{
-		$connection = new Connection('sqlite::memory:');
+		$models = new ModelCollection($this->connections, [
 
-		$drivers = new Model
-		([
-			Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Driver',
-			Model::CONNECTION => $connection,
-			Model::NAME => 'drivers',
-			Model::SCHEMA => [
+			'drivers' => [
 
-				'fields' => [
+				Model::ACTIVERECORD_CLASS => Driver::class,
+				Model::SCHEMA => [
 
-					'driver_id' => 'serial',
-					'name' => 'varchar'
+					'fields' => [
+
+						'driver_id' => 'serial',
+						'name' => 'varchar'
+					]
+				]
+			],
+
+			'brands' => [
+
+				Model::ACTIVERECORD_CLASS => Brand::class,
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'brand_id' => 'serial',
+						'name' => 'varchar'
+					]
+				]
+			],
+
+			'cars' => [
+
+				Model::ACTIVERECORD_CLASS => Car::class,
+	// 			Model::BELONGS_TO => [ $drivers, $brands ],
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'car_id' => 'serial',
+						'driver_id' => 'foreign',
+						'brand_id' => 'foreign',
+						'name' => 'varchar'
+					]
 				]
 			]
+
 		]);
 
-		$brands = new Model
-		([
-			Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Brand',
-			Model::CONNECTION => $connection,
-			Model::NAME => 'brands',
-			Model::SCHEMA => [
+		$models->install();
 
-				'fields' => [
-
-					'brand_id' => 'serial',
-					'name' => 'varchar'
-				]
-			]
-		]);
-
-		$cars = new Model
-		([
-			Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Car',
-// 			Model::BELONGS_TO => [ $drivers, $brands ],
-			Model::CONNECTION => $connection,
-			Model::NAME => 'cars',
-			Model::SCHEMA => [
-
-				'fields' => [
-
-					'car_id' => 'serial',
-					'driver_id' => 'foreign',
-					'brand_id' => 'foreign',
-					'name' => 'varchar'
-				]
-			]
-		]);
+		$drivers = $models['drivers'];
+		$brands = $models['brands'];
+		$cars = $models['cars'];
 
 		$cars->belongs_to($drivers, $brands);
 
-		$drivers->install();
-		$brands->install();
-		$cars->install();
-
-		$car = $cars->new_record();
-		$this->assertInstanceOf(__NAMESPACE__ . '\ModelTest\Car', $car);
-
-		$car->name = '4two';
+		$car = $cars->new([ 'name' => '4two' ]);
+		$this->assertInstanceOf(Car::class, $car);
 		$this->assertNull($car->driver);
 		$this->assertNull($car->brand);
 
 		# driver
 
-		$driver = $drivers->new_record();
-		$this->assertInstanceOf(__NAMESPACE__ . '\ModelTest\Driver', $driver);
-		$driver->name = 'Madonna';
+		$driver = $drivers->new([ 'name' => 'Madonna' ]);
+		$this->assertInstanceOf(Driver::class, $driver);
 		$driver_id = $driver->save();
 
 		# brand
 
-		$brand = $brands->new_record();
-		$this->assertInstanceOf(__NAMESPACE__ . '\ModelTest\Brand', $brand);
-		$brand->name = 'Smart';
+		$brand = $brands->new([ 'name' => 'Smart' ]);
+		$this->assertInstanceOf(Brand::class, $brand);
 		$brand_id = $brand->save();
 
 		$car->driver_id = $driver_id;
 		$car->brand_id = $brand_id;
 		$car->save();
 
-		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Driver', $car->driver);
-		$this->assertInstanceof(__NAMESPACE__ . '\ModelTest\Brand', $car->brand);
+		$this->assertInstanceof(Driver::class, $car->driver);
+		$this->assertInstanceof(Brand::class, $car->brand);
 
 		$car->driver_id = null;
 		$this->assertNull($car->driver_id);
@@ -432,114 +658,120 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($driver->driver_id, $car->driver_id);
 	}
 
-	public function testCacheRevokedOnSave()
+	public function test_cache_should_be_revoked_on_save()
 	{
-		$connection = new Connection('sqlite::memory:');
+		$name1 = uniqid();
+		$name2 = uniqid();
 
-		$drivers = new Model
-		([
-			Model::ACTIVERECORD_CLASS => __NAMESPACE__ . '\ModelTest\Driver',
-			Model::CONNECTION => $connection,
-			Model::NAME => 'drivers_3',
-			Model::SCHEMA => [
+		$model = $this->counts_model;
+		$id = $model->save([ 'name' => $name1, 'date' => DateTime::now() ]);
+		$record = $model[$id];
+		$model->save([ 'name' => $name2 ], $id);
+		$record_now = $model[$id];
 
-				'fields' => [
-
-					'driver_id' => 'serial',
-					'name' => 'varchar'
-				]
-			]
-		]);
-
-		$drivers->install();
-
-		$driver_id = $drivers->save([ 'name' => 'madonna' ]);
-		$driver = $drivers[$driver_id];
-		$drivers->save([ 'name' => 'lady gaga' ], $driver_id);
-		$driver_now = $drivers[$driver_id];
-
-		$this->assertEquals('madonna', $driver->name);
-		$this->assertEquals('lady gaga', $driver_now->name);
-		$this->assertNotEquals(spl_object_hash($driver), spl_object_hash($driver_now));
+		$this->assertEquals($name1, $record->name);
+		$this->assertEquals($name2, $record_now->name);
+		$this->assertNotSame($record, $record_now);
 	}
 
-	/*
-	 * Querying
+
+	/**
+	 * @dataProvider provide_test_querying
+	 *
+	 * @param callable $callback
+	 * @param string $expected
 	 */
-
-	public function testForwardSelect()
+	public function test_querying($callback, $expected)
 	{
-		$m = self::$query_model;
-		$this->assertEquals("SELECT nid, UPPER(name) FROM `nodes` `node`", (string) $m->select('nid, UPPER(name)'));
+		$this->assertSame($expected, (string) $callback($this->model));
 	}
 
-	public function testForwardJoins()
+	public function provide_test_querying()
 	{
-		$m = self::$query_model;
-		$this->assertEquals("SELECT * FROM `nodes` `node` INNER JOIN other USING(nid)", (string) $m->join('INNER JOIN other USING(nid)'));
-	}
+		$p = $this->prefix;
+		$l = Query::LIMIT_MAX;
 
-	public function testForwardWhere()
-	{
-		$m = self::$query_model;
-		$this->assertEquals("SELECT * FROM `nodes` `node` WHERE (`nid` = ? AND `name` = ?)", (string) $m->where(array('nid' => 1, 'name' => 'madonna')));
-	}
+		return [
 
-	public function testForwardGroup()
-	{
-		$m = self::$query_model;
-		$this->assertEquals("SELECT * FROM `nodes` `node` GROUP BY name", (string) $m->group('name'));
-	}
+			[ function(Model $m) { return $m->select('nid, UPPER(name)'); }, <<<EOT
+SELECT nid, UPPER(name) FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`)
+EOT
+			],
 
-	public function testForwardOrder()
-	{
-		$m = self::$query_model;
-		$this->assertEquals("SELECT * FROM `nodes` `node` ORDER BY nid", (string) $m->order('nid'));
-		$this->assertEquals("SELECT * FROM `nodes` `node` ORDER BY FIELD(nid, '1', '2', '3')", (string) $m->order('nid', 1, 2, 3));
-	}
+			[ function (Model $m) { return $m->join('INNER JOIN other USING(nid)'); }, <<<EOT
+SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) INNER JOIN other USING(nid)
+EOT
+			],
 
-	public function testForwardLimit()
-	{
-		$m = self::$query_model;
-		$this->assertEquals("SELECT * FROM `nodes` `node` LIMIT 5", (string) $m->limit(5));
-		$this->assertEquals("SELECT * FROM `nodes` `node` LIMIT 5, 10", (string) $m->limit(5, 10));
-	}
+			[ function (Model $m) { return $m->where([ 'nid' => 1, 'name' => 'madonna' ]); }, <<<EOT
+SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) WHERE (`nid` = ? AND `name` = ?)
+EOT
+			],
 
-	public function testForwardOffset()
-	{
-		$m = self::$query_model;
-		$this->assertEquals("SELECT * FROM `nodes` `node` LIMIT 5, " . Query::LIMIT_MAX, (string) $m->offset(5));
+			[ function (Model $m) { return $m->group('name'); }, <<<EOT
+SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) GROUP BY name
+EOT
+			],
+
+			[ function (Model $m) { return $m->order('nid'); }, <<<EOT
+SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) ORDER BY nid
+EOT
+			],
+
+			[ function (Model $m) { return $m->order('nid', 1, 2, 3); }, <<<EOT
+SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) ORDER BY FIELD(nid, '1', '2', '3')
+EOT
+			],
+
+			[ function (Model $m) { return $m->limit(5); }, <<<EOT
+SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5
+EOT
+			],
+
+			[ function (Model $m) { return $m->limit(5, 10); }, <<<EOT
+SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5, 10
+EOT
+			],
+
+			[ function (Model $m) { return $m->offset(5); }, <<<EOT
+SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5, $l
+EOT
+			]
+		];
 	}
 
 	public function test_activerecord_cache()
 	{
-		$model = new Model([
+		$model_id = 't' . uniqid();
 
-			Model::CONNECTION => self::$query_connection,
-			Model::NAME => __FUNCTION__,
-			Model::SCHEMA => [
+		$models = new ModelCollection($this->connections, [
 
-				'fields' => [
+			$model_id => [
 
-					'id' => 'serial',
-					'value' => 'varchar'
+				Model::SCHEMA => [
 
+					'fields' => [
+
+						'id' => 'serial',
+						'name' => 'varchar'
+
+					]
 				]
-
 			]
 
 		]);
 
-		$model->install();
+		$models->install();
+		$model = $models[$model_id];
 
-		foreach (array('one', 'two', 'three', 'four') as $value)
+		foreach ([ 'one', 'two', 'three', 'four' ] as $value)
 		{
-			$model->save([ 'value' => $value ]);
+			$model->save([ 'name' => $value ]);
 		}
 
 		$activerecord_cache = $model->activerecord_cache;
 
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\ActiveRecordCacheInterface', $activerecord_cache);
+		$this->assertInstanceOf(ActiveRecordCache::class, $activerecord_cache);
 
 		for ($i = 1 ; $i < 5 ; $i++)
 		{
@@ -566,92 +798,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 		$records[1]->delete();
 		$this->assertNull($activerecord_cache->retrieve(1));
-		$this->setExpectedException('ICanBoogie\ActiveRecord\RecordNotFound');
-		$record = $model[1];
+		$this->setExpectedException(RecordNotFound::class);
+		$model[1];
 	}
-
-	public function test_parent_model()
-	{
-		$nodes = new Model([
-
-			Model::ID => 'nodes',
-			Model::NAME => 'nodes',
-			Model::CONNECTION => self::$query_connection,
-			Model::SCHEMA => [
-
-				'fields' => [
-
-					'nid' => 'serial',
-					'title' => 'varchar'
-
-				]
-
-			]
-
-		]);
-
-		$contents = new Model([
-
-			Model::ID => 'contents',
-			Model::NAME => 'contents',
-			Model::EXTENDING => $nodes,
-			Model::SCHEMA => [
-
-				'fields' => [
-
-					'body' => 'text'
-
-				]
-
-			]
-
-		]);
-
-		$articles = new Model([
-
-			Model::ID => 'articles',
-			Model::NAME => 'articles',
-			Model::EXTENDING => $contents
-
-		]);
-
-		$this->assertSame($contents->parent, $nodes);
-		$this->assertSame($articles->parent, $nodes);
-		$this->assertSame($contents->parent_model, $nodes);
-		$this->assertSame($articles->parent_model, $contents);
-	}
-}
-
-namespace ICanBoogie\ActiveRecord\ModelTest;
-
-use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\Query;
-
-class A extends Model
-{
-	protected function scope_ordered(Query $query, $direction='desc')
-	{
-		return $query->order('date ' . ($direction == 'desc' ? 'DESC' : 'ASC'));
-	}
-}
-
-class Driver extends ActiveRecord
-{
-	public $driver_id;
-	public $name;
-}
-
-class Brand extends ActiveRecord
-{
-	public $brand_id;
-	public $name;
-}
-
-class Car extends ActiveRecord
-{
-	public $car_id;
-	public $driver_id = 0;
-	public $brand_id = 0;
-	public $name = '';
 }

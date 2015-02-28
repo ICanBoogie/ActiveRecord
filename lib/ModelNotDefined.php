@@ -29,7 +29,7 @@ class ModelNotDefined extends \LogicException implements Exception
 		return $this->id;
 	}
 
-	public function __construct($id, $code=500, \Exception $previous=null)
+	public function __construct($id, $code = 500, \Exception $previous = null)
 	{
 		$this->id = $id;
 

@@ -19,13 +19,13 @@ use ICanBoogie\Prototype;
  */
 class BelongsToRelation extends Relation
 {
-	public function __construct(Model $parent, $related, array $options=[])
+	public function __construct(Model $parent, $related, array $options = [])
 	{
 		if (empty($options['local_key']) || empty($options['foreign_key']))
 		{
 			if (!($related instanceof Model))
 			{
-				$related = ActiveRecord\get_model($related);
+				$related = $parent->models[$related];
 			}
 
 			$options += [

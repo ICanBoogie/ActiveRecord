@@ -23,8 +23,8 @@ class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 		$created_at = new DateTime('-10 day');
 		$updated_at = new DateTime('-1 day');
 
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->created_at);
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->updated_at);
+		$this->assertInstanceOf(DateTime::class, $r->created_at);
+		$this->assertInstanceOf(DateTime::class, $r->updated_at);
 		$this->assertTrue($r->created_at->is_empty);
 		$this->assertTrue($r->updated_at->is_empty);
 
@@ -42,8 +42,8 @@ class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 
 		$r->created_at = null;
 		$r->updated_at = null;
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->created_at);
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->updated_at);
+		$this->assertInstanceOf(DateTime::class, $r->created_at);
+		$this->assertInstanceOf(DateTime::class, $r->updated_at);
 		$this->assertTrue($r->created_at->is_empty);
 		$this->assertTrue($r->updated_at->is_empty);
 	}
@@ -55,9 +55,9 @@ class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 		$updated_at = new DateTime('-1 day');
 		$datetime = new DateTime();
 
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->created_at);
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->updated_at);
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->datetime);
+		$this->assertInstanceOf(DateTime::class, $r->created_at);
+		$this->assertInstanceOf(DateTime::class, $r->updated_at);
+		$this->assertInstanceOf(DateTime::class, $r->datetime);
 		$this->assertTrue($r->created_at->is_empty);
 		$this->assertTrue($r->updated_at->is_empty);
 		$this->assertTrue($r->datetime->is_empty);
@@ -82,9 +82,9 @@ class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 		$r->created_at = null;
 		$r->updated_at = null;
 		$r->datetime = null;
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->created_at);
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->updated_at);
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->datetime);
+		$this->assertInstanceOf(DateTime::class, $r->created_at);
+		$this->assertInstanceOf(DateTime::class, $r->updated_at);
+		$this->assertInstanceOf(DateTime::class, $r->datetime);
 		$this->assertTrue($r->created_at->is_empty);
 		$this->assertTrue($r->updated_at->is_empty);
 		$this->assertTrue($r->datetime->is_empty);

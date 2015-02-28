@@ -29,7 +29,7 @@ class ConnectionNotEstablished extends \RuntimeException implements Exception
 		return $this->id;
 	}
 
-	public function __construct($id, $message, $code=500, \Exception $previous=null)
+	public function __construct($id, $message, $code = 500, \Exception $previous = null)
 	{
 		$this->id = $id;
 

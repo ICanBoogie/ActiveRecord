@@ -23,7 +23,7 @@ class UpdatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 		$r = new $classname;
 		$datetime = new DateTime();
 
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->updated_at);
+		$this->assertInstanceOf(DateTime::class, $r->updated_at);
 		$this->assertTrue($r->updated_at->is_empty);
 
 		$r->updated_at = $datetime;
@@ -34,7 +34,7 @@ class UpdatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('updated_at', $r->__sleep());
 
 		$r->updated_at = null;
-		$this->assertInstanceOf('ICanBoogie\DateTime', $r->updated_at);
+		$this->assertInstanceOf(DateTime::class, $r->updated_at);
 		$this->assertTrue($r->updated_at->is_empty);
 	}
 

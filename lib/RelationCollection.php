@@ -147,7 +147,7 @@ class RelationCollection implements \ArrayAccess
 	 *
 	 * @see HasManyRelation
 	 */
-	public function has_many($related, array $options=[])
+	public function has_many($related, array $options = [])
 	{
 		if (is_array($related))
 		{

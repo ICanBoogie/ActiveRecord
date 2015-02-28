@@ -49,7 +49,16 @@ abstract class Relation
 
 	protected function get_related()
 	{
-		return $this->related;
+		$related = $this->related;
+
+		if ($related instanceof Model)
+		{
+			return $related;
+		}
+
+		/* @var $related string */
+
+		return $this->related = $this->parent->models[$related];
 	}
 
 	/**
@@ -102,7 +111,7 @@ abstract class Relation
 	 * - `local_key`: The name of the local key. Default: The parent model's primary key.
 	 * - `foreign_key`: The name of the foreign key. Default: The parent model's primary key.
 	 */
-	public function __construct(Model $parent, $related, array $options=[])
+	public function __construct(Model $parent, $related, array $options = [])
 	{
 		$options += [
 
@@ -159,7 +168,7 @@ abstract class Relation
 
 		if (!$activerecord_class || $activerecord_class == 'ICanBoogie\ActiveRecord')
 		{
-			throw new \LogicException('The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a relationship.');
+			throw new ActiveRecordClassNotValid($activerecord_class, 'The Active Record class cannot be <code>ICanBoogie\ActiveRecord</code> for a relationship.');
 		}
 
 		return $activerecord_class;
@@ -191,7 +200,7 @@ abstract class Relation
 
 		if (!($related instanceof Model))
 		{
-			$this->related = $related = ActiveRecord\get_model($related);
+			$this->related = $related = $this->parent->models[$related];
 		}
 
 		return $related;

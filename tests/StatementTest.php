@@ -11,6 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\ModelTest\Article;
+
 class StatementTest extends \PHPUnit_Framework_TestCase
 {
 	static private $connection;
@@ -29,7 +31,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 	{
 		$connection = self::$connection;
 		$statement = $connection('SELECT * FROM test');
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Statement', $statement);
+		$this->assertInstanceOf(Statement::class, $statement);
 
 		$records = $statement->all;
 		$this->assertInternalType('array', $records);
@@ -55,8 +57,8 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		}
 		catch (\Exception $e)
 		{
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementNotValid', $e);
-			$this->assertInstanceOf('PDOException', $e->original);
+			$this->assertInstanceOf(StatementNotValid::class, $e);
+			$this->assertInstanceOf(\PDOException::class, $e->original);
 			$this->assertNull($e->getPrevious());
 
 			$this->assertInternalType('string', $e->statement);
@@ -83,11 +85,11 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		}
 		catch (\Exception $e)
 		{
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementNotValid', $e);
-			$this->assertInstanceOf('PDOException', $e->original);
+			$this->assertInstanceOf(StatementNotValid::class, $e);
+			$this->assertInstanceOf(\PDOException::class, $e->original);
 			$this->assertNull($e->getPrevious());
 
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord\Statement', $e->statement);
+			$this->assertInstanceOf(Statement::class, $e->statement);
 			$this->assertEquals($statement, $e->statement);
 			$this->assertSame([ 1, "oneone"], $e->args);
 
@@ -119,8 +121,8 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		}
 		catch (\Exception $e)
 		{
-			$this->assertInstanceOf('ICanBoogie\ActiveRecord\StatementNotValid', $e);
-			$this->assertInstanceOf('PDOException', $e->original);
+			$this->assertInstanceOf(StatementNotValid::class, $e);
+			$this->assertInstanceOf(\PDOException::class, $e->original);
 			$this->assertNull($e->getPrevious());
 
 			$this->assertInternalType('string', $e->statement);
@@ -128,5 +130,186 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 			$this->assertNull($e->args);
 			$this->assertEquals('HY000(1) no such table: undefined_table — `DELETE FROM undefined_table`', $e->getMessage());
 		}
+	}
+
+	/**
+	 * @dataProvider provide_modes
+	 *
+	 * @param $arguments
+	 */
+	public function test_mode($arguments)
+	{
+		$statement = $this
+			->getMockBuilder(Statement::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'setFetchMode' ])
+			->getMock();
+		$a = $statement
+			->expects($this->once())
+			->method('setFetchMode')
+			->willReturn(true);
+		call_user_func_array([ $a, 'with' ], $arguments);
+
+		/* @var $statement Statement */
+		$this->assertSame($statement, call_user_func_array([ $statement, 'mode' ], $arguments));
+	}
+
+	/**
+	 * @expectedException \ICanBoogie\ActiveRecord\UnableToSetFetchMode
+	 */
+	public function test_invalid_mode_should_throw_an_exception()
+	{
+		$invalid_mode = uniqid();
+
+		$statement = $this
+			->getMockBuilder(Statement::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'setFetchMode' ])
+			->getMock();
+		$statement
+			->expects($this->once())
+			->method('setFetchMode')
+			->with($invalid_mode)
+			->willReturn(false);
+
+		/* @var $statement Statement */
+		$this->assertSame($statement, $statement->mode($invalid_mode));
+	}
+
+	/**
+	 * @dataProvider provide_modes
+	 *
+	 * @param $arguments
+	 */
+	public function test_fetchAndClose($arguments)
+	{
+		$expected = uniqid();
+
+		$statement = $this
+			->getMockBuilder(Statement::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'fetch' ])
+			->getMock();
+		$a = $statement
+			->expects($this->once())
+			->method('fetch')
+			->willReturn($expected);
+		call_user_func_array([ $a, 'with' ], $arguments);
+
+		/* @var $statement Statement */
+		$this->assertSame($expected, call_user_func_array([ $statement, 'fetchAndClose' ], $arguments));
+	}
+
+	public function test_get_rc()
+	{
+		$expected = uniqid();
+
+		$statement = $this
+			->getMockBuilder(Statement::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'fetchColumnAndClose' ])
+			->getMock();
+		$statement
+			->expects($this->once())
+			->method('fetchColumnAndClose')
+			->willReturn($expected);
+
+		$this->assertSame($expected, $statement->rc);
+	}
+
+	public function test_get_one()
+	{
+		$expected = uniqid();
+
+		$statement = $this
+			->getMockBuilder(Statement::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'fetchAndClose' ])
+			->getMock();
+		$statement
+			->expects($this->once())
+			->method('fetchAndClose')
+			->willReturn($expected);
+
+		$this->assertSame($expected, $statement->one);
+	}
+
+	/**
+	 * @dataProvider provide_modes
+	 *
+	 * @param $arguments
+	 */
+	public function test_all($arguments)
+	{
+		$all = [ uniqid(), uniqid() ];
+
+		$statement = $this
+			->getMockBuilder(Statement::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'fetchAll' ])
+			->getMock();
+		$a = $statement
+			->expects($this->once())
+			->method('fetchAll')
+			->willReturn($all);
+		call_user_func_array([ $a, 'with' ], $arguments);
+
+		/* @var $statement Statement */
+		$this->assertSame($all, call_user_func_array([ $statement, 'all' ], $arguments));
+	}
+
+	public function provide_modes()
+	{
+		$model = $this
+			->getMockBuilder(Model::class)
+			->disableOriginalConstructor()
+			->getMock();
+
+		return [
+
+			[ [ \PDO::FETCH_ASSOC ] ],
+			[ [ \PDO::FETCH_COLUMN, 123 ] ],
+			[ [ \PDO::FETCH_FUNC, function() {} ] ],
+			[ [ \PDO::FETCH_CLASS, Article::class ] ],
+			[ [ \PDO::FETCH_CLASS, Article::class, [ $model ] ] ]
+
+		];
+	}
+
+	public function test_get_all()
+	{
+		$all = [ uniqid(), uniqid() ];
+
+		$statement = $this
+			->getMockBuilder(Statement::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'fetchAll' ])
+			->getMock();
+		$statement
+			->expects($this->once())
+			->method('fetchAll')
+			->willReturn($all);
+
+		/* @var $statement Statement */
+		$this->assertSame($all, $statement->all);
+	}
+
+	public function test_get_pairs()
+	{
+		$pairs = [ 1 => "one", 2 => "tow" ];
+
+		$statement = $this
+			->getMockBuilder(Statement::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'fetchAll' ])
+			->getMock();
+		$statement
+			->expects($this->once())
+			->method('fetchAll')
+			->with(\PDO::FETCH_KEY_PAIR)
+			->willReturn($pairs);
+
+		/* @var $statement Statement */
+		$this->assertSame($pairs, $statement->pairs);
 	}
 }

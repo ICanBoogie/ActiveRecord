@@ -48,7 +48,7 @@ class RelationNotDefined extends OffsetNotDefined implements Exception
 		return $this->collection;
 	}
 
-	public function __construct($relation_name, $collection, $code=500, \Exception $previous=null)
+	public function __construct($relation_name, RelationCollection $collection, $code = 500, \Exception $previous = null)
 	{
 		$this->relation_name = $relation_name;
 		$this->collection = $collection;

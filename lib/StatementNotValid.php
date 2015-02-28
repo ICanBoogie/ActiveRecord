@@ -45,7 +45,7 @@ class StatementNotValid extends \RuntimeException implements Exception
 		return $this->original;
 	}
 
-	public function __construct($statement, $code=500, \PDOException $original=null)
+	public function __construct($statement, $code = 500, \PDOException $original = null)
 	{
 		$message = null;
 		$args = null;

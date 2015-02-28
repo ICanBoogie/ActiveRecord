@@ -11,24 +11,26 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class ConnectionsTest extends \PHPUnit_Framework_TestCase
+class ConnectionCollectionTest extends \PHPUnit_Framework_TestCase
 {
 	private $connections;
 
 	public function setUp()
 	{
-		$this->connections = new Connections
+		$this->connections = new ConnectionCollection
 		([
 
 			'one' => [
 
 				'dsn' => 'sqlite::memory:'
+
 			],
 
 			'bad' => [
 
 				'dsn' => 'mysql:dbname=bad_database' . uniqid()
 			]
+
 		]);
 	}
 
@@ -47,7 +49,7 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 	public function test_should_get_connection()
 	{
 		$connection = $this->connections['one'];
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Connection', $connection);
+		$this->assertInstanceOf(Connection::class, $connection);
 	}
 
 	/**
@@ -75,7 +77,7 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 			'dsn' => 'sqlite::memory:'
 		];
 
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\Connection', $this->connections['two']);
+		$this->assertInstanceOf(Connection::class, $this->connections['two']);
 	}
 
 	/**
@@ -129,7 +131,7 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 
 	public function test_get_established()
 	{
-		$connections = new Connections([
+		$connections = new ConnectionCollection([
 
 			'one' => 'sqlite::memory:',
 			'two' => 'sqlite::memory:'
@@ -139,6 +141,7 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 		$this->assertEmpty($connections->established);
 
 		$connection = $connections['one'];
+		$this->assertSame($connection, $connections['one']);
 
 		$this->assertSame([
 
@@ -160,9 +163,10 @@ class ConnectionsTest extends \PHPUnit_Framework_TestCase
 		$this->assertEmpty($names);
 		$connection = $connections['one'];
 
-		foreach ($connections as $id => $definition)
+		foreach ($connections as $id => $c)
 		{
 			$names[] = $id;
+			$this->assertSame($connection, $c);
 		}
 
 		$this->assertCount(1, $names);

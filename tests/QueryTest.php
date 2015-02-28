@@ -22,42 +22,57 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 	static private $dogs;
 	static private $source;
 
+	/**
+	 * @var ConnectionCollection
+	 */
+	private $connections;
+
 	static public function setUpBeforeClass()
 	{
-		self::$connection = new Connection('sqlite::memory:');
+		$connections = new ConnectionCollection([
 
-		self::$animals = new Model
-		([
-			Model::NAME => 'animals',
-			Model::CONNECTION => self::$connection,
-			Model::SCHEMA => [
+			'primary' => 'sqlite::memory:'
 
-				'fields' => [
-
-					'id' => 'serial',
-					'name' => 'varchar',
-					'date' => 'timestamp',
-					'legs' => 'integer'
-				]
-			]
 		]);
 
-		self::$dogs = new Model
-		([
-			Model::ACTIVERECORD_CLASS => 'ICanBoogie\ActiveRecord\QueryTest\Dog',
-			Model::EXTENDING => self::$animals,
-			Model::NAME => 'dogs',
-			Model::SCHEMA => [
+		$models = new ModelCollection($connections, [
 
-				'fields' => [
+			'animals' => [
 
-					'bark_volume' => 'float'
+				Model::NAME => 'animals',
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'id' => 'serial',
+						'name' => 'varchar',
+						'date' => 'timestamp',
+						'legs' => 'integer'
+					]
+				]
+			],
+
+			'dogs' => [
+
+				Model::ACTIVERECORD_CLASS => Dog::class,
+				Model::EXTENDING => 'animals',
+				Model::NAME => 'dogs',
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'bark_volume' => 'float'
+					]
 				]
 			]
+
 		]);
 
-		self::$animals->install();
-		self::$dogs->install();
+		$models->install();
+
+		self::$connection = $connections['primary'];
+		self::$animals = $models['animals'];
+		self::$dogs = $models['dogs'];
 
 		for ($i = 0 ; $i < self::$n ; $i++)
 		{
@@ -75,8 +90,17 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 		}
 	}
 
+	public function setUp()
+	{
+		$this->connections = new ConnectionCollection([
+
+			'primary' => 'sqlite::memory:'
+
+		]);
+	}
+
 	/**
-	 * @expectedException ICanBoogie\PropertyNotWritable
+	 * @expectedException \ICanBoogie\PropertyNotWritable
 	 * @dataProvider provide_test_readonly_properties
 	 */
 	public function test_readonly_properties($property)
@@ -93,7 +117,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 	public function test_one()
 	{
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord\QueryTest\Dog', self::$dogs->one);
+		$this->assertInstanceOf(Dog::class, self::$dogs->one);
 	}
 
 	public function test_all()
@@ -150,16 +174,39 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 	public function test_join_with_query()
 	{
-		$subscribers = new Model([
+		$models = new ModelCollection($this->connections, [
 
-			Model::CONNECTION => self::$connection,
-			Model::NAME => 'subscribers',
-			Model::SCHEMA => [
+			'subscribers' => [
 
-				'fields' => [
+				Model::CONNECTION => self::$connection,
+				Model::NAME => 'subscribers',
+				Model::SCHEMA => [
 
-					'subscriber_id' => 'serial',
-					'email' => 'varchar'
+					'fields' => [
+
+						'subscriber_id' => 'serial',
+						'email' => 'varchar'
+
+					]
+
+				]
+
+			],
+
+			'updates' => [
+
+				Model::CONNECTION => self::$connection,
+				Model::NAME => 'updates',
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'update_id' => 'serial',
+						'subscriber_id' => 'foreign',
+						'updated_at' => 'datetime',
+						'update_hash' => [ 'char', 40 ]
+
+					]
 
 				]
 
@@ -167,24 +214,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 		]);
 
-		$updates = new Model([
-
-			Model::CONNECTION => self::$connection,
-			Model::NAME => 'updates',
-			Model::SCHEMA => [
-
-				'fields' => [
-
-					'update_id' => 'serial',
-					'subscriber_id' => 'foreign',
-					'updated_at' => 'datetime',
-					'update_hash' => [ 'char', 40 ]
-
-				]
-
-			]
-
-		]);
+		$updates = $models['updates'];
+		$subscribers = $models['subscribers'];
 
 		$update_query = $updates->select('subscriber_id, updated_at, update_hash')
 		->order('updated_at DESC');
@@ -198,16 +229,39 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 	public function test_join_with_model()
 	{
-		$subscribers = new Model([
+		$models = new ModelCollection($this->connections, [
 
-			Model::CONNECTION => self::$connection,
-			Model::NAME => 'subscribers',
-			Model::SCHEMA => [
+			'subscribers' => [
 
-				'fields' => [
+				Model::CONNECTION => self::$connection,
+				Model::NAME => 'subscribers',
+				Model::SCHEMA => [
 
-					'subscriber_id' => 'serial',
-					'email' => 'varchar'
+					'fields' => [
+
+						'subscriber_id' => 'serial',
+						'email' => 'varchar'
+
+					]
+
+				]
+
+			],
+
+			'updates' => [
+
+				Model::CONNECTION => self::$connection,
+				Model::NAME => 'updates',
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'update_id' => 'serial',
+						'subscriber_id' => 'foreign',
+						'updated_at' => 'datetime',
+						'update_hash' => [ 'char', 40 ]
+
+					]
 
 				]
 
@@ -215,24 +269,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 		]);
 
-		$updates = new Model([
-
-			Model::CONNECTION => self::$connection,
-			Model::NAME => 'updates',
-			Model::SCHEMA => [
-
-				'fields' => [
-
-					'update_id' => 'serial',
-					'subscriber_id' => 'foreign',
-					'updated_at' => 'datetime',
-					'update_hash' => [ 'char', 40 ]
-
-				]
-
-			]
-
-		]);
+		$updates = $models['updates'];
+		$subscribers = $models['subscribers'];
 
 		$this->assertEquals("SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `subscriber` USING(`subscriber_id`)"
 		, (string) $updates->select('update_id, email')->join($subscribers));
@@ -243,11 +281,4 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals("SELECT update_id, email FROM `updates` `update` LEFT JOIN `subscribers` AS `sub` USING(`subscriber_id`)"
 		, (string) $updates->select('update_id, email')->join($subscribers, [ 'as' => 'sub', 'mode' => 'LEFT' ]));
 	}
-}
-
-namespace ICanBoogie\ActiveRecord\QueryTest;
-
-class Dog extends \ICanBoogie\ActiveRecord
-{
-
 }

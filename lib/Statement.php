@@ -70,7 +70,7 @@ class Statement extends \PDOStatement
 	 *
 	 * @throws StatementNotValid when the execution of the statement fails.
 	 */
-	public function execute($args=[])
+	public function execute($args = [])
 	{
 		$start = microtime(true);
 
@@ -89,94 +89,6 @@ class Statement extends \PDOStatement
 		{
 			throw new StatementNotValid([ $this, $args ], 500, $e);
 		}
-	}
-
-	/**
-	 * Fetches the first row of the result set and closes the cursor.
-	 *
-	 * @param int $fetch_style
-	 * @param int $cursor_orientation
-	 * @param int $cursor_offset
-	 *
-	 * @return mixed
-	 *
-	 * @see PDOStatement::fetch()
-	 */
-	public function fetchAndClose($fetch_style=\PDO::FETCH_BOTH, $cursor_orientation=\PDO::FETCH_ORI_NEXT, $cursor_offset=0)
-	{
-		$args = func_get_args();
-		$rc = call_user_func_array([ $this, 'parent::fetch' ], $args);
-
-		$this->closeCursor();
-
-		return $rc;
-	}
-
-	/**
-	 * Alias for `fetchAndClose()`.
-	 */
-	protected function get_one()
-	{
-		return $this->fetchAndClose();
-	}
-
-	/**
-	 * Fetches a column of the first row of the result set and closes the cursor.
-	 *
-	 * @param int $column_number
-	 *
-	 * @return string
-	 *
-	 * @see PDOStatement::fetchColumn()
-	 */
-	public function fetchColumnAndClose($column_number=0)
-	{
-		$rc = parent::fetchColumn($column_number);
-
-		$this->closeCursor();
-
-		return $rc;
-	}
-
-	/**
-	 * Alias for `fetchColumnAndClose()`.
-	 */
-	protected function get_rc()
-	{
-		return $this->fetchColumnAndClose();
-	}
-
-	/**
-	 * Returns an array containing all of the result set rows (FETCH_LAZY supported)
-	 *
-	 * @param int $fetch_style
-	 * @param mixed $fetch_argument
-	 * @param array $ctor_args
-	 *
-	 * @return array
-	 */
-	public function fetchGroups($fetch_style, $fetch_argument=null, array $ctor_args=[])
-	{
-		$args = func_get_args();
-		$rc = [];
-
-		if($fetch_style === \PDO::FETCH_LAZY)
-		{
-			call_user_func_array([ $this, 'setFetchMode' ], $args);
-
-			foreach($this as $row)
-			{
-				$rc[$row[0]][] = $row;
-			}
-
-			return $rc;
-		}
-
-		$args[0] = \PDO::FETCH_GROUP | $fetch_style;
-
-		$rc = call_user_func_array([ $this, 'parent::fetchAll' ], $args);
-
-		return $rc;
 	}
 
 	/**
@@ -200,6 +112,61 @@ class Statement extends \PDOStatement
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Fetches the first row of the result set and closes the cursor.
+	 *
+	 * @param int $fetch_style
+	 * @param int $cursor_orientation
+	 * @param int $cursor_offset
+	 *
+	 * @return mixed
+	 *
+	 * @see PDOStatement::fetch()
+	 */
+	public function fetchAndClose($fetch_style = \PDO::FETCH_BOTH, $cursor_orientation = \PDO::FETCH_ORI_NEXT, $cursor_offset = 0)
+	{
+		$args = func_get_args();
+		$rc = call_user_func_array([ $this, 'fetch' ], $args);
+
+		$this->closeCursor();
+
+		return $rc;
+	}
+
+	/**
+	 * Alias for `fetchAndClose()`.
+	 */
+	protected function get_one()
+	{
+		return $this->fetchAndClose();
+	}
+
+	/**
+	 * Fetches a column of the first row of the result set and closes the cursor.
+	 *
+	 * @param int $column_number
+	 *
+	 * @return string
+	 *
+	 * @see PDOStatement::fetchColumn()
+	 */
+	public function fetchColumnAndClose($column_number = 0)
+	{
+		$rc = parent::fetchColumn($column_number);
+
+		$this->closeCursor();
+
+		return $rc;
+	}
+
+	/**
+	 * Alias for `fetchColumnAndClose()`.
+	 */
+	protected function get_rc()
+	{
+		return $this->fetchColumnAndClose();
 	}
 
 	/**

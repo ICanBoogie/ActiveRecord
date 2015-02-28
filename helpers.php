@@ -22,3 +22,17 @@ function get_model($id)
 {
 	return Helpers::get_model($id);
 }
+
+/**
+ * Extract the charset and collate from a charset/collate union.
+ *
+ * @param $charset_and_collate
+ *
+ * @return array
+ */
+function extract_charset_and_collate($charset_and_collate)
+{
+	list($charset, $collate) = explode('/', $charset_and_collate) + [ 1 => 'general_ci'];
+
+	return [ $charset, "{$charset}_{$collate}" ];
+}

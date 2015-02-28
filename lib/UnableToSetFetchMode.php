@@ -29,7 +29,7 @@ class UnableToSetFetchMode extends \RuntimeException implements Exception
 		return $this->mode;
 	}
 
-	public function __construct($mode, $message=null, $code=500, \Exception $previous=null)
+	public function __construct($mode, $message = null, $code = 500, \Exception $previous = null)
 	{
 		$this->mode = $mode;
 

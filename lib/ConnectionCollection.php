@@ -19,7 +19,7 @@ use ICanBoogie\Accessor\AccessorTrait;
  * @property-read array $definitions Connection definitions.
  * @property-read Connection[] $established Established connections.
  */
-class Connections implements \ArrayAccess, \IteratorAggregate
+class ConnectionCollection implements \ArrayAccess, \IteratorAggregate
 {
 	use AccessorTrait;
 
@@ -148,9 +148,10 @@ class Connections implements \ArrayAccess, \IteratorAggregate
 			'dsn' => null,
 			'username' => 'root',
 			'password' => null
+
 		];
 
-		$options['options'][Connection::ID] = $id;
+		$options['options'][ConnectionOptions::ID] = $id;
 
 		#
 		# we catch connection exceptions and rethrow them in order to avoid displaying sensible

@@ -22,24 +22,38 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 
 	static public function setUpBeforeClass()
 	{
-		self::$connection = new Connection('sqlite::memory:');
-		self::$model = new Model
-		([
-			Model::CONNECTION => self::$connection,
-			Model::NAME => 'testing',
-			Model::SCHEMA => [
+		$connections = new ConnectionCollection([
 
-				'fields' => [
+			'primary' => 'sqlite::memory:'
 
-					'id' => 'serial',
-					'title' => 'varchar',
-					'date' => 'datetime',
-					'possible' => [ 'varchar', 8, 'null' => true ]
-				]
-			]
 		]);
 
-		self::$model->install();
+		self::$connection = $connections['primary'];
+
+		$models = new ModelCollection($connections, [
+
+			'testing' => [
+
+				Model::CONNECTION => self::$connection,
+				Model::NAME => 'testing',
+				Model::SCHEMA => [
+
+					'fields' => [
+
+						'id' => 'serial',
+						'title' => 'varchar',
+						'date' => 'datetime',
+						'possible' => [ 'varchar', 8, 'null' => true ]
+					]
+				]
+
+			]
+
+		]);
+
+		$models->install();
+
+		self::$model = $models['testing'];
 	}
 
 	public function test_construct()
@@ -62,12 +76,6 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals(self::$model, $record->model);
 	}
 
-	public function test_deprecated_get_model()
-	{
-		$record = new ActiveRecord(self::$model);
-		$this->assertEquals(self::$model, $record->_model);
-	}
-
 	/**
 	 * @expectedException \ICanBoogie\PropertyNotWritable
 	 */
@@ -81,12 +89,6 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	{
 		$record = new ActiveRecord(self::$model);
 		$this->assertEquals(self::$model->id, $record->model_id);
-	}
-
-	public function test_deprecated_get_model_id()
-	{
-		$record = new ActiveRecord(self::$model);
-		$this->assertEquals(self::$model->id, $record->_model_id);
 	}
 
 	/**
@@ -146,7 +148,7 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($record->date, $date->utc->as_db);
 
 		$record = self::$model->where('date = ?', $date)->one;
-		$this->assertInstanceOf('ICanBoogie\ActiveRecord', $record);
+		$this->assertInstanceOf(ActiveRecord::class, $record);
 		$this->assertEquals($key, $record->id);
 	}
 
@@ -216,6 +218,7 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$record->title = "Testing";
 		$record->date = DateTime::now();
 		$record->possible = null;
+		$record->extraneous = uniqid();
 		$key = $record->save();
 
 		$cmp = self::$model->filter_by_id($key)->one;
@@ -225,6 +228,20 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$record->save();
 		$cmp = self::$model->filter_by_id($key)->one;
 		$this->assertNotNull($cmp->possible);
+	}
+
+	/**
+	 * @expectedException \LogicException
+	 */
+	public function test_delete_missing_primary()
+	{
+		$model = $this
+			->getMockBuilder(Model::class)
+			->disableOriginalConstructor()
+			->getMock();
+
+		$record = new ActiveRecord($model);
+		$record->delete();
 	}
 }
 

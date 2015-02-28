@@ -16,18 +16,18 @@ use ICanBoogie\Accessor\AccessorTrait;
 /**
  * Model collection.
  *
- * @property-read Connections $connections
- * @property-read array[string]array $definitions
- * @property-read array[string]Model $instances
+ * @property-read ConnectionCollection $connections
+ * @property-read array $definitions
+ * @property-read Model[] $instances
  */
-class Models implements \ArrayAccess
+class ModelCollection implements \ArrayAccess
 {
 	use AccessorTrait;
 
 	/**
 	 * Instantiated models.
 	 *
-	 * @var array[string]Model
+	 * @var Model[]
 	 */
 	protected $instances = [];
 
@@ -39,7 +39,7 @@ class Models implements \ArrayAccess
 	/**
 	 * Models definitions.
 	 *
-	 * @var array[string]array
+	 * @var array
 	 */
 	protected $definitions = [];
 
@@ -49,9 +49,7 @@ class Models implements \ArrayAccess
 	}
 
 	/**
-	 * Connections manager.
-	 *
-	 * @var Connections
+	 * @var ConnectionCollection
 	 */
 	protected $connections;
 
@@ -63,10 +61,10 @@ class Models implements \ArrayAccess
 	/**
 	 * Initializes the {@link $connections} and {@link $definitions} properties.
 	 *
-	 * @param Connections $connections Connections manager.
+	 * @param ConnectionCollection $connections
 	 * @param array[string]array $definitions Model definitions.
 	 */
-	public function __construct(Connections $connections, array $definitions=[])
+	public function __construct(ConnectionCollection $connections, array $definitions = [])
 	{
 		$this->connections = $connections;
 
@@ -135,21 +133,9 @@ class Models implements \ArrayAccess
 			throw new ModelNotDefined($id);
 		}
 
-		$properties = $this->definitions[$id] + [
-
-			Model::CONNECTION => 'primary',
-			Model::CLASSNAME => __NAMESPACE__ . '\Model'
-
-		];
-
-		if (is_string($properties[Model::CONNECTION]))
-		{
-			$properties[Model::CONNECTION] = $this->connections[$properties[Model::CONNECTION]];
-		}
-
-		$class = $properties[Model::CLASSNAME];
-
-		return new $class($properties);
+		return $this->instances[$id] = $this
+			->instantiate_model($this
+				->resolve_model_attributes($this->definitions[$id]));
 	}
 
 	/**
@@ -171,9 +157,60 @@ class Models implements \ArrayAccess
 	}
 
 	/**
+	 * Resolves model attributes.
+	 *
+	 * The methods replaces {@link Model::CONNECTION} and {@link Model::EXTENDING} identifier
+	 * with instances.
+	 *
+	 * @param array $attributes
+	 *
+	 * @return array
+	 */
+	protected function resolve_model_attributes(array $attributes)
+	{
+		$attributes += [
+
+			Model::CLASSNAME => Model::class,
+			Model::CONNECTION => 'primary',
+			Model::EXTENDING => null
+
+		];
+
+		$connection = &$attributes[Model::CONNECTION];
+
+		if ($connection && !($connection instanceof Connection))
+		{
+			$connection = $this->connections[$connection];
+		}
+
+		$extending = &$attributes[Model::EXTENDING];
+
+		if ($extending && !($extending instanceof Model))
+		{
+			$extending = $this[$extending];
+		}
+
+		return $attributes;
+	}
+
+	/**
+	 * Instantiate a model with the specified attributes.
+	 *
+	 * @param array $attributes
+	 *
+	 * @return Model
+	 */
+	protected function instantiate_model(array $attributes)
+	{
+		$class = $attributes[Model::CLASSNAME];
+
+		return new $class($this, $attributes);
+	}
+
+	/**
 	 * Install all the models.
 	 *
-	 * @return Models
+	 * @return ModelCollection
 	 */
 	public function install()
 	{
@@ -195,7 +232,7 @@ class Models implements \ArrayAccess
 	/**
 	 * Uninstall all the models.
 	 *
-	 * @return Models
+	 * @return ModelCollection
 	 */
 	public function uninstall()
 	{
@@ -218,7 +255,7 @@ class Models implements \ArrayAccess
 	/**
 	 * Check if models are installed.
 	 *
-	 * @return array[string]bool An array of key/value pair where _key_ is a model identifier and
+	 * @return array An array of key/value pair where _key_ is a model identifier and
 	 * _value_ `true` if the model is installed, `false` otherwise.
 	 */
 	public function is_installed()

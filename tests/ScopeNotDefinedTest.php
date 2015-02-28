@@ -15,42 +15,36 @@ use ICanBoogie\ActiveRecord;
 
 class ScopeNotDefinedTest extends \PHPUnit_Framework_TestCase
 {
-	static private $model;
-	static private $exception;
+	private $model;
+	private $exception;
 
-	static public function setupBeforeClass()
+	public function setUp()
 	{
-		self::$model = new Model([
+		$this->model = $this
+			->getMockBuilder(Model::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'get_unprefixed_name' ])
+			->getMock();
+		$this->model
+			->expects($this->once())
+			->method('get_unprefixed_name')
+			->willReturn('testing');
 
-			Model::CONNECTION => new Connection('sqlite::memory:'),
-			Model::NAME => 'testing',
-			Model::SCHEMA => [
-
-				'fields' => [
-
-					'id' => 'serial'
-
-				]
-
-			]
-
-		]);
-
-		self::$exception = new ScopeNotDefined('my_scope', self::$model);
+		$this->exception = new ScopeNotDefined('my_scope', $this->model);
 	}
 
 	public function test_message()
 	{
-		$this->assertEquals("Unknown scope `my_scope` for model `testing`.", self::$exception->getMessage());
+		$this->assertEquals("Unknown scope `my_scope` for model `testing`.", $this->exception->getMessage());
 	}
 
 	public function test_get_scope_name()
 	{
-		$this->assertEquals('my_scope', self::$exception->scope_name);
+		$this->assertEquals('my_scope', $this->exception->scope_name);
 	}
 
 	public function test_get_model()
 	{
-		$this->assertSame(self::$model, self::$exception->model);
+		$this->assertSame($this->model, $this->exception->model);
 	}
 }
