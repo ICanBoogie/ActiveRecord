@@ -133,6 +133,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * @requires PHP 5.6.0
 	 * @dataProvider provide_modes
 	 *
 	 * @param $arguments
@@ -155,6 +156,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * @requires PHP 5.6.0
 	 * @expectedException \ICanBoogie\ActiveRecord\UnableToSetFetchMode
 	 */
 	public function test_invalid_mode_should_throw_an_exception()
@@ -177,6 +179,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * @requires PHP 5.6.0
 	 * @dataProvider provide_modes
 	 *
 	 * @param $arguments
@@ -200,6 +203,9 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame($expected, call_user_func_array([ $statement, 'fetchAndClose' ], $arguments));
 	}
 
+	/**
+	 * @requires PHP 5.6.0
+	 */
 	public function test_get_rc()
 	{
 		$expected = uniqid();
@@ -217,6 +223,9 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame($expected, $statement->rc);
 	}
 
+	/**
+	 * @requires PHP 5.6.0
+	 */
 	public function test_get_one()
 	{
 		$expected = uniqid();
@@ -235,6 +244,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
+	 * @requires PHP 5.6.0
 	 * @dataProvider provide_modes
 	 *
 	 * @param $arguments
@@ -258,6 +268,9 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame($all, call_user_func_array([ $statement, 'all' ], $arguments));
 	}
 
+	/**
+	 * @requires PHP 5.6.0
+	 */
 	public function provide_modes()
 	{
 		$model = $this
@@ -276,6 +289,9 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		];
 	}
 
+	/**
+	 * @requires PHP 5.6.0
+	 */
 	public function test_get_all()
 	{
 		$all = [ uniqid(), uniqid() ];
@@ -294,6 +310,9 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame($all, $statement->all);
 	}
 
+	/**
+	 * @requires PHP 5.6.0
+	 */
 	public function test_get_pairs()
 	{
 		$pairs = [ 1 => "one", 2 => "tow" ];

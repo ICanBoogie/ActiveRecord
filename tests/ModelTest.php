@@ -200,6 +200,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame($models['contents'], $models['articles']->parent_model);
 	}
 
+	/**
+	 * @requires PHP 5.6.0
+	 */
 	public function test_should_default_id_from_name()
 	{
 		$models = $this
