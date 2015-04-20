@@ -142,36 +142,37 @@ class ActiveRecord extends Object
 
 		# removes the primary key from the properties.
 
-		$key = null;
 		$primary = $model->primary;
 
 		if (is_array($primary))
 		{
-			$rc = $model->insert($properties, [ 'on duplicate' => true ]);
+			return $model->insert($properties, [ 'on duplicate' => true ]);
 		}
-		else
+
+		#
+
+		$primary_column = $primary ? $schema[$primary] : null;
+
+		if (isset($properties[$primary]) && !$primary_column->auto_increment)
 		{
-			$primary_definition = $primary ? $schema[$primary] : null;
+			return $model->insert($properties, [ 'on duplicate' => true ]);
+		}
 
-			if (isset($properties[$primary]) && !$primary_definition->auto_increment)
-			{
-				$rc = $model->insert($properties, [ 'on duplicate' => true ]);
-			}
-			else
-			{
-				if (isset($properties[$primary]))
-				{
-					$key = $properties[$primary];
-					unset($properties[$primary]);
-				}
+		#
 
-				$rc = $model->save($properties, $key);
+		$key = null;
 
-				if ($key === null && $rc)
-				{
-					$this->$primary = $rc;
-				}
-			}
+		if (isset($properties[$primary]))
+		{
+			$key = $properties[$primary];
+			unset($properties[$primary]);
+		}
+
+		$rc = $model->save($properties, $key);
+
+		if ($key === null && $rc)
+		{
+			$this->$primary = $rc;
 		}
 
 		return $rc;

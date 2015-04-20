@@ -71,21 +71,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 */
 	protected function get_indexes()
 	{
-		$indexes = [];
-
-		foreach ($this->columns as $column_id => $column)
-		{
-			$indexed = $column->indexed;
-
-			if (!$indexed)
-			{
-				continue;
-			}
-
-			$indexes[($indexed === true) ? $column_id : $indexed][] = $column_id;
-		}
-
-		return $indexes;
+		return $this->collect_indexes_by_type('indexed');
 	}
 
 	/**
@@ -95,21 +81,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 */
 	protected function get_unique_indexes()
 	{
-		$indexes = [];
-
-		foreach ($this->columns as $column_id => $column)
-		{
-			$unique = $column->unique;
-
-			if (!$unique)
-			{
-				continue;
-			}
-
-			$indexes[($unique === true) ? $column_id : $unique][] = $column_id;
-		}
-
-		return $indexes;
+		return $this->collect_indexes_by_type('unique');
 	}
 
 	/**
@@ -193,5 +165,31 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	public function getIterator()
 	{
 		return new \ArrayIterator($this->columns);
+	}
+
+	/**
+	 * Collect index name by type.
+	 *
+	 * @param string $type One of [ "indexed, "unique" ].
+	 *
+	 * @return array
+	 */
+	private function collect_indexes_by_type($type)
+	{
+		$indexes = [];
+
+		foreach ($this->columns as $column_id => $column)
+		{
+			$name = $column->$type;
+
+			if (!$name)
+			{
+				continue;
+			}
+
+			$indexes[$name === true ? $column_id : $name][] = $column_id;
+		}
+
+		return $indexes;
 	}
 }
