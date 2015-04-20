@@ -157,4 +157,51 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
 		];
 	}
+
+	/**
+	 * @dataProvider provide_test_filter
+	 *
+	 * @param array $values
+	 * @param array $expected
+	 */
+	public function test_filter($values, $expected)
+	{
+		$schema = new Schema([
+
+			'id' => 'serial',
+			'title' => 'varchar'
+
+		]);
+
+		$this->assertEquals($expected, $schema->filter($values));
+	}
+
+	public function provide_test_filter()
+	{
+		return [
+
+			[ [
+
+				'extraneous1' => uniqid(),
+				'extraneous2' => uniqid()
+
+			], [ ] ],
+
+			[ [
+
+			'id' => 123,
+			'extraneous' => uniqid()
+
+			], [ 'id' => 123 ] ],
+
+			[ [
+
+				'id' => 123,
+				'title' => "ICanBoogie",
+				'extraneous' => uniqid()
+
+			], [ 'id' => 123, 'title' => "ICanBoogie" ] ]
+
+		];
+	}
 }

@@ -541,13 +541,8 @@ class Table extends Object
 
 		$schema = $extended ? $this->extended_schema : $this->schema;
 
-		foreach ($values as $identifier => $value)
+		foreach ($schema->filter($values) as $identifier => $value)
 		{
-			if (!isset($schema[$identifier]))
-			{
-				continue;
-			}
-
 			if ($value instanceof \DateTime)
 			{
 				$value = DateTime::from($value);

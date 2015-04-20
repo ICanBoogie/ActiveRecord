@@ -187,9 +187,21 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 				continue;
 			}
 
-			$indexes[$name === true ? $column_id : $name][] = $column_id;
+			$indexes[ $name === true ? $column_id : $name ][] = $column_id;
 		}
 
 		return $indexes;
+	}
+
+    /**
+	 * Filters values according to the schema columns.
+	 *
+	 * @param array $values
+	 *
+	 * @return array
+	 */
+	public function filter(array $values)
+	{
+		return array_intersect_key($values, $this->columns);
 	}
 }
