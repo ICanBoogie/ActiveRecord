@@ -363,382 +363,86 @@ class Connection extends \PDO
 	}
 
 	/**
-	 * Parses a schema to create a schema with low level definitions.
-	 *
-	 * For example, a column defined as 'serial' is parsed as :
-	 *
-	 * 'type' => 'integer', 'serial' => true, 'size' => 'big', 'unsigned' => true,
-	 * 'primary' => true
-	 *
-	 * @param array $schema
-	 *
-	 * @return array
-	 */
-	public function parse_schema(array $schema)
-	{
-		$driver_name = $this->driver_name;
-
-		$schema['primary'] = [];
-		$schema['indexes'] = [];
-
-		foreach ($schema['fields'] as $identifier => &$definition)
-		{
-			$definition = (array) $definition;
-
-			#
-			# translate special indexes to keys
-			#
-
-			if (isset($definition[0]))
-			{
-				$definition['type'] = $definition[0];
-
-				unset($definition[0]);
-			}
-
-			if (isset($definition[1]))
-			{
-				$definition['size'] = $definition[1];
-
-				unset($definition[1]);
-			}
-
-			#
-			# handle special types
-			#
-
-			switch($definition['type'])
-			{
-				case 'serial':
-				{
-					$definition['type'] = 'integer';
-
-					#
-					# because auto increment only works on "INTEGER AUTO INCREMENT" in SQLite
-					#
-
-					if ($driver_name != 'sqlite')
-					{
-						$definition += [ 'size' => 'big', 'unsigned' => true ];
-					}
-
-					$definition += [ 'auto increment' => true, 'primary' => true ];
-				}
-				break;
-
-				case 'foreign':
-				{
-					$definition['type'] = 'integer';
-
-					if ($driver_name != 'sqlite')
-					{
-						$definition += [ 'size' => 'big', 'unsigned' => true ];
-					}
-
-					$definition += [ 'indexed' => true ];
-				}
-				break;
-
-				case 'varchar':
-				{
-					$definition += [ 'size' => 255 ];
-				}
-				break;
-			}
-
-			#
-			# primary
-			#
-
-			if (isset($definition['primary']) && !in_array($identifier, $schema['primary']))
-			{
-				$schema['primary'][] = $identifier;
-			}
-
-			#
-			# indexed
-			#
-
-			if (!empty($definition['indexed']) && empty($definition['unique']))
-			{
-				$index = $definition['indexed'];
-
-				if (is_string($index))
-				{
-					if (isset($schema['indexes'][$index]) && in_array($identifier, $schema['indexes'][$index]))
-					{
-						# $identifier is already defined in $index
-					}
-					else
-					{
-						$schema['indexes'][$index][] = $identifier;
-					}
-				}
-				else
-				{
-					if (!in_array($identifier, $schema['indexes']))
-					{
-						$schema['indexes'][$identifier] = $identifier;
-					}
-				}
-			}
-		}
-
-		#
-		# indexes that are part of the primary key are deleted
-		#
-
-		if ($schema['indexes'] && $schema['primary'])
-		{
-			$schema['indexes'] = array_diff($schema['indexes'], $schema['primary']);
-		}
-
-		if (count($schema['primary']) == 1)
-		{
-			$schema['primary'] = $schema['primary'][0];
-		}
-
-		return $schema;
-	}
-
-	/**
 	 * Creates a table of the specified name and schema.
 	 *
 	 * @param string $unprefixed_name The unprefixed name of the table.
-	 * @param array $schema The schema of the table.
+	 * @param Schema $schema The schema of the table.
 	 *
 	 * @return bool
 	 */
-	public function create_table($unprefixed_name, array $schema)
+	public function create_table($unprefixed_name, Schema $schema)
 	{
-		// FIXME-20091201: I don't think 'UNIQUE' is properly implemented
-
 		$driver_name = $this->driver_name;
-		$unique_list = [];
 
-		$schema = $this->parse_schema($schema);
+		$rendered_columns = [];
 
-		$parts = [];
-
-		foreach ($schema['fields'] as $identifier => $params)
+		foreach ($schema as $column_id => $column)
 		{
-			$definition = '`' . $identifier . '`';
+			$quoted_column_id = $this->quote_identifier($column_id);
 
-			$type = $params['type'];
-			$size = isset($params['size']) ? $params['size'] : 0;
-
-			switch ($type)
+			if ($column->primary && $driver_name == 'sqlite')
 			{
-				case 'blob':
-				case 'char':
-				case 'integer':
-				case 'text':
-				case 'varchar':
-				case 'bit':
-				{
-					if ($size)
-					{
-						if (is_string($size))
-						{
-							$definition .= ' ' . strtoupper($size) . ($type == 'integer' ? 'INT' : $type);
-						}
-						else
-						{
-							$definition .= ' ' . $type . '(' . $size . ')';
-						}
-					}
-					else
-					{
-						$definition .= ' ' . $type;
-					}
+				$rendered_columns[$column_id] = "$quoted_column_id INTEGER NOT NULL";
 
-					if (($type == 'integer') && !empty($params['unsigned']))
-					{
-						$definition .= ' UNSIGNED';
-					}
-				}
-				break;
-
-				case 'boolean':
-				case 'date':
-				case 'datetime':
-				case 'time':
-				case 'timestamp':
-				case 'year':
-				{
-					$definition .= ' ' . $type;
-				}
-				break;
-
-				case 'enum':
-				{
-					$enum = [];
-
-					foreach ((array) $size as $identifier)
-					{
-						$enum[] = '\'' . $identifier . '\'';
-					}
-
-					$definition .= ' ' . $type . '(' . implode(', ', $enum) . ')';
-				}
-				break;
-
-				case 'double':
-				case 'float':
-				{
-					$definition .= ' ' . $type;
-
-					if ($size)
-					{
-						$definition .= '(' . implode(', ', (array) $size) . ')';
-					}
-				}
-				break;
-
-				default:
-				{
-					throw new \InvalidArgumentException("Unsupported type <q>{$type}</q> for row <q>{$identifier}</q>.");
-				}
-				break;
+				continue;
 			}
 
-			#
-			# null
-			#
-
-			if (empty($params['null']))
-			{
-				$definition .= ' NOT NULL';
-			}
-			else
-			{
-				$definition .= ' NULL';
-			}
-
-			#
-			# default
-			#
-
-			if (!empty($params['default']))
-			{
-				$default = $params['default'];
-
-				$definition .= ' DEFAULT ' . ($default{strlen($default) - 1} == ')' || $default == 'CURRENT_TIMESTAMP' ? $default : '"' . $default . '"');
-			}
-
-			#
-			# serial, unique
-			#
-
-			if (!empty($params['auto increment']))
-			{
-				if ($driver_name == 'mysql')
-				{
-					$definition .= ' AUTO_INCREMENT';
-				}
-				else if ($driver_name == 'sqlite')
-				{
-// 					$definition .= ' PRIMARY KEY';
-// 					unset($schema['primary']);
-				}
-			}
-			else if (!empty($params['unique']))
-			{
-				$unique_id = $params['unique'];
-
-				if ($unique_id === true)
-				{
-					$definition .= ' UNIQUE';
-				}
-				else
-				{
-					$unique_list[$unique_id][] = $identifier;
-				}
-			}
-
-			$parts[] = $definition;
+			$rendered_columns[$column_id] = "$quoted_column_id $column";
 		}
 
-		#
-		# primary key
-		#
+		$primary = $schema->primary;
 
-		if ($schema['primary'])
+		if ($primary)
 		{
-			$keys = (array) $schema['primary'];
+			$rendered_primary = (array) $primary;
+			$rendered_primary = $this->quote_identifier($rendered_primary);
+			$rendered_primary = implode(', ', $rendered_primary);
 
-			$parts[] = 'PRIMARY KEY (' . implode(', ', $this->quote_identifier($keys)) . ')';
+			$rendered_columns[] = "PRIMARY KEY($rendered_primary)";
 		}
 
-		#
-		# indexes
-		#
-
-		if (isset($schema['indexes']) && $driver_name == 'mysql')
-		{
-			foreach ($schema['indexes'] as $key => $identifiers)
-			{
-				$definition = 'INDEX ';
-
-				if (!is_numeric($key))
-				{
-					$definition .= $this->quote_identifier($key) . ' ';
-				}
-
-				$definition .= '(' . implode(',', $this->quote_identifier((array) $identifiers)) . ')';
-
-				$parts[] = $definition;
-			}
-		}
+		# create table sql
 
 		$table_name = $this->table_name_prefix . $unprefixed_name;
-		$statement = 'CREATE TABLE `' . $table_name . '` (' . implode(', ', $parts) . ')';
+		$quoted_table_name = $this->quote_identifier($table_name);
+
+		$statement = "CREATE TABLE $quoted_table_name\n(\n\t" . implode(",\n\t", $rendered_columns) . "\n)";
 
 		if ($driver_name == 'mysql')
 		{
-			$statement .= ' CHARACTER SET ' . $this->charset . ' COLLATE ' . $this->collate;
+			$statement .= " CHARACTER SET $this->charset  COLLATE $this->collate";
 		}
 
 		$rc = ($this->exec($statement) !== false);
 
-		if (!$rc)
-		{
-			return $rc;
-		}
+		$indexes = $schema->indexes;
 
-		if (isset($schema['indexes']) && $driver_name == 'sqlite')
+		if ($indexes)
 		{
-			#
-			# SQLite: now that the table has been created, we can add indexes
-			#
-
-			foreach ($schema['indexes'] as $key => $identifiers)
+			foreach ($indexes as $index_id => $column_names)
 			{
-				$statement = 'CREATE INDEX IF NOT EXISTS `' . $key . '` ON ' . $table_name;
+				$column_names = $this->quote_identifier($column_names);
+				$rendered_column_names = implode(', ', $column_names);
+				$quoted_index_id = $this->quote_identifier($index_id);
 
-				$identifiers = (array) $identifiers;
-
-				foreach ($identifiers as &$identifier)
-				{
-					$identifier = '`' . $identifier . '`';
-				}
-
-				$statement .= ' (' . implode(',', $identifiers) . ')';
-
-				$this->exec($statement);
+				$this->exec("CREATE INDEX $quoted_index_id ON $quoted_table_name ($rendered_column_names)");
 			}
 		}
 
-		#
-		# UNIQUE indexes
-		#
+		$indexes = $schema->unique_indexes;
 
-		foreach ($unique_list as $unique_id => $columns)
+		if ($indexes)
 		{
-			$columns = implode(", ", $this->quote_identifier($columns));
-			$statement = "ALTER TABLE `$table_name` ADD UNIQUE `$unique_id` ($columns)";
+			echo "\n\n\n$statement\n\n\n";
 
-			$this->exec($statement);
+			foreach ($indexes as $index_id => $column_names)
+			{
+				$column_names = $this->quote_identifier($column_names);
+				$rendered_column_names = implode(', ', $column_names);
+				$quoted_index_id = $this->quote_identifier($index_id);
+
+				$this->exec("CREATE UNIQUE INDEX $quoted_index_id ON $quoted_table_name ($rendered_column_names)");
+			}
 		}
 
 		return $rc;

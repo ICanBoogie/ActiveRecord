@@ -151,9 +151,9 @@ class ActiveRecord extends Object
 		}
 		else
 		{
-			$primary_definition = $primary ? $schema['fields'][$primary] : null;
+			$primary_definition = $primary ? $schema[$primary] : null;
 
-			if (isset($properties[$primary]) && empty($primary_definition['auto increment']))
+			if (isset($properties[$primary]) && !$primary_definition->auto_increment)
 			{
 				$rc = $model->insert($properties, [ 'on duplicate' => true ]);
 			}
@@ -192,7 +192,7 @@ class ActiveRecord extends Object
 
 		foreach ($properties as $identifier => $value)
 		{
-			if ($value !== null || (isset($schema['fields'][$identifier]) && !empty($schema['fields'][$identifier]['null'])))
+			if ($value !== null || (isset($schema[$identifier]) && !empty($schema[$identifier]->null)))
 			{
 				continue;
 			}

@@ -18,8 +18,9 @@ use ICanBoogie\Object;
  * A representation of a database table.
  *
  * @property-read Connection $connection Connection used by the table.
- * @property-read array $schema The schema of the table.
- * @property-read array $extended_schema The extended schema of the table.
+ * @property-read Schema $schema The schema of the table.
+ * @property-read array $schema_options The options used to create the {@link Schema} instance.
+ * @property-read Schema $extended_schema The extended schema of the table.
  * @property-read string $name Name of the table, which might include a prefix.
  * @property-read string $unprefixed_name Unprefixed name of the table.
  * @property-read string|array|null $primary Primary key of the table, or `null` if there is none.
@@ -135,15 +136,25 @@ class Table extends Object
 	/**
 	 * Schema for the table.
 	 *
-	 * The "{alias}" placeholder used in queries is replaced by the properties value.
-	 *
-	 * @var array
+	 * @var Schema
 	 */
 	protected $schema;
 
 	protected function get_schema()
 	{
 		return $this->schema;
+	}
+
+	/**
+	 * Schema options provided using {@link SCHEMA} during construct.
+	 *
+	 * @var array
+	 */
+	protected $schema_options;
+
+	protected function get_schema_options()
+	{
+		return $this->schema_options;
 	}
 
 	/**
@@ -197,7 +208,7 @@ class Table extends Object
 				case self::CONNECTION: $this->connection = $value; break;
 				case self::IMPLEMENTING: $this->implements = $value; break;
 				case self::NAME: $this->unprefixed_name = $value; break;
-				case self::SCHEMA: $this->schema = $value; break;
+				case self::SCHEMA: $this->schema_options = $value; break;
 				case self::EXTENDING: $this->parent = $value; break;
 			}
 		}
@@ -212,12 +223,12 @@ class Table extends Object
 			throw new \InvalidArgumentException("Invalid character in table name \"$this->unprefixed_name\": {$matches[0]}.");
 		}
 
-		if (!$this->schema)
+		if (!$this->schema_options)
 		{
 			throw new \InvalidArgumentException('The <code>SCHEMA</code> attribute is empty.');
 		}
 
-		if (empty($this->schema['fields']))
+		if (empty($this->schema_options['fields']))
 		{
 			throw new \InvalidArgumentException("Schema fields are empty for table \"{$this->unprefixed_name}\".");
 		}
@@ -258,11 +269,10 @@ class Table extends Object
 			$this->connection = $parent->connection;
 
 			$primary = $parent->primary;
-			$primary_definition = $parent->schema['fields'][$primary];
+			$primary_definition = $parent->schema[$primary];
+			$primary_definition->auto_increment = false;
 
-			unset($primary_definition['serial']);
-
-			$this->schema['fields'] = [ $primary => $primary_definition ] + $this->schema['fields'];
+			$this->schema_options['fields'] = [ $primary => $primary_definition ] + $this->schema_options['fields'];
 
 			#
 			# implements are inherited too
@@ -289,18 +299,14 @@ class Table extends Object
 		$this->name = $connection->table_name_prefix . $this->unprefixed_name;
 
 		#
-		# parse definition schema to have a complete schema
+		# Create a Schema instance from the schema options and retrieve the primary key, if any.
 		#
 
-		$this->schema = $connection->parse_schema($this->schema);
+		$this->schema = new Schema($this->schema_options);
 
-		#
-		# retrieve primary key
-		#
-
-		if (!empty($this->schema['primary']))
+		if ($this->schema->primary)
 		{
-			$this->primary = $this->schema['primary'];
+			$this->primary = $this->schema->primary;
 		}
 
 		#
@@ -412,26 +418,24 @@ class Table extends Object
 	/**
 	 * Returns the extended schema.
 	 *
-	 * @return array
+	 * @return Schema
 	 */
 	protected function lazy_get_extended_schema()
 	{
 		$table = $this;
-		$schemas = [];
+		$options = [];
 
 		while ($table)
 		{
-			$schemas[] = $table->schema;
+			$options[] = $table->schema_options;
 
 			$table = $table->parent;
 		}
 
-		$schemas = array_reverse($schemas);
-		$schema = call_user_func_array('\ICanBoogie\array_merge_recursive', $schemas);
+		$options = array_reverse($options);
+		$options = call_user_func_array('\ICanBoogie\array_merge_recursive', $options);
 
-		$this->connection->parse_schema($schema);
-
-		return $schema;
+		return new Schema($options);
 	}
 
 	/**
@@ -536,11 +540,10 @@ class Table extends Object
 		$identifiers = [];
 
 		$schema = $extended ? $this->extended_schema : $this->schema;
-		$fields = $schema['fields'];
 
 		foreach ($values as $identifier => $value)
 		{
-			if (!array_key_exists($identifier, $fields))
+			if (!isset($schema[$identifier]))
 			{
 				continue;
 			}
@@ -576,11 +579,6 @@ class Table extends Object
 			$this->update($values, $id);
 
 			return $id;
-		}
-
-		if (empty($this->schema['fields']))
-		{
-			throw new \Exception('Missing fields in schema');
 		}
 
 		$parent_id = 0;

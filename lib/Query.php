@@ -572,7 +572,7 @@ class Query implements \IteratorAggregate
 		{
 			foreach ($primary as $column)
 			{
-				if (isset($model_schema['fields'][$column]))
+				if (isset($model_schema[$column]))
 				{
 					$primary = $column;
 
@@ -580,13 +580,13 @@ class Query implements \IteratorAggregate
 				}
 			}
 		}
-		else if (empty($model_schema['fields'][$primary]))
+		else if (empty($model_schema[$primary]))
 		{
-			$primary = $model_schema['primary'];
+			$primary = $model_schema->primary;
 
 			if (is_array($primary))
 			{
-				$primary = current($primary);
+				$primary = reset($primary);
 			}
 		}
 
@@ -617,7 +617,7 @@ class Query implements \IteratorAggregate
 	 */
 	private function render_join_on($column, $as, Query $query)
 	{
-		if (isset($query->model->schema['fields'][$column]) && isset($this->model->schema['fields'][$column]))
+		if (isset($query->model->schema[$column]) && isset($this->model->schema[$column]))
 		{
 			return "USING(`$column`)";
 		}

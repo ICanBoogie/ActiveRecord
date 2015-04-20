@@ -183,7 +183,7 @@ class Model extends Table implements \ArrayAccess
 		if ($extends && !$attributes[self::SCHEMA])
 		{
 			$attributes[self::NAME] = $extends->unprefixed_name;
-			$attributes[self::SCHEMA] = $extends->schema;
+			$attributes[self::SCHEMA] = $extends->schema_options;
 			$attributes[self::EXTENDING] = $extends->parent;
 
 			if (!$attributes[self::ACTIVERECORD_CLASS])

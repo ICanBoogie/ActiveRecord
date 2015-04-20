@@ -60,7 +60,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * @expectedException InvalidArgumentException
+	 * @expectedException \InvalidArgumentException
 	 */
 	public function test_invalid_table_name()
 	{
@@ -78,7 +78,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
 
 	/**
 	 * @dataProvider provide_test_readonly_properties
-	 * @expectedException ICanBoogie\PropertyNotWritable
+	 * @expectedException \ICanBoogie\PropertyNotWritable
 	 *
 	 * @param string $property Property name.
 	 */
@@ -127,7 +127,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
 
 	public function test_get_schema()
 	{
-		$this->assertInternalType('array', self::$animals->schema);
+		$this->assertInstanceOf(Schema::class, self::$animals->schema);
 	}
 
 	// TODO-20130303: schema
@@ -140,10 +140,11 @@ class TableTest extends \PHPUnit_Framework_TestCase
 	public function test_extended_schema()
 	{
 		$schema = self::$dogs->extended_schema;
-		$this->assertArrayHasKey('fields', $schema);
-		$this->assertArrayHasKey('id', $schema['fields']);
-		$this->assertArrayHasKey('name', $schema['fields']);
-		$this->assertArrayHasKey('bark_volume', $schema['fields']);
+
+		$this->assertInstanceOf(Schema::class, $schema);
+		$this->assertInstanceOf(SchemaColumn::class, $schema['id']);
+		$this->assertInstanceOf(SchemaColumn::class, $schema['name']);
+		$this->assertInstanceOf(SchemaColumn::class, $schema['bark_volume']);
 	}
 
 	public function test_resolve_statement__multi_column_primary_key()
