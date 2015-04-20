@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
+use ICanBoogie\DateTime;
 
 /**
  * A connection to a database.
@@ -326,6 +327,35 @@ class Connection extends \PDO
 		}
 
 		return $quote . $identifier . $quote;
+	}
+
+	/**
+	 * Casts a value into a database compatible representation.
+	 *
+	 * @param mixed $value
+	 *
+	 * @return mixed
+	 */
+	public function cast_value($value)
+	{
+		if ($value instanceof \DateTime)
+		{
+			$value = DateTime::from($value);
+
+			return $value->utc->as_db;
+		}
+
+		if ($value === false)
+		{
+			return 0;
+		}
+
+		if ($value === true)
+		{
+			return 1;
+		}
+
+		return $value;
 	}
 
 	/**

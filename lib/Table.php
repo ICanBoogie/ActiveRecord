@@ -540,16 +540,11 @@ class Table extends Object
 		$identifiers = [];
 
 		$schema = $extended ? $this->extended_schema : $this->schema;
+		$connection = $this->connection;
 
 		foreach ($schema->filter($values) as $identifier => $value)
 		{
-			if ($value instanceof \DateTime)
-			{
-				$value = DateTime::from($value);
-				$value = $value->utc->as_db;
-			}
-
-			$filtered[] = $value;
+			$filtered[] = $connection->cast_value($value);
 			$holders[$identifier] = '`' . $identifier . '` = ?';
 			$identifiers[] = '`' . $identifier . '`';
 		}
