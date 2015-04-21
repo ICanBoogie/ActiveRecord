@@ -18,6 +18,7 @@ use ICanBoogie\PropertyNotDefined;
  * Representation of a schema column.
  *
  * @property-read string $formatted_attributes
+ * @property-read string $formatted_auto_increment
  * @property-read string $formatted_charset
  * @property-read string $formatted_comment
  * @property-read string $formatted_default
@@ -237,14 +238,24 @@ class SchemaColumn
 		return "CHARSET $charset" . ($collate ? " COLLATE {$charset}_{$collate}" : '');
 	}
 
+	/**
+	 * Returns the formatted auto increment.
+	 *
+	 * @return string
+	 */
 	protected function get_formatted_auto_increment()
 	{
 		return $this->auto_increment ? 'AUTO_INCREMENT' : '';
 	}
 
+	/**
+	 * Whether the column is a serial column.
+	 *
+	 * @return bool
+	 */
 	protected function get_is_serial()
 	{
-		return $this->type == 'integer' && $this->size == 'big' && $this->unsigned && !$this->null && $this->auto_increment && $this->primary;
+		return $this->type == 'integer' && !$this->null && $this->auto_increment && $this->primary;
 	}
 
 	/**

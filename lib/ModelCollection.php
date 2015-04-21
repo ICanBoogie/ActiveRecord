@@ -62,7 +62,7 @@ class ModelCollection implements \ArrayAccess
 	 * Initializes the {@link $connections} and {@link $definitions} properties.
 	 *
 	 * @param ConnectionCollection $connections
-	 * @param array[string]array $definitions Model definitions.
+	 * @param array $definitions Model definitions.
 	 */
 	public function __construct(ConnectionCollection $connections, array $definitions = [])
 	{

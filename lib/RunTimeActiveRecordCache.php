@@ -25,6 +25,9 @@ class RunTimeActiveRecordCache extends ActiveRecordCacheBase implements \Iterato
 	 */
 	protected $records = [];
 
+	/**
+	 * @inheritdoc
+	 */
 	public function store(ActiveRecord $record)
 	{
 		$key = $record->{ $this->model->primary };
@@ -37,6 +40,9 @@ class RunTimeActiveRecordCache extends ActiveRecordCacheBase implements \Iterato
 		$this->records[$key] = $record;
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function retrieve($key)
 	{
 		if (empty($this->records[$key]))
@@ -47,17 +53,26 @@ class RunTimeActiveRecordCache extends ActiveRecordCacheBase implements \Iterato
 		return $this->records[$key];
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function eliminate($key)
 	{
 		unset($this->records[$key]);
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function clear()
 	{
 		$this->records = [];
 	}
 
-	public function  getIterator()
+	/**
+	 * @inheritdoc
+	 */
+	public function getIterator()
 	{
 		return new \ArrayIterator($this->records);
 	}

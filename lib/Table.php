@@ -11,7 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\DateTime;
 use ICanBoogie\Object;
 
 /**
@@ -544,9 +543,11 @@ class Table extends Object
 
 		foreach ($schema->filter($values) as $identifier => $value)
 		{
+			$quoted_identifier = $connection->quote_identifier($identifier);
+
 			$filtered[] = $connection->cast_value($value);
-			$holders[$identifier] = '`' . $identifier . '` = ?';
-			$identifiers[] = '`' . $identifier . '`';
+			$holders[$identifier] = "$quoted_identifier = ?";
+			$identifiers[] = $quoted_identifier;
 		}
 
 		return [ $filtered, $holders, $identifiers ];

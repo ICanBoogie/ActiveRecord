@@ -17,7 +17,14 @@ use ICanBoogie\DateTime;
 
 class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 {
+	/**
+	 * @var Connection
+	 */
 	static private $connection;
+
+	/**
+	 * @var Model
+	 */
 	static private $model;
 
 	static public function setUpBeforeClass()

@@ -154,7 +154,7 @@ class Statement extends \PDOStatement
 	 */
 	public function fetchColumnAndClose($column_number = 0)
 	{
-		$rc = parent::fetchColumn($column_number);
+		$rc = $this->fetchColumn($column_number);
 
 		$this->closeCursor();
 

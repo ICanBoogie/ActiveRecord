@@ -463,8 +463,6 @@ class Connection extends \PDO
 
 		if ($indexes)
 		{
-			echo "\n\n\n$statement\n\n\n";
-
 			foreach ($indexes as $index_id => $column_names)
 			{
 				$column_names = $this->quote_identifier($column_names);
@@ -493,12 +491,12 @@ class Connection extends \PDO
 		{
 			$tables = $this
 			->query('SELECT name FROM sqlite_master WHERE type = "table" AND name = ?', [ $name ])
-			->fetchAll(self::FETCH_COLUMN);
+			->all(self::FETCH_COLUMN);
 
 			return !empty($tables);
 		}
 
-		$tables = $this->query('SHOW TABLES')->fetchAll(self::FETCH_COLUMN);
+		$tables = $this->query('SHOW TABLES')->all(self::FETCH_COLUMN);
 
 		return in_array($name, $tables);
 	}
@@ -514,7 +512,7 @@ class Connection extends \PDO
 		}
 		else if ($this->driver_name == 'mysql')
 		{
-			$tables = $this->query('SHOW TABLES')->fetchAll(self::FETCH_COLUMN);
+			$tables = $this->query('SHOW TABLES')->all(self::FETCH_COLUMN);
 
 			$this->exec('OPTIMIZE TABLE ' . implode(', ', $tables));
 		}

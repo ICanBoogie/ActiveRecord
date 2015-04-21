@@ -250,7 +250,7 @@ class Model extends Table implements \ArrayAccess
 			return call_user_func_array([ $this, 'new_record' ], $arguments);
 		}
 
-		if (is_callable([ 'ICanBoogie\ActiveRecord\Query', $method ])
+		if (is_callable([ Query::class, $method ])
 		|| strpos($method, 'filter_by_') === 0
 		|| method_exists($this, 'scope_' . $method))
 		{
@@ -259,7 +259,7 @@ class Model extends Table implements \ArrayAccess
 			return call_user_func_array([ $query, $method ], $arguments);
 		}
 
-		if (is_callable([ 'ICanBoogie\ActiveRecord\RelationCollection', $method ]))
+		if (is_callable([ RelationCollection::class, $method ]))
 		{
 			return call_user_func_array([ $this->relations, $method ], $arguments);
 		}

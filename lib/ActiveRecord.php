@@ -130,7 +130,8 @@ class ActiveRecord extends Object
 	/**
 	 * Saves the active record using its model.
 	 *
-	 * @return int Primary key value of the active record.
+	 * @return int|bool Primary key value of the active record, or a boolean if the primary key
+	 * is not a serial.
 	 */
 	public function save()
 	{
@@ -193,7 +194,7 @@ class ActiveRecord extends Object
 
 		foreach ($properties as $identifier => $value)
 		{
-			if ($value !== null || (isset($schema[$identifier]) && !empty($schema[$identifier]->null)))
+			if ($value !== null || (isset($schema[$identifier]) && $schema[$identifier]->null))
 			{
 				continue;
 			}

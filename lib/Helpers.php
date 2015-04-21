@@ -30,7 +30,7 @@ class Helpers
 	 *
 	 * @return mixed
 	 */
-	static public function __callstatic($name, array $arguments)
+	static public function __callStatic($name, array $arguments)
 	{
 		return call_user_func_array(self::$jumptable[$name], $arguments);
 	}
