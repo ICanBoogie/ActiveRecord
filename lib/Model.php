@@ -120,6 +120,18 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
+	 * Returns the records cache.
+	 *
+	 * **Note:** The method needs to be implemented through prototype bindings.
+	 *
+	 * @return ActiveRecordCache
+	 */
+	protected function lazy_get_activerecord_cache()
+	{
+		return parent::lazy_get_activerecord_cache();
+	}
+
+	/**
 	 * Override the constructor to provide support for the {@link ACTIVERECORD_CLASS} tag and
 	 * extended support for the {@link EXTENDING} tag.
 	 *
