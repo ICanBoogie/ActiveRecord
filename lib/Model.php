@@ -362,20 +362,22 @@ class Model extends Table implements \ArrayAccess
 	{
 		$record = $this->activerecord_cache->retrieve($key);
 
-		if ($record === null)
+		if ($record)
 		{
-			$record = $this->where([ $this->primary => $key ])->one;
-
-			if (!$record)
-			{
-				throw new RecordNotFound
-				(
-					"Record <q>{$key}</q> does not exists in model <q>{$this->id}</q>.", [ $key => null ]
-				);
-			}
-
-			$this->activerecord_cache->store($record);
+			return $record;
 		}
+
+		$record = $this->where([ $this->primary => $key ])->one;
+
+		if (!$record)
+		{
+			throw new RecordNotFound
+			(
+				"Record <q>{$key}</q> does not exists in model <q>{$this->id}</q>.", [ $key => null ]
+			);
+		}
+
+		$this->activerecord_cache->store($record);
 
 		return $record;
 	}
@@ -429,16 +431,14 @@ class Model extends Table implements \ArrayAccess
 					"Records " . implode(', ', array_keys($missing)) . " do not exists in model <q>{$this->id}</q>.", $records
 				);
 			}
-			else
-			{
-				$key = array_keys($missing);
-				$key = array_shift($key);
 
-				throw new RecordNotFound
-				(
-					"Record <q>{$key}</q> does not exists in model <q>{$this->id}</q>.", $records
-				);
-			}
+			$key = array_keys($missing);
+			$key = array_shift($key);
+
+			throw new RecordNotFound
+			(
+				"Record <q>{$key}</q> does not exists in model <q>{$this->id}</q>.", $records
+			);
 		}
 
 		return $records;
