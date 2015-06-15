@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ActiveRecordTest\Extended;
 use ICanBoogie\DateTime;
+use ICanBoogie\Prototype;
 
 class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 {
@@ -61,6 +62,12 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$models->install();
 
 		self::$model = $models['testing'];
+
+		Helpers::patch('get_model', function($model_id) use ($models) {
+
+			return $models[$model_id];
+
+		});
 	}
 
 	public function test_construct()
@@ -83,6 +90,12 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals(self::$model, $record->model);
 	}
 
+	public function test_get_model_from_const()
+	{
+		$record = new Extended;
+		$model = $record->model;
+	}
+
 	/**
 	 * @expectedException \ICanBoogie\PropertyNotWritable
 	 */
@@ -96,6 +109,12 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	{
 		$record = new ActiveRecord(self::$model);
 		$this->assertEquals(self::$model->id, $record->model_id);
+	}
+
+	public function test_get_model_id_from_const()
+	{
+		$record = new Extended;
+		$this->assertEquals(Extended::MODEL_ID, $record->model_id);
 	}
 
 	/**
@@ -250,11 +269,4 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 		$record = new ActiveRecord($model);
 		$record->delete();
 	}
-}
-
-namespace ICanBoogie\ActiveRecord\ActiveRecordTest;
-
-class Extended extends \ICanBoogie\ActiveRecord
-{
-
 }

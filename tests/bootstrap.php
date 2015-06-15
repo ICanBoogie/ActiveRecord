@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototype;
 
 $loader = require __DIR__ . '/../vendor/autoload.php';
+$loader->addPsr4('ICanBoogie\ActiveRecord\ActiveRecordTest\\', __DIR__ . '/ActiveRecordTest');
 $loader->addPsr4('ICanBoogie\ActiveRecord\ModelTest\\', __DIR__ . '/ModelTest');
 $loader->addPsr4('ICanBoogie\ActiveRecord\QueryTest\\', __DIR__ . '/QueryTest');
 
