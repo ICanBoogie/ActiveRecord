@@ -50,7 +50,10 @@ class Helpers
 			throw new \RuntimeException("Undefined patchable: $name.");
 		}
 
+		$previous = self::$jumptable[$name];
 		self::$jumptable[$name] = $callback;
+
+		return $previous;
 	}
 
 	/*
