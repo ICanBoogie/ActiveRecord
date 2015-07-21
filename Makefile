@@ -1,7 +1,7 @@
 # customization
 
 PACKAGE_NAME = "ICanBoogie/ActiveRecord"
-PACKAGE_VERSION = v2.2.0
+PACKAGE_VERSION = 2.3.x-dev
 
 # do not edit the following lines
 
