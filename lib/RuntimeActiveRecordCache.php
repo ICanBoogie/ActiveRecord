@@ -16,7 +16,7 @@ use ICanBoogie\ActiveRecord;
 /**
  * Cache records during run time.
  */
-class RunTimeActiveRecordCache extends ActiveRecordCacheBase implements \IteratorAggregate
+class RuntimeActiveRecordCache extends ActiveRecordCacheBase implements \IteratorAggregate
 {
 	/**
 	 * Cached records.

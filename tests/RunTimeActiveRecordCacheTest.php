@@ -35,7 +35,7 @@ class RunTimeActiveRecordCacheTest extends \PHPUnit_Framework_TestCase
 
 		$this->assertSame($primary, $model->primary);
 
-		$cache = new RunTimeActiveRecordCache($model);
+		$cache = new RuntimeActiveRecordCache($model);
 		$cache->store($record);
 		$this->assertSame($record, $cache->retrieve($key));
 		$cache->store($record);

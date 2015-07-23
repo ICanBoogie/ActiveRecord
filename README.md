@@ -2061,7 +2061,7 @@ var_dump($models->is_installed()); // [ "nodes" => false, "contents" => false ]
 
 ## Records caching
 
-By default, each model uses an instance of [RunTimeActiveRecordCache][] to cache its records.
+By default, each model uses an instance of [RuntimeActiveRecordCache][] to cache its records.
 This cache stores the records for the duration of the request, it is brand new with each HTTP
 request. The cache is obtained using the prototype features of the model, through the
 `activerecord_cache` magic property.
@@ -2255,7 +2255,7 @@ ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE
 [Query]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html
 [RecordNotFound]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RecordNotFound.html
 [RelationNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
-[RunTimeActiveRecordCache]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RunTimeActiveRecordCache.html
+[RuntimeActiveRecordCache]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RuntimeActiveRecordCache.html
 [ScopeNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
 [StatementNotValid]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.StatementNotValid.html
 [UnableToSetFetchMode]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html

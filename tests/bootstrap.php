@@ -22,6 +22,6 @@ date_default_timezone_set('Europe/Madrid');
 
 Prototype::from(Model::class)['lazy_get_activerecord_cache'] = function(Model $model) {
 
-	return new RunTimeActiveRecordCache($model);
+	return new RuntimeActiveRecordCache($model);
 
 };

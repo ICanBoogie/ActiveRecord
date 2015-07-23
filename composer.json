@@ -18,12 +18,14 @@
 		"source": "https://github.com/ICanBoogie/ActiveRecord"
 	},
 
+	"minimum-stability": "dev",
+
 	"require": {
 		"php": ">=5.5.0",
 		"ext-pdo": "*",
-		"icanboogie/prototype": "2.3.x-dev",
-		"icanboogie/inflector": "~1.3.2",
-		"icanboogie/datetime": "~1.1.1"
+		"icanboogie/prototype": "^2.3.0",
+		"icanboogie/inflector": "^1.3.2",
+		"icanboogie/datetime": "^1.1.1"
 	},
 
 	"suggest": {
