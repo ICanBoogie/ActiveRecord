@@ -50,7 +50,7 @@ use ICanBoogie\Prototype;
 
 Prototype::from(Model::class)['lazy_get_activerecord_cache'] = function(Model $model) {
 
-	return new RuntimeActiveRecordCache;
+	return new RuntimeActiveRecordCache($model);
 
 };
 ```
