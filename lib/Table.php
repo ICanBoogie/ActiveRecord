@@ -383,6 +383,11 @@ class Table extends Object
 	**
 	*/
 
+	/**
+	 * Creates table.
+	 *
+	 * @throws \Exception if install fails.
+	 */
 	public function install()
 	{
 		if (!$this->schema)
@@ -390,12 +395,17 @@ class Table extends Object
 			throw new \Exception("Missing schema to install table {$this->unprefixed_name}.");
 		}
 
-		return $this->connection->create_table($this->unprefixed_name, $this->schema);
+		$this->connection->create_table($this->unprefixed_name, $this->schema);
 	}
 
+	/**
+	 * Drops table.
+	 *
+	 * @throws \Exception if uninstall fails.
+	 */
 	public function uninstall()
 	{
-		return $this->drop();
+		$this->drop();
 	}
 
 	/**
