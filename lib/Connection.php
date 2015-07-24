@@ -59,7 +59,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @var string
 	 */
-	private $table_name_prefix = Options::DEFAULT_TIMEZONE;
+	private $table_name_prefix = Options::DEFAULT_TABLE_NAME_PREFIX;
 
 	/**
 	 * @return string
