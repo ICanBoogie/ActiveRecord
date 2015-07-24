@@ -104,6 +104,13 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 				'b' => [ 'varchar', 'indexed' => 'c_idx' ],
 				'c' => 'foreign'
 
+			] ],
+
+			[ [ ], [
+
+				'id' => [ 'foreign', 'primary' => true ],
+				'name' => [ 'varchar', 'primary' => true ]
+
 			] ]
 
 		];

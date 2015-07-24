@@ -99,7 +99,7 @@ class SchemaColumn
 				$this->size = 'big';
 				$this->unsigned = true;
 				$this->null = false;
-				$this->indexed = true;
+				$this->indexed = !$this->primary;
 
 				break;
 		}
