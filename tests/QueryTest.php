@@ -42,13 +42,11 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 				Model::NAME => 'animals',
 				Model::SCHEMA => [
 
-					'fields' => [
+					'id' => 'serial',
+					'name' => 'varchar',
+					'date' => 'timestamp',
+					'legs' => 'integer'
 
-						'id' => 'serial',
-						'name' => 'varchar',
-						'date' => 'timestamp',
-						'legs' => 'integer'
-					]
 				]
 			],
 
@@ -59,10 +57,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 				Model::NAME => 'dogs',
 				Model::SCHEMA => [
 
-					'fields' => [
+					'bark_volume' => 'float'
 
-						'bark_volume' => 'float'
-					]
 				]
 			]
 
@@ -182,15 +178,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 				Model::NAME => 'subscribers',
 				Model::SCHEMA => [
 
-					'fields' => [
-
-						'subscriber_id' => 'serial',
-						'email' => 'varchar'
-
-					]
+					'subscriber_id' => 'serial',
+					'email' => 'varchar'
 
 				]
-
 			],
 
 			'updates' => [
@@ -199,19 +190,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 				Model::NAME => 'updates',
 				Model::SCHEMA => [
 
-					'fields' => [
-
-						'update_id' => 'serial',
-						'subscriber_id' => 'foreign',
-						'updated_at' => 'datetime',
-						'update_hash' => [ 'char', 40 ]
-
-					]
+					'update_id' => 'serial',
+					'subscriber_id' => 'foreign',
+					'updated_at' => 'datetime',
+					'update_hash' => [ 'char', 40 ]
 
 				]
-
 			]
-
 		]);
 
 		$updates = $models['updates'];
@@ -237,15 +222,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 				Model::NAME => 'subscribers',
 				Model::SCHEMA => [
 
-					'fields' => [
-
-						'subscriber_id' => 'serial',
-						'email' => 'varchar'
-
-					]
+					'subscriber_id' => 'serial',
+					'email' => 'varchar'
 
 				]
-
 			],
 
 			'updates' => [
@@ -254,19 +234,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 				Model::NAME => 'updates',
 				Model::SCHEMA => [
 
-					'fields' => [
-
-						'update_id' => 'serial',
-						'subscriber_id' => 'foreign',
-						'updated_at' => 'datetime',
-						'update_hash' => [ 'char', 40 ]
-
-					]
+					'update_id' => 'serial',
+					'subscriber_id' => 'foreign',
+					'updated_at' => 'datetime',
+					'update_hash' => [ 'char', 40 ]
 
 				]
-
 			]
-
 		]);
 
 		$updates = $models['updates'];

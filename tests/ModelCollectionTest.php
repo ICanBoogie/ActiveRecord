@@ -43,15 +43,10 @@ class ModelCollectionTest extends \PHPUnit_Framework_TestCase
 				Model::CLASSNAME => __CLASS__ . '\ArticlesModel',
 				Model::SCHEMA => [
 
-					'fields' => [
-
-						'article_id' => 'serial',
-						'title' => 'varchar'
-
-					]
+					'article_id' => 'serial',
+					'title' => 'varchar'
 
 				]
-
 			],
 
 			'comments' => [
@@ -59,33 +54,22 @@ class ModelCollectionTest extends \PHPUnit_Framework_TestCase
 				Model::CLASSNAME => __CLASS__ . '\CommentsModel',
 				Model::SCHEMA => [
 
-					'fields' => [
-
-						'comment_id' => 'serial',
-						'article_id' => 'foreign',
-						'body' => 'text'
-
-					]
+					'comment_id' => 'serial',
+					'article_id' => 'foreign',
+					'body' => 'text'
 
 				]
-
 			],
 
 			'other' => [
 
 				Model::SCHEMA => [
 
-					'fields' => [
-
-						'id' => 'serial',
-						'value' => 'integer'
-
-					]
+					'id' => 'serial',
+					'value' => 'integer'
 
 				]
-
 			]
-
 		];
 
 		$this->models = new ModelCollection($this->connections, $this->definitions);
@@ -133,14 +117,9 @@ class ModelCollectionTest extends \PHPUnit_Framework_TestCase
 
 			Model::SCHEMA => [
 
-				'fields' => [
-
-					'id' => 'serial'
-
-				]
+				'id' => 'serial'
 
 			]
-
 		];
 
 		$this->assertTrue(isset($models['one']));

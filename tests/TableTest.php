@@ -33,12 +33,10 @@ class TableTest extends \PHPUnit_Framework_TestCase
 			Table::CONNECTION => self::$connection,
 			Table::SCHEMA => [
 
-				'fields' => [
+				'id' => 'serial',
+				'name' => 'varchar',
+				'date' => 'timestamp'
 
-					'id' => 'serial',
-					'name' => 'varchar',
-					'date' => 'timestamp'
-				]
 			]
 		]);
 
@@ -48,10 +46,8 @@ class TableTest extends \PHPUnit_Framework_TestCase
 			Table::NAME => 'dogs',
 			Table::SCHEMA => [
 
-				'fields' => [
+				'bark_volume' => 'float'
 
-					'bark_volume' => 'float'
-				]
 			]
 		]);
 
@@ -155,12 +151,10 @@ class TableTest extends \PHPUnit_Framework_TestCase
 			Table::NAME => 'testing',
 			Table::SCHEMA => [
 
-				'fields' => [
+				'p1' => [ 'integer', 'big', 'primary' => true ],
+				'p2' => [ 'integer', 'big', 'primary' => true ],
+				'f1' => 'varchar'
 
-					'p1' => [ 'integer', 'big', 'primary' => true ],
-					'p2' => [ 'integer', 'big', 'primary' => true ],
-					'f1' => 'varchar'
-				]
 			]
 		]);
 

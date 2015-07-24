@@ -78,12 +78,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 				Model::SCHEMA => [
 
-					'fields' => [
+					'nid' => 'serial',
+					'title' => 'varchar'
 
-						'nid' => 'serial',
-						'title' => 'varchar'
-
-					]
 				]
 			],
 
@@ -92,12 +89,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 				Model::EXTENDING => 'nodes',
 				Model::SCHEMA => [
 
-					'fields' => [
+					'body' => 'text',
+					'date' => 'datetime'
 
-						'body' => 'text',
-						'date' => 'datetime'
-
-					]
 				]
 			],
 
@@ -116,13 +110,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 				Model::BELONGS_TO => 'articles',
 				Model::SCHEMA => [
 
-					'fields' => [
+					'comment_id' => 'serial',
+					'nid' => 'foreign',
+					'body' => 'text'
 
-						'comment_id' => 'serial',
-						'nid' => 'foreign',
-						'body' => 'text'
-
-					]
 				]
 			],
 
@@ -130,13 +121,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 				Model::SCHEMA => [
 
-					'fields' => [
+					'id' => 'serial',
+					'name' => 'varchar',
+					'date' => 'datetime'
 
-						'id' => 'serial',
-						'name' => 'varchar',
-						'date' => 'datetime'
-
-					]
 				]
 			]
 
@@ -221,14 +209,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 			Model::NAME => 'nodes',
 			Model::SCHEMA => [
 
-				'fields' => [
-
-					'id' => 'serial'
-
-				]
+				'id' => 'serial'
 
 			]
-
 		]);
 
 		$this->assertEquals('nodes', $model->id);
@@ -472,12 +455,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 			Model::CONNECTION => 'invalid_connection',
 			Model::SCHEMA => [
 
-				'fields' => [
+				'id' => 'serial',
+				'name' => 'varchar',
+				'date' => 'timestamp'
 
-					'id' => 'serial',
-					'name' => 'varchar',
-					'date' => 'timestamp'
-				]
 			]
 		]);
 	}
@@ -584,11 +565,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 				Model::ACTIVERECORD_CLASS => Driver::class,
 				Model::SCHEMA => [
 
-					'fields' => [
+					'driver_id' => 'serial',
+					'name' => 'varchar'
 
-						'driver_id' => 'serial',
-						'name' => 'varchar'
-					]
 				]
 			],
 
@@ -597,11 +576,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 				Model::ACTIVERECORD_CLASS => Brand::class,
 				Model::SCHEMA => [
 
-					'fields' => [
+					'brand_id' => 'serial',
+					'name' => 'varchar'
 
-						'brand_id' => 'serial',
-						'name' => 'varchar'
-					]
 				]
 			],
 
@@ -611,16 +588,13 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	// 			Model::BELONGS_TO => [ $drivers, $brands ],
 				Model::SCHEMA => [
 
-					'fields' => [
+					'car_id' => 'serial',
+					'driver_id' => 'foreign',
+					'brand_id' => 'foreign',
+					'name' => 'varchar'
 
-						'car_id' => 'serial',
-						'driver_id' => 'foreign',
-						'brand_id' => 'foreign',
-						'name' => 'varchar'
-					]
 				]
 			]
-
 		]);
 
 		$models->install();
@@ -753,15 +727,11 @@ EOT
 
 				Model::SCHEMA => [
 
-					'fields' => [
+					'id' => 'serial',
+					'name' => 'varchar'
 
-						'id' => 'serial',
-						'name' => 'varchar'
-
-					]
 				]
 			]
-
 		]);
 
 		$models->install();

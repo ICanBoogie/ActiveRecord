@@ -36,16 +36,11 @@ class HasManyRelationTest extends \PHPUnit_Framework_TestCase
 				Model::NAME => 'comments',
 				Model::SCHEMA => [
 
-					'fields' => [
-
-						'comment_id' => 'serial',
-						'article_id' => 'foreign',
-						'body' => 'text'
-
-					]
+					'comment_id' => 'serial',
+					'article_id' => 'foreign',
+					'body' => 'text'
 
 				]
-
 			],
 
 			'articles' => [
@@ -56,15 +51,10 @@ class HasManyRelationTest extends \PHPUnit_Framework_TestCase
 				Model::NAME => 'articles',
 				Model::SCHEMA => [
 
-					'fields' => [
-
-						'article_id' => 'serial',
-						'title' => 'varchar'
-
-					]
+					'article_id' => 'serial',
+					'title' => 'varchar'
 
 				]
-
 			]
 		]);
 

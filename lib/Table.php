@@ -227,11 +227,6 @@ class Table extends Object
 			throw new \InvalidArgumentException('The <code>SCHEMA</code> attribute is empty.');
 		}
 
-		if (empty($this->schema_options['fields']))
-		{
-			throw new \InvalidArgumentException("Schema fields are empty for table \"{$this->unprefixed_name}\".");
-		}
-
 		if ($this->parent && !($this->parent instanceof self))
 		{
 			throw new \InvalidArgumentException("EXTENDING must be an instance of " . __CLASS__ . ". Given: {$this->parent}.");
@@ -270,8 +265,7 @@ class Table extends Object
 			$primary = $parent->primary;
 			$primary_definition = $parent->schema[$primary];
 			$primary_definition->auto_increment = false;
-
-			$this->schema_options['fields'] = [ $primary => $primary_definition ] + $this->schema_options['fields'];
+			$this->schema_options = [ $primary => $primary_definition ] + $this->schema_options;
 
 			#
 			# implements are inherited too

@@ -92,12 +92,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 */
 	public function __construct(array $options)
 	{
-		if (!isset($options['fields']))
-		{
-			$options = [ 'fields' => $options ];
-		}
-
-		foreach ($options['fields'] as $column_id => $column_options)
+		foreach ($options as $column_id => $column_options)
 		{
 			$this[$column_id] = $column_options;
 		}

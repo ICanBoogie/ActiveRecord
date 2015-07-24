@@ -165,13 +165,10 @@ $models = new ModelCollection($connections, [
 		Model::ACTIVERECORD_CLASS => Node::class,
 		Model::SCHEMA => [
 
-			'fields' => [
+			'id' => 'serial',
+			'title' => [ 'varchar', 80 ],
+			'number' => [ 'integer', 'unsigned' => true ]
 
-				'id' => 'serial',
-				'title' => [ 'varchar', 80 ],
-				'number' => [ 'integer', 'unsigned' => true ]
-
-			]
 		]
 	]
 ]);
@@ -250,11 +247,8 @@ $stmt = $model('SELECT * FROM `{self}` LIMIT 10');
 ### Defining the schema of the model
 
 The columns and properties of the table are defined with a schema, which is specified by the
-`SCHEMA` attribute.
-
-The `fields` key specifies the columns of the table. A key defines the name of the column, and a
-value defines the properties of the column. Most column types use the following basic definition
-pattern:
+`SCHEMA` attribute. A key defines the name of the column, and a value defines the properties of
+the column. Most column types use the following basic definition pattern:
 
 ```
 '<identifier>' => '<type_and_default_options>'
@@ -264,7 +258,7 @@ pattern:
 
 The following types are available: `blob`, `char`, `integer`, `text`, `varchar`,
 `bit`, `boolean`, `date`, `datetime`, `time`, `timestamp`, `year`, `enum`, `double` et `float`. The
-`serial` and `foreign` special types are used to defined auto incrementing primary keys and foreign
+`serial` and `foreign` special types are used to define auto incrementing primary keys and foreign
 keys:
 
 ```php
@@ -410,12 +404,9 @@ $models = new ModelCollection($connections, [
 
 		Model::SCHEMA => [
 
-			'fields' => [
+			'nid' => 'serial',
+			'title' => 'varchar'
 
-				'nid' => 'serial',
-				'title' => 'varchar'
-
-			]
 		]
 	],
 	
@@ -424,12 +415,9 @@ $models = new ModelCollection($connections, [
 		Model::EXTENDING => 'nodes',
 		Model::SCHEMA => [
 
-			'fields' => [
+			'body' => 'text',
+			'date' => 'date'
 
-				'body' => 'text',
-				'date' => 'date'
-
-			]
 		]
 	],
 
@@ -489,13 +477,10 @@ $models = new ModelCollection($this->connections, [
 		Model::BELONGS_TO => 'users',
 		Model::SCHEMA => [
 	
-			'fields' => [
+			'news_id' => 'serial',
+			'uid' => 'foreign'
+			// …
 
-				'news_id' => 'serial',
-				'uid' => 'foreign'
-				// …
-				
-			]
 		]
 	],
 	
@@ -503,13 +488,10 @@ $models = new ModelCollection($this->connections, [
 	
 		Model::SCHEMA => [
     
-            'fields' => [
-    
-                'uid' => 'serial',
-                'name' => 'varchar'
-                // …
-                
-            ]
+            'uid' => 'serial',
+            'name' => 'varchar'
+            // …
+
         ]
 	]
 
@@ -549,13 +531,10 @@ $models = new ModelCollection($connections, [
 		Model::ACTIVERECORD_CLASS => Comment::class,
 		Model::SCHEMA => [
 
-			'fields' => [
+			'comment_id' => 'serial',
+			'article_id' => 'foreign',
+			'body' => 'text'
 
-				'comment_id' => 'serial',
-				'article_id' => 'foreign',
-				'body' => 'text'
-
-			]
 		]
 	],
 
@@ -565,12 +544,9 @@ $models = new ModelCollection($connections, [
 		Model::HAS_MANY => 'comments',
 		Model::SCHEMA => [
 
-			'fields' => [
+			'article_id' => 'serial',
+			'title' => 'varchar'
 
-				'article_id' => 'serial',
-				'title' => 'varchar'
-
-			]
 		]
 	]
 

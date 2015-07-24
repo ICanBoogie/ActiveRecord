@@ -46,17 +46,13 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 				Model::NAME => 'testing',
 				Model::SCHEMA => [
 
-					'fields' => [
+					'id' => 'serial',
+					'title' => 'varchar',
+					'date' => 'datetime',
+					'possible' => [ 'varchar', 8, 'null' => true ]
 
-						'id' => 'serial',
-						'title' => 'varchar',
-						'date' => 'datetime',
-						'possible' => [ 'varchar', 8, 'null' => true ]
-					]
 				]
-
 			]
-
 		]);
 
 		$models->install();
