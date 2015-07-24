@@ -15,13 +15,15 @@ namespace ICanBoogie\ActiveRecord;
  * Implements a `updated_at` property.
  *
  * @see DateTimeProperty
+ *
+ * @property \ICanBoogie\DateTime|\DateTime|string $updated_at
  */
 trait UpdatedAtProperty
 {
 	/**
 	 * The date and time at which the record was updated.
 	 *
-	 * @var string
+	 * @var \ICanBoogie\DateTime|\DateTime|string
 	 */
 	private $updated_at;
 

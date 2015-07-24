@@ -15,13 +15,15 @@ namespace ICanBoogie\ActiveRecord;
  * Implements a `created_at` property.
  *
  * @see DateTimeProperty
+ *
+ * @property \ICanBoogie\DateTime|\DateTime|string $created_at
  */
 trait CreatedAtProperty
 {
 	/**
 	 * The date and time at which the record was created.
 	 *
-	 * @var string
+	 * @var \ICanBoogie\DateTime|\DateTime|string
 	 */
 	private $created_at;
 
