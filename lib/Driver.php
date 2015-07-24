@@ -45,6 +45,15 @@ interface Driver
 	public function cast_value($value, $type = null);
 
 	/**
+	 * Renders a column definition.
+	 *
+	 * @param SchemaColumn $column
+	 *
+	 * @return string
+	 */
+	public function render_column(SchemaColumn $column);
+
+	/**
 	 * Creates a table given a schema.
 	 *
 	 * @param string $unprefixed_table_name

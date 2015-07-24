@@ -23,6 +23,14 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
+	public function render_column(SchemaColumn $column)
+	{
+		return (string) $column;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
 	public function create_table($unprefixed_table_name, Schema $schema)
 	{
 		$statement = $this->render_create_table($unprefixed_table_name, $schema);
@@ -117,9 +125,7 @@ class MySQLDriver extends BasicDriver
 	 */
 	protected function render_create_table_line(Schema $schema, $column_id, $column)
 	{
-		$quoted_column_id = $this->quote_identifier($column_id);
-
-		return "$quoted_column_id $column";
+		return $this->quote_identifier($column_id) . " " . $this->render_column($column);
 	}
 
 	/**

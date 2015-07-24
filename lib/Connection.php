@@ -440,6 +440,14 @@ class Connection extends \PDO implements Driver
 	/**
 	 * @inheritdoc
 	 */
+	public function render_column(SchemaColumn $column)
+	{
+		return $this->driver->render_column($column);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
 	public function create_table($unprefixed_name, Schema $schema)
 	{
 		$this->driver->create_table($unprefixed_name, $schema);
