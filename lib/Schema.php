@@ -32,6 +32,9 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 */
 	protected $columns = [];
 
+	/**
+	 * @return SchemaColumn[]
+	 */
 	protected function get_columns()
 	{
 		return $this->columns;
@@ -162,6 +165,11 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 		unset($this->columns[$column_id]);
 	}
 
+	/**
+	 * Returns columns iterator.
+	 *
+	 * @return \ArrayIterator
+	 */
 	public function getIterator()
 	{
 		return new \ArrayIterator($this->columns);

@@ -13,20 +13,27 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
-use ICanBoogie\DateTime;
 
 /**
  * A connection to a database.
  *
  * @property-read string $charset The character set used to communicate with the database. Defaults to "utf8".
  * @property-read string $collate The collation of the character set. Defaults to "utf8_general_ci".
+ * @property-read Driver $driver
  * @property-read string $driver_name Name of the PDO driver.
  * @property-read string $id Identifier of the database connection.
  * @property-read string $table_name_prefix The prefix to prepend to every table name.
  */
-class Connection extends \PDO
+class Connection extends \PDO implements Driver
 {
 	use AccessorTrait;
+
+	static private $drivers_mapping = [
+
+		'mysql' => Driver\MySQLDriver::class,
+		'sqlite' => Driver\SQLiteDriver::class
+
+	];
 
 	/**
 	 * Connection identifier.
@@ -35,6 +42,9 @@ class Connection extends \PDO
 	 */
 	private $id;
 
+	/**
+	 * @return string
+	 */
 	protected function get_id()
 	{
 		return $this->id;
@@ -51,6 +61,9 @@ class Connection extends \PDO
 	 */
 	private $table_name_prefix = Options::DEFAULT_TIMEZONE;
 
+	/**
+	 * @return string
+	 */
 	protected function get_table_name_prefix()
 	{
 		return $this->table_name_prefix;
@@ -63,6 +76,9 @@ class Connection extends \PDO
 	 */
 	private $charset = Options::DEFAULT_CHARSET;
 
+	/**
+	 * @return string
+	 */
 	protected function get_charset()
 	{
 		return $this->charset;
@@ -75,6 +91,9 @@ class Connection extends \PDO
 	 */
 	private $collate = Options::DEFAULT_COLLATE;
 
+	/**
+	 * @return string
+	 */
 	protected function get_collate()
 	{
 		return $this->collate;
@@ -87,6 +106,9 @@ class Connection extends \PDO
 	 */
 	private $timezone = Options::DEFAULT_TIMEZONE;
 
+	/**
+	 * @return string
+	 */
 	protected function get_timezone()
 	{
 		return $this->timezone;
@@ -99,9 +121,25 @@ class Connection extends \PDO
 	 */
 	private $driver_name;
 
+	/**
+	 * @return string
+	 */
 	protected function get_driver_name()
 	{
 		return $this->driver_name;
+	}
+
+	/**
+	 * @var Driver
+	 */
+	private $driver;
+
+	/**
+	 * @return Driver
+	 */
+	protected function lazy_get_driver()
+	{
+		return $this->resolve_driver($this->driver_name);
 	}
 
 	/**
@@ -114,7 +152,7 @@ class Connection extends \PDO
 	/**
 	 * The number of micro seconds spent per request.
 	 *
-	 * @var array[]array
+	 * @var array[]
 	 */
 	public $profiling = [];
 
@@ -134,7 +172,9 @@ class Connection extends \PDO
 	 */
 	public function __construct($dsn, $username = null, $password = null, $options = [])
 	{
-		$this->driver_name = $this->resolve_driver_name($dsn);
+		unset($this->driver);
+
+		$this->driver_name = $driver_name = $this->resolve_driver_name($dsn);
 		$this->apply_options($options);
 		$this->before_connection($options);
 
@@ -163,6 +203,39 @@ class Connection extends \PDO
 	protected function resolve_driver_name($dsn)
 	{
 		return explode(':', $dsn, 2)[0];
+	}
+
+	/**
+	 * Resolves driver class.
+	 *
+	 * @param string $driver_name
+	 *
+	 * @return string
+	 *
+	 * @throws DriverNotDefined
+	 */
+	protected function resolve_driver_class($driver_name)
+	{
+		if (empty(self::$drivers_mapping[$driver_name]))
+		{
+			throw new DriverNotDefined($driver_name);
+		}
+
+		return self::$drivers_mapping[$driver_name];
+	}
+
+	/**
+	 * Resolves a {@link Driver} implementation.
+	 *
+	 * @param string $driver_name
+	 *
+	 * @return Driver
+	 */
+	protected function resolve_driver($driver_name)
+	{
+		$driver_class = $this->resolve_driver_class($driver_name);
+
+		return new $driver_class(function() { return $this; });
 	}
 
 	/**
@@ -307,58 +380,6 @@ class Connection extends \PDO
 	}
 
 	/**
-	 * Places quotes around the identifier.
-	 *
-	 * @param string|array $identifier
-	 *
-	 * @return string|array
-	 */
-	public function quote_identifier($identifier)
-	{
-		$quote = $this->driver_name == 'oci' ? '"' : '`';
-
-		if (is_array($identifier))
-		{
-			return array_map(function($v) use ($quote) {
-
-				return $quote . $v . $quote;
-
-			}, $identifier);
-		}
-
-		return $quote . $identifier . $quote;
-	}
-
-	/**
-	 * Casts a value into a database compatible representation.
-	 *
-	 * @param mixed $value
-	 *
-	 * @return mixed
-	 */
-	public function cast_value($value)
-	{
-		if ($value instanceof \DateTime)
-		{
-			$value = DateTime::from($value);
-
-			return $value->utc->as_db;
-		}
-
-		if ($value === false)
-		{
-			return 0;
-		}
-
-		if ($value === true)
-		{
-			return 1;
-		}
-
-		return $value;
-	}
-
-	/**
 	 * Replaces placeholders with their value.
 	 *
 	 * The following placeholders are supported:
@@ -385,7 +406,7 @@ class Connection extends \PDO
 	/**
 	 * Alias for the `beginTransaction()` method.
 	 *
-	 * @see PDO::beginTransaction()
+	 * @see \PDO::beginTransaction()
 	 */
 	public function begin()
 	{
@@ -393,128 +414,66 @@ class Connection extends \PDO
 	}
 
 	/**
-	 * Creates a table of the specified name and schema.
-	 *
-	 * @param string $unprefixed_name The unprefixed name of the table.
-	 * @param Schema $schema The schema of the table.
-	 *
-	 * @return bool
+	 * @inheritdoc
+	 */
+	public function quote_string($string)
+	{
+		return $this->driver->quote_string($string);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function quote_identifier($identifier)
+	{
+		return $this->driver->quote_identifier($identifier);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function cast_value($value, $type = null)
+	{
+		return $this->driver->cast_value($value, $type);
+	}
+
+	/**
+	 * @inheritdoc
 	 */
 	public function create_table($unprefixed_name, Schema $schema)
 	{
-		$driver_name = $this->driver_name;
-
-		$rendered_columns = [];
-
-		foreach ($schema as $column_id => $column)
-		{
-			$quoted_column_id = $this->quote_identifier($column_id);
-
-			if ($column->primary && $driver_name == 'sqlite')
-			{
-				$rendered_columns[$column_id] = "$quoted_column_id INTEGER NOT NULL";
-
-				continue;
-			}
-
-			$rendered_columns[$column_id] = "$quoted_column_id $column";
-		}
-
-		$primary = $schema->primary;
-
-		if ($primary)
-		{
-			$rendered_primary = (array) $primary;
-			$rendered_primary = $this->quote_identifier($rendered_primary);
-			$rendered_primary = implode(', ', $rendered_primary);
-
-			$rendered_columns[] = "PRIMARY KEY($rendered_primary)";
-		}
-
-		# create table sql
-
-		$table_name = $this->table_name_prefix . $unprefixed_name;
-		$quoted_table_name = $this->quote_identifier($table_name);
-
-		$statement = "CREATE TABLE $quoted_table_name\n(\n\t" . implode(",\n\t", $rendered_columns) . "\n)";
-
-		if ($driver_name == 'mysql')
-		{
-			$statement .= " CHARACTER SET $this->charset  COLLATE $this->collate";
-		}
-
-		$rc = ($this->exec($statement) !== false);
-
-		$indexes = $schema->indexes;
-
-		if ($indexes)
-		{
-			foreach ($indexes as $index_id => $column_names)
-			{
-				$column_names = $this->quote_identifier($column_names);
-				$rendered_column_names = implode(', ', $column_names);
-				$quoted_index_id = $this->quote_identifier($index_id);
-
-				$this->exec("CREATE INDEX $quoted_index_id ON $quoted_table_name ($rendered_column_names)");
-			}
-		}
-
-		$indexes = $schema->unique_indexes;
-
-		if ($indexes)
-		{
-			foreach ($indexes as $index_id => $column_names)
-			{
-				$column_names = $this->quote_identifier($column_names);
-				$rendered_column_names = implode(', ', $column_names);
-				$quoted_index_id = $this->quote_identifier($index_id);
-
-				$this->exec("CREATE UNIQUE INDEX $quoted_index_id ON $quoted_table_name ($rendered_column_names)");
-			}
-		}
-
-		return $rc;
+		$this->driver->create_table($unprefixed_name, $schema);
 	}
 
 	/**
-	 * Checks if a specified table exists in the database.
-	 *
-	 * @param string $unprefixed_name The unprefixed name of the table.
-	 *
-	 * @return bool `true` if the table exists, `false` otherwise.
+	 * @inheritdoc
+	 */
+	public function create_indexes($unprefixed_table_name, Schema $schema)
+	{
+		$this->driver->create_indexes($unprefixed_table_name, $schema);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function create_unique_indexes($unprefixed_table_name, Schema $schema)
+	{
+		$this->driver->create_unique_indexes($unprefixed_table_name, $schema);
+	}
+
+	/**
+	 * @inheritdoc
 	 */
 	public function table_exists($unprefixed_name)
 	{
-		$name = $this->table_name_prefix . $unprefixed_name;
-
-		if ($this->driver_name == 'sqlite')
-		{
-			$tables = $this
-			->query('SELECT name FROM sqlite_master WHERE type = "table" AND name = ?', [ $name ])
-			->all(self::FETCH_COLUMN);
-
-			return !empty($tables);
-		}
-
-		$tables = $this->query('SHOW TABLES')->all(self::FETCH_COLUMN);
-
-		return in_array($name, $tables);
+		return $this->driver->table_exists($unprefixed_name);
 	}
 
 	/**
-	 * Optimizes the tables of the database.
+	 * @inheritdoc
 	 */
 	public function optimize()
 	{
-		if ($this->driver_name == 'sqlite')
-		{
-			$this->exec('VACUUM');
-		}
-		else if ($this->driver_name == 'mysql')
-		{
-			$tables = $this->query('SHOW TABLES')->all(self::FETCH_COLUMN);
-
-			$this->exec('OPTIMIZE TABLE ' . implode(', ', $tables));
-		}
+		$this->driver->optimize();
 	}
 }

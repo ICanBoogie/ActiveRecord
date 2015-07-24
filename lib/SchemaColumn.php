@@ -29,6 +29,10 @@ use ICanBoogie\PropertyNotDefined;
  */
 class SchemaColumn
 {
+	const TYPE_BOOLEAN = 'boolean';
+	const TYPE_INTEGER = 'integer';
+	const TYPE_VARCHAR = 'varchar';
+
 	use AccessorTrait;
 
 	public $type;
@@ -80,7 +84,7 @@ class SchemaColumn
 		{
 			case 'serial':
 
-				$this->type = 'integer';
+				$this->type = self::TYPE_INTEGER;
 				$this->size = 'big';
 				$this->unsigned = true;
 				$this->primary = true;
@@ -91,7 +95,7 @@ class SchemaColumn
 
 			case 'foreign':
 
-				$this->type = 'integer';
+				$this->type = self::TYPE_INTEGER;
 				$this->size = 'big';
 				$this->unsigned = true;
 				$this->null = false;
@@ -113,14 +117,14 @@ class SchemaColumn
 		$type = $this->type;
 		$size = $this->size;
 
-		if (!$size && $type == 'varchar')
+		if (!$size && $type == self::TYPE_VARCHAR)
 		{
 			$size = 255;
 		}
 
 		switch ($type)
 		{
-			case 'integer':
+			case self::TYPE_INTEGER:
 
 				if (is_numeric($size))
 				{
@@ -255,7 +259,7 @@ class SchemaColumn
 	 */
 	protected function get_is_serial()
 	{
-		return $this->type == 'integer' && !$this->null && $this->auto_increment && $this->primary;
+		return $this->type == self::TYPE_INTEGER && !$this->null && $this->auto_increment && $this->primary;
 	}
 
 	/**
