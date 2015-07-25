@@ -2207,32 +2207,32 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
 ## License
 
-ICanBoogie/ActiveRecord is licensed under the New BSD License - See the [LICENSE](LICENSE) file for details.
+**icanboogie/activerecord** is licensed under the New BSD License - See the [LICENSE](LICENSE) file for details.
 
 
 
 
 
+[Connection]:                   http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.Connection.html
+[ConnectionAlreadyEstablished]: http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
+[ConnectionNotDefined]:         http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
+[ConnectionNotEstablished]:     http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
+[ConnectionCollection]:         http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
+[CreatedAtProperty]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
+[DateTimeProperty]:             http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
+[Model]:                        http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.Model.html
+[ModelAlreadyInstantiated]:     http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
+[ModelNotDefined]:              http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
+[ModelCollection]:              http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ModelCollection.html
+[Query]:                        http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.Query.html
+[RecordNotFound]:               http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.RecordNotFound.html
+[RelationNotDefined]:           http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
+[RuntimeActiveRecordCache]:     http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.RuntimeActiveRecordCache.html
+[ScopeNotDefined]:              http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
+[StatementNotValid]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.StatementNotValid.html
+[UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
+[UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
+[DateTime]:                     http://api.icanboogie.org/datetime/1.1/class-ICanBoogie.DateTime.html
 [icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord
-[Connection]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Connection.html
-[ConnectionAlreadyEstablished]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
-[ConnectionNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
-[ConnectionNotEstablished]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
-[ConnectionCollection]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
-[CreatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
-[DateTime]: http://icanboogie.org/docs/class-ICanBoogie.DateTime.html
-[DateTimeProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
-[ICanBoogie]: http://icanboogie.org
-[Model]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Model.html
-[ModelAlreadyInstantiated]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
-[ModelNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
-[ModelCollection]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ModelCollection.html
-[PDO]: http://php.net/manual/en/book.pdo.php
-[Query]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.Query.html
-[RecordNotFound]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RecordNotFound.html
-[RelationNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
-[RuntimeActiveRecordCache]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.RuntimeActiveRecordCache.html
-[ScopeNotDefined]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
-[StatementNotValid]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.StatementNotValid.html
-[UnableToSetFetchMode]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
-[UpdatedAtProperty]: http://icanboogie.org/docs/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
+[ICanBoogie]:                   http://icanboogie.org
+[PDO]:                          http://php.net/manual/en/book.pdo.php
