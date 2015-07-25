@@ -21,7 +21,7 @@ interface Driver
 	 *
 	 * @param string|array $string
 	 *
-	 * @return string
+	 * @return string|array
 	 */
 	public function quote_string($string);
 
@@ -30,7 +30,7 @@ interface Driver
 	 *
 	 * @param string|array $identifier
 	 *
-	 * @return string
+	 * @return string|array
 	 */
 	public function quote_identifier($identifier);
 

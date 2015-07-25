@@ -174,7 +174,7 @@ class Connection extends \PDO implements Driver
 	{
 		unset($this->driver);
 
-		$this->driver_name = $driver_name = $this->resolve_driver_name($dsn);
+		$this->driver_name = $this->resolve_driver_name($dsn);
 		$this->apply_options($options);
 		$this->before_connection($options);
 
