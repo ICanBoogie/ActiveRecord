@@ -74,4 +74,12 @@ class SQLiteDriver extends MySQLDriver
 	{
 		$this->connection->exec('VACUUM');
 	}
+
+	/**
+	 * @inheritdoc
+	 */
+	protected function resolve_index_name($unprefixed_table_name, $index_id)
+	{
+		return $index_id . '_' . substr(sha1($unprefixed_table_name), 0 , 8);
+	}
 }

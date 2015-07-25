@@ -176,13 +176,13 @@ class MySQLDriver extends BasicDriver
 			$type .= ' ';
 		}
 
-		foreach ($indexes as $index_id => $column_names)
+		foreach ($indexes as $index_name => $column_names)
 		{
 			$column_names = $this->quote_identifier($column_names);
 			$rendered_column_names = implode(', ', $column_names);
-			$quoted_index_id = $this->quote_identifier($index_id);
+			$quoted_index_name = $this->quote_identifier($this->resolve_index_name($unprefixed_table_name, $index_name));
 
-			$connection->exec("CREATE {$type}INDEX $quoted_index_id ON $quoted_table_name ($rendered_column_names)");
+			$connection->exec("CREATE {$type}INDEX $quoted_index_name ON $quoted_table_name ($rendered_column_names)");
 		}
 	}
 }

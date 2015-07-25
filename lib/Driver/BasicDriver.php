@@ -134,4 +134,17 @@ abstract class BasicDriver implements Driver
 	{
 		return $this->quote_identifier($this->connection->table_name_prefix . $unprefixed_table_name);
 	}
+
+	/**
+	 * Returns index name.
+	 *
+	 * @param string $unprefixed_table_name
+	 * @param string $index_id
+	 *
+	 * @return string
+	 */
+	protected function resolve_index_name($unprefixed_table_name, $index_id)
+	{
+		return $index_id;
+	}
 }
