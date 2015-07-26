@@ -30,37 +30,27 @@ class Table extends Object
 {
 	/**
 	 * Alias of the table.
-	 *
-	 * @var string
 	 */
 	const ALIAS = 'alias';
 
 	/**
 	 * Connection.
-	 *
-	 * @var string
 	 */
 	const CONNECTION = 'connection';
 
 	/**
 	 * Extended model.
-	 *
-	 * @var string
 	 */
 	const EXTENDING = 'extends';
 	const IMPLEMENTING = 'implements';
 
 	/**
 	 * Unprefixed Name of the table.
-	 *
-	 * @var string
 	 */
 	const NAME = 'name';
 
 	/**
 	 * Schema of the table.
-	 *
-	 * @var string
 	 */
 	const SCHEMA = 'schema';
 
@@ -88,6 +78,9 @@ class Table extends Object
 	 */
 	protected $name;
 
+	/**
+	 * @return string
+	 */
 	protected function get_name()
 	{
 		return $this->name;
@@ -100,6 +93,9 @@ class Table extends Object
 	 */
 	protected $unprefixed_name;
 
+	/**
+	 * @return string
+	 */
 	protected function get_unprefixed_name()
 	{
 		return $this->unprefixed_name;
@@ -108,10 +104,13 @@ class Table extends Object
 	/**
 	 * Primary key of the table, retrieved from the schema defined using the {@link SCHEMA} attribute.
 	 *
-	 * @var mixed
+	 * @var array|null|string
 	 */
 	protected $primary;
 
+	/**
+	 * @return array|null|string
+	 */
 	protected function get_primary()
 	{
 		return $this->primary;
@@ -127,6 +126,9 @@ class Table extends Object
 	 */
 	protected $alias;
 
+	/**
+	 * @return string
+	 */
 	protected function get_alias()
 	{
 		return $this->alias;
@@ -139,6 +141,9 @@ class Table extends Object
 	 */
 	protected $schema;
 
+	/**
+	 * @return Schema
+	 */
 	protected function get_schema()
 	{
 		return $this->schema;
@@ -151,6 +156,9 @@ class Table extends Object
 	 */
 	protected $schema_options;
 
+	/**
+	 * @return array
+	 */
 	protected function get_schema_options()
 	{
 		return $this->schema_options;
@@ -164,6 +172,9 @@ class Table extends Object
 	 */
 	protected $parent;
 
+	/**
+	 * @return Table
+	 */
 	protected function get_parent()
 	{
 		return $this->parent;
@@ -180,6 +191,23 @@ class Table extends Object
 	protected $update_join;
 
 	/**
+	 * @return string
+	 */
+	protected function lazy_get_update_join()
+	{
+		$join = '';
+		$parent = $this->parent;
+
+		while ($parent)
+		{
+			$join .= " INNER JOIN `{$parent->name}` `{$parent->alias}` USING(`{$this->primary}`)";
+			$parent = $parent->parent;
+		}
+
+		return $join;
+	}
+
+	/**
 	 * SQL fragment for the FROM clause of the query, made of the table's name and alias and those
 	 * of the related tables, inherited and implemented.
 	 *
@@ -188,6 +216,52 @@ class Table extends Object
 	 * @var string
 	 */
 	protected $select_join;
+
+	/**
+	 * @return string
+	 */
+	protected function lazy_get_select_join()
+	{
+		$join = "`{$this->alias}`" . $this->update_join;
+
+		if (!$this->implements)
+		{
+			return $join;
+		}
+
+		foreach ($this->implements as $implement)
+		{
+			$table = $implement['table'];
+
+			$join .= empty($implement['loose']) ? 'INNER' : 'LEFT';
+			$join .= " JOIN `$table->name` AS {$table->alias} USING(`$table->primary`)";
+		}
+
+		return $join;
+	}
+
+	/**
+	 * Returns the extended schema.
+	 *
+	 * @return Schema
+	 */
+	protected function lazy_get_extended_schema()
+	{
+		$table = $this;
+		$options = [];
+
+		while ($table)
+		{
+			$options[] = $table->schema_options;
+
+			$table = $table->parent;
+		}
+
+		$options = array_reverse($options);
+		$options = call_user_func_array('array_merge', $options);
+
+		return new Schema($options);
+	}
 
 	/**
 	 * Initializes the following properties: {@link $alias}, {@link $connection},
@@ -199,166 +273,32 @@ class Table extends Object
 	 */
 	public function __construct(array $attributes)
 	{
-		foreach ($attributes as $attribute => $value)
-		{
-			switch ($attribute)
-			{
-				case self::ALIAS: $this->alias = $value; break;
-				case self::CONNECTION: $this->connection = $value; break;
-				case self::IMPLEMENTING: $this->implements = $value; break;
-				case self::NAME: $this->unprefixed_name = $value; break;
-				case self::SCHEMA: $this->schema_options = $value; break;
-				case self::EXTENDING: $this->parent = $value; break;
-			}
-		}
+		unset($this->update_join);
+		unset($this->select_join);
 
-		if (!$this->unprefixed_name)
-		{
-			throw new \InvalidArgumentException('The <code>NAME</code> attribute is empty.');
-		}
-
-		if (preg_match('#([^0-9,a-z,A-Z$_])#', $this->unprefixed_name, $matches))
-		{
-			throw new \InvalidArgumentException("Invalid character in table name \"$this->unprefixed_name\": {$matches[0]}.");
-		}
-
-		if (!$this->schema_options)
-		{
-			throw new \InvalidArgumentException('The <code>SCHEMA</code> attribute is empty.');
-		}
-
-		if ($this->parent && !($this->parent instanceof self))
-		{
-			throw new \InvalidArgumentException("EXTENDING must be an instance of " . __CLASS__ . ". Given: {$this->parent}.");
-		}
-
-		#
-		# alias
-		#
-
-		if (!$this->alias)
-		{
-			$alias = $this->unprefixed_name;
-
-			$pos = strrpos($alias, '_');
-
-			if ($pos !== false)
-			{
-				$alias = substr($alias, $pos + 1);
-			}
-
-			$alias = \ICanBoogie\singularize($alias);
-
-			$this->alias = $alias;
-		}
-
-		#
-		# if we have a parent, we need to extend our fields with our parent primary key
-		#
+		$this->map_construct_attributes($attributes);
+		$this->assert_has_name();
+		$this->assert_has_schema();
+		$this->assert_parent_is_valid();
+		$this->ensure_has_alias();
 
 		$parent = $this->parent;
 
 		if ($parent)
 		{
-			$this->connection = $parent->connection;
-
-			$primary = $parent->primary;
-			$primary_definition = $parent->schema[$primary];
-			$primary_definition->auto_increment = false;
-			$this->schema_options = [ $primary => $primary_definition ] + $this->schema_options;
-
-			#
-			# implements are inherited too
-			#
-
-			if ($parent->implements)
-			{
-				$this->implements = array_merge($parent->implements, $this->implements);
-			}
+			$this->construct_with_parent($parent);
 		}
 
-		$connection = $this->connection;
+		$this->assert_has_connection();
+		$this->assert_implements_is_valid();
 
-		if (!($connection instanceof Connection))
-		{
-			throw new \InvalidArgumentException
-			(
-				'<code>connection</code> must be an instance of Connection, given: '
-				. (is_object($connection) ? 'instance of ' . get_class($connection) : gettype($connection))
-				. '.'
-			);
-		}
-
-		$this->name = $connection->table_name_prefix . $this->unprefixed_name;
-
-		#
-		# Create a Schema instance from the schema options and retrieve the primary key, if any.
-		#
-
+		$this->name = $this->connection->table_name_prefix . $this->unprefixed_name;
 		$this->schema = new Schema($this->schema_options);
 
 		if ($this->schema->primary)
 		{
 			$this->primary = $this->schema->primary;
 		}
-
-		#
-		# resolve inheritance and create a lovely _inner join_ string
-		#
-
-		$join = '';
-
-		$parent = $this->parent;
-
-		while ($parent)
-		{
-			$join .= " INNER JOIN `{$parent->name}` `{$parent->alias}` USING(`{$this->primary}`)";
-
-			$parent = $parent->parent;
-		}
-
-		$this->update_join = $join;
-
-		$join = "`{$this->alias}`" . $join;
-
-		#
-		# resolve implements
-		#
-
-		if ($this->implements)
-		{
-			if (!is_array($this->implements))
-			{
-				throw new \InvalidArgumentException('<code>IMPLEMENTING</code> must be an array.');
-			}
-
-			$i = 1;
-
-			foreach ($this->implements as $implement)
-			{
-				if (!is_array($implement))
-				{
-					throw new \InvalidArgumentException('<code>IMPLEMENTING</code> must be an array.');
-				}
-
-				$table = $implement['table'];
-
-				if (!($table instanceof Table))
-				{
-					throw new \InvalidArgumentException(sprintf('Implements table must be an instance of ICanBoogie\ActiveRecord\Table: %s given.', get_class($table)));
-				}
-
-				$name = $table->name;
-				$primary = $table->primary;
-
-				$join .= empty($implement['loose']) ? 'INNER' : 'LEFT';
-				$join .= " JOIN `$name` AS {$table->alias} USING(`$primary`)";
-
-				$i++;
-			}
-		}
-
-		$this->select_join = $join;
 	}
 
 	/**
@@ -373,6 +313,160 @@ class Table extends Object
 	public function __invoke($query, array $args = [], array $options = [])
 	{
 		return $this->query($query, $args, $options);
+	}
+
+	/**
+	 * Maps construct attributes.
+	 *
+	 * @param array $attributes
+	 */
+	protected function map_construct_attributes(array $attributes)
+	{
+		foreach ($attributes as $attribute => $value)
+		{
+			switch ($attribute)
+			{
+				case self::ALIAS: $this->alias = $value; break;
+				case self::CONNECTION: $this->connection = $value; break;
+				case self::IMPLEMENTING: $this->implements = $value; break;
+				case self::NAME: $this->unprefixed_name = $value; break;
+				case self::SCHEMA: $this->schema_options = $value; break;
+				case self::EXTENDING: $this->parent = $value; break;
+			}
+		}
+	}
+
+	/**
+	 * Asserts that the table has a name.
+	 */
+	protected function assert_has_name()
+	{
+		if (!$this->unprefixed_name)
+		{
+			throw new \InvalidArgumentException("The `NAME` attribute is empty.");
+		}
+	}
+
+	/**
+	 * Asserts that the table has a schema.
+	 */
+	protected function assert_has_schema()
+	{
+		if (!$this->schema_options)
+		{
+			throw new \InvalidArgumentException("The `SCHEMA` attribute is empty.");
+		}
+	}
+
+	/**
+	 * Asserts that the table has a valid connection.
+	 */
+	protected function assert_has_connection()
+	{
+		$connection = $this->connection;
+
+		if (!$connection instanceof Connection)
+		{
+			throw new \InvalidArgumentException
+			(
+				'`CONNECTION` must be an instance of Connection, given: '
+				. (is_object($connection) ? 'instance of ' . get_class($connection) : gettype($connection))
+				. '.'
+			);
+		}
+	}
+
+	/**
+	 * Asserts the parent is valid, if one is specified.
+	 */
+	protected function assert_parent_is_valid()
+	{
+		$parent = $this->parent;
+
+		if (!$parent)
+		{
+			return;
+		}
+
+		if (!$parent instanceof self)
+		{
+			throw new \InvalidArgumentException("`EXTENDING` must be an instance of Table.");
+		}
+	}
+
+	/**
+	 * Asserts the implements definition is valid.
+	 */
+	protected function assert_implements_is_valid()
+	{
+		$implements = $this->implements;
+
+		if (!$implements)
+		{
+			return;
+		}
+
+		if (!is_array($implements))
+		{
+			throw new \InvalidArgumentException("`IMPLEMENTING` must be an array.");
+		}
+
+		foreach ($implements as $implement)
+		{
+			if (!is_array($implement))
+			{
+				throw new \InvalidArgumentException("`IMPLEMENTING` must be an array.");
+			}
+
+			$table = $implement['table'];
+
+			if (!$table instanceof Table)
+			{
+				throw new \InvalidArgumentException("Implements table must be an instance of Table.");
+			}
+		}
+	}
+
+	/**
+	 * Ensures the table has an alias, make one otherwise.
+	 */
+	protected function ensure_has_alias()
+	{
+		if ($this->alias)
+		{
+			return;
+		}
+
+		$alias = $this->unprefixed_name;
+		$pos = strrpos($alias, '_');
+
+		if ($pos !== false)
+		{
+			$alias = substr($alias, $pos + 1);
+		}
+
+		$this->alias = \ICanBoogie\singularize($alias);
+	}
+
+	/**
+	 * Construct table with specified parent.
+	 *
+	 * From its parent, a table inherits its primary key, schema options, and implements.
+	 *
+	 * @param Table $parent
+	 */
+	protected function construct_with_parent(Table $parent)
+	{
+		$this->connection = $parent->connection;
+		$primary = $parent->primary;
+		$primary_definition = $parent->schema[$primary];
+		$primary_definition->auto_increment = false;
+		$this->schema_options = [ $primary => $primary_definition ] + $this->schema_options;
+
+		if ($parent->implements)
+		{
+			$this->implements = array_merge($parent->implements, $this->implements);
+		}
 	}
 
 	/*
@@ -390,11 +484,6 @@ class Table extends Object
 	 */
 	public function install()
 	{
-		if (!$this->schema)
-		{
-			throw new \Exception("Missing schema to install table {$this->unprefixed_name}.");
-		}
-
 		$this->connection->create_table($this->unprefixed_name, $this->schema);
 	}
 
@@ -419,30 +508,7 @@ class Table extends Object
 	}
 
 	/**
-	 * Returns the extended schema.
-	 *
-	 * @return Schema
-	 */
-	protected function lazy_get_extended_schema()
-	{
-		$table = $this;
-		$options = [];
-
-		while ($table)
-		{
-			$options[] = $table->schema_options;
-
-			$table = $table->parent;
-		}
-
-		$options = array_reverse($options);
-		$options = call_user_func_array('\ICanBoogie\array_merge_recursive', $options);
-
-		return new Schema($options);
-	}
-
-	/**
-	 * Resolve statement placeholders.
+	 * Resolves statement placeholders.
 	 *
 	 * The following placeholder are replaced:
 	 *
@@ -474,6 +540,7 @@ class Table extends Object
 			'{primary}' => $primary,
 			'{self}' => $this->name,
 			'{self_and_related}' => "`$this->name`" . ($this->select_join ? " $this->select_join" : '')
+
 		]);
 	}
 
@@ -494,7 +561,15 @@ class Table extends Object
 		return $this->connection->prepare($query, $options);
 	}
 
-	public function quote($string, $parameter_type=\PDO::PARAM_STR)
+	/**
+	 * @see Connection::quote()
+	 *
+	 * @param string $string
+	 * @param int $parameter_type
+	 *
+	 * @return string
+	 */
+	public function quote($string, $parameter_type = \PDO::PARAM_STR)
 	{
 		return $this->connection->quote($string, $parameter_type);
 	}
@@ -504,7 +579,9 @@ class Table extends Object
 	 *
 	 * The statement is prepared by the {@link prepare()} method before it is executed.
 	 *
-	 * @inheritdoc
+	 * @param string $query
+	 * @param array $args
+	 * @param array $options
 	 *
 	 * @return mixed
 	 */
@@ -512,7 +589,7 @@ class Table extends Object
 	{
 		$statement = $this->prepare($query, $options);
 
-		return $statement->execute($args);
+		return $statement($args);
 	}
 
 	/**
@@ -528,28 +605,33 @@ class Table extends Object
 	 */
 	public function query($query, array $args = [], array $options = [])
 	{
-		$query = $this->resolve_statement($query);
-
-		$statement = $this->prepare($query, $options);
-		$statement->execute($args);
+		$statement = $this->prepare($this->resolve_statement($query), $options);
+		$statement($args);
 
 		return $statement;
 	}
 
+	/**
+	 * Filters mass assignment values.
+	 *
+	 * @param array $values
+	 * @param bool|false $extended
+	 *
+	 * @return array
+	 */
 	protected function filter_values(array $values, $extended = false)
 	{
 		$filtered = [];
 		$holders = [];
 		$identifiers = [];
-
 		$schema = $extended ? $this->extended_schema : $this->schema;
-		$connection = $this->connection;
+		$driver = $this->connection->driver;
 
 		foreach ($schema->filter($values) as $identifier => $value)
 		{
-			$quoted_identifier = $connection->quote_identifier($identifier);
+			$quoted_identifier = $driver->quote_identifier($identifier);
 
-			$filtered[] = $connection->cast_value($value);
+			$filtered[] = $driver->cast_value($value);
 			$holders[$identifier] = "$quoted_identifier = ?";
 			$identifiers[] = $quoted_identifier;
 		}
@@ -557,6 +639,17 @@ class Table extends Object
 		return [ $filtered, $holders, $identifiers ];
 	}
 
+	/**
+	 * Saves values.
+	 *
+	 * @param array $values
+	 * @param mixed|null $id
+	 * @param array $options
+	 *
+	 * @return mixed
+	 *
+	 * @throws \Exception
+	 */
 	public function save(array $values, $id = null, array $options = [])
 	{
 		if ($id)
@@ -852,8 +945,13 @@ class Table extends Object
 		return !!$statement->rowCount();
 	}
 
-	// FIXME-20081223: what about extends ?
-
+	/**
+	 * Truncates table.
+	 *
+	 * @return mixed
+	 *
+	 * @FIXME-20081223: what about extends ?
+	 */
 	public function truncate()
 	{
 		if ($this->connection->driver_name == 'sqlite')
@@ -868,6 +966,13 @@ class Table extends Object
 		return $this->execute('truncate table `{self}`');
 	}
 
+	/**
+	 * Drops table.
+	 *
+	 * @param array $options
+	 *
+	 * @return mixed
+	 */
 	public function drop(array $options=[])
 	{
 		$query = 'DROP TABLE ';

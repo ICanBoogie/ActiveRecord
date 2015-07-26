@@ -13,8 +13,24 @@ namespace ICanBoogie\ActiveRecord;
 
 class TableTest extends \PHPUnit_Framework_TestCase
 {
+	/**
+	 * @var Connection
+	 */
 	static private $connection;
+
+	/**
+	 * @var Table
+	 */
 	static private $animals;
+
+	/**
+	 * @var array
+	 */
+	static private $animals_schema_options;
+
+	/**
+	 * @var Table
+	 */
 	static private $dogs;
 
 	static public function setUpBeforeClass()
@@ -31,7 +47,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
 		([
 			Table::NAME => 'animals',
 			Table::CONNECTION => self::$connection,
-			Table::SCHEMA => [
+			Table::SCHEMA => self::$animals_schema_options = [
 
 				'id' => 'serial',
 				'name' => 'varchar',
@@ -126,11 +142,32 @@ class TableTest extends \PHPUnit_Framework_TestCase
 		$this->assertInstanceOf(Schema::class, self::$animals->schema);
 	}
 
-	// TODO-20130303: schema
+	public function test_get_schema_options()
+	{
+		$this->assertEquals(self::$animals_schema_options, self::$animals->schema_options);
+	}
 
 	public function test_get_parent()
 	{
 		$this->assertEquals(self::$animals, self::$dogs->parent);
+	}
+
+	public function test_get_update_join()
+	{
+		$table = self::$dogs;
+		$method = new \ReflectionMethod(Table::class, 'lazy_get_update_join');
+		$method->setAccessible(true);
+
+		$this->assertSame(" INNER JOIN `prefix_animals` `animal` USING(`id`)", $method->invoke($table));
+	}
+
+	public function test_get_select_join()
+	{
+		$table = self::$dogs;
+		$method = new \ReflectionMethod(Table::class, 'lazy_get_select_join');
+		$method->setAccessible(true);
+
+		$this->assertSame("`dog` INNER JOIN `prefix_animals` `animal` USING(`id`)", $method->invoke($table));
 	}
 
 	public function test_extended_schema()
