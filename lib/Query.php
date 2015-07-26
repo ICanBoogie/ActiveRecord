@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\DateTime;
 use ICanBoogie\Prototype\MethodNotDefined;
 use ICanBoogie\PrototypeTrait;
@@ -31,10 +32,13 @@ use ICanBoogie\PrototypeTrait;
  * otherwise. If there is multiple records, the property is an array of booleans.
  *
  * @property-read Model $model The target model of the query.
+ * @property-read array $joints The joints collection from {@link join()}.
+ * @property-read array $joints_args The arguments to the joints.
  * @property-read array $conditions The conditions collected from {@link where()}, {@link and()},
  * `filter_by_*`, and scopes.
  * @property-read array $conditions_args The arguments to the conditions.
  * @property-read array $having_args The arguments to the `HAVING` clause.
+ * @property-read array $args Returns the arguments to the query.
  * @property-read Query $prepared Return a prepared query.
  */
 class Query implements \IteratorAggregate
@@ -54,11 +58,34 @@ class Query implements \IteratorAggregate
 	protected $select;
 
 	/**
-	 * Part of the `JOIN` clause.
+	 * `JOIN` clauses.
 	 *
-	 * @var string
+	 * @var array
 	 */
-	protected $join;
+	protected $joints = [];
+
+	/**
+	 * @return array
+	 */
+	protected function get_joints()
+	{
+		return $this->joints;
+	}
+
+	/**
+	 * Joints arguments.
+	 *
+	 * @var array
+	 */
+	protected $joints_args = [];
+
+	/**
+	 * @return array
+	 */
+	protected function get_joints_args()
+	{
+		return $this->joints_args;
+	}
 
 	/**
 	 * The conditions collected from {@link where()}, {@link and()}, `filter_by_*`, and scopes.
@@ -68,9 +95,6 @@ class Query implements \IteratorAggregate
 	protected $conditions = [];
 
 	/**
-	 * Return the conditions collected from {@link where()}, {@link and()}, `filter_by_*`,
-	 * and scopes.
-	 *
 	 * @return array
 	 */
 	protected function get_conditions()
@@ -86,8 +110,6 @@ class Query implements \IteratorAggregate
 	protected $conditions_args = [];
 
 	/**
-	 * Return the arguments to the conditions.
-	 *
 	 * @return array
 	 */
 	protected function get_conditions_args()
@@ -124,8 +146,6 @@ class Query implements \IteratorAggregate
 	protected $having_args = [];
 
 	/**
-	 * Return the arguments to the `HAVING` clause.
-	 *
 	 * @return array
 	 */
 	protected function get_having_args()
@@ -161,9 +181,23 @@ class Query implements \IteratorAggregate
 	 */
 	protected $model;
 
+	/**
+	 * @return Model
+	 */
 	protected function get_model()
 	{
 		return $this->model;
+	}
+
+	/**
+	 * Returns the arguments to the query, which include joints arguments, conditions arguments,
+	 * and _having_ arguments.
+	 *
+	 * @return array
+	 */
+	protected function get_args()
+	{
+		return array_merge($this->joints_args, $this->conditions_args, $this->having_args);
 	}
 
 	/**
@@ -271,13 +305,28 @@ class Query implements \IteratorAggregate
 	}
 
 	/**
+	 * Renders the `JOIN` clauses.
+	 *
+	 * @return string
+	 */
+	protected function render_joints()
+	{
+		return implode(' ', $this->joints);
+	}
+
+	/**
 	 * Render the main body of the query, without the `SELECT` and `FROM` clauses.
 	 *
 	 * @return string
 	 */
 	protected function render_main()
 	{
-		$query = $this->join;
+		$query = '';
+
+		if ($this->joints)
+		{
+			$query = ' ' . $this->render_joints();
+		}
 
 		$conditions = $this->conditions;
 
@@ -304,7 +353,7 @@ class Query implements \IteratorAggregate
 
 		if ($order)
 		{
-			$query .= ' ' .$this->render_order($order);
+			$query .= ' ' . $this->render_order($order);
 		}
 
 		$offset = $this->offset;
@@ -512,7 +561,7 @@ class Query implements \IteratorAggregate
 			return $this;
 		}
 
-		$this->join .= ' ' . $expression;
+		$this->joints[] = $expression;
 
 		return $this;
 	}
@@ -550,7 +599,8 @@ class Query implements \IteratorAggregate
 			$on = ' ' . $on;
 		}
 
-		$this->join .= " $mode JOIN($query) `$as`{$on}";
+		$this->joints[] = "$mode JOIN($query) `$as`{$on}";
+		$this->joints_args = array_merge($this->joints_args, $query->args);
 	}
 
 	/**
@@ -601,7 +651,7 @@ class Query implements \IteratorAggregate
 		$mode = $options['mode'];
 		$as = $options['as'];
 
-		$this->join .= " $mode JOIN `$model->name` AS `$as` USING(`$primary`)";
+		$this->joints[] = "$mode JOIN `$model->name` AS `$as` USING(`$primary`)";
 	}
 
 	/**
@@ -661,7 +711,7 @@ class Query implements \IteratorAggregate
 					else
 					{
 						$joined = (string) $arg;
-						$conditions_args = array_merge($conditions_args, $arg->conditions_args, $arg->having_args);
+						$conditions_args = array_merge($conditions_args, $arg->args);
 					}
 
 					$c .= ' AND `' . ($column{0} == '!' ? substr($column, 1) . '` NOT' : $column . '`') . ' IN(' . $joined . ')';
@@ -837,6 +887,11 @@ class Query implements \IteratorAggregate
 	 */
 	public function having($conditions, $conditions_args=null)
 	{
+		if (!$this->group)
+		{
+			throw new \LogicException("having() cannot be used without invoking group() first.");
+		}
+
 		list($having, $having_args) = $this->deferred_parse_conditions();
 
 		$this->having = $having;
@@ -941,7 +996,7 @@ class Query implements \IteratorAggregate
 	public function query()
 	{
 		$statement = $this->prepare();
-		$statement->execute(array_merge($this->conditions_args, $this->having_args));
+		$statement->execute($this->args);
 
 		return $statement;
 	}
@@ -977,7 +1032,7 @@ class Query implements \IteratorAggregate
 		}
 		else
 		{
-			$args = [ \PDO::FETCH_CLASS, 'ICanBoogie\ActiveRecord', [ $this->model ]];
+			$args = [ \PDO::FETCH_CLASS, ActiveRecord::class, [ $this->model ]];
 		}
 
 		return $args;
@@ -1186,7 +1241,7 @@ class Query implements \IteratorAggregate
 		}
 
 		$query .= ' AS count ' . $this->render_from() . $this->render_main();
-		$query = $this->model->query($query, array_merge($this->conditions_args, $this->having_args));
+		$query = $this->model->query($query, $this->args);
 
 		if ($method == 'COUNT' && $column)
 		{
@@ -1280,7 +1335,7 @@ class Query implements \IteratorAggregate
 	 */
 	public function delete($tables = null)
 	{
-		if (!$tables && $this->join)
+		if (!$tables && $this->joints)
 		{
 			$tables = "`{alias}`";
 		}
@@ -1296,7 +1351,7 @@ class Query implements \IteratorAggregate
 
 		$query .= $this->render_main();
 
-		return $this->model->execute($query, $this->conditions_args);
+		return $this->model->execute($query, $this->args);
 	}
 
 	/**

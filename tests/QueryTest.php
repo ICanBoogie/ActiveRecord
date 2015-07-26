@@ -17,8 +17,25 @@ use ICanBoogie\ActiveRecord\QueryTest\Dog;
 class QueryTest extends \PHPUnit_Framework_TestCase
 {
 	static private $n = 10;
+
+	/**
+	 * @var Connection
+	 */
 	static private $connection;
+
+	/**
+	 * @var ModelCollection
+	 */
+	static private $models;
+
+	/**
+	 * @var Model
+	 */
 	static private $animals;
+
+	/**
+	 * @var Model
+	 */
 	static private $dogs;
 	static private $source;
 
@@ -39,7 +56,6 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 			'animals' => [
 
-				Model::NAME => 'animals',
 				Model::SCHEMA => [
 
 					'id' => 'serial',
@@ -54,10 +70,31 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 				Model::ACTIVERECORD_CLASS => Dog::class,
 				Model::EXTENDING => 'animals',
-				Model::NAME => 'dogs',
 				Model::SCHEMA => [
 
 					'bark_volume' => 'float'
+
+				]
+			],
+
+			'subscribers' => [
+
+				Model::SCHEMA => [
+
+					'subscriber_id' => 'serial',
+					'email' => 'varchar'
+
+				]
+			],
+
+			'updates' => [
+
+				Model::SCHEMA => [
+
+					'update_id' => 'serial',
+					'subscriber_id' => 'foreign',
+					'updated_at' => 'datetime',
+					'update_hash' => [ 'char', 40 ]
 
 				]
 			]
@@ -65,6 +102,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 		]);
 
 		$models->install();
+		self::$models = $models;
 
 		self::$connection = $connections['primary'];
 		self::$animals = $models['animals'];
@@ -170,79 +208,48 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 	public function test_join_with_query()
 	{
-		$models = new ModelCollection($this->connections, [
-
-			'subscribers' => [
-
-				Model::CONNECTION => self::$connection,
-				Model::NAME => 'subscribers',
-				Model::SCHEMA => [
-
-					'subscriber_id' => 'serial',
-					'email' => 'varchar'
-
-				]
-			],
-
-			'updates' => [
-
-				Model::CONNECTION => self::$connection,
-				Model::NAME => 'updates',
-				Model::SCHEMA => [
-
-					'update_id' => 'serial',
-					'subscriber_id' => 'foreign',
-					'updated_at' => 'datetime',
-					'update_hash' => [ 'char', 40 ]
-
-				]
-			]
-		]);
-
+		$models = self::$models;
 		$updates = $models['updates'];
 		$subscribers = $models['subscribers'];
 
-		$update_query = $updates->select('subscriber_id, updated_at, update_hash')
-		->order('updated_at DESC');
+		$update_query = $updates
+			->select('subscriber_id, updated_at, update_hash')
+			->order('updated_at DESC');
 
 		$subscriber_query = $subscribers
-		->join($update_query, [ 'on' => 'subscriber_id' ])
-		->group("`{alias}`.subscriber_id");
+			->join($update_query, [ 'on' => 'subscriber_id' ])
+			->group("`{alias}`.subscriber_id");
 
+		$this->assertEquals([ "INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` ORDER BY updated_at DESC) `update` USING(`subscriber_id`)" ], $subscriber_query->joints);
 		$this->assertEquals("SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` ORDER BY updated_at DESC) `update` USING(`subscriber_id`) GROUP BY `subscriber`.subscriber_id", (string) $subscriber_query);
+	}
+
+	public function test_join_with_query_with_args()
+	{
+		$models = self::$models;
+		$updates = $models['updates'];
+		$subscribers = $models['subscribers'];
+		$now = DateTime::now();
+
+		$update_query = $updates
+			->select('subscriber_id, updated_at, update_hash')
+			->where('updated_at < ?', $now)
+			->order('updated_at DESC');
+
+		$subscriber_query = $subscribers
+			->join($update_query, [ 'on' => 'subscriber_id' ])
+			->filter_by_email('person@example.com')
+			->group("`{alias}`.subscriber_id");
+
+		$this->assertEquals("SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` WHERE (updated_at < ?) ORDER BY updated_at DESC) `update` USING(`subscriber_id`) WHERE (`email` = ?) GROUP BY `subscriber`.subscriber_id", (string) $subscriber_query);
+		$this->assertSame([ $now->utc->as_db ], $subscriber_query->joints_args);
+		$this->assertSame([ 'person@example.com' ], $subscriber_query->conditions_args);
+		$this->assertSame([ $now->utc->as_db, 'person@example.com' ], $subscriber_query->args);
 	}
 
 	public function test_join_with_model()
 	{
-		$models = new ModelCollection($this->connections, [
-
-			'subscribers' => [
-
-				Model::CONNECTION => self::$connection,
-				Model::NAME => 'subscribers',
-				Model::SCHEMA => [
-
-					'subscriber_id' => 'serial',
-					'email' => 'varchar'
-
-				]
-			],
-
-			'updates' => [
-
-				Model::CONNECTION => self::$connection,
-				Model::NAME => 'updates',
-				Model::SCHEMA => [
-
-					'update_id' => 'serial',
-					'subscriber_id' => 'foreign',
-					'updated_at' => 'datetime',
-					'update_hash' => [ 'char', 40 ]
-
-				]
-			]
-		]);
-
+		$models = self::$models;
 		$updates = $models['updates'];
 		$subscribers = $models['subscribers'];
 

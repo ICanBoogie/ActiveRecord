@@ -1152,7 +1152,7 @@ $model->select('nid, created, CONCAT_WS(":", title, language)');
 ### Joining tables
 
 The `join()` method specifies the `JOIN` clause. A raw string or a model identifier
-can be used to specify the join. The method can be used multiple times to create multiple joins.
+can be used to specify the join. The method can be used multiple times to create multiple joints.
 
 
 
@@ -1167,37 +1167,24 @@ A [Query][] instance can be joined as a subquery. The following options are avai
 - `on`: The column used for the conditional expression. Depending on the columns available, the
 method tries to determine the best solution between `ON` and `USING`.
 
-```php
-<?php
-
-// …
-
-$update_query = $models['updates']
-->select('updated_at, subscriber_id, update_hash')
-->order('updated_at DESC');
-
-$subscribers = $models['subscribers']
-->join($update_query, [ 'on' => 'subscriber_id' ])
-->group("`{alias}`.subscriber_id")
-->all;
-```
-
-The following example demonstrates how to fetch the available categories and their usage by the
-articles of a blog. We use the join mode `LEFT` so that categories with no articles are also
-fetched.
+The following example demonstrates how to fetch users and order them by the number
+of online article they published since last year. We use the join mode `LEFT` so that users
+that did not publish articles are fetched as well.
 
 ```php
 <?php
 
 // …
 
-$usage = $models['articles']
-->select('category_id, COUNT(category_id) AS `usage`')
-->group('category_id');
+$online_article_count = $models['articles']
+->select('user_id, COUNT(node_id) AS online_article_count')
+->filter_by_type_and_created_at('articles', new DateTime('-1 year'))
+->online
+->group('user_id');
 
-$categories = $models['categories']
-->join($usage, [ 'as' => 'usage', 'on' => 'category_id', 'mode' => 'LEFT' ])
-->all;
+$users = $models['users']
+->join($online_article_count, [ 'on' => 'user_id', 'mode' => 'LEFT' ])
+->order('online_article_count DESC)';
 ```
 
 
@@ -1227,7 +1214,7 @@ $model->join(':contents');
 $model->join(':contents', [ 'mode' => 'LEFT', 'as' => 'cnt' ]);
 ```
 
-Note: If a model identifier is provided, the `get_model()` helper is used to object the model
+**Note:** If a model identifier is provided, the `get_model()` helper is used to object the model
 instance. Checkout the "Patching" section for implementation details.
 
 
