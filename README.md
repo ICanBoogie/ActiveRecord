@@ -1214,8 +1214,8 @@ $model->join(':contents');
 $model->join(':contents', [ 'mode' => 'LEFT', 'as' => 'cnt' ]);
 ```
 
-**Note:** If a model identifier is provided, the `get_model()` helper is used to object the model
-instance. Checkout the "Patching" section for implementation details.
+**Note:** If a model identifier is provided, the model collection associated with the
+query's model is used to obtain the model.
 
 
 

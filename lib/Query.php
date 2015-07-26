@@ -504,7 +504,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * - When `$expression` is a string starting with `:` it is considered as a model
 	 * reference matching the pattern ":<model_id>" where `<model_id>` is the identifier of a model
-	 * that can be retrieved with the {@link get_model()} function e.g. ":nodes".
+	 * that can be retrieved using the model collection associated with the query's model.
 	 *
 	 * - When `$expression` is a {@link Query} instance, it is rendered as a string and used as a
 	 * subquery of the `JOIN` clause. The `$options` parameter can be used to customize the
@@ -544,7 +544,7 @@ class Query implements \IteratorAggregate
 	{
 		if (is_string($expression) && $expression{0} == ':')
 		{
-			$expression = get_model(substr($expression, 1));
+			$expression = $this->model->models[substr($expression, 1)];
 		}
 
 		if ($expression instanceof self)
