@@ -50,7 +50,7 @@ class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 
 	public function test_properties_extended()
 	{
-		$r = new B();
+		$r = new B;
 		$created_at = new DateTime('-10 day');
 		$updated_at = new DateTime('-1 day');
 		$datetime = new DateTime();

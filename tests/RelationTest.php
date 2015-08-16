@@ -85,6 +85,8 @@ class RelationTest extends \PHPUnit_Framework_TestCase
 			->setConstructorArgs([ $this->model, $related ])
 			->getMockForAbstractClass();
 
+		/* @var $relation Relation */
+
 		$this->assertSame($this->model, $relation->parent);
 		$related = $relation->related;
 		$this->assertInstanceOf(Model::class, $related);

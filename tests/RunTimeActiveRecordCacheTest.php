@@ -30,6 +30,8 @@ class RunTimeActiveRecordCacheTest extends \PHPUnit_Framework_TestCase
 			->method('get_primary')
 			->willReturn($primary);
 
+		/* @var $model Model */
+
 		$record = new ActiveRecord($model);
 		$record->$primary = $key;
 

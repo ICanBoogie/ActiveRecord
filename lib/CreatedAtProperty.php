@@ -11,26 +11,28 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\DateTime;
+
 /**
  * Implements a `created_at` property.
  *
  * @see DateTimeProperty
  *
- * @property \ICanBoogie\DateTime|\DateTime|string $created_at
+ * @property DateTime $created_at
  */
 trait CreatedAtProperty
 {
 	/**
 	 * The date and time at which the record was created.
 	 *
-	 * @var \ICanBoogie\DateTime|\DateTime|string
+	 * @var mixed
 	 */
 	private $created_at;
 
 	/**
 	 * Returns the date and time at which the record was created.
 	 *
-	 * @return \ICanBoogie\DateTime
+	 * @return DateTime
 	 */
 	protected function get_created_at()
 	{

@@ -16,7 +16,7 @@ use ICanBoogie\Accessor\AccessorTrait;
 /**
  * Exception thrown when the ActiveRecord class is not valid.
  *
- * @package ICanBoogie\ActiveRecord
+ * @property-read string $class
  */
 class ActiveRecordClassNotValid extends \LogicException implements Exception
 {

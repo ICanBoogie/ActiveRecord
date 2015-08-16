@@ -605,6 +605,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 		$cars->belongs_to($drivers, $brands);
 
+		/* @var $car Car */
 		$car = $cars->new([ 'name' => '4two' ]);
 		$this->assertInstanceOf(Car::class, $car);
 		$this->assertNull($car->driver);

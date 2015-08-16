@@ -12,6 +12,8 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\DateTime;
+use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\A;
+use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\B;
 
 class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 {
@@ -20,6 +22,7 @@ class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function test_property($classname)
 	{
+		/* @var $r A */
 		$r = new $classname;
 		$datetime = new DateTime();
 
@@ -42,8 +45,8 @@ class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 	{
 		return [
 
-			[ __CLASS__ . '\A' ],
-			[ __CLASS__ . '\B' ]
+			[ A::class ],
+			[ B::class ]
 
 		];
 	}

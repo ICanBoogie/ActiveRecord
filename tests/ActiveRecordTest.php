@@ -89,16 +89,7 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	public function test_get_model_from_const()
 	{
 		$record = new Extended;
-		$model = $record->model;
-	}
-
-	/**
-	 * @expectedException \ICanBoogie\PropertyNotWritable
-	 */
-	public function test_set_model()
-	{
-		$record = new ActiveRecord(self::$model);
-		$record->model = null;
+		$this->assertEquals(self::$model, $record->model);
 	}
 
 	public function test_get_model_id()
@@ -111,15 +102,6 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	{
 		$record = new Extended;
 		$this->assertEquals(Extended::MODEL_ID, $record->model_id);
-	}
-
-	/**
-	 * @expectedException \ICanBoogie\PropertyNotWritable
-	 */
-	public function test_set_model_id()
-	{
-		$record = new ActiveRecord(self::$model);
-		$record->model_id = null;
 	}
 
 	public function test_sleep()

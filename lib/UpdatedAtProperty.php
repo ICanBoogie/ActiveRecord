@@ -11,26 +11,28 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\DateTime;
+
 /**
  * Implements a `updated_at` property.
  *
  * @see DateTimeProperty
  *
- * @property \ICanBoogie\DateTime|\DateTime|string $updated_at
+ * @property DateTime $updated_at
  */
 trait UpdatedAtProperty
 {
 	/**
 	 * The date and time at which the record was updated.
 	 *
-	 * @var \ICanBoogie\DateTime|\DateTime|string
+	 * @var mixed
 	 */
 	private $updated_at;
 
 	/**
 	 * Returns the date and time at which the record was updated.
 	 *
-	 * @return \ICanBoogie\DateTime
+	 * @return DateTime
 	 */
 	protected function get_updated_at()
 	{

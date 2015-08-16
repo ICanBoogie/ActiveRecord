@@ -58,6 +58,9 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		catch (\Exception $e)
 		{
 			$this->assertInstanceOf(StatementNotValid::class, $e);
+
+			/* @var $e StatementNotValid */
+
 			$this->assertInstanceOf(\PDOException::class, $e->original);
 			$this->assertNull($e->getPrevious());
 
@@ -86,6 +89,9 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		catch (\Exception $e)
 		{
 			$this->assertInstanceOf(StatementNotValid::class, $e);
+
+			/* @var $e StatementNotValid */
+
 			$this->assertInstanceOf(\PDOException::class, $e->original);
 			$this->assertNull($e->getPrevious());
 
@@ -117,11 +123,10 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		{
 			$statement = $connection($statement);
 
-			$this->fail('Expected StatementNotValid excpetion');
+			$this->fail('Expected StatementNotValid');
 		}
-		catch (\Exception $e)
+		catch (StatementNotValid $e)
 		{
-			$this->assertInstanceOf(StatementNotValid::class, $e);
 			$this->assertInstanceOf(\PDOException::class, $e->original);
 			$this->assertNull($e->getPrevious());
 
@@ -129,6 +134,10 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 			$this->assertEquals($statement, $e->statement);
 			$this->assertNull($e->args);
 			$this->assertEquals('HY000(1) no such table: undefined_table — `DELETE FROM undefined_table`', $e->getMessage());
+		}
+		catch (\Exception $e)
+		{
+			$this->fail('Expected StatementNotValid');
 		}
 	}
 
@@ -220,6 +229,8 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 			->method('fetchColumnAndClose')
 			->willReturn($expected);
 
+		/* @var $statement Statement */
+
 		$this->assertSame($expected, $statement->rc);
 	}
 
@@ -239,6 +250,8 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 			->expects($this->once())
 			->method('fetchAndClose')
 			->willReturn($expected);
+
+		/* @var $statement Statement */
 
 		$this->assertSame($expected, $statement->one);
 	}

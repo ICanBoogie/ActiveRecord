@@ -827,10 +827,11 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param mixed $conditions
 	 * @param mixed $conditions_args
+	 * @param mixed $_ [optional]
 	 *
 	 * @return Query
 	 */
-	public function where($conditions, $conditions_args=null)
+	public function where($conditions, $conditions_args=null, $_ = null)
 	{
 		list($conditions, $conditions_args) = $this->deferred_parse_conditions();
 
@@ -1041,9 +1042,11 @@ class Query implements \IteratorAggregate
 	/**
 	 * Execute the query and returns an array of records.
 	 *
+	 * @param mixed $_ [optional]
+	 *
 	 * @return array
 	 */
-	public function all()
+	public function all($_ = null)
 	{
 		$statement = $this->query();
 		$args = $this->resolve_fetch_mode();
@@ -1064,10 +1067,12 @@ class Query implements \IteratorAggregate
 	/**
 	 * Return the first result of the query and close the cursor.
 	 *
+	 * @param $_ [optional] Fetch mode.
+	 *
 	 * @return mixed The return value of this function on success depends on the fetch mode. In
 	 * all cases, FALSE is returned on failure.
 	 */
-	public function one()
+	public function one($_ = null)
 	{
 		$query = clone $this;
 		$query->limit = 1;

@@ -20,7 +20,7 @@ use ICanBoogie\Prototype\MethodNotDefined;
  *
  * @method Query select() select($expression) The method is forwarded to {@link Query::select}.
  * @method Query join() join($expression) The method is forwarded to {@link Query::join}.
- * @method Query where() where($conditions, $conditions_args=null) The method is forwarded to {@link Query::where}.
+ * @method Query where() where($conditions, $conditions_args=null, $_) The method is forwarded to {@link Query::where}.
  * @method Query group() group($group) The method is forwarded to {@link Query::group}.
  * @method Query order() order($order) The method is forwarded to {@link Query::order}.
  * @method Query limit() limit($limit, $offset=null) The method is forwarded to {@link Query::limit}.
@@ -33,7 +33,7 @@ use ICanBoogie\Prototype\MethodNotDefined;
  * @method int sum() sum($column) The method is forwarded to {@link Query::sum}.
  * @method array all() all() The method is forwarded to {@link Query::all}.
  * @method ActiveRecord one() one() The method is forwarded to {@link Query::one}.
- * @method ActiveRecord new() new(array $properties = []) Instantiate a new record.
+ * @method ActiveRecord new() new(array $properties=[]) Instantiate a new record.
  *
  * @method Model belongs_to() belongs_to($definition) Add a _belongs_to_ relation.
  * @method Model has_many() has_many($related, $options=[]) Adds a _has_many_ relation.

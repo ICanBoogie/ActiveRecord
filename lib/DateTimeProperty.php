@@ -11,22 +11,26 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\DateTime;
+
 /**
  * Implements a `datetime` property.
+ *
+ * @property DateTime $datetime
  */
 trait DateTimeProperty
 {
 	/**
 	 * The date and time at which the record was created.
 	 *
-	 * @var string
+	 * @var mixed
 	 */
 	private $datetime;
 
 	/**
 	 * Returns the date and time at which the record was created.
 	 *
-	 * @return \ICanBoogie\DateTime
+	 * @return DateTime
 	 */
 	protected function get_datetime()
 	{
