@@ -2045,20 +2045,16 @@ Prototype::from('ICanBoogie\ActiveRecord\Model')['lazy_get_activerecord_cache'] 
 };
 ```
 
-Or using the `hooks` configuration:
+Or using a `prototype` configuration fragment:
 
 ```php
 <?php
 
-// config/hooks.php
+// config/prototype.php
 
 return [
 
-	'prototypes' => [
-
-		'ICanBoogie\ActiveRecord\Model::lazy_get_activerecord_cache' => 'my_activerecord_cache_provider'
-
-	]
+	'ICanBoogie\ActiveRecord\Model::lazy_get_activerecord_cache' => 'my_activerecord_cache_provider'
 
 ];
 ```
