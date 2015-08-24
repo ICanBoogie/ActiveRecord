@@ -15,7 +15,14 @@ use ICanBoogie\ActiveRecord;
 
 class ScopeNotDefinedTest extends \PHPUnit_Framework_TestCase
 {
+	/**
+	 * @var Model
+	 */
 	private $model;
+
+	/**
+	 * @var ScopeNotDefined
+	 */
 	private $exception;
 
 	public function setUp()

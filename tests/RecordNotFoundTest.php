@@ -16,6 +16,10 @@ use ICanBoogie\ActiveRecord;
 class RecordNotFoundTest extends \PHPUnit_Framework_TestCase
 {
 	static private $records;
+
+	/**
+	 * @var RecordNotFound
+	 */
 	static private $exception;
 
 	static public function setupBeforeClass()

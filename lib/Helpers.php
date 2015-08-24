@@ -13,12 +13,14 @@ namespace ICanBoogie\ActiveRecord;
 
 /**
  * Patchable helpers of the ActiveRecord package.
+ *
+ * @method static Model get_model(string $id) Returns the model with the corresponding identifier.
  */
 class Helpers
 {
 	static private $jumptable = [
 
-		'get_model' => [ __CLASS__, 'get_model' ]
+		'get_model' => [ __CLASS__, 'default_get_model' ]
 
 	];
 
@@ -63,7 +65,7 @@ class Helpers
 	/**
 	 * @param string $id
 	 */
-	static private function get_model($id)
+	static protected function default_get_model($id)
 	{
 		throw new \RuntimeException("The function " . __FUNCTION__ . "() needs to be patched.");
 	}
