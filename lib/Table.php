@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Object;
+use ICanBoogie\Prototyped;
 
 /**
  * A representation of a database table.
@@ -26,7 +26,7 @@ use ICanBoogie\Object;
  * @property-read string $alias The alias name of the table.
  * @property-read Table|null $parent The parent of the table.
  */
-class Table extends Object
+class Table extends Prototyped
 {
 	/**
 	 * Alias of the table.

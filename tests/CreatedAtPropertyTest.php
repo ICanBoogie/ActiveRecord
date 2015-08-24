@@ -54,7 +54,7 @@ class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 
 namespace ICanBoogie\ActiveRecord\CreatedAtPropertyTest;
 
-class A extends \ICanBoogie\Object
+class A extends \ICanBoogie\Prototyped
 {
 	use \ICanBoogie\ActiveRecord\CreatedAtProperty;
 }

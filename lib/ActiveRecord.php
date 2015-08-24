@@ -20,7 +20,7 @@ use ICanBoogie\ActiveRecord\Model;
  * @property-read Model $model The model managing the active record.
  * @property-read string $model_id The identifier of the model managing the active record.
  */
-class ActiveRecord extends Object
+class ActiveRecord extends Prototyped
 {
 	/**
 	 * The identifier of the model managing the record.

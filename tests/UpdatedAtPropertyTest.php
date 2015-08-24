@@ -54,7 +54,7 @@ class UpdatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 
 namespace ICanBoogie\ActiveRecord\UpdatedAtPropertyTest;
 
-class A extends \ICanBoogie\Object
+class A extends \ICanBoogie\Prototyped
 {
 	use \ICanBoogie\ActiveRecord\UpdatedAtProperty;
 }

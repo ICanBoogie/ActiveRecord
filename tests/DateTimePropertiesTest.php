@@ -93,7 +93,7 @@ class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 
 namespace ICanBoogie\ActiveRecord\DateTimePropertiesTest;
 
-class A extends \ICanBoogie\Object
+class A extends \ICanBoogie\Prototyped
 {
 	use \ICanBoogie\ActiveRecord\CreatedAtProperty;
 	use \ICanBoogie\ActiveRecord\UpdatedAtProperty;
