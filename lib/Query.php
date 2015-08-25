@@ -1090,7 +1090,7 @@ class Query implements \IteratorAggregate
 			return $rc;
 		}
 
-		return call_user_func_array([ $statement, 'fetchAndClose' ], $args);
+		return call_user_func_array([ $statement, 'one' ], $args);
 	}
 
 	/**

@@ -125,7 +125,7 @@ class Statement extends \PDOStatement
 	 *
 	 * @see PDOStatement::fetch()
 	 */
-	public function fetchAndClose($fetch_style = \PDO::FETCH_BOTH, $cursor_orientation = \PDO::FETCH_ORI_NEXT, $cursor_offset = 0)
+	public function one($fetch_style = \PDO::FETCH_BOTH, $cursor_orientation = \PDO::FETCH_ORI_NEXT, $cursor_offset = 0)
 	{
 		$args = func_get_args();
 		$rc = call_user_func_array([ $this, 'fetch' ], $args);
@@ -136,11 +136,11 @@ class Statement extends \PDOStatement
 	}
 
 	/**
-	 * Alias for `fetchAndClose()`.
+	 * Alias for `one()`.
 	 */
 	protected function get_one()
 	{
-		return $this->fetchAndClose();
+		return $this->one();
 	}
 
 	/**

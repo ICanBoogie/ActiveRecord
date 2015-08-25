@@ -209,7 +209,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		call_user_func_array([ $a, 'with' ], $arguments);
 
 		/* @var $statement Statement */
-		$this->assertSame($expected, call_user_func_array([ $statement, 'fetchAndClose' ], $arguments));
+		$this->assertSame($expected, call_user_func_array([ $statement, 'one' ], $arguments));
 	}
 
 	/**
@@ -244,11 +244,11 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		$statement = $this
 			->getMockBuilder(Statement::class)
 			->disableOriginalConstructor()
-			->setMethods([ 'fetchAndClose' ])
+			->setMethods([ 'one' ])
 			->getMock();
 		$statement
 			->expects($this->once())
-			->method('fetchAndClose')
+			->method('one')
 			->willReturn($expected);
 
 		/* @var $statement Statement */
