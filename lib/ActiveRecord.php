@@ -141,22 +141,25 @@ class ActiveRecord extends Prototyped
 		$properties = $this->to_array();
 		$properties = $this->alter_persistent_properties($properties, $model);
 
-		# removes the primary key from the properties.
-
 		$primary = $model->primary;
 
-		if (is_array($primary))
+		if (!$this->model->parent)
 		{
-			return $model->insert($properties, [ 'on duplicate' => true ]);
-		}
+			# removes the primary key from the properties.
 
-		#
+			if (is_array($primary))
+			{
+				return $model->insert($properties, [ 'on duplicate' => true ]);
+			}
 
-		$primary_column = $primary ? $schema[$primary] : null;
+			#
 
-		if (isset($properties[$primary]) && !$primary_column->auto_increment)
-		{
-			return $model->insert($properties, [ 'on duplicate' => true ]);
+			$primary_column = $primary ? $schema[ $primary ] : null;
+
+			if (isset($properties[ $primary ]) && !$primary_column->auto_increment)
+			{
+				return $model->insert($properties, [ 'on duplicate' => true ]);
+			}
 		}
 
 		#
