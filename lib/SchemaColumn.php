@@ -29,8 +29,10 @@ use ICanBoogie\PropertyNotDefined;
  */
 class SchemaColumn
 {
+	const TYPE_BLOB = 'blob';
 	const TYPE_BOOLEAN = 'boolean';
 	const TYPE_INTEGER = 'integer';
+	const TYPE_TEXT = 'text';
 	const TYPE_VARCHAR = 'varchar';
 
 	use AccessorTrait;
@@ -125,14 +127,24 @@ class SchemaColumn
 		switch ($type)
 		{
 			case self::TYPE_INTEGER:
+			case self::TYPE_TEXT:
+			case self::TYPE_BLOB:
+
+				$t = [
+
+					self::TYPE_BLOB => 'BLOB',
+					self::TYPE_INTEGER => 'INT',
+					self::TYPE_TEXT => 'TEXT',
+
+				][ $type ];
 
 				if (is_numeric($size))
 				{
-					$rc .= "INT( $size )";
+					$rc .= "$t( $size )";
 				}
 				else
 				{
-					$rc .= strtoupper($size) . 'INT';
+					$rc .= strtoupper($size) . $t;
 				}
 
 				break;
