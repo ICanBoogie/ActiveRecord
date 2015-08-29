@@ -14,36 +14,36 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\DateTime;
 
 /**
- * Implements a `datetime` property.
+ * Implements a `date` property.
  *
- * @property DateTime $datetime
+ * @property DateTime $date
  */
-trait DateTimeProperty
+trait DateProperty
 {
 	/**
-	 * The date and time.
+	 * The date.
 	 *
 	 * @var mixed
 	 */
-	private $datetime;
+	private $date;
 
 	/**
-	 * Returns the date and time.
+	 * Returns the date.
 	 *
 	 * @return DateTime
 	 */
-	protected function get_datetime()
+	protected function get_date()
 	{
-		return DateTimePropertySupport::get($this->datetime);
+		return DateTimePropertySupport::get($this->date);
 	}
 
 	/**
-	 * Sets the date and time.
+	 * Sets the date.
 	 *
-	 * @param mixed $datetime
+	 * @param mixed $date
 	 */
-	protected function set_datetime($datetime)
+	protected function set_date($date)
 	{
-		DateTimePropertySupport::set($this->datetime, $datetime);
+		DateTimePropertySupport::set($this->date, $date);
 	}
 }
