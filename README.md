@@ -972,17 +972,17 @@ class Model extends \ICanBoogie\ActiveRecord\Model
 {
 	// …
 
-	protected function scope_similar_site(Query $query, $siteid=null)
+	protected function scope_similar_site(Query $query, $site_id = null)
 	{
-		return $query->and('siteid = 0 OR siteid = ?', $siteid !== null ? $siteid : Core::get()->site->siteid);
+		return $query->and('site_id = 0 OR site_id = ?', $site_id !== null ? $site_id : Core::get()->site->site_id);
 	}
 
-	protected function scope_similar_language(Query $query, $language=null)
+	protected function scope_similar_language(Query $query, $language = null)
 	{
 		return $query->and('language = "" OR language = ?', $language !== null ? $language : Core::get()->site->language);
 	}
 
-	protected function scope_visible(Query $query, $visible=true)
+	protected function scope_visible(Query $query, $visible = true)
 	{
 		return $query->similar_site->similar_language->filter_by_is_online($visible);
 	}
@@ -1631,7 +1631,7 @@ Conditions:
 
 $model->where('is_online = ?', true);
 $model->where([ 'is_online' => true, 'is_home_excluded' => false ]);
-$model->where('siteid = 0 OR siteid = ?', 1)->and('language = '' OR language = ?', "fr");
+$model->where('site_id = 0 OR site_id = ?', 1)->and('language = '' OR language = ?', "fr");
 
 # Sets
 
@@ -1641,7 +1641,7 @@ $model->where([ '!order_count' => [ 1, 2, 3 ] ]); # NOT
 # Dynamic filters
 
 $model->filter_by_nid(1);
-$model->filter_by_siteid_and_language(1, 'fr');
+$model->filter_by_site_id_and_language(1, 'fr');
 
 # Scopes
 
