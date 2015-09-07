@@ -320,7 +320,7 @@ The qualifier `indexed` specifies that a field should be indexed:
 	'is_online' => [ 'boolean', 'indexed' => true ] // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
 
 	'page_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL
-	'contentid' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL, KEY `page-content` (`page_id`, `contentid`)
+	'content_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL, KEY `page-content` (`page_id`, `content_id`)
 ];
 ```
 
