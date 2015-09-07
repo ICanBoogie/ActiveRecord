@@ -319,8 +319,8 @@ The qualifier `indexed` specifies that a field should be indexed:
 	'slug' => [ 'varchar', 'indexed' => true ], // varchar(255) NOT NULL, KEY `slug` (`slug`)
 	'is_online' => [ 'boolean', 'indexed' => true ] // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
 
-	'pageid' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL
-	'contentid' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL, KEY `page-content` (`pageid`, `contentid`)
+	'page_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL
+	'contentid' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL, KEY `page-content` (`page_id`, `contentid`)
 ];
 ```
 
