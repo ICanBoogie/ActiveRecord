@@ -26,7 +26,7 @@ class DateTimePropertySupport
 	 */
 	static public function set(&$property, $datetime)
 	{
-		$property = $datetime;
+		$property = $datetime === 'now' ? DateTime::now() : $datetime;
 	}
 
 	/**
