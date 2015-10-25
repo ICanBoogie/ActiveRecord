@@ -103,6 +103,21 @@ class ActiveRecord extends Prototyped
 	}
 
 	/**
+	 * Removes `model` from the output, since `model_id` is good enough to figure which model
+	 * is used.
+	 *
+	 * @return array
+	 */
+	public function __debugInfo()
+	{
+		$array = (array) $this;
+
+		unset($array["\0" . __CLASS__ . "\0model"]);
+
+		return $array;
+	}
+
+	/**
 	 * Returns the model managing the active record.
 	 *
 	 * @return Model
