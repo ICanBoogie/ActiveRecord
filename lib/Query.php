@@ -21,7 +21,7 @@ use ICanBoogie\PrototypeTrait;
  * methods of the {@link Model} class create a {@link Query} object that is returned for
  * further specification, such as filters or limits.
  *
- * @method Query and() and($conditions, $conditions_args=null) Alias to {@link where()}.
+ * @method Query and($conditions, $conditions_args = null, $_ = null) Alias to {@link where()}.
  *
  * @property-read array $all An array with all the records matching the query.
  * @property-read mixed $one The first record matching the query.
