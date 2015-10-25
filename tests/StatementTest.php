@@ -141,6 +141,39 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		}
 	}
 
+	public function test_invoke_should_thow_exception_when_execute_returns_false()
+	{
+		$arg = uniqid();
+
+		$statement = $this
+			->getMockBuilder(Statement::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'execute' ])
+			->getMock();
+		$statement
+			->expects($this->once())
+			->method('execute')
+			->with([ $arg ])
+			->willReturn(false);
+
+		/* @var $statement Statement */
+
+		try
+		{
+			$statement($arg);
+		}
+		catch (StatementInvocationFailed $e)
+		{
+			$this->assertSame($statement, $e->statement);
+			$this->assertSame([ $arg ], $e->args);
+			$this->assertContains($arg, $e->getMessage());
+
+			return;
+		}
+
+		$this->fail("Expected StatementInvocationFailed");
+	}
+
 	/**
 	 * @requires PHP 5.6.0
 	 * @dataProvider provide_modes

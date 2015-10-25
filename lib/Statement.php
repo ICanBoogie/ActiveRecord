@@ -40,6 +40,8 @@ class Statement extends \PDOStatement
 	 *
 	 *     $statement(1, 2, 3);
 	 *     $statement([ 1, 2, 3 ]);
+	 *
+	 * @return $this
 	 */
 	public function __invoke()
 	{
@@ -50,7 +52,12 @@ class Statement extends \PDOStatement
 			$args = $args[0];
 		}
 
-		return $this->execute($args);
+		if ($this->execute($args) === false)
+		{
+			throw new StatementInvocationFailed($this, $args);
+		}
+
+		return $this;
 	}
 
 	/**

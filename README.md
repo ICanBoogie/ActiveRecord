@@ -2097,6 +2097,7 @@ already instantiated model.
 - [RecordNotFound][]: Exception thrown when one or several records cannot be found.
 - [RelationNotDefined][]: Exception thrown in attempt to obtain a relation that is not defined.
 - [ScopeNotDefined][]: Exception thrown in attempt to obtain a scope that is not defined.
+- [StatementInvocationFailed][]: Exception thrown when invoking a statement fails (`execute()` returned `false`).
 - [StatementNotValid][]: Exception thrown in attempt to execute a statement that is not valid.
 - [UnableToSetFetchMode][]: Exception thrown when the fetch mode of a statement fails to be set.
 
@@ -2212,6 +2213,7 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 [RelationNotDefined]:           http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
 [RuntimeActiveRecordCache]:     http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.RuntimeActiveRecordCache.html
 [ScopeNotDefined]:              http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
+[StatementInvocationFailed]:    http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
 [StatementNotValid]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.StatementNotValid.html
 [UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
 [UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
