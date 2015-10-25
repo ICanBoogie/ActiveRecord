@@ -141,6 +141,9 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		}
 	}
 
+	/**
+	 * @requires PHP 5.6.0
+	 */
 	public function test_invoke_should_thow_exception_when_execute_returns_false()
 	{
 		$arg = uniqid();
