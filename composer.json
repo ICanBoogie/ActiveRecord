@@ -34,9 +34,9 @@
 
 	"autoload": {
 		"psr-4": {
-			"ICanBoogie\\ActiveRecord\\": "lib"
+			"ICanBoogie\\": "lib",
+			"ICanBoogie\\ActiveRecord\\": "lib/ActiveRecord"
 		},
-		"classmap": [ "lib/ActiveRecord.php" ],
 		"files": [ "helpers.php" ]
 	}
 }
