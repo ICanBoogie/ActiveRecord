@@ -60,6 +60,19 @@ class ScopeNotDefined extends \LogicException implements Exception
 		$this->scope_name = $scope_name;
 		$this->model = $model;
 
-		parent::__construct("Unknown scope `{$scope_name}` for model `{$model->unprefixed_name}`.", $code, $previous);
+		parent::__construct($this->format_message($scope_name, $model), $code, $previous);
+	}
+
+	/**
+	 * Formats exception message.
+	 *
+	 * @param string $scope_name
+	 * @param Model $model
+	 *
+	 * @return string
+	 */
+	protected function format_message($scope_name, Model $model)
+	{
+		return "Unknown scope `{$scope_name}` for model `{$model->unprefixed_name}`.";
 	}
 }

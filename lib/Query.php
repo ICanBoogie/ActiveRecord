@@ -831,7 +831,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Query
 	 */
-	public function where($conditions, $conditions_args=null, $_ = null)
+	public function where($conditions, $conditions_args = null, $_ = null)
 	{
 		list($conditions, $conditions_args) = $this->deferred_parse_conditions();
 
@@ -886,7 +886,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Query
 	 */
-	public function having($conditions, $conditions_args=null)
+	public function having($conditions, $conditions_args = null)
 	{
 		if (!$this->group)
 		{
@@ -1131,7 +1131,7 @@ class Query implements \IteratorAggregate
 
 		$this->limit = $previous_limit;
 
-		return $statement->fetchColumnAndClose();
+		return $statement->rc;
 	}
 
 	/**
@@ -1253,7 +1253,7 @@ class Query implements \IteratorAggregate
 			return $query->fetchAll(\PDO::FETCH_KEY_PAIR);
 		}
 
-		return (int) $query->fetchColumnAndClose();
+		return (int) $query->rc;
 	}
 
 	/**

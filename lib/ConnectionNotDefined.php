@@ -22,6 +22,9 @@ class ConnectionNotDefined extends \LogicException implements Exception
 {
 	use AccessorTrait;
 
+	/**
+	 * @var string
+	 */
 	private $id;
 
 	protected function get_id()
@@ -29,14 +32,31 @@ class ConnectionNotDefined extends \LogicException implements Exception
 		return $this->id;
 	}
 
+	/**
+	 * @param string $id
+	 * @param int $code
+	 * @param \Exception|null $previous
+	 */
 	public function __construct($id, $code = 500, \Exception $previous = null)
 	{
 		$this->id = $id;
 
-		parent::__construct(\ICanBoogie\format("Connection not defined: %id.", [
+		parent::__construct($this->format_message($id), $code, $previous);
+	}
+
+	/**
+	 * Formats exception message.
+	 *
+	 * @param string $id
+	 *
+	 * @return string
+	 */
+	protected function format_message($id)
+	{
+		return \ICanBoogie\format("Connection not defined: %id.", [
 
 			'id' => $id
 
-		]), $code, $previous);
+		]);
 	}
 }

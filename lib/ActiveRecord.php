@@ -91,7 +91,7 @@ class ActiveRecord extends Prototyped
 
 		unset($properties['model']);
 
-		foreach ($properties as $property => $dummy)
+		foreach (array_keys($properties) as $property)
 		{
 			if ($this->$property instanceof self)
 			{
@@ -124,12 +124,8 @@ class ActiveRecord extends Prototyped
 	 */
 	protected function get_model()
 	{
-		if (!$this->model)
-		{
-			$this->model = ActiveRecord\get_model($this->model_id);
-		}
-
-		return $this->model;
+		return $this->model
+			?: $this->model = ActiveRecord\get_model($this->model_id);
 	}
 
 	/**
@@ -152,11 +148,8 @@ class ActiveRecord extends Prototyped
 	{
 		$model = $this->get_model();
 		$schema = $model->extended_schema;
-
-		$properties = $this->to_array();
-		$properties = $this->alter_persistent_properties($properties, $model);
-
 		$primary = $model->primary;
+		$properties = $this->alter_persistent_properties($this->to_array(), $model);
 
 		if (!$this->model->parent)
 		{

@@ -48,6 +48,12 @@ class RelationNotDefined extends OffsetNotDefined implements Exception
 		return $this->collection;
 	}
 
+	/**
+	 * @param string $relation_name
+	 * @param RelationCollection $collection
+	 * @param int $code
+	 * @param \Exception|null $previous
+	 */
 	public function __construct($relation_name, RelationCollection $collection, $code = 500, \Exception $previous = null)
 	{
 		$this->relation_name = $relation_name;

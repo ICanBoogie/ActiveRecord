@@ -37,13 +37,39 @@ class SchemaColumn
 
 	use AccessorTrait;
 
+	/**
+	 * @var string
+	 */
 	public $type;
+
+	/**
+	 * @var string|int
+	 */
 	public $size;
+
+	/**
+	 * @var bool
+	 */
 	public $unsigned = false;
+
+	/**
+	 * @var mixed
+	 */
 	public $default;
+
+	/**
+	 * @var bool
+	 */
 	public $null = false;
+
+	/**
+	 * @var bool
+	 */
 	public $unique = false;
 
+	/**
+	 * @var bool
+	 */
 	protected $primary = false;
 
 	protected function get_primary()
@@ -51,12 +77,29 @@ class SchemaColumn
 		return $this->primary;
 	}
 
+	/**
+	 * @var bool
+	 */
 	public $auto_increment = false;
 
+	/**
+	 * @var bool
+	 */
 	public $indexed = false;
+
+	/**
+	 * @var string
+	 */
 	public $charset;
+
+	/**
+	 * @var string
+	 */
 	public $comment;
 
+	/**
+	 * @param array $options
+	 */
 	public function __construct(array $options)
 	{
 		static $option_translate = [

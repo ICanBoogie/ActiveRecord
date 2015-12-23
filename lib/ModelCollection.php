@@ -178,14 +178,14 @@ class ModelCollection implements \ArrayAccess
 
 		$connection = &$attributes[Model::CONNECTION];
 
-		if ($connection && !($connection instanceof Connection))
+		if ($connection && !$connection instanceof Connection)
 		{
 			$connection = $this->connections[$connection];
 		}
 
 		$extending = &$attributes[Model::EXTENDING];
 
-		if ($extending && !($extending instanceof Model))
+		if ($extending && !$extending instanceof Model)
 		{
 			$extending = $this[$extending];
 		}

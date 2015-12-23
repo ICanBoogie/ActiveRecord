@@ -18,7 +18,7 @@ namespace ICanBoogie\ActiveRecord;
  */
 class Helpers
 {
-	static private $jumptable = [
+	static private $mapping = [
 
 		'get_model' => [ __CLASS__, 'default_get_model' ]
 
@@ -34,7 +34,7 @@ class Helpers
 	 */
 	static public function __callStatic($name, array $arguments)
 	{
-		return call_user_func_array(self::$jumptable[$name], $arguments);
+		return call_user_func_array(self::$mapping[$name], $arguments);
 	}
 
 	/**
@@ -47,13 +47,13 @@ class Helpers
 	 */
 	static public function patch($name, $callback)
 	{
-		if (empty(self::$jumptable[$name]))
+		if (empty(self::$mapping[$name]))
 		{
 			throw new \RuntimeException("Undefined patchable: $name.");
 		}
 
-		$previous = self::$jumptable[$name];
-		self::$jumptable[$name] = $callback;
+		$previous = self::$mapping[$name];
+		self::$mapping[$name] = $callback;
 
 		return $previous;
 	}
@@ -63,9 +63,9 @@ class Helpers
 	 */
 
 	/**
-	 * @param string $id
+	 * @throws \RuntimeException
 	 */
-	static protected function default_get_model($id)
+	static protected function default_get_model()
 	{
 		throw new \RuntimeException("The function " . __FUNCTION__ . "() needs to be patched.");
 	}

@@ -66,7 +66,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 
 			$this->assertInternalType('string', $e->statement);
 			$this->assertEquals($statement, $e->statement);
-			$this->assertNull($e->args);
+			$this->assertEmpty($e->args);
 			$this->assertEquals('HY000(1) no such column: undefined_column — `SELECT undefined_column FROM test WHERE b = ?`', $e->getMessage());
 		}
 	}
@@ -132,7 +132,7 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 
 			$this->assertInternalType('string', $e->statement);
 			$this->assertEquals($statement, $e->statement);
-			$this->assertNull($e->args);
+			$this->assertEmpty($e->args);
 			$this->assertEquals('HY000(1) no such table: undefined_table — `DELETE FROM undefined_table`', $e->getMessage());
 		}
 		catch (\Exception $e)
@@ -258,11 +258,11 @@ class StatementTest extends \PHPUnit_Framework_TestCase
 		$statement = $this
 			->getMockBuilder(Statement::class)
 			->disableOriginalConstructor()
-			->setMethods([ 'fetchColumnAndClose' ])
+			->setMethods([ 'fetchColumn' ])
 			->getMock();
 		$statement
 			->expects($this->once())
-			->method('fetchColumnAndClose')
+			->method('fetchColumn')
 			->willReturn($expected);
 
 		/* @var $statement Statement */

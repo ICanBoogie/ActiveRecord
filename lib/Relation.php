@@ -145,7 +145,7 @@ abstract class Relation
 	/**
 	 * Add a getter for the relation to the prototype.
 	 *
-	 * @param Prototype $prototype The activerecord prototype.
+	 * @param Prototype $prototype The active record prototype.
 	 * @param string $property The name of the property.
 	 */
 	protected function alter_prototype(Prototype $prototype, $property)
@@ -198,8 +198,10 @@ abstract class Relation
 	{
 		$related = $this->related;
 
-		if (!($related instanceof Model))
+		if (!$related instanceof Model)
 		{
+			/* @var $related string */
+
 			$this->related = $related = $this->parent->models[$related];
 		}
 

@@ -24,6 +24,9 @@ class StatementNotValid extends \RuntimeException implements Exception
 {
 	use AccessorTrait;
 
+	/**
+	 * @var string
+	 */
 	private $statement;
 
 	protected function get_statement()
@@ -31,6 +34,9 @@ class StatementNotValid extends \RuntimeException implements Exception
 		return $this->statement;
 	}
 
+	/**
+	 * @var array
+	 */
 	private $args;
 
 	protected function get_args()
@@ -38,6 +44,9 @@ class StatementNotValid extends \RuntimeException implements Exception
 		return $this->args;
 	}
 
+	/**
+	 * @var \PDOException
+	 */
 	private $original;
 
 	protected function get_original()
@@ -45,10 +54,14 @@ class StatementNotValid extends \RuntimeException implements Exception
 		return $this->original;
 	}
 
+	/**
+	 * @param array|string $statement
+	 * @param int $code
+	 * @param \PDOException|null $original
+	 */
 	public function __construct($statement, $code = 500, \PDOException $original = null)
 	{
-		$message = null;
-		$args = null;
+		$args = [];
 
 		if (is_array($statement))
 		{
@@ -58,6 +71,22 @@ class StatementNotValid extends \RuntimeException implements Exception
 		$this->statement = $statement;
 		$this->args = $args;
 		$this->original = $original;
+
+		parent::__construct($this->format_message($statement, $args, $original), $code);
+	}
+
+	/**
+	 * Formats exception message.
+	 *
+	 * @param string $statement
+	 * @param array $args
+	 * @param \PDOException $original
+	 *
+	 * @return string
+	 */
+	protected function format_message($statement, array $args, \PDOException $original = null)
+	{
+		$message = null;
 
 		if ($original)
 		{
@@ -73,6 +102,6 @@ class StatementNotValid extends \RuntimeException implements Exception
 			$message .= " " . ($args ? json_encode($args) : "[]");
 		}
 
-		parent::__construct($message, $code);
+		return $message;
 	}
 }

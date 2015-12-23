@@ -16,6 +16,7 @@ use ICanBoogie\Accessor\AccessorTrait;
 /**
  * A database statement.
  *
+ * @property Connection $connection Connection associated with the statement.
  * @property-read array $all An array with the matching records.
  * @property-read array $pairs An array of key/value pairs, where _key_ is the value of the first
  * column and _value_ the value of the second column.
@@ -31,7 +32,17 @@ class Statement extends \PDOStatement
 	 *
 	 * @var Connection
 	 */
-	public $connection;
+	private $connection;
+
+	protected function get_connection()
+	{
+		return $this->connection;
+	}
+
+	protected function set_connection(Connection $connection)
+	{
+		$this->connection = $connection;
+	}
 
 	/**
 	 * Alias of {@link execute()}.
@@ -158,6 +169,8 @@ class Statement extends \PDOStatement
 	 * @return string
 	 *
 	 * @see PDOStatement::fetchColumn()
+	 *
+	 * @deprecated
 	 */
 	public function fetchColumnAndClose($column_number = 0)
 	{
@@ -173,13 +186,17 @@ class Statement extends \PDOStatement
 	 */
 	protected function get_rc()
 	{
-		return $this->fetchColumnAndClose();
+		$rc = $this->fetchColumn();
+
+		$this->closeCursor();
+
+		return $rc;
 	}
 
 	/**
 	 * Alias for {@link \PDOStatement::fetchAll()}
 	 */
-	public function all($fetch_style=null, $column_index=null, array $ctor_args=null)
+	public function all($fetch_style = null, $column_index = null, array $ctor_args = null)
 	{
 		return call_user_func_array([ $this, 'fetchAll' ], func_get_args());
 	}

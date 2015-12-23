@@ -19,11 +19,16 @@ use ICanBoogie\Prototype;
  */
 class BelongsToRelation extends Relation
 {
+	/**
+	 * @param Model $parent
+	 * @param Model|string $related
+	 * @param array $options
+	 */
 	public function __construct(Model $parent, $related, array $options = [])
 	{
 		if (empty($options['local_key']) || empty($options['foreign_key']))
 		{
-			if (!($related instanceof Model))
+			if (!$related instanceof Model)
 			{
 				$related = $parent->models[$related];
 			}
@@ -39,6 +44,9 @@ class BelongsToRelation extends Relation
 		parent::__construct($parent, $related, $options);
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	public function __invoke(ActiveRecord $record)
 	{
 		$key = $record->{ $this->local_key };
@@ -51,6 +59,11 @@ class BelongsToRelation extends Relation
 		return $this->resolve_related()[$key];
 	}
 
+	/**
+	 * Adds a setter for the property to update the local key.
+	 *
+	 * @inheritdoc
+	 */
 	protected function alter_prototype(Prototype $prototype, $property)
 	{
 		parent::alter_prototype($prototype, $property);
@@ -62,6 +75,9 @@ class BelongsToRelation extends Relation
 		};
 	}
 
+	/**
+	 * @inheritdoc
+	 */
 	protected function resolve_property_name($related)
 	{
 		return \ICanBoogie\singularize(parent::resolve_property_name($related));

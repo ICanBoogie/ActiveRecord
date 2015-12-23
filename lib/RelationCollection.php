@@ -52,11 +52,27 @@ class RelationCollection implements \ArrayAccess
 		$this->model = $model;
 	}
 
+	/**
+	 * Checks if a relation exists.
+	 *
+	 * @param string $relation_name
+	 *
+	 * @return bool
+	 */
 	public function offsetExists($relation_name)
 	{
 		return isset($this->relations[$relation_name]);
 	}
 
+	/**
+	 * Returns a relation.
+	 *
+	 * @param string $relation_name
+	 *
+	 * @return Relation
+	 *
+	 * @throws RelationNotDefined if the relation is not defined.
+	 */
 	public function offsetGet($relation_name)
 	{
 		if (!$this->offsetExists($relation_name))
@@ -67,11 +83,17 @@ class RelationCollection implements \ArrayAccess
 		return $this->relations[$relation_name];
 	}
 
+	/**
+	 * @throws OffsetNotWritable because relations cannot be set.
+	 */
 	public function offsetSet($relation_name, $relation)
 	{
 		throw new OffsetNotWritable([ $relation_name, $this ]);
 	}
 
+	/**
+	 * @throws OffsetNotWritable because relations cannot be unset.
+	 */
 	public function offsetUnset($relation_name)
 	{
 		throw new OffsetNotWritable([ $relation_name, $this ]);

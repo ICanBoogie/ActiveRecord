@@ -23,6 +23,9 @@ class StatementInvocationFailed extends \LogicException implements Exception
 {
 	use AccessorTrait;
 
+	/**
+	 * @var Statement
+	 */
 	private $statement;
 
 	protected function get_statement()
@@ -30,6 +33,9 @@ class StatementInvocationFailed extends \LogicException implements Exception
 		return $this->statement;
 	}
 
+	/**
+	 * @var array
+	 */
 	private $args;
 
 	protected function get_args()
@@ -37,6 +43,13 @@ class StatementInvocationFailed extends \LogicException implements Exception
 		return $this->args;
 	}
 
+	/**
+	 * @param Statement $statement
+	 * @param array $args
+	 * @param string|null $message
+	 * @param int $code
+	 * @param \Exception|null $previous
+	 */
 	public function __construct(Statement $statement, array $args, $message = null, $code = 500, \Exception $previous = null)
 	{
 		$this->statement = $statement;

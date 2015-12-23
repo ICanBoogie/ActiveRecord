@@ -45,11 +45,18 @@ class DriverNotDefined extends \LogicException implements Exception
 	{
 		$this->driver_name = $driver_name;
 
-		if (!$message)
-		{
-			$message = "Driver not defined for: $driver_name.";
-		}
+		parent::__construct($message ?: $this->format_message($driver_name), $code, $previous);
+	}
 
-		parent::__construct($message, $code, $previous);
+	/**
+	 * Formats exception message.
+	 *
+	 * @param string $driver_name
+	 *
+	 * @return string
+	 */
+	protected function format_message($driver_name)
+	{
+		return "Driver not defined for: $driver_name.";
 	}
 }

@@ -22,6 +22,9 @@ class ConnectionNotEstablished extends \RuntimeException implements Exception
 {
 	use AccessorTrait;
 
+	/**
+	 * @var string
+	 */
 	private $id;
 
 	protected function get_id()
@@ -29,6 +32,12 @@ class ConnectionNotEstablished extends \RuntimeException implements Exception
 		return $this->id;
 	}
 
+	/**
+	 * @param string $id
+	 * @param string $message
+	 * @param int $code
+	 * @param \Exception|null $previous
+	 */
 	public function __construct($id, $message, $code = 500, \Exception $previous = null)
 	{
 		$this->id = $id;
