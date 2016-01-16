@@ -49,7 +49,7 @@ class Helpers
 	{
 		if (empty(self::$mapping[$name]))
 		{
-			throw new \RuntimeException("Undefined patchable: $name.");
+			throw new \LogicException("Undefined patchable: $name.");
 		}
 
 		$previous = self::$mapping[$name];
@@ -63,10 +63,10 @@ class Helpers
 	 */
 
 	/**
-	 * @throws \RuntimeException
+	 * @throws \LogicException
 	 */
 	static protected function default_get_model()
 	{
-		throw new \RuntimeException("The function " . __FUNCTION__ . "() needs to be patched.");
+		throw new \LogicException("The function `ICanBoogie\\ActiveRecord\\get_model()` needs to be patched.");
 	}
 }
