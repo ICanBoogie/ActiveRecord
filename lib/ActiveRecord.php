@@ -184,7 +184,7 @@ class ActiveRecord extends Prototyped
 
 		if ($key === null && $rc)
 		{
-			$this->$primary = $rc;
+			$this->update_primary_key($rc);
 		}
 
 		return $rc;
@@ -214,6 +214,23 @@ class ActiveRecord extends Prototyped
 		}
 
 		return $properties;
+	}
+
+	/**
+	 * Updates primary key.
+	 *
+	 * @param array|string|int $primary_key
+	 */
+	protected function update_primary_key($primary_key)
+	{
+		$property = $this->model->primary;
+
+		if (!$property)
+		{
+			throw new \LogicException("Unable to update primary key, model `$this->model_id` doesn't define one.");
+		}
+
+		$this->$property = $primary_key;
 	}
 
 	/**
