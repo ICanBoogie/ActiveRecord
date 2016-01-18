@@ -2217,7 +2217,7 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 [StatementNotValid]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.StatementNotValid.html
 [UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
 [UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
-[DateTime]:                     http://api.icanboogie.org/datetime/1.1/class-ICanBoogie.DateTime.html
+[DateTime]:                     http://api.icanboogie.org/datetime/1.2/class-ICanBoogie.DateTime.html
 [icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord
 [ICanBoogie]:                   http://icanboogie.org
 [PDO]:                          http://php.net/manual/en/book.pdo.php

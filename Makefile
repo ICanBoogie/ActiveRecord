@@ -1,7 +1,7 @@
 # customization
 
-PACKAGE_NAME = "ICanBoogie/ActiveRecord"
-PACKAGE_VERSION = 2.3.x-dev
+PACKAGE_NAME = icanboogie/activerecord
+PACKAGE_VERSION = 2.3.0
 
 # do not edit the following lines
 
@@ -28,9 +28,7 @@ doc: vendor
 	@mkdir -p build/docs
 	@apigen generate \
 	--source lib \
-	--source vendor \
-	--exclude "*/composer/*" \
-	--exclude "*/autoload.php" \
+	--source helpers.php \
 	--destination build/docs/ \
 	--title "$(PACKAGE_NAME) $(PACKAGE_VERSION)" \
 	--template-theme "bootstrap"
