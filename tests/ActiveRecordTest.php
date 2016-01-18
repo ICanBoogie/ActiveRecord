@@ -1,237 +1,162 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+namespace ICanBoogie;
+
+use ICanBoogie\ActiveRecord\Helpers;
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelNotDefined;
+use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecordTest\Sample;
+
+/**
+ * @covers \ICanBoogie\ActiveRecord
  */
-
-namespace ICanBoogie\ActiveRecord;
-
-use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\ActiveRecordTest\Extended;
-use ICanBoogie\DateTime;
-use ICanBoogie\Prototype;
-
 class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 {
-	/**
-	 * @var Connection
-	 */
-	static private $connection;
+	private $sample_model;
 
-	/**
-	 * @var Model
-	 */
-	static private $model;
-
-	static public function setUpBeforeClass()
+	public function setUp()
 	{
-		$connections = new ConnectionCollection([
+		$sample_model = $this->mockModel();
 
-			'primary' => 'sqlite::memory:'
+		Helpers::patch('get_model', function($model_id) use ($sample_model) {
 
-		]);
+			if ($model_id === 'sample')
+			{
+				return $sample_model;
+			}
 
-		self::$connection = $connections['primary'];
-
-		$models = new ModelCollection($connections, [
-
-			'testing' => [
-
-				Model::CONNECTION => self::$connection,
-				Model::NAME => 'testing',
-				Model::SCHEMA => [
-
-					'id' => 'serial',
-					'title' => 'varchar',
-					'date' => 'datetime',
-					'possible' => [ 'varchar', 8, 'null' => true ]
-
-				]
-			]
-		]);
-
-		$models->install();
-
-		self::$model = $models['testing'];
-
-		Helpers::patch('get_model', function($model_id) use ($models) {
-
-			return $models[$model_id];
+			throw new ModelNotDefined($sample_model);
 
 		});
+
+		$this->sample_model = $sample_model;
 	}
 
-	public function test_construct()
+	public function test_should_resolve_model_id_from_const()
 	{
-		new ActiveRecord(self::$model);
-		new ActiveRecord('testing');
+		$record = new Sample;
+		$this->assertSame($record->model_id, Sample::MODEL_ID);
+	}
+
+	public function test_should_resolve_model_from_const()
+	{
+		$record = new Sample;
+		$this->assertSame($this->sample_model, $record->model);
+	}
+
+	public function test_should_use_provided_model()
+	{
+		$model = $this->mockModel();
+		$record = new Sample($model);
+		$this->assertSame($model, $record->model);
 	}
 
 	/**
 	 * @expectedException \InvalidArgumentException
 	 */
-	public function test_construct_invalid()
+	public function test_should_throw_exception_on_invalid_model()
 	{
-		new ActiveRecord(new \stdClass());
+		new Sample(123);
 	}
 
-	public function test_get_model()
+	public function test_sleep_should_remove_model()
 	{
-		$record = new ActiveRecord(self::$model);
-		$this->assertEquals(self::$model, $record->model);
+		$model = $this->mockModel();
+		$record = new Sample($model);
+		$array = $record->__sleep();
+
+		$this->assertArrayNotHasKey('model', $array);
 	}
 
-	public function test_get_model_from_const()
+	public function test_sleep_should_remove_any_instance_of_self()
 	{
-		$record = new Extended;
-		$this->assertEquals(self::$model, $record->model);
+		$model = $this->mockModel();
+		$property = 'p' . uniqid();
+		$record = new Sample($model);
+		$record->$property = new Sample($model);
+
+		$array = $record->__sleep();
+
+		$this->assertArrayNotHasKey($property, $array);
 	}
 
-	public function test_get_model_id()
+	public function test_serialize_should_preserve_model_id()
 	{
-		$record = new ActiveRecord(self::$model);
-		$this->assertEquals(self::$model->id, $record->model_id);
-	}
-
-	public function test_get_model_id_from_const()
-	{
-		$record = new Extended;
-		$this->assertEquals(Extended::MODEL_ID, $record->model_id);
-	}
-
-	public function test_sleep()
-	{
-		$record = new ActiveRecord(self::$model);
-		$properties = $record->__sleep();
-		$this->assertNotContains('model', $properties);
-		$this->assertContains('model_id', $properties);
-	}
-
-	public function test_to_array()
-	{
-		$record = new ActiveRecord(self::$model);
-		$array = $record->to_array();
-		$this->assertNotContains('model', $array);
-		$this->assertNotContains('model_id', $array);
-	}
-
-	public function test_serialize()
-	{
-		$record = new ActiveRecord(self::$model);
+		$record = new ActiveRecord($this->sample_model);
 		$serialized_record = serialize($record);
 		$unserialized_record = unserialize($serialized_record);
 
 		$this->assertEquals($record->model_id, $unserialized_record->model_id);
 
-		$record = new Extended(self::$model);
+		$record = new Sample($this->sample_model);
 		$serialized_record = serialize($record);
 		$unserialized_record = unserialize($serialized_record);
 		$this->assertEquals($record->model_id, $unserialized_record->model_id);
 	}
 
-	public function test_datetime()
+	public function test_debug_info_should_exclude_model()
 	{
-		$record = new ActiveRecord(self::$model);
-		$record->title = 'datetime';
-		$record->date = '2013-03-06 18:30:30';
+		$model = $this->mockModel();
+		$property = 'p' . uniqid();
+		$record = new Sample($model);
+		$record->$property = uniqid();
 
-		$key = $record->save();
- 		$record = self::$model[$key];
-		$this->assertEquals('2013-03-06 18:30:30', $record->date);
-
-		$date = new DateTime('2013-03-06 18:30:30', 'Europe/Paris');
-		$record->date = $date;
-		$record->save();
-
-		$record = self::$model[$key];
-		$this->assertEquals($record->date, $date->utc->as_db);
-
-		$record = self::$model->where('date = ?', $date)->one;
-		$this->assertInstanceOf(ActiveRecord::class, $record);
-		$this->assertEquals($key, $record->id);
+		$array = $record->__debugInfo();
+		$this->assertArrayNotHasKey("\0" . ActiveRecord::class . "\0model", $array);
+		$this->assertArrayHasKey($property, $array);
 	}
 
-	public function test_create_return_key()
+	public function test_save()
 	{
-		$model = self::$model;
-		$model->truncate();
+		$id = mt_rand(10000, 100000);
+		$reverse = uniqid();
+		$primary = 'id';
+		$allow_null_with_value = uniqid();
 
-		$a1 = new ActiveRecord($model);
-		$a1->title = 'a1';
-		$a1->date = '2013-03-06 18:30:30';
+		$schema = new Schema([
 
-		$this->assertEquals(1, $a1->save());
+			$primary => 'serial',
+			'reversed' => 'varchar',
+			'date' => 'datetime',
+			'do_not_allow_null' => [ 'varchar' ],
+			'allow_null' => [ 'varchar', 'null' => true ],
+			'allow_null_with_value' => [ 'varchar', 'null' => true ]
 
-		$a2 = new ActiveRecord($model);
-		$a2->title = 'a2';
-		$a2->date = '2013-03-06 18:30:30';
+		]);
 
-		$this->assertEquals(2, $a2->save());
+		$model = $this
+			->getMockBuilder(Model::class)
+			->disableOriginalConstructor()
+			->setMethods([ 'get_extended_schema', 'get_primary', 'save' ])
+			->getMock();
+		$model
+			->expects($this->once())
+			->method('get_primary')
+			->willReturn($primary);
+		$model
+			->expects($this->once())
+			->method('get_extended_schema')
+			->willReturn($schema);
+		$model
+			->expects($this->once())
+			->method('save')
+			->with([
 
-		$a3 = new ActiveRecord($model);
-		$a3->title = 'a3';
-		$a3->date = '2013-03-06 18:30:30';
-		$this->assertEquals(3, $a3->save());
+				'reverse' => strrev($reverse),
+				'allow_null' => null,
+				'allow_null_with_value' => $allow_null_with_value
 
-		#
+			])
+			->willReturn($id);
 
-		$this->assertEquals(1, $a1->save());
-	}
+		$record = new Sample($model);
+		$record->reverse = $reverse;
+		$record->{ 'do_not_allow_null' } = null;
+		$record->{ 'allow_null' } = null;
+		$record->{ 'allow_null_with_value' } = $allow_null_with_value;
 
-	public function test_delete()
-	{
-		$model = self::$model;
-		$record = $model[1];
-		$this->assertTrue($record->delete());
-
-		$record = $model[2];
-		$this->assertTrue($record->delete());
-
-		$record = $model[3];
-		$this->assertTrue($record->delete());
-	}
-
-	public function test_invalid_delete()
-	{
-		$record = new ActiveRecord(self::$model);
-		$record->id = 999;
-		$this->assertFalse($record->delete());
-	}
-
-	public function testPropertiesWithActiveRecordValueAreNotExportedBySleep()
-	{
-		$record = new ActiveRecord(self::$model);
-		$record->int = 13;
-		$record->text = "Text";
-		$record->record = new ActiveRecord(self::$model);
-
-		$properties = $record->__sleep();
-		$this->assertArrayHasKey('int', $properties);
-		$this->assertArrayHasKey('text', $properties);
-		$this->assertArrayNotHasKey('record', $properties);
-	}
-
-	public function test_save_null()
-	{
-		$record = new ActiveRecord(self::$model);
-		$record->title = "Testing";
-		$record->date = DateTime::now();
-		$record->possible = null;
-		$record->extraneous = uniqid();
-		$key = $record->save();
-
-		$cmp = self::$model->filter_by_id($key)->one;
-		$this->assertNull($cmp->possible);
-
-		$record->possible = "yes";
-		$record->save();
-		$cmp = self::$model->filter_by_id($key)->one;
-		$this->assertNotNull($cmp->possible);
+		$this->assertSame($id, $record->save());
 	}
 
 	/**
@@ -239,12 +164,19 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function test_delete_missing_primary()
 	{
-		$model = $this
+		$model = $this->mockModel();
+		$record = new ActiveRecord($model);
+		$record->delete();
+	}
+
+	/**
+	 * @return Model
+	 */
+	private function mockModel()
+	{
+		return $this
 			->getMockBuilder(Model::class)
 			->disableOriginalConstructor()
 			->getMock();
-
-		$record = new ActiveRecord($model);
-		$record->delete();
 	}
 }

@@ -11,11 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-/*
-use ICanBoogie\ActiveRecord\ModelTest\A;
-use ICanBoogie\DateTime;
-*/
-
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ModelTest\Article;
 use ICanBoogie\ActiveRecord\ModelTest\ArticleModel;
@@ -202,6 +197,8 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 			->getMockBuilder(Connection::class)
 			->disableOriginalConstructor()
 			->getMock();
+
+		/* @var $models ModelCollection */
 
 		$model = new Model($models, [
 
@@ -449,7 +446,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 			->disableOriginalConstructor()
 			->getMock();
 
-		$model = new Model($models, [
+		/* @var ModelCollection $models */
+
+		new Model($models, [
 
 			Model::NAME => 'tests',
 			Model::CONNECTION => 'invalid_connection',
@@ -585,7 +584,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 			'cars' => [
 
 				Model::ACTIVERECORD_CLASS => Car::class,
-	// 			Model::BELONGS_TO => [ $drivers, $brands ],
 				Model::SCHEMA => [
 
 					'car_id' => 'serial',
@@ -627,8 +625,8 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$car->brand_id = $brand_id;
 		$car->save();
 
-		$this->assertInstanceof(Driver::class, $car->driver);
-		$this->assertInstanceof(Brand::class, $car->brand);
+		$this->assertInstanceOf(Driver::class, $car->driver);
+		$this->assertInstanceOf(Brand::class, $car->brand);
 
 		$car->driver_id = null;
 		$this->assertNull($car->driver_id);

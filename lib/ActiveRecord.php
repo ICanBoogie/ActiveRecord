@@ -147,29 +147,30 @@ class ActiveRecord extends Prototyped
 	public function save()
 	{
 		$model = $this->get_model();
-		$schema = $model->extended_schema;
 		$primary = $model->primary;
 		$properties = $this->alter_persistent_properties($this->to_array(), $model);
 
-		if (!$this->model->parent)
+		#
+		# Multipart primary key
+		#
+
+		if (is_array($primary))
 		{
-			# removes the primary key from the properties.
-
-			if (is_array($primary))
-			{
-				return $model->insert($properties, [ 'on duplicate' => true ]);
-			}
-
-			#
-
-			$primary_column = $primary ? $schema[ $primary ] : null;
-
-			if (isset($properties[ $primary ]) && !$primary_column->auto_increment)
-			{
-				return $model->insert($properties, [ 'on duplicate' => true ]);
-			}
+			return $model->insert($properties, [ 'on duplicate' => true ]);
 		}
 
+		#
+		# Non auto-increment primary key
+		#
+
+		if ($primary && isset($properties[$primary])
+		&& !$model->extended_schema[$primary]->auto_increment)
+		{
+			return $model->insert($properties, [ 'on duplicate' => true ]);
+		}
+
+		#
+		# Auto-increment primary key
 		#
 
 		$key = null;
@@ -223,11 +224,12 @@ class ActiveRecord extends Prototyped
 	 */
 	protected function update_primary_key($primary_key)
 	{
-		$property = $this->model->primary;
+		$model = $this->model;
+		$property = $model->primary;
 
 		if (!$property)
 		{
-			throw new \LogicException("Unable to update primary key, model `$this->model_id` doesn't define one.");
+			throw new \LogicException("Unable to update primary key, model `$model->id` doesn't define one.");
 		}
 
 		$this->$property = $primary_key;
@@ -247,7 +249,7 @@ class ActiveRecord extends Prototyped
 
 		if (!$primary)
 		{
-			throw new \LogicException("Unable to delete record, primary key is empty.");
+			throw new \LogicException("Unable to delete record, model `$model->id` doesn't have a primary key.");
 		}
 
 		return $model->delete($this->$primary);

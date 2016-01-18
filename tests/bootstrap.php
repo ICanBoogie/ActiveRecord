@@ -14,14 +14,20 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototype;
 
 $loader = require __DIR__ . '/../vendor/autoload.php';
-$loader->addPsr4('ICanBoogie\ActiveRecord\ActiveRecordTest\\', __DIR__ . '/ActiveRecordTest');
-$loader->addPsr4('ICanBoogie\ActiveRecord\ModelTest\\', __DIR__ . '/ModelTest');
-$loader->addPsr4('ICanBoogie\ActiveRecord\QueryTest\\', __DIR__ . '/QueryTest');
+$loader->addPsr4('ICanBoogie\\', __DIR__);
 
 date_default_timezone_set('Europe/Madrid');
 
-Prototype::from(Model::class)['lazy_get_activerecord_cache'] = function(Model $model) {
+Prototype::configure([
 
-	return new RuntimeActiveRecordCache($model);
+	Model::class => [
 
-};
+		'lazy_get_activerecord_cache' => function(Model $model) {
+
+			return new RuntimeActiveRecordCache($model);
+
+		}
+
+	]
+
+]);
