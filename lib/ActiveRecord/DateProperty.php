@@ -17,6 +17,8 @@ use ICanBoogie\DateTime;
  * Implements a `date` property.
  *
  * @property DateTime $date
+ *
+ * @codeCoverageIgnore
  */
 trait DateProperty
 {

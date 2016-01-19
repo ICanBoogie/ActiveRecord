@@ -19,6 +19,8 @@ use ICanBoogie\DateTime;
  * @see DateTimeProperty
  *
  * @property DateTime $start_at
+ *
+ * @codeCoverageIgnore
  */
 trait StartAtProperty
 {

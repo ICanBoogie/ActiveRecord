@@ -415,6 +415,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function quote_string($string)
 	{
@@ -423,6 +425,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function quote_identifier($identifier)
 	{
@@ -431,6 +435,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function cast_value($value, $type = null)
 	{
@@ -439,6 +445,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function render_column(SchemaColumn $column)
 	{
@@ -447,6 +455,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function create_table($unprefixed_name, Schema $schema)
 	{
@@ -455,6 +465,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function create_indexes($unprefixed_table_name, Schema $schema)
 	{
@@ -463,6 +475,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function create_unique_indexes($unprefixed_table_name, Schema $schema)
 	{
@@ -471,6 +485,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function table_exists($unprefixed_name)
 	{
@@ -479,6 +495,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function optimize()
 	{
