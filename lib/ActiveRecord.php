@@ -152,7 +152,7 @@ class ActiveRecord extends Prototyped
 	 */
 	protected function get_is_new()
 	{
-		$primary = $this->model->primary;
+		$primary = $this->get_model()->primary;
 
 		if (is_array($primary))
 		{
