@@ -12,16 +12,23 @@
 namespace ICanBoogie;
 
 use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\RecordNotValid;
+use ICanBoogie\Validate\ValidationErrors;
 
 /**
  * Active Record facilitates the creation and use of business objects whose data require persistent
  * storage via database.
  *
+ * @method ValidationErrors validate() Validate the active record, returns an array of errors.
+ *
  * @property-read Model $model The model managing the active record.
  * @property-read string $model_id The identifier of the model managing the active record.
+ * @property-read bool $is_new Whether the record is new or not.
  */
 class ActiveRecord extends Prototyped
 {
+	const SAVE_SKIP_VALIDATION = 'skip_validation';
+
 	/**
 	 * The identifier of the model managing the record.
 	 *
@@ -139,13 +146,47 @@ class ActiveRecord extends Prototyped
 	}
 
 	/**
+	 * Whether the record is new or not.
+	 *
+	 * @return bool
+	 */
+	protected function get_is_new()
+	{
+		$primary = $this->model->primary;
+
+		if (is_array($primary))
+		{
+			foreach ($primary as $property)
+			{
+				if (empty($this->$property))
+				{
+					return true;
+				}
+			}
+		}
+		elseif (empty($this->$primary))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Saves the active record using its model.
 	 *
-	 * @return int|bool Primary key value of the active record, or a boolean if the primary key
+	 * @param array $options Save options.
+	 *
+	 * @return bool|int Primary key value of the active record, or a boolean if the primary key
 	 * is not a serial.
 	 */
-	public function save()
+	public function save(array $options = [])
 	{
+		if (empty($options[self::SAVE_SKIP_VALIDATION]))
+		{
+			$this->assert_is_valid();
+		}
+
 		$model = $this->get_model();
 		$primary = $model->primary;
 		$properties = $this->alter_persistent_properties($this->to_array(), $model);
@@ -189,6 +230,35 @@ class ActiveRecord extends Prototyped
 		}
 
 		return $rc;
+	}
+
+	/**
+	 * Assert that a record is valid.
+	 *
+	 * @throws RecordNotValid if the record is not valid.
+	 *
+	 * @return $this
+	 */
+	public function assert_is_valid()
+	{
+		$errors = $this->validate();
+
+		if ($errors)
+		{
+			throw new RecordNotValid($this, $errors);
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Creates validation rules.
+	 *
+	 * @return array
+	 */
+	public function create_validation_rules()
+	{
+		return [];
 	}
 
 	/**

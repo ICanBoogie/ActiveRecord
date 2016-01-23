@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototype;
 
 $loader = require __DIR__ . '/../vendor/autoload.php';
@@ -19,6 +20,23 @@ $loader->addPsr4('ICanBoogie\\', __DIR__);
 date_default_timezone_set('Europe/Madrid');
 
 Prototype::configure([
+
+	ActiveRecord::class => [
+
+		'validate' => function(ActiveRecord $record) {
+
+			static $validate;
+
+			if (!$validate)
+			{
+				$validate = new ActiveRecord\Validate\ValidateActiveRecord;
+			}
+
+			return $validate($record);
+
+		}
+
+	],
 
 	Model::class => [
 

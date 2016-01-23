@@ -36,23 +36,49 @@ The implementation of the query interface is vastly inspired by
 ## Getting started
 
 Unless you bound **ActiveRecord** to [ICanBoogie][] using the [icanboogie/bind-activerecord][]
-package, you need to define the lazy getter for the `activerecord_cache` property of
-the [Model][] class.
+package, you need to bind the prototype methods `Model::lazy_get_activerecord_cache` and
+ `ActiveRecord::validate`.
 
 The following code should do the trick:
 
 ```php
 <?php
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\RuntimeActiveRecordCache;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\Prototype;
 
-Prototype::from(Model::class)['lazy_get_activerecord_cache'] = function(Model $model) {
+Prototype::configure([
 
-	return new RuntimeActiveRecordCache($model);
+	ActiveRecord::class => [
 
-};
+		'validate' => function(ActiveRecord $record) {
+
+			static $validate;
+
+			if (!$validate)
+			{
+				$validate = new ActiveRecord\Validate\ValidateActiveRecord;
+			}
+
+			return $validate($record);
+
+		}
+
+	],
+
+	Model::class => [
+
+		'lazy_get_activerecord_cache' => function(Model $model) {
+
+			return new RuntimeActiveRecordCache($model);
+
+		}
+
+	]
+
+]);
 ```
 
 
@@ -684,10 +710,65 @@ $record = Article::from([
 
 
 
+### Validating an active record
+
+The `validate()` method validates an active record and returns a [ValidationErrors][] instance on failure or an empty array on success. Your active record class should implement the `create_validation_rules()` method to provide validation rules.
+
+For following example demonstrates how a `User` active record class could implement the `create_validation_rules()` method to validate its properties.
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord;
+
+class User extends ActiveRecord
+{
+	use ActiveRecord\CreatedAtProperty;
+	use ActiveRecord\UpdatedAtProperty;
+
+	public $id;
+	public $username;
+	public $email;
+	
+	// …
+	
+	/**
+	 * @inheritdoc
+	 */
+	protected function create_validation_rules()
+	{
+		return [
+		
+			'username' => 'required|max-length:32|unique',
+			'email' => 'required|email|unique',
+			'created_at' => 'required|datetime',
+			'updated_at' => 'required|datetime',
+		
+		];
+	}
+}
+```
+
+```php
+<?php
+
+$user = new User;
+$errors = $user->validate();
+
+if ($errors)
+{
+	// …
+}
+```
+
+
+
+
+
 ### Saving an active record
 
 Most properties of an active record are persistent. The `save()` method is used to save the active
-record to the database. The model is clever enough to filter the properties.
+record to the database.
 
 ```php
 <?php
@@ -699,9 +780,38 @@ $record->is_online = false;
 $record->save();
 ```
 
-Before a record is saved its `alter_persistent_properties()` is invoked to alter the properties
+Before a record is saved it is validated with the `validate()` method and if the validation fails a [RecordNotValid][] exception is thrown with the validation errors.
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord\RecordNotValid;
+
+try
+{
+	$record->save();
+}
+catch (RecordNotValid $e)
+{
+	$errors = $e->errors;
+	
+	// …
+}
+```
+
+The validation may be skipped using the `SAVE_SKIP_VALIDATION` option, of course the outcome is then unpredictable so use this option carefully:
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord;
+
+$record->save([ ActiveRecord::SAVE_SKIP_VALIDATION => true ]);
+```
+
+The `alter_persistent_properties()` is invoked to alter the properties
 that will be sent to the model. One may extend the method to add, remove or alter properties
-without altering its instance.
+without altering the instance itself.
 
 
 
@@ -2389,27 +2499,29 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
 
 
-[Connection]:                   http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.Connection.html
-[ConnectionAlreadyEstablished]: http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
-[ConnectionNotDefined]:         http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
-[ConnectionNotEstablished]:     http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
-[ConnectionCollection]:         http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
-[CreatedAtProperty]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
-[DateTimeProperty]:             http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
-[Model]:                        http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.Model.html
-[ModelAlreadyInstantiated]:     http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
-[ModelNotDefined]:              http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
-[ModelCollection]:              http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ModelCollection.html
-[Query]:                        http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.Query.html
-[RecordNotFound]:               http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.RecordNotFound.html
-[RelationNotDefined]:           http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
-[RuntimeActiveRecordCache]:     http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.RuntimeActiveRecordCache.html
-[ScopeNotDefined]:              http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
-[StatementInvocationFailed]:    http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
-[StatementNotValid]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.StatementNotValid.html
-[UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
-[UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/2.3/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
+[Connection]:                   http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Connection.html
+[ConnectionAlreadyEstablished]: http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
+[ConnectionNotDefined]:         http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
+[ConnectionNotEstablished]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
+[ConnectionCollection]:         http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
+[CreatedAtProperty]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
+[DateTimeProperty]:             http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
+[Model]:                        http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Model.html
+[ModelAlreadyInstantiated]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
+[ModelNotDefined]:              http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
+[ModelCollection]:              http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ModelCollection.html
+[Query]:                        http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Query.html
+[RecordNotFound]:               http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RecordNotFound.html
+[RecordNotValid]:               http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RecordNotValid.html
+[RelationNotDefined]:           http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
+[RuntimeActiveRecordCache]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RuntimeActiveRecordCache.html
+[ScopeNotDefined]:              http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
+[StatementInvocationFailed]:    http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
+[StatementNotValid]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.StatementNotValid.html
+[UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
+[UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
 [DateTime]:                     http://api.icanboogie.org/datetime/1.2/class-ICanBoogie.DateTime.html
+[ValidationErrors]:             http://api.icanboogie.org/validate/latest/class-ICanBoogie.Validate.ValidationErrors.html
 [icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord
 [ICanBoogie]:                   http://icanboogie.org
 [PDO]:                          http://php.net/manual/en/book.pdo.php

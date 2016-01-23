@@ -5,8 +5,10 @@ namespace ICanBoogie;
 use ICanBoogie\ActiveRecord\Helpers;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelNotDefined;
+use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecordTest\Sample;
+use ICanBoogie\ActiveRecordTest\ValidateCase;
 
 /**
  * @covers \ICanBoogie\ActiveRecord
@@ -178,5 +180,36 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase
 			->getMockBuilder(Model::class)
 			->disableOriginalConstructor()
 			->getMock();
+	}
+
+	/**
+	 * @group validate
+	 */
+	public function test_validate()
+	{
+		$model = $this
+			->getMockBuilder(Model::class)
+			->disableOriginalConstructor()
+			->getMock();
+
+		$record = new ValidateCase($model);
+
+		try
+		{
+			$record->save();
+		}
+		catch (RecordNotValid $e)
+		{
+			$errors = $e->errors;
+
+			$this->assertArrayNotHasKey('id', $errors);
+			$this->assertArrayHasKey('name', $errors);
+			$this->assertArrayHasKey('email', $errors);
+			$this->assertArrayHasKey('timezone', $errors);
+
+			return;
+		}
+
+		$this->fail("Expected RecordNotValid");
 	}
 }
