@@ -160,10 +160,10 @@ class ActiveRecord extends Prototyped
 		}
 
 		#
-		# Non auto-increment primary key
+		# Non auto-increment primary key, unless the key is inherited from parent model.
 		#
 
-		if ($primary && isset($properties[$primary])
+		if (!$model->parent && $primary && isset($properties[$primary])
 		&& !$model->extended_schema[$primary]->auto_increment)
 		{
 			return $model->insert($properties, [ 'on duplicate' => true ]);
