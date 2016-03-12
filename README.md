@@ -1,10 +1,10 @@
 # Active Record
 
 [![Release](https://img.shields.io/packagist/v/ICanBoogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
-[![Build Status](https://img.shields.io/travis/ICanBoogie/ActiveRecord.svg)](http://travis-ci.org/ICanBoogie/ActiveRecord)
+[![Build Status](https://img.shields.io/travis/ICanBoogie/ActiveRecord/4.0.svg)](http://travis-ci.org/ICanBoogie/ActiveRecord)
 [![HHVM](https://img.shields.io/hhvm/icanboogie/activerecord.svg)](http://hhvm.h4cc.de/package/icanboogie/activerecord)
-[![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
-[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
+[![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord/4.0.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
+[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord/4.0.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
 [![Packagist](https://img.shields.io/packagist/dt/icanboogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
 
 __Connections__, __models__ and __active records__ are the foundations of everything that concerns
@@ -2432,7 +2432,7 @@ $nodes = ActiveRecord\get_model('nodes');
 
 ## Requirements
 
-The package requires PHP 5.5 or later and the [PDO extension](http://php.net/manual/en/intro.pdo.php).
+The package requires PHP 5.6 or later and the [PDO extension](http://php.net/manual/en/intro.pdo.php).
 
 
 
@@ -2483,8 +2483,8 @@ clean` command.
 
 The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
-[![Build Status](https://img.shields.io/travis/ICanBoogie/ActiveRecord.svg)](https://travis-ci.org/ICanBoogie/ActiveRecord)
-[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
+[![Build Status](https://img.shields.io/travis/ICanBoogie/ActiveRecord/4.0.svg)](https://travis-ci.org/ICanBoogie/ActiveRecord)
+[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord/4.0.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
 
 
 
@@ -2498,27 +2498,27 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
 
 
-[Connection]:                   http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Connection.html
-[ConnectionAlreadyEstablished]: http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
-[ConnectionNotDefined]:         http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
-[ConnectionNotEstablished]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
-[ConnectionCollection]:         http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
-[CreatedAtProperty]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Property.CreatedAtProperty.html
-[DateTimeProperty]:             http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Property.DateTimeProperty.html
-[Model]:                        http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Model.html
-[ModelAlreadyInstantiated]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
-[ModelNotDefined]:              http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
-[ModelCollection]:              http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ModelCollection.html
-[Query]:                        http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Query.html
-[RecordNotFound]:               http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RecordNotFound.html
-[RecordNotValid]:               http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RecordNotValid.html
-[RelationNotDefined]:           http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
-[RuntimeActiveRecordCache]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ActiveRecordCache.RuntimeActiveRecordCache.html
-[ScopeNotDefined]:              http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
-[StatementInvocationFailed]:    http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
-[StatementNotValid]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.StatementNotValid.html
-[UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
-[UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Property.UpdatedAtProperty.html
+[Connection]:                   http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Connection.html
+[ConnectionAlreadyEstablished]: http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
+[ConnectionNotDefined]:         http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
+[ConnectionNotEstablished]:     http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
+[ConnectionCollection]:         http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
+[CreatedAtProperty]:            http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.CreatedAtProperty.html
+[DateTimeProperty]:             http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.DateTimeProperty.html
+[Model]:                        http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Model.html
+[ModelAlreadyInstantiated]:     http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
+[ModelNotDefined]:              http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
+[ModelCollection]:              http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelCollection.html
+[Query]:                        http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Query.html
+[RecordNotFound]:               http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotFound.html
+[RecordNotValid]:               http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotValid.html
+[RelationNotDefined]:           http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
+[RuntimeActiveRecordCache]:     http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ActiveRecordCache.RuntimeActiveRecordCache.html
+[ScopeNotDefined]:              http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
+[StatementInvocationFailed]:    http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
+[StatementNotValid]:            http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.StatementNotValid.html
+[UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
+[UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.UpdatedAtProperty.html
 [DateTime]:                     http://api.icanboogie.org/datetime/1.2/class-ICanBoogie.DateTime.html
 [ValidationErrors]:             http://api.icanboogie.org/validate/latest/class-ICanBoogie.Validate.ValidationErrors.html
 [icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord

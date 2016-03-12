@@ -120,11 +120,9 @@ class Statement extends \PDOStatement
 	 *
 	 * @see http://www.php.net/manual/en/pdostatement.setfetchmode.php
 	 */
-	public function mode($mode)
+	public function mode(...$mode)
 	{
-		$mode = func_get_args();
-
-		if (!call_user_func_array([ $this, 'setFetchMode' ], $mode))
+		if (!$this->setFetchMode(...$mode))
 		{
 			throw new UnableToSetFetchMode($mode);
 		}
@@ -145,8 +143,7 @@ class Statement extends \PDOStatement
 	 */
 	public function one($fetch_style = \PDO::FETCH_BOTH, $cursor_orientation = \PDO::FETCH_ORI_NEXT, $cursor_offset = 0)
 	{
-		$args = func_get_args();
-		$rc = call_user_func_array([ $this, 'fetch' ], $args);
+		$rc = $this->fetch(...func_get_args());
 
 		$this->closeCursor();
 
@@ -179,10 +176,14 @@ class Statement extends \PDOStatement
 
 	/**
 	 * Alias for {@link \PDOStatement::fetchAll()}
+	 *
+	 * @param mixed $mode
+	 *
+	 * @return array
 	 */
-	public function all($fetch_style = null, $column_index = null, array $ctor_args = null)
+	public function all(...$mode)
 	{
-		return call_user_func_array([ $this, 'fetchAll' ], func_get_args());
+		return $this->fetchAll(...$mode);
 	}
 
 	/**

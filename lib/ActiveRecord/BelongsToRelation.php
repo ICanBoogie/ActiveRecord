@@ -14,6 +14,8 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototype;
 
+use function ICanBoogie\singularize;
+
 /**
  * Representation of the one-to-one relation.
  */
@@ -80,6 +82,6 @@ class BelongsToRelation extends Relation
 	 */
 	protected function resolve_property_name($related)
 	{
-		return \ICanBoogie\singularize(parent::resolve_property_name($related));
+		return singularize(parent::resolve_property_name($related));
 	}
 }
