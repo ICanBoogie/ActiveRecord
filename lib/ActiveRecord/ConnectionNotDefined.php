@@ -13,6 +13,8 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 
+use function ICanBoogie\format;
+
 /**
  * Exception thrown in attempt to obtain a connection that is not defined.
  *
@@ -53,7 +55,7 @@ class ConnectionNotDefined extends \LogicException implements Exception
 	 */
 	protected function format_message($id)
 	{
-		return \ICanBoogie\format("Connection not defined: %id.", [
+		return format("Connection not defined: %id.", [
 
 			'id' => $id
 

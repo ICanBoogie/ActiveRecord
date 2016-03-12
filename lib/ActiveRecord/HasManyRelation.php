@@ -13,6 +13,8 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 
+use function ICanBoogie\pluralize;
+
 /**
  * Representation of the one-to-many relation.
  */
@@ -34,6 +36,6 @@ class HasManyRelation extends Relation
 
 	protected function resolve_property_name($related)
 	{
-		return \ICanBoogie\pluralize(parent::resolve_property_name($related));
+		return pluralize(parent::resolve_property_name($related));
 	}
 }

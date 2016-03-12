@@ -13,6 +13,8 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 
+use function ICanBoogie\format;
+
 /**
  * Exception thrown when the ActiveRecord class is not valid.
  *
@@ -57,7 +59,7 @@ class ActiveRecordClassNotValid extends \LogicException implements Exception
 	 */
 	protected function format_message($class)
 	{
-		return \ICanBoogie\format("ActiveRecord class is not valid: %class", [
+		return format("ActiveRecord class is not valid: %class", [
 
 			'class' => $class
 

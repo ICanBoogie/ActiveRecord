@@ -21,7 +21,7 @@
 	"minimum-stability": "dev",
 
 	"require": {
-		"php": ">=5.5.0",
+		"php": ">=5.6.0",
 		"ext-pdo": "*",
 		"icanboogie/prototype": "^2.3",
 		"icanboogie/inflector": "^1.4",

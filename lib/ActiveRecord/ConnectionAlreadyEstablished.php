@@ -13,6 +13,8 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 
+use function ICanBoogie\format;
+
 /**
  * Exception thrown in attempt to set the definition of an already established connection.
  *
@@ -56,7 +58,7 @@ class ConnectionAlreadyEstablished extends \LogicException implements Exception
 	 */
 	protected function format_message($id)
 	{
-		return \ICanBoogie\format("Connection already established: %id.", [
+		return format("Connection already established: %id.", [
 
 			'id' => $id
 

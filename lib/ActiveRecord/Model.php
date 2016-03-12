@@ -35,7 +35,7 @@ use ICanBoogie\Prototype\MethodNotDefined;
  * @method ActiveRecord one() one() The method is forwarded to {@link Query::one}.
  * @method ActiveRecord new() new(array $properties = []) Instantiate a new record.
  *
- * @method Model belongs_to() belongs_to($definition) Add a _belongs_to_ relation.
+ * @method Model belongs_to() belongs_to(...$args) Adds a _belongs_to_ relation.
  * @method Model has_many() has_many($related, $options = []) Adds a _has_many_ relation.
  *
  * @property-read Model|null $parent Parent model.
@@ -163,6 +163,21 @@ class Model extends Table implements \ArrayAccess
 		$this->resolve_relations();
 	}
 
+	// @codeCoverageIgnoreStart
+	public function __debugInfo()
+	{
+		return [
+
+			'id' => $this->id,
+			'name' => "$this->name ($this->unprefixed_name)",
+			'parent' => $this->parent ? $this->parent->id . " of " . get_class($this->parent) : null,
+			'parent_model' => $this->parent_model ? $this->parent_model->id . " of " . get_class($this->parent_model) : null,
+			'relations' => $this->relations
+
+		];
+	}
+	// @codeCoverageIgnoreEnd
+
 	/**
 	 * Resolves constructor attributes.
 	 *
@@ -259,7 +274,7 @@ class Model extends Table implements \ArrayAccess
 	{
 		if ($method == 'new')
 		{
-			return call_user_func_array([ $this, 'new_record' ], $arguments);
+			return $this->new_record(...$arguments);
 		}
 
 		if (is_callable([ Query::class, $method ])
@@ -268,12 +283,12 @@ class Model extends Table implements \ArrayAccess
 		{
 			$query = new Query($this);
 
-			return call_user_func_array([ $query, $method ], $arguments);
+			return $query->$method(...$arguments);
 		}
 
 		if (is_callable([ RelationCollection::class, $method ]))
 		{
-			return call_user_func_array([ $this->relations, $method ], $arguments);
+			return $this->relations->$method(...$arguments);
 		}
 
 		return parent::__call($method, $arguments);
@@ -542,7 +557,7 @@ class Model extends Table implements \ArrayAccess
 	{
 		try
 		{
-			return call_user_func_array([ $this, 'scope_' . $scope_name ], $scope_args);
+			return $this->{ 'scope_' . $scope_name}(...$scope_args);
 		}
 		catch (MethodNotDefined $e)
 		{
