@@ -243,7 +243,7 @@ class Query implements \IteratorAggregate
 	{
 		if ($method === 'and')
 		{
-			return call_user_func_array([ $this, 'where' ], $arguments);
+			return $this->where(...$arguments);
 		}
 
 		if (strpos($method, 'filter_by_') === 0)
@@ -704,13 +704,14 @@ class Query implements \IteratorAggregate
 	 *
 	 * {@link \DateTimeInterface} conditions are converted to strings.
 	 *
+	 * @param $conditions_and_args
+	 *
 	 * @return array An array made of the condition string and its arguments.
 	 */
-	private function deferred_parse_conditions()
+	private function deferred_parse_conditions(...$conditions_and_args)
 	{
-		$args = debug_backtrace(0, 2)[1]['args'];
-
-		$conditions = array_shift($args);
+		$conditions = array_shift($conditions_and_args);
+		$args = $conditions_and_args;
 
 		if (is_array($conditions))
 		{
@@ -849,15 +850,13 @@ class Query implements \IteratorAggregate
 	 *
 	 * This will return the orders with the `order_count` different than 2.
 	 *
-	 * @param mixed $conditions
-	 * @param mixed $conditions_args
-	 * @param mixed $_ [optional]
+	 * @param mixed ...$conditions_and_args
 	 *
 	 * @return Query
 	 */
-	public function where($conditions, $conditions_args = null, $_ = null)
+	public function where(...$conditions_and_args)
 	{
-		list($conditions, $conditions_args) = $this->deferred_parse_conditions();
+		list($conditions, $conditions_args) = $this->deferred_parse_conditions(...$conditions_and_args);
 
 		if ($conditions)
 		{
@@ -905,19 +904,13 @@ class Query implements \IteratorAggregate
 	/**
 	 * Defines the `HAVING` clause.
 	 *
-	 * @param mixed $conditions
-	 * @param mixed $conditions_args
+	 * @param mixed ...$conditions_and_args
 	 *
 	 * @return Query
 	 */
-	public function having($conditions, $conditions_args = null)
+	public function having(...$conditions_and_args)
 	{
-		if (!$this->group)
-		{
-			throw new \LogicException("having() cannot be used without invoking group() first.");
-		}
-
-		list($having, $having_args) = $this->deferred_parse_conditions();
+		list($having, $having_args) = $this->deferred_parse_conditions(...$conditions_and_args);
 
 		$this->having = $having;
 		$this->having_args = $having_args;
@@ -1031,17 +1024,17 @@ class Query implements \IteratorAggregate
 	 */
 
 	/**
-	 * Resolves fetch mode from backtrace.
+	 * Resolves fetch mode.
+	 *
+	 * @param mixed ...$mode
 	 *
 	 * @return array
 	 */
-	private function resolve_fetch_mode()
+	private function resolve_fetch_mode(...$mode)
 	{
-		$trace = debug_backtrace(0, 2);
-
-		if ($trace[1]['args'])
+		if ($mode)
 		{
-			$args = $trace[1]['args'];
+			$args = $mode;
 		}
 		else if ($this->mode)
 		{
@@ -1066,16 +1059,13 @@ class Query implements \IteratorAggregate
 	/**
 	 * Execute the query and returns an array of records.
 	 *
-	 * @param mixed $_ [optional]
+	 * @param mixed ...$mode Fetch mode.
 	 *
 	 * @return array
 	 */
-	public function all($_ = null)
+	public function all(...$mode)
 	{
-		$statement = $this->query();
-		$args = $this->resolve_fetch_mode();
-
-		return call_user_func_array([ $statement, 'fetchAll' ], $args);
+		return $this->query()->fetchAll(...$this->resolve_fetch_mode(...$mode));
 	}
 
 	/**
@@ -1091,30 +1081,30 @@ class Query implements \IteratorAggregate
 	/**
 	 * Return the first result of the query and close the cursor.
 	 *
-	 * @param $_ [optional] Fetch mode.
+	 * @param mixed ...$mode Fetch node.
 	 *
 	 * @return mixed The return value of this function on success depends on the fetch mode. In
 	 * all cases, FALSE is returned on failure.
 	 */
-	public function one($_ = null)
+	public function one(...$mode)
 	{
 		$query = clone $this;
 		$query->limit = 1;
 		$statement = $query->query();
-		$args = $query->resolve_fetch_mode();
+		$args = $query->resolve_fetch_mode(...$mode);
 
 		if (count($args) > 1 && $args[0] == \PDO::FETCH_CLASS)
 		{
 			array_shift($args);
 
-			$rc = call_user_func_array([ $statement, 'fetchObject' ], $args);
+			$rc = $statement->fetchObject(...$args);
 
 			$statement->closeCursor();
 
 			return $rc;
 		}
 
-		return call_user_func_array([ $statement, 'one' ], $args);
+		return $statement->one(...$args);
 	}
 
 	/**

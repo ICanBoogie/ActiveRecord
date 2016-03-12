@@ -186,11 +186,13 @@ class Connection extends \PDO implements Driver
 	/**
 	 * Alias to {@link query}.
 	 *
+	 * @param array $args
+	 *
 	 * @return Statement
 	 */
-	public function __invoke()
+	public function __invoke(...$args)
 	{
-		return call_user_func_array([ $this, 'query' ], func_get_args());
+		return $this->query(...$args);
 	}
 
 	/**
@@ -325,7 +327,7 @@ class Connection extends \PDO implements Driver
 		{
 			$mode = (array) $options['mode'];
 
-			call_user_func_array([ $statement, 'setFetchMode' ], $mode);
+			$statement->setFetchMode(...$mode);
 		}
 
 		return $statement;

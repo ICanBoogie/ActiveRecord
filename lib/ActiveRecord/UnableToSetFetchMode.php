@@ -13,6 +13,8 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 
+use function ICanBoogie\format;
+
 /**
  * Exception thrown when the fetch mode of a statement fails to be set.
  *
@@ -54,6 +56,6 @@ class UnableToSetFetchMode extends \RuntimeException implements Exception
 	 */
 	protected function format_message($mode)
 	{
-		return \ICanBoogie\format("Unable to set fetch mode: %mode", [ 'mode' => $mode ]);
+		return format("Unable to set fetch mode: %mode", [ 'mode' => $mode ]);
 	}
 }

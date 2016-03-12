@@ -13,6 +13,8 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Prototyped;
 
+use function ICanBoogie\singularize;
+
 /**
  * A representation of a database table.
  *
@@ -258,7 +260,7 @@ class Table extends Prototyped
 		}
 
 		$options = array_reverse($options);
-		$options = call_user_func_array('array_merge', $options);
+		$options = array_merge(...array_values($options));
 
 		return new Schema($options);
 	}
@@ -445,7 +447,7 @@ class Table extends Prototyped
 			$alias = substr($alias, $pos + 1);
 		}
 
-		$this->alias = \ICanBoogie\singularize($alias);
+		$this->alias = singularize($alias);
 	}
 
 	/**
