@@ -95,6 +95,9 @@ class Query implements \IteratorAggregate
 	protected $conditions = [];
 
 	/**
+	 * Return the conditions collected from {@link where()}, {@link and()}, `filter_by_*`,
+	 * and scopes.
+	 *
 	 * @return array
 	 */
 	protected function get_conditions()
@@ -110,6 +113,8 @@ class Query implements \IteratorAggregate
 	protected $conditions_args = [];
 
 	/**
+	 * Return the arguments to the conditions.
+	 *
 	 * @return array
 	 */
 	protected function get_conditions_args()
@@ -146,6 +151,8 @@ class Query implements \IteratorAggregate
 	protected $having_args = [];
 
 	/**
+	 * Return the arguments to the `HAVING` clause.
+	 *
 	 * @return array
 	 */
 	protected function get_having_args()
