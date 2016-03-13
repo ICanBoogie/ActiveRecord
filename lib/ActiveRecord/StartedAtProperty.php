@@ -36,7 +36,7 @@ trait StartedAtProperty
 	 *
 	 * @return DateTime
 	 */
-	protected function get_started_at()
+	protected function get_started_at(): DateTime
 	{
 		return DateTimePropertySupport::get($this->started_at);
 	}

@@ -36,7 +36,7 @@ class DateTimePropertySupport
 	 *
 	 * @return DateTime The function always return a {@link DateTime} instance.
 	 */
-	static public function get(&$property)
+	static public function get(&$property): DateTime
 	{
 		if ($property instanceof DateTime)
 		{

@@ -32,7 +32,7 @@ trait DateTimeProperty
 	 *
 	 * @return DateTime
 	 */
-	protected function get_datetime()
+	protected function get_datetime(): DateTime
 	{
 		return DateTimePropertySupport::get($this->datetime);
 	}

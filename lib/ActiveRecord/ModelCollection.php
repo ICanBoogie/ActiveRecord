@@ -31,7 +31,10 @@ class ModelCollection implements \ArrayAccess
 	 */
 	protected $instances = [];
 
-	protected function get_instances()
+	/**
+	 * @return Model[]
+	 */
+	protected function get_instances(): array
 	{
 		return $this->instances;
 	}
@@ -43,7 +46,10 @@ class ModelCollection implements \ArrayAccess
 	 */
 	protected $definitions = [];
 
-	protected function get_definitions()
+	/**
+	 * @return array
+	 */
+	protected function get_definitions(): array
 	{
 		return $this->definitions;
 	}
@@ -53,7 +59,10 @@ class ModelCollection implements \ArrayAccess
 	 */
 	protected $connections;
 
-	protected function get_connections()
+	/**
+	 * @return ConnectionCollection
+	 */
+	protected function get_connections(): ConnectionCollection
 	{
 		return $this->connections;
 	}
@@ -121,7 +130,7 @@ class ModelCollection implements \ArrayAccess
 	 *
 	 * @throws ModelNotDefined when the model is not defined.
 	 */
-	public function offsetGet($id)
+	public function offsetGet($id): Model
 	{
 		if (isset($this->instances[$id]))
 		{
@@ -166,7 +175,7 @@ class ModelCollection implements \ArrayAccess
 	 *
 	 * @return array
 	 */
-	protected function resolve_model_attributes(array $attributes)
+	protected function resolve_model_attributes(array $attributes): array
 	{
 		$attributes += [
 
@@ -200,7 +209,7 @@ class ModelCollection implements \ArrayAccess
 	 *
 	 * @return Model
 	 */
-	protected function instantiate_model(array $attributes)
+	protected function instantiate_model(array $attributes): Model
 	{
 		$class = $attributes[Model::CLASSNAME];
 
@@ -210,7 +219,7 @@ class ModelCollection implements \ArrayAccess
 	/**
 	 * Install all the models.
 	 *
-	 * @return ModelCollection
+	 * @return $this
 	 */
 	public function install()
 	{
@@ -232,7 +241,7 @@ class ModelCollection implements \ArrayAccess
 	/**
 	 * Uninstall all the models.
 	 *
-	 * @return ModelCollection
+	 * @return $this
 	 */
 	public function uninstall()
 	{
@@ -258,7 +267,7 @@ class ModelCollection implements \ArrayAccess
 	 * @return array An array of key/value pair where _key_ is a model identifier and
 	 * _value_ `true` if the model is installed, `false` otherwise.
 	 */
-	public function is_installed()
+	public function is_installed(): array
 	{
 		$rc = [];
 

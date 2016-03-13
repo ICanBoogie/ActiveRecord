@@ -48,6 +48,8 @@ class BelongsToRelation extends Relation
 
 	/**
 	 * @inheritdoc
+	 *
+	 * @return ActiveRecord|null
 	 */
 	public function __invoke(ActiveRecord $record)
 	{
@@ -66,7 +68,7 @@ class BelongsToRelation extends Relation
 	 *
 	 * @inheritdoc
 	 */
-	protected function alter_prototype(Prototype $prototype, $property)
+	protected function alter_prototype(Prototype $prototype, string $property)
 	{
 		parent::alter_prototype($prototype, $property);
 
@@ -80,7 +82,7 @@ class BelongsToRelation extends Relation
 	/**
 	 * @inheritdoc
 	 */
-	protected function resolve_property_name($related)
+	protected function resolve_property_name($related): string
 	{
 		return singularize(parent::resolve_property_name($related));
 	}

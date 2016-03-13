@@ -27,14 +27,17 @@ class HasManyRelation extends Relation
 	 *
 	 * @return Query
 	 */
-	public function __invoke(ActiveRecord $record)
+	public function __invoke(ActiveRecord $record): Query
 	{
 		return $this
 		->resolve_related()
 		->where([ $this->foreign_key => $record->{ $this->local_key }]);
 	}
 
-	protected function resolve_property_name($related)
+	/**
+	 * @inheritdoc
+	 */
+	protected function resolve_property_name($related): string
 	{
 		return pluralize(parent::resolve_property_name($related));
 	}

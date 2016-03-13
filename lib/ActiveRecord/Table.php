@@ -66,7 +66,7 @@ class Table extends Prototyped
 	 *
 	 * @return Connection
 	 */
-	protected function get_connection()
+	protected function get_connection(): Connection
 	{
 		return $this->connection;
 	}
@@ -81,7 +81,7 @@ class Table extends Prototyped
 	/**
 	 * @return string
 	 */
-	protected function get_name()
+	protected function get_name(): string
 	{
 		return $this->name;
 	}
@@ -96,7 +96,7 @@ class Table extends Prototyped
 	/**
 	 * @return string
 	 */
-	protected function get_unprefixed_name()
+	protected function get_unprefixed_name(): string
 	{
 		return $this->unprefixed_name;
 	}
@@ -129,7 +129,7 @@ class Table extends Prototyped
 	/**
 	 * @return string
 	 */
-	protected function get_alias()
+	protected function get_alias(): string
 	{
 		return $this->alias;
 	}
@@ -144,7 +144,7 @@ class Table extends Prototyped
 	/**
 	 * @return Schema
 	 */
-	protected function get_schema()
+	protected function get_schema(): Schema
 	{
 		return $this->schema;
 	}
@@ -159,7 +159,7 @@ class Table extends Prototyped
 	/**
 	 * @return array
 	 */
-	protected function get_schema_options()
+	protected function get_schema_options(): array
 	{
 		return $this->schema_options;
 	}
@@ -168,12 +168,12 @@ class Table extends Prototyped
 	 * The parent is used when the table is in a hierarchy, which is the case if the table
 	 * extends another table.
 	 *
-	 * @var Table
+	 * @var Table|null
 	 */
 	protected $parent;
 
 	/**
-	 * @return Table
+	 * @return Table|null
 	 */
 	protected function get_parent()
 	{
@@ -193,7 +193,7 @@ class Table extends Prototyped
 	/**
 	 * @return string
 	 */
-	protected function lazy_get_update_join()
+	protected function lazy_get_update_join(): string
 	{
 		$join = '';
 		$parent = $this->parent;
@@ -220,7 +220,7 @@ class Table extends Prototyped
 	/**
 	 * @return string
 	 */
-	protected function lazy_get_select_join()
+	protected function lazy_get_select_join(): string
 	{
 		$join = "`{$this->alias}`" . $this->update_join;
 
@@ -245,7 +245,7 @@ class Table extends Prototyped
 	 *
 	 * @return Schema
 	 */
-	protected function lazy_get_extended_schema()
+	protected function lazy_get_extended_schema(): Schema
 	{
 		$table = $this;
 		$options = [];
@@ -304,15 +304,15 @@ class Table extends Prototyped
 	/**
 	 * Alias to {@link query()}.
 	 *
-	 * @param string $query
+	 * @param string $statement
 	 * @param array $args
 	 * @param array $options
 	 *
 	 * @return Statement
 	 */
-	public function __invoke($query, array $args = [], array $options = [])
+	public function __invoke(string $statement, array $args = [], array $options = []): Statement
 	{
-		return $this->query($query, $args, $options);
+		return $this->query($statement, $args, $options);
 	}
 
 	/**
@@ -502,7 +502,7 @@ class Table extends Prototyped
 	 *
 	 * @return bool `true` if the table exists, `false` otherwise.
 	 */
-	public function is_installed()
+	public function is_installed(): bool
 	{
 		return $this->connection->table_exists($this->unprefixed_name);
 	}
@@ -528,7 +528,7 @@ class Table extends Prototyped
 	 *
 	 * @return string
 	 */
-	public function resolve_statement($statement)
+	public function resolve_statement($statement): string
 	{
 		$primary = $this->primary;
 		$primary = is_array($primary) ? '__multicolumn_primary__' . implode('_', $primary) : $primary;
@@ -554,7 +554,7 @@ class Table extends Prototyped
 	 *
 	 * @return Statement
 	 */
-	public function prepare($query, $options = [])
+	public function prepare($query, $options = []): Statement
 	{
 		$query = $this->resolve_statement($query);
 
@@ -569,7 +569,7 @@ class Table extends Prototyped
 	 *
 	 * @return string
 	 */
-	public function quote($string, $parameter_type = \PDO::PARAM_STR)
+	public function quote(string $string, int $parameter_type = \PDO::PARAM_STR): string
 	{
 		return $this->connection->quote($string, $parameter_type);
 	}
@@ -579,15 +579,15 @@ class Table extends Prototyped
 	 *
 	 * The statement is prepared by the {@link prepare()} method before it is executed.
 	 *
-	 * @param string $query
+	 * @param string $statement
 	 * @param array $args
 	 * @param array $options
 	 *
 	 * @return mixed
 	 */
-	public function execute($query, array $args = [], array $options = [])
+	public function execute(string $statement, array $args = [], array $options = [])
 	{
-		$statement = $this->prepare($query, $options);
+		$statement = $this->prepare($statement, $options);
 
 		return $statement($args);
 	}
@@ -603,7 +603,7 @@ class Table extends Prototyped
 	 *
 	 * @return Statement
 	 */
-	public function query($query, array $args = [], array $options = [])
+	public function query(string $query, array $args = [], array $options = [])
 	{
 		$statement = $this->prepare($this->resolve_statement($query), $options);
 		$statement($args);
@@ -615,11 +615,11 @@ class Table extends Prototyped
 	 * Filters mass assignment values.
 	 *
 	 * @param array $values
-	 * @param bool|false $extended
+	 * @param bool $extended
 	 *
 	 * @return array
 	 */
-	protected function filter_values(array $values, $extended = false)
+	protected function filter_values(array $values, bool $extended = false): array
 	{
 		$filtered = [];
 		$holders = [];
@@ -914,7 +914,7 @@ class Table extends Prototyped
 	 *
 	 * @return bool
 	 */
-	public function delete($key)
+	public function delete($key): bool
 	{
 		if ($this->parent)
 		{
@@ -973,7 +973,7 @@ class Table extends Prototyped
 	 *
 	 * @return mixed
 	 */
-	public function drop(array $options=[])
+	public function drop(array $options = [])
 	{
 		$query = 'DROP TABLE ';
 

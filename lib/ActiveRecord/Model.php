@@ -18,22 +18,21 @@ use ICanBoogie\Prototype\MethodNotDefined;
 /**
  * Base class for activerecord models.
  *
- * @method Query select() select($expression) The method is forwarded to {@link Query::select}.
- * @method Query join() join($expression) The method is forwarded to {@link Query::join}.
- * @method Query where() where($conditions, $conditions_args = null, $_ = null) The method is forwarded to {@link Query::where}.
- * @method Query group() group($group) The method is forwarded to {@link Query::group}.
- * @method Query order() order($order) The method is forwarded to {@link Query::order}.
- * @method Query limit() limit($limit, $offset = null) The method is forwarded to {@link Query::limit}.
- * @method Query offset() offset($offset) The method is forwarded to {@link Query::offset}.
- * @method bool exists() exists($key = null) The method is forwarded to {@link Query::exists}.
- * @method mixed count() count($column = null) The method is forwarded to {@link Query::count}.
- * @method string average() average($column) The method is forwarded to {@link Query::average}.
- * @method string maximum() maximum($column) The method is forwarded to {@link Query::maximum}.
- * @method string minimum() minimum($column) The method is forwarded to {@link Query::minimum}.
- * @method int sum() sum($column) The method is forwarded to {@link Query::sum}.
- * @method array all() all() The method is forwarded to {@link Query::all}.
- * @method ActiveRecord one() one() The method is forwarded to {@link Query::one}.
- * @method ActiveRecord new() new(array $properties = []) Instantiate a new record.
+ * @method Query select(string $expression) The method is forwarded to {@link Query::select}.
+ * @method Query join($expression, array $options = []) The method is forwarded to {@link Query::join}.
+ * @method Query where(...$conditions_and_args) The method is forwarded to {@link Query::where}.
+ * @method Query group(string $group) The method is forwarded to {@link Query::group}.
+ * @method Query order($order) The method is forwarded to {@link Query::order}.
+ * @method Query limit($limit, int $offset = null) The method is forwarded to {@link Query::limit}.
+ * @method Query offset(int $offset) The method is forwarded to {@link Query::offset}.
+ * @method bool exists($key = null) The method is forwarded to {@link Query::exists}.
+ * @method int|array count($column = null) The method is forwarded to {@link Query::count}.
+ * @method number average($column) The method is forwarded to {@link Query::average}.
+ * @method mixed maximum($column) The method is forwarded to {@link Query::maximum}.
+ * @method mixed minimum($column) The method is forwarded to {@link Query::minimum}.
+ * @method number sum($column) The method is forwarded to {@link Query::sum}.
+ * @method array all() The method is forwarded to {@link Query::all}.
+ * @method ActiveRecord|null one() The method is forwarded to {@link Query::one}.
  *
  * @method Model belongs_to() belongs_to(...$args) Adds a _belongs_to_ relation.
  * @method Model has_many() has_many($related, $options = []) Adds a _has_many_ relation.
@@ -44,10 +43,10 @@ use ICanBoogie\Prototype\MethodNotDefined;
  * @property-read string $activerecord_class Class of the active records of the model.
  * @property-read int $count The number of records of the model.
  * @property-read bool $exists Whether the SQL table associated with the model exists.
- * @property-read string $id The identifier of the model.
- * @property-read ActiveRecord $one Retrieve the first record from the mode.
+ * @property-read string|null $id The identifier of the model.
+ * @property-read ActiveRecord|null $one Retrieve the first record from the mode.
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
- * @property-read Model $parent_model The parent model.
+ * @property-read Model|null $parent_model The parent model.
  * @property-read Relation[] $relations The relations of this model to other models.
  */
 class Model extends Table implements \ArrayAccess
@@ -63,7 +62,10 @@ class Model extends Table implements \ArrayAccess
 	 */
 	private $models;
 
-	protected function get_models()
+	/**
+	 * @return ModelCollection
+	 */
+	protected function get_models(): ModelCollection
 	{
 		return $this->models;
 	}
@@ -73,14 +75,34 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @var string
 	 */
-	protected $activerecord_class;
+	protected $activerecord_class = ActiveRecord::class;
+
+	/**
+	 * Returns the class of the active records of the model.
+	 *
+	 * @return string
+	 */
+	protected function get_activerecord_class(): string
+	{
+		return $this->activerecord_class;
+	}
 
 	/**
 	 * Attributes of the model.
 	 *
-	 * @var array[string]mixed
+	 * @var array
 	 */
 	protected $attributes;
+
+	/**
+	 * Returns the identifier of the model.
+	 *
+	 * @return string|null
+	 */
+	protected function get_id()
+	{
+		return $this->attributes[self::ID];
+	}
 
 	/**
 	 * The parent model of the model.
@@ -88,14 +110,14 @@ class Model extends Table implements \ArrayAccess
 	 * The parent model and the {@link parent} may be different if the model does not have a
 	 * schema but inherits it from its parent.
 	 *
-	 * @var Model
+	 * @var Model|null
 	 */
 	protected $parent_model;
 
 	/**
 	 * Return the parent mode.
 	 *
-	 * @return Model
+	 * @return Model|null
 	 */
 	protected function get_parent_model()
 	{
@@ -114,7 +136,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return RelationCollection
 	 */
-	protected function get_relations()
+	protected function get_relations(): RelationCollection
 	{
 		return $this->relations;
 	}
@@ -126,7 +148,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return ActiveRecordCache
 	 */
-	protected function lazy_get_activerecord_cache()
+	protected function lazy_get_activerecord_cache(): ActiveRecordCache
 	{
 		return parent::lazy_get_activerecord_cache();
 	}
@@ -164,7 +186,10 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	// @codeCoverageIgnoreStart
-	public function __debugInfo()
+	/**
+	 * @inheritdoc
+	 */
+	public function __debugInfo(): array
 	{
 		return [
 
@@ -187,7 +212,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return array
 	 */
-	private function resolve_attributes(array $attributes)
+	private function resolve_attributes(array $attributes): array
 	{
 		$attributes += [
 
@@ -227,7 +252,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return string
 	 */
-	private function resolve_activerecord_class()
+	private function resolve_activerecord_class(): string
 	{
 		$activerecord_class = $this->attributes[self::ACTIVERECORD_CLASS];
 
@@ -236,7 +261,7 @@ class Model extends Table implements \ArrayAccess
 			$activerecord_class = $this->parent->activerecord_class;
 		}
 
-		return $activerecord_class;
+		return $activerecord_class ?: ActiveRecord::class;
 	}
 
 	/**
@@ -272,11 +297,6 @@ class Model extends Table implements \ArrayAccess
 	 */
 	public function __call($method, $arguments)
 	{
-		if ($method == 'new')
-		{
-			return $this->new_record(...$arguments);
-		}
-
 		if (is_callable([ Query::class, $method ])
 		|| strpos($method, 'filter_by_') === 0
 		|| method_exists($this, 'scope_' . $method))
@@ -312,38 +332,17 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
-	 * Returns the identifier of the model.
-	 *
-	 * @return string
-	 */
-	protected function get_id()
-	{
-		return $this->attributes[self::ID];
-	}
-
-	/**
-	 * Returns the class of the active records of the model.
-	 *
-	 * @return string
-	 */
-	protected function get_activerecord_class()
-	{
-		return $this->activerecord_class;
-	}
-
-	/**
 	 * Finds a record or a collection of records.
 	 *
-	 * @param mixed $key A key, multiple keys, or an array of keys.
+	 * @param array $args A key, multiple keys, or an array of keys.
 	 *
 	 * @throws RecordNotFound when the record, or one or more records of the records
 	 * set, could not be found.
 	 *
 	 * @return ActiveRecord|ActiveRecord[] A record or a set of records.
 	 */
-	public function find($key)
+	public function find(...$args)
 	{
-		$args = func_get_args();
 		$n = count($args);
 
 		if (!$n)
@@ -351,7 +350,7 @@ class Model extends Table implements \ArrayAccess
 			throw new \BadMethodCallException("Expected at least one argument.");
 		}
 
-		if (count($args) == 1)
+		if ($n === 1)
 		{
 			$key = $args[0];
 
@@ -373,7 +372,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return ActiveRecord
 	 */
-	private function find_one($key)
+	private function find_one($key): ActiveRecord
 	{
 		$record = $this->activerecord_cache->retrieve($key);
 
@@ -404,7 +403,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return ActiveRecord[]
 	 */
-	private function find_many(array $keys)
+	private function find_many(array $keys): array
 	{
 		$records = array_combine($keys, array_fill(0, count($keys), null));
 		$missing = $records;
@@ -480,7 +479,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @inheritdoc
 	 */
-	public function delete($key)
+	public function delete($key): bool
 	{
 		$this->activerecord_cache->eliminate($key);
 
@@ -492,7 +491,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return bool
 	 */
-	protected function get_exists()
+	protected function get_exists(): bool
 	{
 		return $this->exists();
 	}
@@ -502,7 +501,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return int
 	 */
-	protected function get_count()
+	protected function get_count(): int
 	{
 		return $this->count();
 	}
@@ -512,7 +511,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return ActiveRecord[]
 	 */
-	protected function get_all()
+	protected function get_all(): array
 	{
 		return $this->all();
 	}
@@ -520,7 +519,7 @@ class Model extends Table implements \ArrayAccess
 	/**
 	 * Returns the first record of the model.
 	 *
-	 * @return ActiveRecord
+	 * @return ActiveRecord|null
 	 */
 	protected function get_one()
 	{
@@ -535,9 +534,9 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @param string $name Scope name.
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
-	public function has_scope($name)
+	public function has_scope(string $name):bool
 	{
 		return method_exists($this, 'scope_' . $name);
 	}
@@ -553,7 +552,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return Query
 	 */
-	public function scope($scope_name, array $scope_args = [])
+	public function scope(string $scope_name, array $scope_args = []): Query
 	{
 		try
 		{
@@ -604,7 +603,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return ActiveRecord
 	 */
-	public function offsetGet($key)
+	public function offsetGet($key): ActiveRecord
 	{
 		return $this->find($key);
 	}
@@ -618,7 +617,7 @@ class Model extends Table implements \ArrayAccess
 	 *
 	 * @return ActiveRecord
 	 */
-	protected function new_record(array $properties = [])
+	public function new(array $properties = []): ActiveRecord
 	{
 		$class = $this->activerecord_class;
 

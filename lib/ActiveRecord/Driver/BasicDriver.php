@@ -89,7 +89,7 @@ abstract class BasicDriver implements Driver
 	/**
 	 * @inheritdoc
 	 */
-	public function cast_value($value, $type = null)
+	public function cast_value($value, string $type = null)
 	{
 		if ($value instanceof \DateTime)
 		{
@@ -118,7 +118,7 @@ abstract class BasicDriver implements Driver
 	 *
 	 * @return string
 	 */
-	protected function resolve_table_name($unprefixed_table_name)
+	protected function resolve_table_name(string $unprefixed_table_name): string
 	{
 		return $this->connection->table_name_prefix . $unprefixed_table_name;
 	}
@@ -130,7 +130,7 @@ abstract class BasicDriver implements Driver
 	 *
 	 * @return string
 	 */
-	protected function resolve_quoted_table_name($unprefixed_table_name)
+	protected function resolve_quoted_table_name(string $unprefixed_table_name): string
 	{
 		return $this->quote_identifier($this->connection->table_name_prefix . $unprefixed_table_name);
 	}
@@ -143,7 +143,7 @@ abstract class BasicDriver implements Driver
 	 *
 	 * @return string
 	 */
-	protected function resolve_index_name($unprefixed_table_name, $index_id)
+	protected function resolve_index_name(string $unprefixed_table_name, string $index_id): string
 	{
 		return $index_id;
 	}

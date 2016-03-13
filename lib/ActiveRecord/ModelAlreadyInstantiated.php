@@ -16,7 +16,7 @@ use ICanBoogie\Accessor\AccessorTrait;
 /**
  * Exception thrown in attempt to set/unset the definition of an already instantiated model.
  *
- * @property-read string $id The identifier of the model.
+ * @property-read string $id Model identifier.
  */
 class ModelAlreadyInstantiated extends \LogicException implements Exception
 {
@@ -27,17 +27,20 @@ class ModelAlreadyInstantiated extends \LogicException implements Exception
 	 */
 	private $id;
 
-	protected function get_id()
+	/**
+	 * @return string
+	 */
+	protected function get_id(): string
 	{
 		return $this->id;
 	}
 
 	/**
-	 * @param string $id
+	 * @param string $id Model identifier.
 	 * @param int $code
 	 * @param \Exception|null $previous
 	 */
-	public function __construct($id, $code = 500, \Exception $previous = null)
+	public function __construct(string $id, int $code = 500, \Exception $previous = null)
 	{
 		$this->id = $id;
 
@@ -51,7 +54,7 @@ class ModelAlreadyInstantiated extends \LogicException implements Exception
 	 *
 	 * @return string
 	 */
-	protected function format_message($id)
+	protected function format_message(string $id): string
 	{
 		return "Model already instantiated: $id.";
 	}

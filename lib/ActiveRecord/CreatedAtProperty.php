@@ -34,7 +34,7 @@ trait CreatedAtProperty
 	 *
 	 * @return DateTime
 	 */
-	protected function get_created_at()
+	protected function get_created_at(): DateTime
 	{
 		return DateTimePropertySupport::get($this->created_at);
 	}

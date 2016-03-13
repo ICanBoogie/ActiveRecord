@@ -32,7 +32,7 @@ class ConnectionAlreadyEstablished extends \LogicException implements Exception
 	/**
 	 * @return string
 	 */
-	protected function get_id()
+	protected function get_id(): string
 	{
 		return $this->id;
 	}
@@ -42,7 +42,7 @@ class ConnectionAlreadyEstablished extends \LogicException implements Exception
 	 * @param int $code
 	 * @param \Exception|null $previous
 	 */
-	public function __construct($id, $code = 500, \Exception $previous = null)
+	public function __construct(string $id, int $code = 500, \Exception $previous = null)
 	{
 		$this->id = $id;
 
@@ -56,7 +56,7 @@ class ConnectionAlreadyEstablished extends \LogicException implements Exception
 	 *
 	 * @return string
 	 */
-	protected function format_message($id)
+	protected function format_message(string $id): string
 	{
 		return format("Connection already established: %id.", [
 

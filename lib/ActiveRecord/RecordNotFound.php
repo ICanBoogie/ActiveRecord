@@ -30,9 +30,12 @@ class RecordNotFound extends \LogicException implements Exception
 	 *
 	 * @var ActiveRecord[]
 	 */
-	private $records;
+	private $records = [];
 
-	protected function get_records()
+	/**
+	 * @return ActiveRecord[]
+	 */
+	protected function get_records(): array
 	{
 		return $this->records;
 	}
@@ -45,7 +48,7 @@ class RecordNotFound extends \LogicException implements Exception
 	 * @param int $code Defaults to 404.
 	 * @param \Exception $previous Previous exception.
 	 */
-	public function __construct($message, array $records = [], $code = 404, \Exception $previous = null)
+	public function __construct(string $message, array $records = [], int $code = 404, \Exception $previous = null)
 	{
 		$this->records = $records;
 

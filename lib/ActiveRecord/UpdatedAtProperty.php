@@ -34,7 +34,7 @@ trait UpdatedAtProperty
 	 *
 	 * @return DateTime
 	 */
-	protected function get_updated_at()
+	protected function get_updated_at(): DateTime
 	{
 		return DateTimePropertySupport::get($this->updated_at);
 	}

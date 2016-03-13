@@ -28,9 +28,12 @@ class ConnectionCollection implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * @var array
 	 */
-	private $definitions;
+	private $definitions = [];
 
-	protected function get_definitions()
+	/**
+	 * @return array
+	 */
+	protected function get_definitions(): array
 	{
 		return $this->definitions;
 	}
@@ -42,7 +45,10 @@ class ConnectionCollection implements \ArrayAccess, \IteratorAggregate
 	 */
 	private $established = [];
 
-	protected function get_established()
+	/**
+	 * @return Connection[]
+	 */
+	protected function get_established(): array
 	{
 		return $this->established;
 	}

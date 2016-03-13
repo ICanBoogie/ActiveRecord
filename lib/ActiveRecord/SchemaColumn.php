@@ -72,7 +72,10 @@ class SchemaColumn
 	 */
 	protected $primary = false;
 
-	protected function get_primary()
+	/**
+	 * @return bool
+	 */
+	protected function get_primary(): bool
 	{
 		return $this->primary;
 	}
@@ -155,7 +158,7 @@ class SchemaColumn
 	 *
 	 * @return string
 	 */
-	protected function get_formatted_type()
+	protected function get_formatted_type(): string
 	{
 		$rc = '';
 
@@ -212,7 +215,7 @@ class SchemaColumn
 	 *
 	 * @return string
 	 */
-	protected function get_formatted_default()
+	protected function get_formatted_default(): string
 	{
 		$default = $this->default;
 
@@ -238,7 +241,7 @@ class SchemaColumn
 	 *
 	 * @return string
 	 */
-	protected function get_formatted_attributes()
+	protected function get_formatted_attributes(): string
 	{
 		return $this->unsigned ? 'UNSIGNED' : '';
 	}
@@ -248,7 +251,7 @@ class SchemaColumn
 	 *
 	 * @return string
 	 */
-	protected function get_formatted_null()
+	protected function get_formatted_null(): string
 	{
 		return $this->null ? 'NULL' : 'NOT NULL';
 	}
@@ -258,7 +261,7 @@ class SchemaColumn
 	 *
 	 * @return string
 	 */
-	protected function get_formatted_index()
+	protected function get_formatted_index(): string
 	{
 		return implode(' ', array_filter([
 
@@ -273,7 +276,7 @@ class SchemaColumn
 	 *
 	 * @return string
 	 */
-	protected function get_formatted_comment()
+	protected function get_formatted_comment(): string
 	{
 		return $this->comment ? "`$this->comment`" : '';
 	}
@@ -283,7 +286,7 @@ class SchemaColumn
 	 *
 	 * @return string
 	 */
-	protected function get_formatted_charset()
+	protected function get_formatted_charset(): string
 	{
 		$charset = $this->charset;
 
@@ -302,7 +305,7 @@ class SchemaColumn
 	 *
 	 * @return string
 	 */
-	protected function get_formatted_auto_increment()
+	protected function get_formatted_auto_increment(): string
 	{
 		return $this->auto_increment ? 'AUTO_INCREMENT' : '';
 	}
@@ -312,7 +315,7 @@ class SchemaColumn
 	 *
 	 * @return bool
 	 */
-	protected function get_is_serial()
+	protected function get_is_serial(): bool
 	{
 		return $this->type == self::TYPE_INTEGER && !$this->null && $this->auto_increment && $this->primary;
 	}
@@ -322,7 +325,7 @@ class SchemaColumn
 	 *
 	 * @return string
 	 */
-	public function render()
+	public function render(): string
 	{
 		return implode(' ', array_filter([
 
@@ -337,7 +340,10 @@ class SchemaColumn
 		]));
 	}
 
-	public function __toString()
+	/**
+	 * @return string
+	 */
+	public function __toString(): string
 	{
 		return (string) $this->render();
 	}

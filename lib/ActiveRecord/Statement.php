@@ -34,11 +34,17 @@ class Statement extends \PDOStatement
 	 */
 	private $connection;
 
-	protected function get_connection()
+	/**
+	 * @return Connection
+	 */
+	protected function get_connection(): Connection
 	{
 		return $this->connection;
 	}
 
+	/**
+	 * @param Connection $connection
+	 */
 	protected function set_connection(Connection $connection)
 	{
 		$this->connection = $connection;
@@ -52,12 +58,12 @@ class Statement extends \PDOStatement
 	 *     $statement(1, 2, 3);
 	 *     $statement([ 1, 2, 3 ]);
 	 *
+	 * @param array $args
+	 *
 	 * @return $this
 	 */
-	public function __invoke()
+	public function __invoke(...$args)
 	{
-		$args = func_get_args();
-
 		if ($args && is_array($args[0]))
 		{
 			$args = $args[0];
@@ -74,7 +80,7 @@ class Statement extends \PDOStatement
 	/**
 	 * Return the {@link queryString} property of the statement.
 	 */
-	public function __toString()
+	public function __toString(): string
 	{
 		return $this->queryString;
 	}
@@ -159,27 +165,9 @@ class Statement extends \PDOStatement
 	}
 
 	/**
-	 * Fetches a column of the first row of the result set and closes the cursor.
+	 * Fetches the first column of the first row of the result set and closes the cursor.
 	 *
-	 * @param int $column_number
-	 *
-	 * @return string
-	 *
-	 * @see PDOStatement::fetchColumn()
-	 *
-	 * @deprecated
-	 */
-	public function fetchColumnAndClose($column_number = 0)
-	{
-		$rc = $this->fetchColumn($column_number);
-
-		$this->closeCursor();
-
-		return $rc;
-	}
-
-	/**
-	 * Alias for `fetchColumnAndClose()`.
+	 * @return mixed
 	 */
 	protected function get_rc()
 	{
@@ -197,7 +185,7 @@ class Statement extends \PDOStatement
 	 *
 	 * @return array
 	 */
-	public function all(...$mode)
+	public function all(...$mode): array
 	{
 		return $this->fetchAll(...$mode);
 	}
@@ -205,7 +193,7 @@ class Statement extends \PDOStatement
 	/**
 	 * Alias for `all()`.
 	 */
-	protected function get_all()
+	protected function get_all(): array
 	{
 		return $this->fetchAll();
 	}
@@ -216,7 +204,7 @@ class Statement extends \PDOStatement
 	 * @return array An array of key/value pairs, where _key_ is the value of the first
 	 * column and _value_ the value of the second column.
 	 */
-	protected function get_pairs()
+	protected function get_pairs(): array
 	{
 		return $this->fetchAll(\PDO::FETCH_KEY_PAIR);
 	}

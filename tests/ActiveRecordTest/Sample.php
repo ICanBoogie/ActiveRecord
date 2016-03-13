@@ -33,7 +33,7 @@ class Sample extends ActiveRecord
 	 *
 	 * @inheritdoc
 	 */
-	protected function alter_persistent_properties(array $properties, ActiveRecord\Model $model)
+	protected function alter_persistent_properties(array $properties, ActiveRecord\Model $model): array
 	{
 		return array_merge(parent::alter_persistent_properties($properties, $model), [
 

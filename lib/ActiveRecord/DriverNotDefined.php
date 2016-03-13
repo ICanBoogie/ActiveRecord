@@ -30,7 +30,7 @@ class DriverNotDefined extends \LogicException implements Exception
 	/**
 	 * @return string
 	 */
-	protected function get_driver_name()
+	protected function get_driver_name(): string
 	{
 		return $this->driver_name;
 	}
@@ -41,7 +41,7 @@ class DriverNotDefined extends \LogicException implements Exception
 	 * @param int $code
 	 * @param \Exception|null $previous
 	 */
-	public function __construct($driver_name, $message = null, $code = 500, \Exception $previous = null)
+	public function __construct(string $driver_name, string $message = null, int $code = 500, \Exception $previous = null)
 	{
 		$this->driver_name = $driver_name;
 
@@ -55,7 +55,7 @@ class DriverNotDefined extends \LogicException implements Exception
 	 *
 	 * @return string
 	 */
-	protected function format_message($driver_name)
+	protected function format_message(string $driver_name): string
 	{
 		return "Driver not defined for: $driver_name.";
 	}

@@ -30,7 +30,10 @@ class ScopeNotDefined extends \LogicException implements Exception
 	 */
 	private $scope_name;
 
-	protected function get_scope_name()
+	/**
+	 * @return string
+	 */
+	protected function get_scope_name(): string
 	{
 		return $this->scope_name;
 	}
@@ -42,7 +45,10 @@ class ScopeNotDefined extends \LogicException implements Exception
 	 */
 	private $model;
 
-	protected function get_model()
+	/**
+	 * @return Model
+	 */
+	protected function get_model(): Model
 	{
 		return $this->model;
 	}
@@ -55,7 +61,7 @@ class ScopeNotDefined extends \LogicException implements Exception
 	 * @param int $code Default to 404.
 	 * @param \Exception $previous Previous exception.
 	 */
-	public function __construct($scope_name, Model $model, $code = 500, \Exception $previous = null)
+	public function __construct(string $scope_name, Model $model, int $code = 500, \Exception $previous = null)
 	{
 		$this->scope_name = $scope_name;
 		$this->model = $model;
@@ -71,7 +77,7 @@ class ScopeNotDefined extends \LogicException implements Exception
 	 *
 	 * @return string
 	 */
-	protected function format_message($scope_name, Model $model)
+	protected function format_message(string $scope_name, Model $model): string
 	{
 		return "Unknown scope `{$scope_name}` for model `{$model->unprefixed_name}`.";
 	}

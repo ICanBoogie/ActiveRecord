@@ -148,7 +148,7 @@ abstract class Relation
 	 * @param Prototype $prototype The active record prototype.
 	 * @param string $property The name of the property.
 	 */
-	protected function alter_prototype(Prototype $prototype, $property)
+	protected function alter_prototype(Prototype $prototype, string $property)
 	{
 		$prototype["get_$property"] = $this;
 	}
@@ -181,7 +181,7 @@ abstract class Relation
 	 *
 	 * @return string
 	 */
-	protected function resolve_property_name($related)
+	protected function resolve_property_name($related): string
 	{
 		$related_id = $related instanceof Model ? $related->id : $related;
 		$parts = explode('.', $related_id);
@@ -194,7 +194,7 @@ abstract class Relation
 	 *
 	 * @return Model
 	 */
-	protected function resolve_related()
+	protected function resolve_related(): Model
 	{
 		$related = $this->related;
 

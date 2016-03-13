@@ -32,14 +32,14 @@ interface ActiveRecordCache
 	 *
 	 * @return ActiveRecord|null
 	 */
-	public function retrieve($key);
+	public function retrieve(int $key);
 
 	/**
 	 * Eliminates an {@link ActiveRecord} instance from the cache.
 	 *
 	 * @param int $key
 	 */
-	public function eliminate($key);
+	public function eliminate(int $key);
 
 	/**
 	 * Clears the cache.

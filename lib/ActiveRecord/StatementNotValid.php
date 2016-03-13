@@ -25,10 +25,13 @@ class StatementNotValid extends \RuntimeException implements Exception
 	use AccessorTrait;
 
 	/**
-	 * @var string
+	 * @var Statement|string
 	 */
 	private $statement;
 
+	/**
+	 * @return Statement|string
+	 */
 	protected function get_statement()
 	{
 		return $this->statement;
@@ -37,25 +40,31 @@ class StatementNotValid extends \RuntimeException implements Exception
 	/**
 	 * @var array
 	 */
-	private $args;
+	private $args = [];
 
+	/**
+	 * @return array
+	 */
 	protected function get_args()
 	{
 		return $this->args;
 	}
 
 	/**
-	 * @var \PDOException
+	 * @var \PDOException|null
 	 */
 	private $original;
 
+	/**
+	 * @return \PDOException|null
+	 */
 	protected function get_original()
 	{
 		return $this->original;
 	}
 
 	/**
-	 * @param array|string $statement
+	 * @param Statement|array|string $statement
 	 * @param int $code
 	 * @param \PDOException|null $original
 	 */

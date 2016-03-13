@@ -35,7 +35,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	/**
 	 * @return SchemaColumn[]
 	 */
-	protected function get_columns()
+	protected function get_columns(): array
 	{
 		return $this->columns;
 	}
@@ -72,7 +72,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_indexes()
+	protected function get_indexes(): array
 	{
 		return $this->collect_indexes_by_type('indexed');
 	}
@@ -82,7 +82,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_unique_indexes()
+	protected function get_unique_indexes(): array
 	{
 		return $this->collect_indexes_by_type('unique');
 	}
@@ -177,7 +177,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	private function collect_indexes_by_type($type)
+	private function collect_indexes_by_type(string $type): array
 	{
 		$indexes = [];
 
@@ -203,7 +203,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	public function filter(array $values)
+	public function filter(array $values): array
 	{
 		return array_intersect_key($values, $this->columns);
 	}

@@ -23,7 +23,7 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function render_column(SchemaColumn $column)
+	public function render_column(SchemaColumn $column): string
 	{
 		return (string) $column;
 	}
@@ -31,7 +31,7 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function create_table($unprefixed_table_name, Schema $schema)
+	public function create_table(string $unprefixed_table_name, Schema $schema)
 	{
 		$statement = $this->render_create_table($unprefixed_table_name, $schema);
 		$this->connection->exec($statement);
@@ -43,7 +43,7 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function create_indexes($unprefixed_table_name, Schema $schema)
+	public function create_indexes(string $unprefixed_table_name, Schema $schema)
 	{
 		$this->create_indexes_of('', $unprefixed_table_name, $schema->indexes);
 	}
@@ -51,7 +51,7 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function create_unique_indexes($unprefixed_table_name, Schema $schema)
+	public function create_unique_indexes(string $unprefixed_table_name, Schema $schema)
 	{
 		$this->create_indexes_of('UNIQUE', $unprefixed_table_name, $schema->unique_indexes);
 	}
@@ -59,7 +59,7 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function table_exists($unprefixed_name)
+	public function table_exists(string $unprefixed_name): bool
 	{
 		$tables = $this->connection->query('SHOW TABLES')->all(\PDO::FETCH_COLUMN);
 
@@ -84,7 +84,7 @@ class MySQLDriver extends BasicDriver
 	 *
 	 * @return string
 	 */
-	protected function render_create_table($unprefixed_table_name, Schema $schema)
+	protected function render_create_table(string $unprefixed_table_name, Schema $schema)
 	{
 		$connection = $this->connection;
 		$quoted_table_name = $this->resolve_quoted_table_name($unprefixed_table_name);
@@ -161,7 +161,7 @@ class MySQLDriver extends BasicDriver
 	 * @param string $unprefixed_table_name
 	 * @param array $indexes
 	 */
-	protected function create_indexes_of($type, $unprefixed_table_name, array $indexes)
+	protected function create_indexes_of(string $type, string $unprefixed_table_name, array $indexes)
 	{
 		if (!$indexes)
 		{

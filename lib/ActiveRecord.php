@@ -85,7 +85,7 @@ class ActiveRecord extends Prototyped
 	 * Properties whose value are instances of the {@link ActiveRecord} class are removed from the
 	 * exported properties.
 	 */
-	public function __sleep()
+	public function __sleep(): array
 	{
 		$properties = parent::__sleep();
 
@@ -108,7 +108,7 @@ class ActiveRecord extends Prototyped
 	 *
 	 * @return array
 	 */
-	public function __debugInfo()
+	public function __debugInfo(): array
 	{
 		$array = (array) $this;
 
@@ -122,7 +122,7 @@ class ActiveRecord extends Prototyped
 	 *
 	 * @return Model
 	 */
-	protected function get_model()
+	protected function get_model(): Model
 	{
 		return $this->model
 			?: $this->model = ActiveRecord\get_model($this->model_id);
@@ -200,7 +200,7 @@ class ActiveRecord extends Prototyped
 	 *
 	 * @return array The altered persistent properties
 	 */
-	protected function alter_persistent_properties(array $properties, Model $model)
+	protected function alter_persistent_properties(array $properties, Model $model): array
 	{
 		$schema = $model->extended_schema;
 
@@ -242,7 +242,7 @@ class ActiveRecord extends Prototyped
 	 *
 	 * @throws \Exception in attempt to delete a record from a model which primary key is empty.
 	 */
-	public function delete()
+	public function delete(): bool
 	{
 		$model = $this->model;
 		$primary = $model->primary;

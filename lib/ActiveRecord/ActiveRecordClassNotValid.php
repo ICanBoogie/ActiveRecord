@@ -25,12 +25,12 @@ class ActiveRecordClassNotValid extends \LogicException implements Exception
 	use AccessorTrait;
 
 	/**
-	 * @var string
+	 * @var mixed
 	 */
 	private $class;
 
 	/**
-	 * @return string
+	 * @return mixed
 	 */
 	protected function get_class()
 	{
@@ -38,12 +38,12 @@ class ActiveRecordClassNotValid extends \LogicException implements Exception
 	}
 
 	/**
-	 * @param string $class
+	 * @param mixed $class
 	 * @param string|null $message
 	 * @param int $code
 	 * @param \Exception|null $previous
 	 */
-	public function __construct($class, $message = null, $code = 500, \Exception $previous = null)
+	public function __construct($class, string $message = null, int $code = 500, \Exception $previous = null)
 	{
 		$this->class = $class;
 
@@ -53,11 +53,11 @@ class ActiveRecordClassNotValid extends \LogicException implements Exception
 	/**
 	 * Formats exception message.
 	 *
-	 * @param string $class
+	 * @param mixed $class
 	 *
 	 * @return string
 	 */
-	protected function format_message($class)
+	protected function format_message($class): string
 	{
 		return format("ActiveRecord class is not valid: %class", [
 

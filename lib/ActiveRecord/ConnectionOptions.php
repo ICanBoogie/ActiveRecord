@@ -65,7 +65,7 @@ final class ConnectionOptions
 	 *
 	 * @return array
 	 */
-	static public function normalize(array $options)
+	static public function normalize(array $options): array
 	{
 		return $options + [
 

@@ -45,7 +45,7 @@ class Connection extends \PDO implements Driver
 	/**
 	 * @return string
 	 */
-	protected function get_id()
+	protected function get_id(): string
 	{
 		return $this->id;
 	}
@@ -64,7 +64,7 @@ class Connection extends \PDO implements Driver
 	/**
 	 * @return string
 	 */
-	protected function get_table_name_prefix()
+	protected function get_table_name_prefix(): string
 	{
 		return $this->table_name_prefix;
 	}
@@ -79,7 +79,7 @@ class Connection extends \PDO implements Driver
 	/**
 	 * @return string
 	 */
-	protected function get_charset()
+	protected function get_charset(): string
 	{
 		return $this->charset;
 	}
@@ -94,7 +94,7 @@ class Connection extends \PDO implements Driver
 	/**
 	 * @return string
 	 */
-	protected function get_collate()
+	protected function get_collate(): string
 	{
 		return $this->collate;
 	}
@@ -109,7 +109,7 @@ class Connection extends \PDO implements Driver
 	/**
 	 * @return string
 	 */
-	protected function get_timezone()
+	protected function get_timezone(): string
 	{
 		return $this->timezone;
 	}
@@ -124,7 +124,7 @@ class Connection extends \PDO implements Driver
 	/**
 	 * @return string
 	 */
-	protected function get_driver_name()
+	protected function get_driver_name(): string
 	{
 		return $this->driver_name;
 	}
@@ -137,7 +137,7 @@ class Connection extends \PDO implements Driver
 	/**
 	 * @return Driver
 	 */
-	protected function lazy_get_driver()
+	protected function lazy_get_driver(): Driver
 	{
 		return $this->resolve_driver($this->driver_name);
 	}
@@ -170,7 +170,7 @@ class Connection extends \PDO implements Driver
 	 * @param string $password
 	 * @param array $options
 	 */
-	public function __construct($dsn, $username = null, $password = null, $options = [])
+	public function __construct(string $dsn, string $username = null, string $password = null, array $options = [])
 	{
 		unset($this->driver);
 
@@ -186,11 +186,13 @@ class Connection extends \PDO implements Driver
 	/**
 	 * Alias to {@link query}.
 	 *
+	 * @param array ...$args
+	 *
 	 * @return Statement
 	 */
-	public function __invoke()
+	public function __invoke(...$args): Statement
 	{
-		return call_user_func_array([ $this, 'query' ], func_get_args());
+		return $this->query(...$args);
 	}
 
 	/**
@@ -200,7 +202,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @return string
 	 */
-	protected function resolve_driver_name($dsn)
+	protected function resolve_driver_name(string $dsn): string
 	{
 		return explode(':', $dsn, 2)[0];
 	}
@@ -214,7 +216,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @throws DriverNotDefined
 	 */
-	protected function resolve_driver_class($driver_name)
+	protected function resolve_driver_class(string $driver_name): string
 	{
 		if (empty(self::$drivers_mapping[$driver_name]))
 		{
@@ -231,7 +233,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @return Driver
 	 */
-	protected function resolve_driver($driver_name)
+	protected function resolve_driver(string $driver_name): Driver
 	{
 		$driver_class = $this->resolve_driver_class($driver_name);
 
@@ -298,10 +300,7 @@ class Connection extends \PDO implements Driver
 	 * Overrides the method to resolve the statement before it is prepared, then set its fetch
 	 * mode and connection.
 	 *
-	 * @param string $statement Query statement.
-	 * @param array $options
-	 *
-	 * @return Statement The prepared statement.
+	 * @inheritdoc
 	 *
 	 * @throws StatementNotValid if the statement cannot be prepared.
 	 */
@@ -325,7 +324,7 @@ class Connection extends \PDO implements Driver
 		{
 			$mode = (array) $options['mode'];
 
-			call_user_func_array([ $statement, 'setFetchMode' ], $mode);
+			$statement->mode(...$mode);
 		}
 
 		return $statement;
@@ -339,7 +338,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @return Statement
 	 */
-	public function query($statement, array $args = [], array $options = [])
+	public function query(string $statement, array $args = [], array $options = []): Statement
 	{
 		$statement = $this->prepare($statement, $options);
 		$statement->execute($args);
@@ -392,7 +391,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @return string The resolved statement.
 	 */
-	public function resolve_statement($statement)
+	public function resolve_statement(string $statement): string
 	{
 		return strtr($statement, [
 
@@ -438,7 +437,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function cast_value($value, $type = null)
+	public function cast_value($value, string $type = null)
 	{
 		return $this->driver->cast_value($value, $type);
 	}
@@ -448,7 +447,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function render_column(SchemaColumn $column)
+	public function render_column(SchemaColumn $column): string
 	{
 		return $this->driver->render_column($column);
 	}
@@ -458,7 +457,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function create_table($unprefixed_name, Schema $schema)
+	public function create_table(string $unprefixed_name, Schema $schema)
 	{
 		$this->driver->create_table($unprefixed_name, $schema);
 	}
@@ -468,7 +467,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function create_indexes($unprefixed_table_name, Schema $schema)
+	public function create_indexes(string $unprefixed_table_name, Schema $schema)
 	{
 		$this->driver->create_indexes($unprefixed_table_name, $schema);
 	}
@@ -478,7 +477,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function create_unique_indexes($unprefixed_table_name, Schema $schema)
+	public function create_unique_indexes(string $unprefixed_table_name, Schema $schema)
 	{
 		$this->driver->create_unique_indexes($unprefixed_table_name, $schema);
 	}
@@ -488,7 +487,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function table_exists($unprefixed_name)
+	public function table_exists(string $unprefixed_name): bool
 	{
 		return $this->driver->table_exists($unprefixed_name);
 	}

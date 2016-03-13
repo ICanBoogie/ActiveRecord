@@ -30,7 +30,10 @@ class RelationCollection implements \ArrayAccess
 	 */
 	protected $model;
 
-	protected function get_model()
+	/**
+	 * @return Model
+	 */
+	protected function get_model(): Model
 	{
 		return $this->model;
 	}
@@ -73,7 +76,7 @@ class RelationCollection implements \ArrayAccess
 	 *
 	 * @throws RelationNotDefined if the relation is not defined.
 	 */
-	public function offsetGet($relation_name)
+	public function offsetGet($relation_name): Relation
 	{
 		if (!$this->offsetExists($relation_name))
 		{
@@ -123,7 +126,7 @@ class RelationCollection implements \ArrayAccess
 	 *
 	 * @return Model
 	 */
-	public function belongs_to($belongs_to)
+	public function belongs_to($belongs_to): Model
 	{
 		if (func_num_args() > 1)
 		{
@@ -169,7 +172,7 @@ class RelationCollection implements \ArrayAccess
 	 *
 	 * @see HasManyRelation
 	 */
-	public function has_many($related, array $options = [])
+	public function has_many($related, array $options = []): Model
 	{
 		if (is_array($related))
 		{

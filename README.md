@@ -2138,7 +2138,7 @@ $nodes = ActiveRecord\get_model('nodes');
 
 ## Requirements
 
-The package requires PHP 5.5 or later and the [PDO extension](http://php.net/manual/en/intro.pdo.php).
+The package requires PHP 7.0 or later and the [PDO extension](http://php.net/manual/en/intro.pdo.php).
 
 
 

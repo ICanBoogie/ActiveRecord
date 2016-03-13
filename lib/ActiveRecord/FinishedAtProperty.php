@@ -36,7 +36,7 @@ trait FinishedAtProperty
 	 *
 	 * @return DateTime
 	 */
-	protected function get_finished_at()
+	protected function get_finished_at(): DateTime
 	{
 		return DateTimePropertySupport::get($this->finished_at);
 	}

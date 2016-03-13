@@ -17,7 +17,6 @@ use ICanBoogie\ActiveRecord\ModelTest\ArticleModel;
 use ICanBoogie\ActiveRecord\ModelTest\Brand;
 use ICanBoogie\ActiveRecord\ModelTest\Car;
 use ICanBoogie\ActiveRecord\ModelTest\Comment;
-use ICanBoogie\ActiveRecord\ModelTest\Driver;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
 
@@ -561,7 +560,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 			'drivers' => [
 
-				Model::ACTIVERECORD_CLASS => Driver::class,
+				Model::ACTIVERECORD_CLASS => ModelTest\Driver::class,
 				Model::SCHEMA => [
 
 					'driver_id' => 'serial',
@@ -612,7 +611,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		# driver
 
 		$driver = $drivers->new([ 'name' => 'Madonna' ]);
-		$this->assertInstanceOf(Driver::class, $driver);
+		$this->assertInstanceOf(ModelTest\Driver::class, $driver);
 		$driver_id = $driver->save();
 
 		# brand
@@ -625,7 +624,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$car->brand_id = $brand_id;
 		$car->save();
 
-		$this->assertInstanceOf(Driver::class, $car->driver);
+		$this->assertInstanceOf(ModelTest\Driver::class, $car->driver);
 		$this->assertInstanceOf(Brand::class, $car->brand);
 
 		$car->driver_id = null;

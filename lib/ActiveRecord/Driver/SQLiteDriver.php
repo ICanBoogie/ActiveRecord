@@ -22,7 +22,7 @@ class SQLiteDriver extends MySQLDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function render_column(SchemaColumn $column)
+	public function render_column(SchemaColumn $column): string
 	{
 		if ($column->primary && $column->type == SchemaColumn::TYPE_INTEGER)
 		{
@@ -44,7 +44,7 @@ class SQLiteDriver extends MySQLDriver
 	/**
 	 * @inheritdoc
 	 */
-	protected function render_create_table($unprefixed_table_name, Schema $schema)
+	protected function render_create_table(string $unprefixed_table_name, Schema $schema): string
 	{
 		$quoted_table_name = $this->resolve_quoted_table_name($unprefixed_table_name);
 		$lines = $this->render_create_table_lines($schema);
@@ -56,7 +56,7 @@ class SQLiteDriver extends MySQLDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function table_exists($unprefixed_name)
+	public function table_exists(string $unprefixed_name): bool
 	{
 		$name = $this->resolve_table_name($unprefixed_name);
 
@@ -78,7 +78,7 @@ class SQLiteDriver extends MySQLDriver
 	/**
 	 * @inheritdoc
 	 */
-	protected function resolve_index_name($unprefixed_table_name, $index_id)
+	protected function resolve_index_name(string $unprefixed_table_name, string $index_id): string
 	{
 		return $index_id . '_' . substr(sha1($unprefixed_table_name), 0 , 8);
 	}

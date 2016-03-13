@@ -43,7 +43,7 @@ class RuntimeActiveRecordCache extends ActiveRecordCacheBase implements \Iterato
 	/**
 	 * @inheritdoc
 	 */
-	public function retrieve($key)
+	public function retrieve(int $key)
 	{
 		if (empty($this->records[$key]))
 		{
@@ -56,7 +56,7 @@ class RuntimeActiveRecordCache extends ActiveRecordCacheBase implements \Iterato
 	/**
 	 * @inheritdoc
 	 */
-	public function eliminate($key)
+	public function eliminate(int $key)
 	{
 		unset($this->records[$key]);
 	}

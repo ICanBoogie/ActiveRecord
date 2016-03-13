@@ -67,7 +67,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * @return array
 	 */
-	protected function get_joints()
+	protected function get_joints(): array
 	{
 		return $this->joints;
 	}
@@ -82,7 +82,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * @return array
 	 */
-	protected function get_joints_args()
+	protected function get_joints_args(): array
 	{
 		return $this->joints_args;
 	}
@@ -100,7 +100,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_conditions()
+	protected function get_conditions(): array
 	{
 		return $this->conditions;
 	}
@@ -117,7 +117,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_conditions_args()
+	protected function get_conditions_args(): array
 	{
 		return $this->conditions_args;
 	}
@@ -155,7 +155,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_having_args()
+	protected function get_having_args(): array
 	{
 		return $this->having_args;
 	}
@@ -191,7 +191,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * @return Model
 	 */
-	protected function get_model()
+	protected function get_model(): Model
 	{
 		return $this->model;
 	}
@@ -202,7 +202,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_args()
+	protected function get_args(): array
 	{
 		return array_merge($this->joints_args, $this->conditions_args, $this->having_args);
 	}
@@ -222,7 +222,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @inheritdoc
 	 */
-	public function __get($property)
+	public function __get(string $property)
 	{
 		$scopes = $this->get_model_scope();
 
@@ -239,7 +239,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @inheritdoc
 	 */
-	public function __call($method, $arguments)
+	public function __call(string $method, array $arguments)
 	{
 		if ($method === 'and')
 		{
@@ -279,7 +279,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	public function __toString()
+	public function __toString(): string
 	{
 		return $this->resolve_statement
 		(
@@ -294,7 +294,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_select()
+	protected function render_select(): string
 	{
 		return 'SELECT ' . ($this->select ? $this->select : '*');
 	}
@@ -306,7 +306,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_from()
+	protected function render_from(): string
 	{
 		return 'FROM {self_and_related}';
 	}
@@ -316,7 +316,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_joints()
+	protected function render_joints(): string
 	{
 		return implode(' ', $this->joints);
 	}
@@ -326,7 +326,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_main()
+	protected function render_main(): string
 	{
 		$query = '';
 
@@ -381,7 +381,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_order($order)
+	protected function render_order($order): string
 	{
 		if (count($order) == 1)
 		{
@@ -404,12 +404,12 @@ class Query implements \IteratorAggregate
 	/**
 	 * Render the `LIMIT` and `OFFSET` clauses.
 	 *
-	 * @param int $offset
-	 * @param int $limit
+	 * @param int|null $offset
+	 * @param int|null $limit
 	 *
 	 * @return string
 	 */
-	protected function render_offset_and_limit($offset, $limit)
+	protected function render_offset_and_limit($offset, $limit): string
 	{
 		if ($offset && $limit)
 		{
@@ -434,14 +434,14 @@ class Query implements \IteratorAggregate
 	/**
 	 * Resolve the placeholders of a statement.
 	 *
-	 * Note: Currently, the method simply forwards the statement to the model's
+	 * **Note:** Currently, the method simply forwards the statement to the model's
 	 * resolve_statement() method.
 	 *
 	 * @param string $statement
 	 *
 	 * @return string
 	 */
-	protected function resolve_statement($statement)
+	protected function resolve_statement(string $statement): string
 	{
 		return $this->model->resolve_statement($statement);
 	}
@@ -460,7 +460,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_model_scope()
+	protected function get_model_scope(): array
 	{
 		$class = get_class($this->model);
 
@@ -494,9 +494,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $expression The expression of the `SELECT` clause. e.g. 'nid, title'.
 	 *
-	 * @return Query
+	 * @return $this
 	 */
-	public function select($expression)
+	public function select(string $expression)
 	{
 		$this->select = $expression;
 
@@ -545,15 +545,10 @@ class Query implements \IteratorAggregate
 	 * $query->join("INNER JOIN `articles` USING(`nid`)");
 	 * </pre>
 	 *
-	 * @return Query
+	 * @return $this
 	 */
-	public function join($expression, $options = [])
+	public function join($expression, array $options = [])
 	{
-		if (is_string($expression) && $expression{0} == ':')
-		{
-			$expression = $this->model->models[substr($expression, 1)];
-		}
-
 		if ($expression instanceof self)
 		{
 			$this->join_with_query($expression, $options);
@@ -566,6 +561,11 @@ class Query implements \IteratorAggregate
 			$this->join_with_model($expression, $options);
 
 			return $this;
+		}
+
+		if (is_string($expression) && $expression{0} == ':')
+		{
+			$expression = $this->model->models[substr($expression, 1)];
 		}
 
 		$this->joints[] = $expression;
@@ -672,7 +672,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	private function render_join_on($column, $as, Query $query)
+	private function render_join_on(string $column, string $as, Query $query): string
 	{
 		if (isset($query->model->schema[$column]) && isset($this->model->schema[$column]))
 		{
@@ -691,7 +691,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array An array made of the condition string and its arguments.
 	 */
-	private function deferred_parse_conditions(...$conditions_and_args)
+	private function deferred_parse_conditions(...$conditions_and_args): array
 	{
 		$conditions = array_shift($conditions_and_args);
 		$args = $conditions_and_args;
@@ -775,13 +775,13 @@ class Query implements \IteratorAggregate
 	 * @param string $filter
 	 * @param array $conditions_args
 	 *
-	 * @return Query
+	 * @return $this
 	 */
-	private function dynamic_filter($filter, array $conditions_args = [])
+	private function dynamic_filter(string $filter, array $conditions_args = [])
 	{
 		$conditions = explode('_and_', $filter);
 
-		return $this->where(array_combine($conditions, $conditions_args));
+		return $this->and(array_combine($conditions, $conditions_args));
 	}
 
 	/**
@@ -835,7 +835,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param mixed ...$conditions_and_args
 	 *
-	 * @return Query
+	 * @return $this
 	 */
 	public function where(...$conditions_and_args)
 	{
@@ -861,7 +861,7 @@ class Query implements \IteratorAggregate
 	 * 'weight, date DESC', or field to order with, in which case `$field_values` is required.
 	 * @param array $field_values Values of the field specified by `$order_or_field_name`.
 	 *
-	 * @return Query
+	 * @return $this
 	 */
 	public function order($order_or_field_name, $field_values = null)
 	{
@@ -875,9 +875,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $group
 	 *
-	 * @return Query
+	 * @return $this
 	 */
-	public function group($group)
+	public function group(string $group)
 	{
 		$this->group = $group;
 
@@ -889,7 +889,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param mixed ...$conditions_and_args
 	 *
-	 * @return Query
+	 * @return $this
 	 */
 	public function having(...$conditions_and_args)
 	{
@@ -904,13 +904,13 @@ class Query implements \IteratorAggregate
 	/**
 	 * Define the offset of the `LIMIT` clause.
 	 *
-	 * @param $offset
+	 * @param int $offset
 	 *
-	 * @return Query
+	 * @return $this
 	 */
-	public function offset($offset)
+	public function offset(int $offset)
 	{
-		$this->offset = (int) $offset;
+		$this->offset = $offset;
 
 		return $this;
 	}
@@ -959,9 +959,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @see http://www.php.net/manual/en/pdostatement.setfetchmode.php
 	 */
-	public function mode($mode)
+	public function mode(...$mode)
 	{
-		$this->mode = func_get_args();
+		$this->mode = $mode;
 
 		return $this;
 	}
@@ -974,7 +974,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Statement
 	 */
-	protected function prepare()
+	protected function prepare(): Statement
 	{
 		return $this->model->connection->prepare((string) $this);
 	}
@@ -984,7 +984,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Statement
 	 */
-	protected function get_prepared()
+	protected function get_prepared(): Statement
 	{
 		return $this->prepare();
 	}
@@ -994,7 +994,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Statement
 	 */
-	public function query()
+	public function query(): Statement
 	{
 		$statement = $this->prepare();
 		$statement->execute($this->args);
@@ -1013,7 +1013,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	private function resolve_fetch_mode(...$mode)
+	private function resolve_fetch_mode(...$mode): array
 	{
 		if ($mode)
 		{
@@ -1056,7 +1056,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_all()
+	protected function get_all(): array
 	{
 		return $this->all();
 	}
@@ -1108,7 +1108,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_pairs()
+	protected function get_pairs(): array
 	{
 		return $this->all(\PDO::FETCH_KEY_PAIR);
 	}
@@ -1116,7 +1116,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * Return the value of the first column of the first row.
 	 *
-	 * @return string
+	 * @return mixed
 	 */
 	protected function get_rc()
 	{
@@ -1216,11 +1216,11 @@ class Query implements \IteratorAggregate
 	 * Handle all the computations.
 	 *
 	 * @param string $method
-	 * @param string $column
+	 * @param string|null $column
 	 *
 	 * @return int|array
 	 */
-	private function compute($method, $column)
+	private function compute(string $method, string $column = null)
 	{
 		$query = 'SELECT ';
 
@@ -1270,7 +1270,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return int
 	 */
-	protected function get_count()
+	protected function get_count(): int
 	{
 		return $this->count();
 	}
@@ -1280,9 +1280,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $column
 	 *
-	 * @return int
+	 * @return number
 	 */
-	public function average($column)
+	public function average(string $column)
 	{
 		return $this->compute('AVG', $column);
 	}
@@ -1292,9 +1292,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $column
 	 *
-	 * @return int
+	 * @return mixed
 	 */
-	public function minimum($column)
+	public function minimum(string $column)
 	{
 		return $this->compute('MIN', $column);
 	}
@@ -1304,9 +1304,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $column
 	 *
-	 * @return int
+	 * @return mixed
 	 */
-	public function maximum($column)
+	public function maximum(string $column)
 	{
 		return $this->compute('MAX', $column);
 	}
@@ -1316,9 +1316,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $column
 	 *
-	 * @return int
+	 * @return number
 	 */
-	public function sum($column)
+	public function sum(string $column)
 	{
 		return $this->compute('SUM', $column);
 	}
