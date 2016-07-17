@@ -679,7 +679,24 @@ class Query implements \IteratorAggregate
 			return "USING(`$column`)";
 		}
 
-		return "ON `$as`.`$column` = `{$this->model->alias}`.`$column`";
+		$target = $this->model;
+
+		while ($target)
+		{
+			if (isset($target->schema[$column]))
+			{
+				break;
+			}
+
+			$target = $target->parent_model;
+		}
+
+		if (!$target)
+		{
+			throw new \InvalidArgumentException("Unable to resolve column `$column` from model {$this->model->id}");
+		}
+
+		return "ON `$as`.`$column` = `{$target->alias}`.`$column`";
 	}
 
 	/**
