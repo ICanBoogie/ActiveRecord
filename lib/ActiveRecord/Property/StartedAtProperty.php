@@ -11,14 +11,14 @@
 
 namespace ICanBoogie\ActiveRecord\Property;
 
-use ICanBoogie\DateTime;
+use ICanBoogie\ImmutableDateTime;
 
 /**
  * Implements a `started_at` property.
  *
  * @see DateTimeProperty
  *
- * @property DateTime $started_at
+ * @property ImmutableDateTime $started_at
  *
  * @codeCoverageIgnore
  */
@@ -34,7 +34,7 @@ trait StartedAtProperty
 	/**
 	 * Returns the date and time at which the record was started.
 	 *
-	 * @return DateTime
+	 * @return ImmutableDateTime
 	 */
 	protected function get_started_at()
 	{

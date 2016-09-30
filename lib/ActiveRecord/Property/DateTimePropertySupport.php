@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord\Property;
 
-use ICanBoogie\DateTime;
+use ICanBoogie\ImmutableDateTime;
 
 /**
  * Provides support for datetime properties.
@@ -26,7 +26,7 @@ class DateTimePropertySupport
 	 */
 	static public function set(&$property, $datetime)
 	{
-		$property = $datetime === 'now' ? DateTime::now() : $datetime;
+		$property = $datetime === 'now' ? ImmutableDateTime::now() : $datetime;
 	}
 
 	/**
@@ -34,15 +34,17 @@ class DateTimePropertySupport
 	 *
 	 * @param mixed $property Reference to the property to return.
 	 *
-	 * @return DateTime The function always return a {@link DateTime} instance.
+	 * @return ImmutableDateTime The function always return a {@link ImmutableDateTime} instance.
 	 */
 	static public function get(&$property)
 	{
-		if ($property instanceof DateTime)
+		if ($property instanceof ImmutableDateTime)
 		{
 			return $property;
 		}
 
-		return $property = $property === null ? DateTime::none() : new DateTime($property, 'utc');
+		return $property = $property === null
+			? ImmutableDateTime::none()
+			: ImmutableDateTime::from($property, 'utc');
 	}
 }

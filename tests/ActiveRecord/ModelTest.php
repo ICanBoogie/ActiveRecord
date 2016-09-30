@@ -18,7 +18,7 @@ use ICanBoogie\ActiveRecord\ModelTest\Brand;
 use ICanBoogie\ActiveRecord\ModelTest\Car;
 use ICanBoogie\ActiveRecord\ModelTest\Comment;
 use ICanBoogie\ActiveRecord\ModelTest\Driver;
-use ICanBoogie\DateTime;
+use ICanBoogie\ImmutableDateTime;
 use ICanBoogie\OffsetNotWritable;
 
 class ModelTest extends \PHPUnit_Framework_TestCase
@@ -137,7 +137,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
 		foreach ($names as $name)
 		{
-			$counts->save([ 'name' => $name, 'date' => DateTime::now() ]);
+			$counts->save([ 'name' => $name, 'date' => ImmutableDateTime::now() ]);
 		}
 
 		$this->connections = $connections;
@@ -285,7 +285,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	public function test_find_one()
 	{
 		$model = $this->models['articles'];
-		$id = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$id = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => ImmutableDateTime::now() ]);
 		$this->assertNotEmpty($id);
 
 		$record = $model->find($id);
@@ -296,9 +296,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	public function test_find_many()
 	{
 		$model = $this->models['articles'];
-		$id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
-		$id2 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
-		$id3 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => ImmutableDateTime::now() ]);
+		$id2 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => ImmutableDateTime::now() ]);
+		$id3 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => ImmutableDateTime::now() ]);
 		$this->assertNotEmpty($id1);
 		$this->assertNotEmpty($id2);
 		$this->assertNotEmpty($id3);
@@ -319,9 +319,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 	public function test_find_many_with_an_array()
 	{
 		$model = $this->models['articles'];
-		$id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
-		$id2 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
-		$id3 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+		$id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => ImmutableDateTime::now() ]);
+		$id2 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => ImmutableDateTime::now() ]);
+		$id3 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => ImmutableDateTime::now() ]);
 		$this->assertNotEmpty($id1);
 		$this->assertNotEmpty($id2);
 		$this->assertNotEmpty($id3);
@@ -640,7 +640,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 		$name2 = uniqid();
 
 		$model = $this->counts_model;
-		$id = $model->save([ 'name' => $name1, 'date' => DateTime::now() ]);
+		$id = $model->save([ 'name' => $name1, 'date' => ImmutableDateTime::now() ]);
 		$record = $model[$id];
 		$model->save([ 'name' => $name2 ], $id);
 		$record_now = $model[$id];

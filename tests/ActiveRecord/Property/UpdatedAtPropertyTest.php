@@ -14,6 +14,8 @@ namespace ICanBoogie\ActiveRecord\Property;
 use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\UpdatedAtPropertyTest\A;
 use ICanBoogie\ActiveRecord\UpdatedAtPropertyTest\B;
+use ICanBoogie\ImmutableDateTime;
+use ICanBoogie\MutableDateTime;
 
 class UpdatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 {
@@ -24,9 +26,9 @@ class UpdatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 	{
 		/* @var $r A|B */
 		$r = new $classname;
-		$datetime = new DateTime();
+		$datetime = new ImmutableDateTime;
 
-		$this->assertInstanceOf(DateTime::class, $r->updated_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->updated_at);
 		$this->assertTrue($r->updated_at->is_empty);
 
 		$r->updated_at = $datetime;
@@ -37,7 +39,7 @@ class UpdatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('updated_at', $r->__sleep());
 
 		$r->updated_at = null;
-		$this->assertInstanceOf(DateTime::class, $r->updated_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->updated_at);
 		$this->assertTrue($r->updated_at->is_empty);
 	}
 

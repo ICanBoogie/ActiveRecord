@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord\Property;
 use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\A;
 use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\B;
+use ICanBoogie\ImmutableDateTime;
 
 class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 {
@@ -24,9 +25,9 @@ class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 	{
 		/* @var $r A */
 		$r = new $classname;
-		$datetime = new DateTime();
+		$datetime = new ImmutableDateTime;
 
-		$this->assertInstanceOf(DateTime::class, $r->created_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->created_at);
 		$this->assertTrue($r->created_at->is_empty);
 
 		$r->created_at = $datetime;
@@ -37,7 +38,7 @@ class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('created_at', $r->__sleep());
 
 		$r->created_at = null;
-		$this->assertInstanceOf(DateTime::class, $r->created_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->created_at);
 		$this->assertTrue($r->created_at->is_empty);
 	}
 

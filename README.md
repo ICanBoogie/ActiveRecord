@@ -442,7 +442,7 @@ The `EXTENDING` attribute specifies the model to extend.
 
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelCollection;
-use ICanBoogie\DateTime;
+use ICanBoogie\ImmutableDateTime;
 
 /* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
 
@@ -480,7 +480,7 @@ $models['news']->save([
 
 	'title' => "Testing!",
 	'body' => "Testing...",
-	'date' => DateTime::now()
+	'date' => ImmutableDateTime::now()
 
 ]);
 ```
@@ -837,7 +837,7 @@ $record->delete();
 
 The package comes with three trait properties especially designed to handle [DateTime][]
 instances: [DateTimeProperty][], [CreatedAtProperty][], [UpdatedAtProperty][]. Using this
-properties you are guaranteed to always get a [DateTime][] instance, no matter what value type
+properties you are guaranteed to always get a [ImmutableDateTime][] instance, no matter what value type
 is used to set the date and time.
 
 ```php
@@ -859,7 +859,7 @@ class Node extends ActiveRecord
 
 $node = new Node;
 
-echo get_class($node->created_at);   // ICanBoogie\Datetime
+echo get_class($node->created_at);   // ICanBoogie\ImmutableDateTime
 echo $node->created_at->is_empty;    // true
 $node->created_at = 'now';
 echo $node->created_at;              // 2014-02-21T15:00:00+0100
@@ -2526,7 +2526,8 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 [StatementNotValid]:            http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.StatementNotValid.html
 [UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
 [UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.UpdatedAtProperty.html
-[DateTime]:                     http://api.icanboogie.org/datetime/1.2/class-ICanBoogie.DateTime.html
+[DateTime]:                     http://api.icanboogie.org/datetime/2.0/class-ICanBoogie.DateTime.html
+[ImmutableDateTime]:            http://api.icanboogie.org/datetime/2.0/class-ICanBoogie.DateTime.html
 [ValidationErrors]:             http://api.icanboogie.org/validate/latest/class-ICanBoogie.Validate.ValidationErrors.html
 [icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord
 [ICanBoogie]:                   http://icanboogie.org

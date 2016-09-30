@@ -11,14 +11,14 @@
 
 namespace ICanBoogie\ActiveRecord\Property;
 
-use ICanBoogie\DateTime;
+use ICanBoogie\ImmutableDateTime;
 
 /**
  * Implements a `finished_at` property.
  *
  * @see DateTimeProperty
  *
- * @property DateTime $finished_at
+ * @property ImmutableDateTime $finished_at
  *
  * @codeCoverageIgnore
  */
@@ -34,7 +34,7 @@ trait FinishedAtProperty
 	/**
 	 * Returns the date and time at which the record was finished.
 	 *
-	 * @return DateTime
+	 * @return ImmutableDateTime
 	 */
 	protected function get_finished_at()
 	{

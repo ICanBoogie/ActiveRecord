@@ -12,7 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\DateTime;
+use ICanBoogie\ImmutableDateTime;
 use ICanBoogie\Prototype\MethodNotDefined;
 use ICanBoogie\PrototypeTrait;
 
@@ -779,7 +779,7 @@ class Query implements \IteratorAggregate
 		{
 			if ($value instanceof \DateTimeInterface)
 			{
-				$value = DateTime::from($value)->utc->as_db;
+				$value = ImmutableDateTime::from($value)->utc->as_db;
 			}
 		}
 

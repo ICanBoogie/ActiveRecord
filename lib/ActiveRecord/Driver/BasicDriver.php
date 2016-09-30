@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Driver;
-use ICanBoogie\DateTime;
+use ICanBoogie\ImmutableDateTime;
 
 /**
  * Basic connection driver.
@@ -93,7 +93,7 @@ abstract class BasicDriver implements Driver
 	{
 		if ($value instanceof \DateTimeInterface)
 		{
-			$value = DateTime::from($value);
+			$value = ImmutableDateTime::from($value);
 
 			return $value->utc->as_db;
 		}

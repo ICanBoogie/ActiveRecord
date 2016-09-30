@@ -11,12 +11,12 @@
 
 namespace ICanBoogie\ActiveRecord\Property;
 
-use ICanBoogie\DateTime;
+use ICanBoogie\ImmutableDateTime;
 
 /**
  * Implements a `datetime` property.
  *
- * @property DateTime $datetime
+ * @property ImmutableDateTime $datetime
  */
 trait DateTimeProperty
 {
@@ -30,7 +30,7 @@ trait DateTimeProperty
 	/**
 	 * Returns the date and time.
 	 *
-	 * @return DateTime
+	 * @return ImmutableDateTime
 	 */
 	protected function get_datetime()
 	{

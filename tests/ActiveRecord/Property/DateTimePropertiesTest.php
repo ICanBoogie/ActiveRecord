@@ -14,17 +14,18 @@ namespace ICanBoogie\ActiveRecord\Property;
 use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\DateTimePropertiesTest\A;
 use ICanBoogie\ActiveRecord\DateTimePropertiesTest\B;
+use ICanBoogie\ImmutableDateTime;
 
 class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 {
 	public function test_properties()
 	{
 		$r = new A();
-		$created_at = new DateTime('-10 day');
-		$updated_at = new DateTime('-1 day');
+		$created_at = new ImmutableDateTime('-10 day');
+		$updated_at = new ImmutableDateTime('-1 day');
 
-		$this->assertInstanceOf(DateTime::class, $r->created_at);
-		$this->assertInstanceOf(DateTime::class, $r->updated_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->created_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->updated_at);
 		$this->assertTrue($r->created_at->is_empty);
 		$this->assertTrue($r->updated_at->is_empty);
 
@@ -42,8 +43,8 @@ class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 
 		$r->created_at = null;
 		$r->updated_at = null;
-		$this->assertInstanceOf(DateTime::class, $r->created_at);
-		$this->assertInstanceOf(DateTime::class, $r->updated_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->created_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->updated_at);
 		$this->assertTrue($r->created_at->is_empty);
 		$this->assertTrue($r->updated_at->is_empty);
 	}
@@ -51,13 +52,13 @@ class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 	public function test_properties_extended()
 	{
 		$r = new B;
-		$created_at = new DateTime('-10 day');
-		$updated_at = new DateTime('-1 day');
-		$datetime = new DateTime();
+		$created_at = new ImmutableDateTime('-10 day');
+		$updated_at = new ImmutableDateTime('-1 day');
+		$datetime = new ImmutableDateTime;
 
-		$this->assertInstanceOf(DateTime::class, $r->created_at);
-		$this->assertInstanceOf(DateTime::class, $r->updated_at);
-		$this->assertInstanceOf(DateTime::class, $r->datetime);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->created_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->updated_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->datetime);
 		$this->assertTrue($r->created_at->is_empty);
 		$this->assertTrue($r->updated_at->is_empty);
 		$this->assertTrue($r->datetime->is_empty);
@@ -82,9 +83,9 @@ class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
 		$r->created_at = null;
 		$r->updated_at = null;
 		$r->datetime = null;
-		$this->assertInstanceOf(DateTime::class, $r->created_at);
-		$this->assertInstanceOf(DateTime::class, $r->updated_at);
-		$this->assertInstanceOf(DateTime::class, $r->datetime);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->created_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->updated_at);
+		$this->assertInstanceOf(ImmutableDateTime::class, $r->datetime);
 		$this->assertTrue($r->created_at->is_empty);
 		$this->assertTrue($r->updated_at->is_empty);
 		$this->assertTrue($r->datetime->is_empty);

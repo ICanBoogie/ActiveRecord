@@ -11,14 +11,14 @@
 
 namespace ICanBoogie\ActiveRecord\Property;
 
-use ICanBoogie\DateTime;
+use ICanBoogie\ImmutableDateTime;
 
 /**
  * Implements a `updated_at` property.
  *
  * @see DateTimeProperty
  *
- * @property DateTime $updated_at
+ * @property ImmutableDateTime $updated_at
  */
 trait UpdatedAtProperty
 {
@@ -32,7 +32,7 @@ trait UpdatedAtProperty
 	/**
 	 * Returns the date and time at which the record was updated.
 	 *
-	 * @return DateTime
+	 * @return ImmutableDateTime
 	 */
 	protected function get_updated_at()
 	{

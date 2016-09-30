@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\QueryTest\Dog;
+use ICanBoogie\ImmutableDateTime;
 
 class QueryTest extends \PHPUnit_Framework_TestCase
 {
@@ -229,7 +230,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 		$models = self::$models;
 		$updates = $models['updates'];
 		$subscribers = $models['subscribers'];
-		$now = DateTime::now();
+		$now = ImmutableDateTime::now();
 
 		$update_query = $updates
 			->select('subscriber_id, updated_at, update_hash')

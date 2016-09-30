@@ -25,7 +25,7 @@
 		"ext-pdo": "*",
 		"icanboogie/prototype": "^3.0",
 		"icanboogie/inflector": "^1.4",
-		"icanboogie/datetime": "^1.2",
+		"icanboogie/datetime": "^2.0",
 		"icanboogie/validate": "dev-master"
 	},
 
