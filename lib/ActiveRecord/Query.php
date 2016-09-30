@@ -685,7 +685,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * Parse the conditions for the {@link where()} and {@link having()} methods.
 	 *
-	 * {@link \DateTime} conditions are converted to strings.
+	 * {@link \DateTimeInterface} conditions are converted to strings.
 	 *
 	 * @return array An array made of the condition string and its arguments.
 	 */
@@ -759,7 +759,7 @@ class Query implements \IteratorAggregate
 
 		foreach ($conditions_args as &$value)
 		{
-			if ($value instanceof \DateTime)
+			if ($value instanceof \DateTimeInterface)
 			{
 				$value = DateTime::from($value)->utc->as_db;
 			}

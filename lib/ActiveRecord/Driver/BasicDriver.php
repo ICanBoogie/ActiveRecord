@@ -91,7 +91,7 @@ abstract class BasicDriver implements Driver
 	 */
 	public function cast_value($value, $type = null)
 	{
-		if ($value instanceof \DateTime)
+		if ($value instanceof \DateTimeInterface)
 		{
 			$value = DateTime::from($value);
 
