@@ -97,6 +97,8 @@ The `{table_name_prefix}` placeholder is replaced in queries by the prefix:
 ```php
 <?php
 
+/* @var $connection \ICanBoogie\ActiveRecord\Connection */
+
 $statement = $connection('SELECT * FROM `{table_name_prefix}nodes` LIMIT 10');
 ```
 
@@ -114,6 +116,8 @@ The `{charset}` and `{collate}` placeholders are replaced in queries:
 
 ```php
 <?php
+
+/* @var $connection \ICanBoogie\ActiveRecord\Connection */
 
 $connection('ALTER TABLE nodes CHARACTER SET "{charset}" COLLATE "{collate}"');
 ```
@@ -157,6 +161,8 @@ class Node extends ActiveRecord
 
 	// …
 }
+
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
 
 $models = new ModelCollection($connections, [
 
@@ -229,6 +235,8 @@ prefixed name and original name of the table:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 echo "table name: {$model->name}, original: {$model->unprefixed_name}.";
 ```
 
@@ -236,6 +244,8 @@ The `{self}` placeholder is replaced in queries by the `name` property:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $stmt = $model('SELECT * FROM `{self}` LIMIT 10');
 ```
@@ -280,8 +290,8 @@ The size of the field can be defined as an integer for the `blob`, `char`, `inte
 	'title' => 'varchar', // varchar(255) NOT NULL
 	'slug' => [ 'varchar', 80 ], // varchar(80) NOT NULL
 	'weight' => 'integer', // int(11) NOT NULL
-	'small_count' => [ 'integer', 8 ] // int(8) NOT NULL,
-	'price' => [ 'float', [ 10, 3 ] ] // float(10,3) NOT NULL
+	'small_count' => [ 'integer', 8 ], // int(8) NOT NULL,
+	'price' => [ 'float', [ 10, 3 ] ], // float(10,3) NOT NULL
 ];
 ```
 
@@ -315,9 +325,11 @@ The qualifier `unsigned` specifies that a numeric value is not signed:
 The qualifier `indexed` specifies that a field should be indexed:
 
 ```php
+<?php
+
 [
 	'slug' => [ 'varchar', 'indexed' => true ], // varchar(255) NOT NULL, KEY `slug` (`slug`)
-	'is_online' => [ 'boolean', 'indexed' => true ] // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
+	'is_online' => [ 'boolean', 'indexed' => true ], // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
 
 	'page_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL
 	'content_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL, KEY `page-content` (`page_id`, `content_id`)
@@ -328,6 +340,8 @@ The qualifier `primary` specifies that a column is a primary key. A multi-column
 created if multiple columns have the `primary` qualifier:
 
 ```php
+<?php
+
 [
 	'vtid' => [ 'foreign', 'primary' => true ],
 	'nid' => [ 'foreign', 'primary' => true ],
@@ -348,6 +362,8 @@ method.
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->install();
 ```
 
@@ -357,6 +373,8 @@ Note: The method only checks if the corresponding table exists, not if its schem
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 if ($model->is_installed())
 {
@@ -396,7 +414,10 @@ The `EXTENDING` attribute specifies the model to extend.
 <?php
 
 use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelCollection;
 use ICanBoogie\DateTime;
+
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
 
 $models = new ModelCollection($connections, [
 
@@ -409,7 +430,7 @@ $models = new ModelCollection($connections, [
 
 		]
 	],
-	
+
 	'contents' => [
 
 		Model::EXTENDING => 'nodes',
@@ -422,11 +443,11 @@ $models = new ModelCollection($connections, [
 	],
 
 	'news' => [
-	
+
 		Model::EXTENDING => 'contents'
 
 	]
-];
+]);
 
 $models['news']->save([
 
@@ -446,6 +467,8 @@ properties of its parent model.
 
 ```php
 <?php
+
+/* @var $news \ICanBoogie\ActiveRecord\Model */
 
 echo $news->parent->id;       // nodes
 echo $news->parent_model->id; // contents
@@ -470,22 +493,24 @@ can then by obtained using the magic property `user`.
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelCollection;
 
-$models = new ModelCollection($this->connections, [
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+
+$models = new ModelCollection($connections, [
 
 	'news' => [
-	
+
 		Model::BELONGS_TO => 'users',
 		Model::SCHEMA => [
-	
+
 			'news_id' => 'serial',
 			'uid' => 'foreign'
 			// …
 
 		]
 	],
-	
+
 	'users' => [
-	
+
 		Model::SCHEMA => [
     
             'uid' => 'serial',
@@ -496,6 +521,8 @@ $models = new ModelCollection($this->connections, [
 	]
 
 ]);
+
+/* @var $news Model */
 
 $record = $news->one;
 
@@ -523,6 +550,8 @@ use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelCollection;
 
 // …
+
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
 
 $models = new ModelCollection($connections, [
 
@@ -558,6 +587,8 @@ The relation can also be established after the models are created using the `has
 ```php
 <?php
 
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+
 $articles = $models['articles'];
 $comments = $models['comments'];
 
@@ -577,6 +608,8 @@ can be retrieved in order from an article:
 
 ```php
 <?php
+
+/* @var $articles \ICanBoogie\ActiveRecord\Model */
 
 $comments = $articles->one->comments->filter_by_author("me")->ordered->all;
 ```
@@ -659,6 +692,8 @@ record to the database. The model is clever enough to filter the properties.
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $record = $model[10];
 $record->is_online = false;
 $record->save();
@@ -678,6 +713,8 @@ The `delete()` method deletes the active record from the database:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $record = $model[190];
 $record->delete();
@@ -700,6 +737,8 @@ is used to set the date and time.
 namespace App;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\CreatedAtProperty;
+use ICanBoogie\ActiveRecord\UpdatedAtProperty;
 
 class Node extends ActiveRecord
 {
@@ -770,6 +809,8 @@ method of the model, or use the model as an array.
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $article = $model->find(10);
 
 # or
@@ -787,6 +828,8 @@ Retrieving a set or records using their primary key is really simple too:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $articles = $model->find([ 10, 32, 89 ]);
 
@@ -812,6 +855,8 @@ applies to the array notation.
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $article = $model[12]; // '12' retrieved from database
 $articles = $model->find(11, 12, 13); // '11' and '13' retrieved from database, '12' is reused.
@@ -843,6 +888,8 @@ use placeholders when you can't trust the source of your inputs:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->where('is_online = ?', $_GET['online']);
 ```
 
@@ -851,6 +898,8 @@ Of course you can use multiple conditions:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->where('is_online = ? AND is_home_excluded = ?', $_GET['online'], false);
 ```
 
@@ -858,6 +907,8 @@ $model->where('is_online = ? AND is_home_excluded = ?', $_GET['online'], false);
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->where('is_online = ?', $_GET['online'])->and('is_home_excluded = ?', false);
 ```
@@ -873,6 +924,8 @@ Conditions can also be specified as arrays:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->where([ 'is_online' => $_GET['online'], 'is_home_excluded' => false ]);
 ```
 
@@ -886,6 +939,8 @@ Records belonging to a subset can be retrieved using an array as condition value
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->where([ 'orders_count' => [ 1,3,5 ] ]);
 ```
@@ -907,6 +962,8 @@ different than "2":
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->where([ '!order_count' => 2 ]);
 ```
 
@@ -918,6 +975,8 @@ This also works with subsets:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->where([ '!order_count' => [ 1,3,5 ] ]);
 ```
@@ -937,6 +996,8 @@ Conditions can also be specified as methods, prefixed by `filter_by_` and separa
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->filter_by_slug('creer-nuage-mots-cle');
 $model->filter_by_is_online_and_uid(true, 3);
 ```
@@ -945,6 +1006,8 @@ Is equivalent to:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->where([ 'slug' => 'creer-nuage-mots-cle' ]);
 $model->where([ 'is_online' => true, 'uid' => 3 ]);
@@ -965,7 +1028,6 @@ inherit filters from their parent class and override them. For instance, this is
 
 namespace Website\Nodes;
 
-use ICanBoogie\Core;
 use ICanBoogie\ActiveRecord\Query;
 
 class Model extends \ICanBoogie\ActiveRecord\Model
@@ -974,12 +1036,12 @@ class Model extends \ICanBoogie\ActiveRecord\Model
 
 	protected function scope_similar_site(Query $query, $site_id = null)
 	{
-		return $query->and('site_id = 0 OR site_id = ?', $site_id !== null ? $site_id : Core::get()->site->site_id);
+		return $query->and('site_id = 0 OR site_id = ?', $site_id !== null ? $site_id : $this->current_site_id);
 	}
 
 	protected function scope_similar_language(Query $query, $language = null)
 	{
-		return $query->and('language = "" OR language = ?', $language !== null ? $language : Core::get()->site->language);
+		return $query->and('language = "" OR language = ?', $language !== null ? $language : $this->current_language);
 	}
 
 	protected function scope_visible(Query $query, $visible = true)
@@ -996,6 +1058,8 @@ Now you can easily retrieve the first ten records that are visible on your websi
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->visible->limit(10);
 ```
 
@@ -1003,6 +1067,8 @@ Or retrieve the first ten French records:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->similar_language('fr')->limit(10);
 ```
@@ -1021,6 +1087,8 @@ date:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->order('created');
 ```
 
@@ -1028,6 +1096,8 @@ A direction can be specified:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->order('created ASC');
 # or
@@ -1039,6 +1109,8 @@ Multiple fields can be used while ordering:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->order('created DESC, title');
 ```
 
@@ -1046,6 +1118,8 @@ Records can also be ordered by field:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->where([ 'nid' => [ 1, 2, 3 ] ])->order('nid', [ 2, 3, 1 ]);
 # or
@@ -1065,6 +1139,8 @@ The following example demonstrates how to retrieve the first record of records g
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->group('date(created)')->order('created');
 ```
 
@@ -1083,7 +1159,9 @@ month:
 ```php
 <?php
 
-$model->group('date(created)')->having('created > ?', new DateTime('-1 month'))->order('created')
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
+$model->group('date(created)')->having('created > ?', new DateTime('-1 month'))->order('created');
 ```
 
 
@@ -1097,6 +1175,8 @@ The `limit()` method limits the number of records to retrieve.
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->limit(10); // retrieves the first 10 records
 ```
 
@@ -1105,6 +1185,8 @@ With two arguments, an offset can be specified:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->limit(5, 10); // retrieves records from the 6th to the 16th
 ```
 
@@ -1112,6 +1194,8 @@ The offset can also be defined using the `offset()` method:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->offset(5); // retrieves records from the 6th to the last
 $model->limit(10)->offset(5);
@@ -1123,7 +1207,7 @@ $model->limit(10)->offset(5);
 
 ### Selecting specific fields
 
-By default all fields are selected (`SELECT *`) and records are instances of the [ActiveRecord](http://icanboogie.org/docs/namespace-ICanBoogie.ActiveRecord.html)
+By default all fields are selected (`SELECT *`) and records are instances of the [ActiveRecord][]
 class defined by the model. The `select()` method selects only a subset of fields from
 the result set, in which case each row of the result set is returned as an array, unless a fetch
 mode is defined.
@@ -1133,6 +1217,8 @@ The following example demonstrates how to get the identifier, creation date and 
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->select('nid, created, title');
 ```
 
@@ -1141,6 +1227,8 @@ used:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->select('nid, created, CONCAT_WS(":", title, language)');
 ```
@@ -1174,7 +1262,7 @@ that did not publish articles are fetched as well.
 ```php
 <?php
 
-// …
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
 
 $online_article_count = $models['articles']
 ->select('user_id, COUNT(node_id) AS online_article_count')
@@ -1184,7 +1272,7 @@ $online_article_count = $models['articles']
 
 $users = $models['users']
 ->join($online_article_count, [ 'on' => 'user_id', 'mode' => 'LEFT' ])
-->order('online_article_count DESC)';
+->order('online_article_count DESC');
 ```
 
 
@@ -1207,6 +1295,9 @@ The column character ":" is used to distinguish a model identifier from a raw fr
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $contents_model \ICanBoogie\ActiveRecord\Model */
+
 $model->join($contents_model);
 # or
 $model->join(':contents');
@@ -1214,7 +1305,7 @@ $model->join(':contents');
 $model->join(':contents', [ 'mode' => 'LEFT', 'as' => 'cnt' ]);
 ```
 
-**Note:** If a model identifier is provided, the model collection associated with the
+> **Note:** If a model identifier is provided, the model collection associated with the
 query's model is used to obtain the model.
 
 
@@ -1228,6 +1319,8 @@ final SQL statement.
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->join('INNER JOIN `contents` USING(`nid`)');
 ```
@@ -1254,6 +1347,8 @@ of a result set:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 foreach ($model->where('is_online = 1') as $node)
 {
 	// …
@@ -1271,8 +1366,10 @@ The magic property `all` retrieves the complete result set as an array:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $array = $model->all;
-$array = $model->visible->order('created DESC')->all
+$array = $model->visible->order('created DESC')->all;
 ```
 
 The `all()` method retrieves the complete result set using a specific fetch mode:
@@ -1280,8 +1377,10 @@ The `all()` method retrieves the complete result set using a specific fetch mode
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $array = $model->all(\PDO::FETCH_ASSOC);
-$array = $model->visible->order('created DESC')->all(\PDO::FETCH_ASSOC)
+$array = $model->visible->order('created DESC')->all(\PDO::FETCH_ASSOC);
 ```
 
 
@@ -1295,14 +1394,18 @@ The `one` magic property retrieves a single record:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $record = $model->one;
-$record = $model->visible->order('created DESC')->one
+$record = $model->visible->order('created DESC')->one;
 ```
 
 The `one()` method retrieves a single record using a specific fetch mode:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $record = $model->one(\PDO::FETCH_ASSOC);
 $record = $model->visible->order('created DESC')->one(\PDO::FETCH_ASSOC);
@@ -1321,6 +1424,8 @@ is the key and the second its value.
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->select('nid, title')->pairs;
 ```
@@ -1346,6 +1451,8 @@ The `rc` magic property retrieves the first column of the first row.
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $title = $model->select('title')->rc;
 ```
 
@@ -1363,6 +1470,8 @@ it.
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->select('nid, title')->mode(\PDO::FETCH_NUM);
 ```
 
@@ -1374,6 +1483,8 @@ with the `all()` and `one()` methods.
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $array = $model->order('created DESC')->all(\PDO::FETCH_ASSOC);
 $record = $model->order('created DESC')->one(\PDO::FETCH_ASSOC);
@@ -1391,6 +1502,8 @@ but returns `true` when a record is found and `false` otherwise.
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->exists(1);
 ```
 
@@ -1400,7 +1513,9 @@ records exist, `false` when all the record don't exist, and an array otherwise.
 ```php
 <?php
 
-$model->exists(1, 2, 999)
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
+$model->exists(1, 2, 999);
 # or
 $model->exists([ 1, 2, 999 ]);
 ```
@@ -1420,6 +1535,8 @@ exists, `false` otherwise.
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->filter_by_author('Madonna')->exists;
 ```
 
@@ -1428,6 +1545,8 @@ otherwise.
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->exists;
 ```
@@ -1443,6 +1562,8 @@ The `count` magic property is the number of records in a model or matching a que
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->count;
 ```
 
@@ -1450,6 +1571,8 @@ Or on a query:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->filter_by_firstname('Ryan')->count;
 ```
@@ -1459,6 +1582,8 @@ Of course, all query methods can be combined:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->filter_by_firstname('Ryan')->join(':content')->where('YEAR(date) = 2011')->count;
 ```
 
@@ -1466,6 +1591,8 @@ The `count()` method returns an array with the number of recond for each value o
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->count('is_online');
 ```
@@ -1492,6 +1619,8 @@ All calculation methods work directly on the model:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->average('price');
 ```
 
@@ -1500,6 +1629,8 @@ And on a query:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->filter_by_category('Toys')->average('price');
 ```
 
@@ -1507,6 +1638,8 @@ Of course, all query methods can be combined:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->filter_by_category('Toys')->join(':content')->where('YEAR(date) = 2011')->average('price');
 ```
@@ -1536,7 +1669,7 @@ to obtain only the online articles in a "music" category:
 ```php
 <?php
 
-// …
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
 
 $taxonomy_query = $models['taxonomy.terms/nodes']
 ->join(':taxonomy.vocabulary')
@@ -1573,6 +1706,8 @@ The records matching a query can be deleted using the `delete()` method:
 ```php
 <?php
 
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+
 $models['nodes']
 ->filter_by_is_deleted_and_uid(true, 123)
 ->limit(10)
@@ -1586,6 +1721,8 @@ how to delete the nodes and comments of nodes belonging to user 123 and marked a
 ```php
 <?php
 
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+
 $models['comments']
 ->filter_by_is_deleted_and_uid(true, 123)
 ->join(':nodes')
@@ -1598,10 +1735,12 @@ example demonstrates how to delete nodes that lack content:
 ```php
 <?php
 
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+
 $models['nodes']
 ->join(':contents', [ 'mode' => 'LEFT' ])
 ->where('content.nid IS NULL')
-->delete()
+->delete();
 ```
 
 
@@ -1614,6 +1753,8 @@ Retrieving records:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $record = $model[10];
 # or
@@ -1629,9 +1770,11 @@ Conditions:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->where('is_online = ?', true);
 $model->where([ 'is_online' => true, 'is_home_excluded' => false ]);
-$model->where('site_id = 0 OR site_id = ?', 1)->and('language = '' OR language = ?', "fr");
+$model->where('site_id = 0 OR site_id = ?', 1)->and('language = "" OR language = ?', "fr");
 
 # Sets
 
@@ -1654,6 +1797,8 @@ Grouping and ordering:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->group('date(created)')->order('created');
 $model->group('date(created)')->having('created > ?', new DateTime('-1 month'))->order('created');
 ```
@@ -1662,6 +1807,8 @@ Limits and offsets:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->limit(10); // first 10 records
 $model->limit(5, 10); // 6th to the 16th records
@@ -1675,6 +1822,8 @@ Fields selection:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->select('nid, created, title');
 $model->select('nid, created, CONCAT_WS(":", title, language)');
 ```
@@ -1683,6 +1832,8 @@ Joins:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->join($subquery, [ 'on' => 'nid' ]);
 $model->join(':contents');
@@ -1693,6 +1844,8 @@ Retrieving data:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->all;
 $model->order('created DESC')->all(PDO::FETCH_ASSOC);
@@ -1707,6 +1860,8 @@ Testing object existence:
 ```php
 <?php
 
+/* @var $model \ICanBoogie\ActiveRecord\Model */
+
 $model->exists;
 $model->exists(1, 2, 3);
 $model->exists([ 1, 2, 3 ]);
@@ -1717,6 +1872,8 @@ Calculations:
 
 ```php
 <?php
+
+/* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $model->count;
 $model->count('is_online'); // count is_online = 0 and is_online = 1
@@ -1757,8 +1914,8 @@ instance.
 
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 
-$connections = new ConnectionCollection
-([
+$connections = new ConnectionCollection([
+
 	'one' => [
 
 		'dsn' => 'sqlite::memory:'
@@ -1768,6 +1925,7 @@ $connections = new ConnectionCollection
 
 		'dsn' => 'mysql:dbname=bad_database' . uniqid()
 	]
+
 ]);
 ```
 
@@ -1781,6 +1939,7 @@ $connections['two'] = [
 	'dsn' => 'mysql:dbname=example',
 	'username' => 'root',
 	'password' => 'root'
+
 ];
 ```
 
@@ -1798,6 +1957,8 @@ instance, which represents a database connection:
 
 ```php
 <?php
+
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
 
 $one = $connections['one'];
 ```
@@ -1820,6 +1981,8 @@ if a connection is defined.
 ```php
 <?php
 
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+
 if (isset($connections['one']))
 {
 	echo "The connection 'one' is defined.\n";
@@ -1831,6 +1994,8 @@ _read-only_.
 
 ```php
 <?php
+
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
 
 foreach ($connections->definitions as $id => $definition)
 {
@@ -1850,6 +2015,8 @@ The property is _read-only_.
 ```php
 <?php
 
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+
 foreach ($connections->established as $id => $connection)
 {
 	echo "The connection '$id' is established.\n";
@@ -1860,6 +2027,8 @@ The [ConnectionCollection][] instance itself can be used to traverse established
 
 ```php
 <?php
+
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
 
 foreach ($connections as $id => $connection)
 {
@@ -1894,6 +2063,8 @@ Note: If `CONNECTION` is not specified the `primary` connection is used.
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelCollection;
 
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+
 $models = new ModelCollection($connections, [
 
 	'nodes' => [
@@ -1922,6 +2093,8 @@ Model definitions can be modified or added after the [ModelCollection][] instanc
 
 use ICanBoogie\ActiveRecord\Model;
 
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+
 $models['new'] = [
 
 	// …
@@ -1943,6 +2116,8 @@ Use the [ModelCollection][] instance as an array to obtain a [Model][] instance.
 ```php
 <?php
 
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+
 $nodes = $models['nodes'];
 ```
 
@@ -1962,6 +2137,8 @@ The `isset()` function checks if a model is defined.
 ```php
 <?php
 
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+
 if (isset($models['nodes']))
 {
 	echo "The model 'node' is defined.\n";
@@ -1973,6 +2150,8 @@ _read-only_.
 
 ```php
 <?php
+
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
 
 foreach ($models->definitions as $id => $definition)
 {
@@ -1991,6 +2170,8 @@ property is _read-only_.
 
 ```php
 <?php
+
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
 
 foreach ($models->instances as $id => $model)
 {
@@ -2011,6 +2192,8 @@ installed, `false` otherwise.
 
 ```php
 <?php
+
+/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
 
 $models->install();
 var_dump($models->is_installed()); // [ "nodes" => true, "contents" => true ]
@@ -2123,6 +2306,8 @@ similar to the one we've seen in previous examples.
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Helpers;
 
+/* @var $models ActiveRecord\ModelCollection */
+
 Helpers::patch('get_model', function($id) use($models) {
 
 	return $models[$id];
@@ -2170,7 +2355,10 @@ can be cloned with the following command line:
 ## Documentation
 
 The package is documented as part of the [ICanBoogie][] framework
-[documentation](http://icanboogie.org/docs/). You can generate the documentation for the package and its dependencies with the `make doc` command. The documentation is generated in the `build/docs` directory. [ApiGen](http://apigen.org/) is required. The directory can later be cleaned with the `make clean` command.
+[documentation](http://icanboogie.org/docs/). You can generate the documentation for the package and
+its dependencies with the `make doc` command. The documentation is generated in the `build/docs`
+directory. [ApiGen](http://apigen.org/) is required. The directory can later be cleaned with the
+`make clean` command.
 
 
 
@@ -2178,7 +2366,11 @@ The package is documented as part of the [ICanBoogie][] framework
 
 ## Testing
 
-The test suite is ran with the `make test` command. [PHPUnit](https://phpunit.de/) and [Composer](http://getcomposer.org/) need to be globally available to run the suite. The command installs dependencies as required. The `make test-coverage` command runs test suite and also creates an HTML coverage report in "build/coverage". The directory can later be cleaned with the `make clean` command.
+The test suite is ran with the `make test` command. [PHPUnit](https://phpunit.de/) and
+[Composer](http://getcomposer.org/) need to be globally available to run the suite. The command
+installs dependencies as required. The `make test-coverage` command runs test suite and also creates
+an HTML coverage report in "build/coverage". The directory can later be cleaned with the `make
+clean` command.
 
 The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
