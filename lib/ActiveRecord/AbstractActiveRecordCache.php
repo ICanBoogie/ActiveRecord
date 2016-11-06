@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 /**
  * Abstract root class for an active records cache.
  */
-abstract class ActiveRecordCacheBase implements ActiveRecordCache
+abstract class AbstractActiveRecordCache implements ActiveRecordCache
 {
 	/**
 	 * Model using the cache.
