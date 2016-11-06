@@ -9,9 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Model;
 
 class RunTimeActiveRecordCacheTest extends \PHPUnit_Framework_TestCase
 {

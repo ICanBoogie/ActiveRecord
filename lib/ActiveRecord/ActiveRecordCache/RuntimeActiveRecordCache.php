@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
 
 use ICanBoogie\ActiveRecord;
 

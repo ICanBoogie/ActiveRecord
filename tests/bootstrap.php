@@ -12,6 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\ActiveRecordCache\RuntimeActiveRecordCache;
 use ICanBoogie\Prototype;
 
 $loader = require __DIR__ . '/../vendor/autoload.php';

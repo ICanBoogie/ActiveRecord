@@ -45,7 +45,8 @@ The following code should do the trick:
 <?php
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\RuntimeActiveRecordCache;
+use ICanBoogie\ActiveRecord\Validate\ValidateActiveRecord;
+use ICanBoogie\ActiveRecord\ActiveRecordCache\RuntimeActiveRecordCache;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\Prototype;
 
@@ -59,7 +60,7 @@ Prototype::configure([
 
 			if (!$validate)
 			{
-				$validate = new ActiveRecord\Validate\ValidateActiveRecord;
+				$validate = new ValidateActiveRecord;
 			}
 
 			return $validate($record);
@@ -2514,7 +2515,7 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 [RecordNotFound]:               http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RecordNotFound.html
 [RecordNotValid]:               http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RecordNotValid.html
 [RelationNotDefined]:           http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
-[RuntimeActiveRecordCache]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.RuntimeActiveRecordCache.html
+[RuntimeActiveRecordCache]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ActiveRecordCache.RuntimeActiveRecordCache.html
 [ScopeNotDefined]:              http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
 [StatementInvocationFailed]:    http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
 [StatementNotValid]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.StatementNotValid.html
