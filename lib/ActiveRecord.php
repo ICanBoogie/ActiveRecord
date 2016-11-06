@@ -13,6 +13,7 @@ namespace ICanBoogie;
 
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\RecordNotValid;
+use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\Validate\ValidationErrors;
 
 /**
@@ -188,12 +189,14 @@ class ActiveRecord extends Prototyped
 		}
 
 		$model = $this->get_model();
-		$primary = $model->primary;
-		$properties = $this->alter_persistent_properties($this->to_array(), $model);
+		$schema = $model->extended_schema;
+		$properties = $this->alter_persistent_properties($this->to_array(), $schema);
 
 		#
 		# Multipart primary key
 		#
+
+		$primary = $model->primary;
 
 		if (is_array($primary))
 		{
@@ -266,14 +269,12 @@ class ActiveRecord extends Prototyped
 	 * This way, we don't have to define every properties before saving our active record.
 	 *
 	 * @param array $properties
-	 * @param Model $model
+	 * @param Schema $schema The model's extended schema.
 	 *
 	 * @return array The altered persistent properties
 	 */
-	protected function alter_persistent_properties(array $properties, Model $model)
+	protected function alter_persistent_properties(array $properties, Schema $schema)
 	{
-		$schema = $model->extended_schema;
-
 		foreach ($properties as $identifier => $value)
 		{
 			if ($value !== null || (isset($schema[$identifier]) && $schema[$identifier]->null))
