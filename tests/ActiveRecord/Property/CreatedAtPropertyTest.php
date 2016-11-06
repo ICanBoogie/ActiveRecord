@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace ICanBoogie\ActiveRecord\Property;
 
 use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\A;
@@ -56,7 +56,7 @@ namespace ICanBoogie\ActiveRecord\CreatedAtPropertyTest;
 
 class A extends \ICanBoogie\Prototyped
 {
-	use \ICanBoogie\ActiveRecord\CreatedAtProperty;
+	use \ICanBoogie\ActiveRecord\Property\CreatedAtProperty;
 }
 
 class B extends A

@@ -724,34 +724,32 @@ use ICanBoogie\ActiveRecord;
 
 class User extends ActiveRecord
 {
-	use ActiveRecord\CreatedAtProperty;
-	use ActiveRecord\UpdatedAtProperty;
+	use ActiveRecord\Property\CreatedAtProperty;
+	use ActiveRecord\Property\UpdatedAtProperty;
 
 	public $id;
 	public $username;
 	public $email;
-	
+
 	// …
-	
+
 	/**
 	 * @inheritdoc
 	 */
-	protected function create_validation_rules()
+	public function create_validation_rules()
 	{
 		return [
-		
+
 			'username' => 'required|max-length:32|unique',
 			'email' => 'required|email|unique',
 			'created_at' => 'required|datetime',
 			'updated_at' => 'required|datetime',
-		
+
 		];
 	}
 }
-```
 
-```php
-<?php
+// ...
 
 $user = new User;
 $errors = $user->validate();
@@ -848,8 +846,8 @@ is used to set the date and time.
 namespace App;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\CreatedAtProperty;
-use ICanBoogie\ActiveRecord\UpdatedAtProperty;
+use ICanBoogie\ActiveRecord\Property\CreatedAtProperty;
+use ICanBoogie\ActiveRecord\Property\UpdatedAtProperty;
 
 class Node extends ActiveRecord
 {
@@ -2505,8 +2503,8 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 [ConnectionNotDefined]:         http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
 [ConnectionNotEstablished]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
 [ConnectionCollection]:         http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
-[CreatedAtProperty]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.CreatedAtProperty.html
-[DateTimeProperty]:             http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.DateTimeProperty.html
+[CreatedAtProperty]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Property.CreatedAtProperty.html
+[DateTimeProperty]:             http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Property.DateTimeProperty.html
 [Model]:                        http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Model.html
 [ModelAlreadyInstantiated]:     http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
 [ModelNotDefined]:              http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
@@ -2520,7 +2518,7 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 [StatementInvocationFailed]:    http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
 [StatementNotValid]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.StatementNotValid.html
 [UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
-[UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.UpdatedAtProperty.html
+[UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/3.0/class-ICanBoogie.ActiveRecord.Property.UpdatedAtProperty.html
 [DateTime]:                     http://api.icanboogie.org/datetime/1.2/class-ICanBoogie.DateTime.html
 [ValidationErrors]:             http://api.icanboogie.org/validate/latest/class-ICanBoogie.Validate.ValidationErrors.html
 [icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord
