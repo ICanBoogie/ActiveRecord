@@ -33,9 +33,9 @@ class Sample extends ActiveRecord
 	 *
 	 * @inheritdoc
 	 */
-	protected function alter_persistent_properties(array $properties, ActiveRecord\Model $model)
+	protected function alter_persistent_properties(array $properties, ActiveRecord\Schema $schema)
 	{
-		return array_merge(parent::alter_persistent_properties($properties, $model), [
+		return array_merge(parent::alter_persistent_properties($properties, $schema), [
 
 			'reverse' => strrev($this->reverse)
 
