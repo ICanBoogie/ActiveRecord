@@ -162,27 +162,11 @@ class Statement extends \PDOStatement
 	}
 
 	/**
-	 * Fetches a column of the first row of the result set and closes the cursor.
-	 *
-	 * @param int $column_number
+	 * Fetches the first column of the first row of the result set and closes the cursor.
 	 *
 	 * @return string
 	 *
 	 * @see PDOStatement::fetchColumn()
-	 *
-	 * @deprecated
-	 */
-	public function fetchColumnAndClose($column_number = 0)
-	{
-		$rc = $this->fetchColumn($column_number);
-
-		$this->closeCursor();
-
-		return $rc;
-	}
-
-	/**
-	 * Alias for `fetchColumnAndClose()`.
 	 */
 	protected function get_rc()
 	{
