@@ -1,17 +1,27 @@
 <?php
 
+/*
+ * This file is part of the ICanBoogie package.
+ *
+ * (c) Olivier Laviale <olivier.laviale@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace ICanBoogie;
 
-use ICanBoogie\ActiveRecord\Helpers;
 use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelCollection;
 use ICanBoogie\ActiveRecord\ModelNotDefined;
+use ICanBoogie\ActiveRecord\ModelProvider;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecordTest\Sample;
 use ICanBoogie\ActiveRecordTest\ValidateCase;
 
 /**
- * @covers \ICanBoogie\ActiveRecord
+ * @group record
  */
 class ActiveRecordTest extends \PHPUnit\Framework\TestCase
 {
@@ -19,20 +29,25 @@ class ActiveRecordTest extends \PHPUnit\Framework\TestCase
 
 	public function setUp()
 	{
+		$sample_model = &$this->sample_model;
+
+		if ($sample_model)
+		{
+			return;
+		}
+
 		$sample_model = $this->mockModel();
 
-		Helpers::patch('get_model', function($model_id) use ($sample_model) {
+		ModelProvider::define(function($model_id) use ($sample_model) {
 
 			if ($model_id === 'sample')
 			{
 				return $sample_model;
 			}
 
-			throw new ModelNotDefined($sample_model);
+			return null;
 
 		});
-
-		$this->sample_model = $sample_model;
 	}
 
 	public function test_should_resolve_model_id_from_const()

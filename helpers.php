@@ -12,15 +12,17 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Returns the requested model.
+ * Returns a given model.
  *
  * @param string $id Model identifier.
  *
  * @return Model
+ *
+ * @throws ModelNotDefined if the model cannot be found.
  */
 function get_model($id)
 {
-	return Helpers::get_model($id);
+	return ModelProvider::provide($id);
 }
 
 /**
