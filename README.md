@@ -2149,9 +2149,10 @@ foreach ($connections as $id => $connection)
 
 
 
-### The models provider
+### Model collection
 
-The models provider manages models.
+Models are managed using a model collection that resolves model attributes (such as database
+connections) and instantiate them.
 
 
 
@@ -2314,6 +2315,38 @@ var_dump($models->is_installed()); // [ "nodes" => false, "contents" => false ]
 
 
 
+#### Model provider
+
+The `get_model()` helper retrieves models using their identifier. It is used by active records to
+retrieve their model when required, and by queries during joins. Models are retrieved using the
+model collection returned by [ModelProvider][].
+
+The following example demonstrates how to define a model provider:
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\ModelProvider;
+use function ICanBoogie\ActiveRecord\get_model;
+
+/* @var $models ActiveRecord\ModelCollection */
+
+ModelProvider::define(function($id) use($models) {
+
+	return $models[$id];
+
+});
+
+$nodes = get_model('nodes');
+```
+
+> **Note:** A `LogicException` is thrown if no provider is defined when `get_model()` require it.
+
+
+
+
+
 ## Records caching
 
 By default, each model uses an instance of [RuntimeActiveRecordCache][] to cache its records.
@@ -2397,34 +2430,7 @@ already instantiated model.
 
 
 
-## Patching
-
-### Retrieving models from a provider
-
-The `get_model()` helper retrieves models using their identifier. It is used by active
-records to retrieve their model when required, and by queries during joins. You need to patch
-this helper according to your application logic because the default implementation only throws
-`\RuntimeException`.
-
-In the following example, the `get_model()` helper is patched to retrieve models from a provider
-similar to the one we've seen in previous examples.
-
-```php
-<?php
-
-use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Helpers;
-
-/* @var $models ActiveRecord\ModelCollection */
-
-Helpers::patch('get_model', function($id) use($models) {
-
-	return $models[$id];
-
-});
-
-$nodes = ActiveRecord\get_model('nodes');
-```
+----------
 
 
 
@@ -2509,6 +2515,7 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 [ModelAlreadyInstantiated]:     http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
 [ModelNotDefined]:              http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
 [ModelCollection]:              http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelCollection.html
+[ModelProvider]:                http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelProvider.html
 [Query]:                        http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Query.html
 [RecordNotFound]:               http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotFound.html
 [RecordNotValid]:               http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotValid.html
