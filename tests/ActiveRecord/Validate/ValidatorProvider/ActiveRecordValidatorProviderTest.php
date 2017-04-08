@@ -12,6 +12,8 @@
 namespace ICanBoogie\ActiveRecord\Validate\ValidatorProvider;
 
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
+use ICanBoogie\Validate\ValidatorProvider\BuiltinValidatorProvider;
+use ICanBoogie\Validate\ValidatorProvider\ValidatorProviderCollection;
 
 /**
  * @group validate
@@ -27,7 +29,12 @@ class ActiveRecordValidatorProviderTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function test_provider($alias, $class)
 	{
-		$provider = new ActiveRecordValidatorProvider;
+		$provider = new ValidatorProviderCollection([
+
+			new ActiveRecordValidatorProvider,
+			new BuiltinValidatorProvider,
+
+		]);
 
 		$this->assertInstanceOf($class, $provider($alias));
 	}

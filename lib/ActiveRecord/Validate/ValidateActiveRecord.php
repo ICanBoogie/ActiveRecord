@@ -17,6 +17,8 @@ use ICanBoogie\ActiveRecord\Validate\ValidatorProvider\ActiveRecordValidatorProv
 use ICanBoogie\Validate\Validation;
 use ICanBoogie\Validate\ValidationErrors;
 use ICanBoogie\Validate\ValidatorProvider;
+use ICanBoogie\Validate\ValidatorProvider\BuiltinValidatorProvider;
+use ICanBoogie\Validate\ValidatorProvider\ValidatorProviderCollection;
 
 /**
  * Validates an active record.
@@ -66,7 +68,12 @@ class ValidateActiveRecord
 	 */
 	protected function create_validator_provider()
 	{
-		return new ActiveRecordValidatorProvider;
+		return new ValidatorProviderCollection([
+
+			new ActiveRecordValidatorProvider,
+			new BuiltinValidatorProvider(),
+
+		]);
 	}
 
 	/**

@@ -12,12 +12,12 @@
 namespace ICanBoogie\ActiveRecord\Validate\ValidatorProvider;
 
 use ICanBoogie\ActiveRecord\Validate\Validator;
-use ICanBoogie\Validate\ValidatorProvider\BuiltinValidatorProvider;
+use ICanBoogie\Validate\ValidatorProvider\SimpleValidatorProvider;
 
 /**
  * A validator provider for active record.
  */
-class ActiveRecordValidatorProvider extends BuiltinValidatorProvider
+class ActiveRecordValidatorProvider extends SimpleValidatorProvider
 {
 	static private $active_record_validators = [
 
