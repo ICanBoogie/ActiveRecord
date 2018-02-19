@@ -304,7 +304,9 @@ class Table extends Prototyped
 	}
 
 	/**
-	 * Alias to {@link query()}.
+	 * Interface to the connection's query() method.
+	 *
+	 * The statement is resolved using the resolve_statement() method and prepared.
 	 *
 	 * @param string $query
 	 * @param array $args
@@ -314,7 +316,9 @@ class Table extends Prototyped
 	 */
 	public function __invoke($query, array $args = [], array $options = [])
 	{
-		return $this->query($query, $args, $options);
+		$statement = $this->prepare($query, $options);
+
+		return $statement($args);
 	}
 
 	/**
@@ -592,25 +596,6 @@ class Table extends Prototyped
 		$statement = $this->prepare($query, $options);
 
 		return $statement($args);
-	}
-
-	/**
-	 * Interface to the connection's query() method.
-	 *
-	 * The statement is resolved using the resolve_statement() method and prepared.
-	 *
-	 * @param string $query
-	 * @param array $args
-	 * @param array $options
-	 *
-	 * @return Statement
-	 */
-	public function query($query, array $args = [], array $options = [])
-	{
-		$statement = $this->prepare($this->resolve_statement($query), $options);
-		$statement($args);
-
-		return $statement;
 	}
 
 	/**

@@ -1260,14 +1260,14 @@ class Query implements \IteratorAggregate
 		}
 
 		$query .= ' AS count ' . $this->render_from() . $this->render_main();
-		$query = $this->model->query($query, $this->args);
+		$statement = $this->model->__invoke($query);
 
 		if ($method == 'COUNT' && $column)
 		{
-			return $query->fetchAll(\PDO::FETCH_KEY_PAIR);
+			return $statement->pairs;
 		}
 
-		return (int) $query->rc;
+		return (int) $statement->rc;
 	}
 
 	/**

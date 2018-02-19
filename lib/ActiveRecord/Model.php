@@ -296,7 +296,7 @@ class Model extends Table implements \ArrayAccess
 		|| strpos($method, 'filter_by_') === 0
 		|| method_exists($this, 'scope_' . $method))
 		{
-			return $this->new_query()->$method(...$arguments);
+			return $this->query()->$method(...$arguments);
 		}
 
 		if (is_callable([ RelationCollection::class, $method ]))
@@ -318,7 +318,7 @@ class Model extends Table implements \ArrayAccess
 
 		if (method_exists($this, $method))
 		{
-			return $this->$method($this->new_query());
+			return $this->$method($this->query());
 		}
 
 		return parent::__get($property);
@@ -470,6 +470,24 @@ class Model extends Table implements \ArrayAccess
 		}
 
 		return $records;
+	}
+
+	/**
+	 * @param mixed ...$conditions_and_args
+	 *
+	 * @return Query
+	 */
+	public function query(...$conditions_and_args)
+	{
+		/* @var Query $query */
+		$class = $this->query_class;
+		$query = new $class($this);
+
+		if ($conditions_and_args) {
+			$query->where(...$conditions_and_args);
+		}
+
+		return $query;
 	}
 
 	/**
@@ -636,15 +654,5 @@ class Model extends Table implements \ArrayAccess
 		$class = $this->activerecord_class;
 
 		return $properties ? $class::from($properties, [ $this ]) : new $class($this);
-	}
-
-	/**
-	 * @return Query
-	 */
-	protected function new_query()
-	{
-		$class = $this->query_class;
-
-		return new $class($this);
 	}
 }

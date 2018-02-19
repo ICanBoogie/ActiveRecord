@@ -788,6 +788,21 @@ EOT
 
 		]);
 
-		$this->assertInstanceOf(CustomQuery::class, $model->where('1 = 1'));
+		$this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));
+		$this->assertInstanceOf(CustomQuery::class, $query2 = $model->query());
+		$this->assertNotSame($query1, $query2);
+	}
+
+	public function test_query()
+	{
+		$model = $this->model;
+
+		$this->assertInstanceOf(Query::class, $query1 = $model->query());
+		$this->assertInstanceOf(Query::class, $query2 = $model->query("1 = 1"));
+		$this->assertSame(
+			'SELECT * FROM `myprefix_contents` `content`'.
+			' INNER JOIN `myprefix_nodes` `node` USING(`nid`) WHERE (1 = 1)',
+			(string) $query2
+		);
 	}
 }
