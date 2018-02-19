@@ -2,7 +2,7 @@
 
 PACKAGE_NAME = icanboogie/activerecord
 PACKAGE_VERSION = 4.0
-PHPUNIT_VERSION = phpunit-5.7.phar
+PHPUNIT_VERSION = phpunit-5.phar
 PHPUNIT_FILENAME = build/$(PHPUNIT_VERSION)
 PHPUNIT = php $(PHPUNIT_FILENAME)
 
