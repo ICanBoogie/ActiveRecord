@@ -57,6 +57,7 @@ class Model extends Table implements \ArrayAccess
 	const CLASSNAME = 'class';
 	const HAS_MANY = 'has_many';
 	const ID = 'id';
+	const QUERY_CLASS = 'query_class';
 
 	/**
 	 * @var ModelCollection
@@ -74,6 +75,11 @@ class Model extends Table implements \ArrayAccess
 	 * @var string
 	 */
 	protected $activerecord_class;
+
+	/**
+	 * @var string
+	 */
+	private $query_class;
 
 	/**
 	 * Attributes of the model.
@@ -155,11 +161,8 @@ class Model extends Table implements \ArrayAccess
 
 		parent::__construct($attributes);
 
-		#
-		# Resolve the active record class.
-		#
-
 		$this->activerecord_class = $this->resolve_activerecord_class();
+		$this->query_class = $this->resolve_query_class();
 		$this->resolve_relations();
 	}
 
@@ -240,6 +243,16 @@ class Model extends Table implements \ArrayAccess
 	}
 
 	/**
+	 * @return string
+	 */
+	private function resolve_query_class()
+	{
+		return empty($this->attributes[self::QUERY_CLASS])
+			? Query::class
+			: $this->attributes[self::QUERY_CLASS];
+	}
+
+	/**
 	 * Resolves relations with other models.
 	 */
 	private function resolve_relations()
@@ -277,13 +290,13 @@ class Model extends Table implements \ArrayAccess
 			return $this->new_record(...$arguments);
 		}
 
-		if (is_callable([ Query::class, $method ])
+		$query_class = $this->resolve_query_class();
+
+		if (is_callable([ $query_class, $method ])
 		|| strpos($method, 'filter_by_') === 0
 		|| method_exists($this, 'scope_' . $method))
 		{
-			$query = new Query($this);
-
-			return $query->$method(...$arguments);
+			return $this->new_query()->$method(...$arguments);
 		}
 
 		if (is_callable([ RelationCollection::class, $method ]))
@@ -305,7 +318,7 @@ class Model extends Table implements \ArrayAccess
 
 		if (method_exists($this, $method))
 		{
-			return $this->$method(new Query($this));
+			return $this->$method($this->new_query());
 		}
 
 		return parent::__get($property);
@@ -623,5 +636,15 @@ class Model extends Table implements \ArrayAccess
 		$class = $this->activerecord_class;
 
 		return $properties ? $class::from($properties, [ $this ]) : new $class($this);
+	}
+
+	/**
+	 * @return Query
+	 */
+	protected function new_query()
+	{
+		$class = $this->query_class;
+
+		return new $class($this);
 	}
 }

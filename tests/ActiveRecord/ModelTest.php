@@ -17,6 +17,7 @@ use ICanBoogie\ActiveRecord\ModelTest\ArticleModel;
 use ICanBoogie\ActiveRecord\ModelTest\Brand;
 use ICanBoogie\ActiveRecord\ModelTest\Car;
 use ICanBoogie\ActiveRecord\ModelTest\Comment;
+use ICanBoogie\ActiveRecord\ModelTest\CustomQuery;
 use ICanBoogie\ActiveRecord\ModelTest\Driver;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
@@ -772,5 +773,21 @@ EOT
 		$this->assertNull($activerecord_cache->retrieve(1));
 		$this->setExpectedException(RecordNotFound::class);
 		$model[1];
+	}
+
+	public function test_custom_query()
+	{
+		$model = new Model($this->models, [
+
+			Model::CONNECTION => $this->connections['primary'],
+			Model::NAME => uniqid(),
+			Model::SCHEMA => [
+				'id' => 'serial',
+			],
+			Model::QUERY_CLASS => CustomQuery::class,
+
+		]);
+
+		$this->assertInstanceOf(CustomQuery::class, $model->where('1 = 1'));
 	}
 }

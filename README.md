@@ -1997,6 +1997,15 @@ $model->sum('comments_count');
 
 
 
+### Providing your own query
+
+By default the query object is [Query][] instance, but the class of the query can be specified with
+the `QUERY_CLASS` attribute. This is often used to add features to the query.
+
+
+
+
+
 ## Providers
 
 Providers are included to manage connections and models.
