@@ -108,9 +108,14 @@ class UniqueTest extends \PHPUnit\Framework\TestCase
 	{
 		$expected = true;
 
+		$model = $this
+			->getMockBuilder(ActiveRecord\Model::class)
+			->disableOriginalConstructor()
+			->getMock();
+
 		$query = $this
 			->getMockBuilder(ActiveRecord\Query::class)
-			->disableOriginalConstructor()
+			->setConstructorArgs([ $model ])
 			->setMethods([ 'get_exists' ])
 			->getMock();
 		$query
