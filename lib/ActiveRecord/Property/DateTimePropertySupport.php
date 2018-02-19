@@ -22,7 +22,7 @@ class DateTimePropertySupport
 	 * Sets the datetime in a property.
 	 *
 	 * @param mixed $property Reference to the property to set.
-	 * @param mixed $datetime Date and time.
+	 * @param \DateTimeInterface|string $datetime Date and time.
 	 */
 	static public function set(&$property, $datetime)
 	{
@@ -44,5 +44,22 @@ class DateTimePropertySupport
 		}
 
 		return $property = $property === null ? DateTime::none() : new DateTime($property, 'utc');
+	}
+
+	/**
+	 * @param mixed $property Reference to the property to ensure.
+	 * @param \DateTimeInterface|string $datetime
+	 *
+	 * @return DateTime
+	 */
+	static public function ensureNotEmpty(&$property, $datetime = 'now')
+	{
+		if (!self::get($property)->is_empty) {
+			return $property;
+		}
+
+		self::set($property, $datetime);
+
+		return $property;
 	}
 }
