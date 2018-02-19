@@ -2470,7 +2470,7 @@ can be cloned with the following command line:
 ## Documentation
 
 The package is documented as part of the [ICanBoogie][] framework
-[documentation](http://icanboogie.org/docs/). You can generate the documentation for the package and
+[documentation](https://icanboogie.org/docs/). You can generate the documentation for the package and
 its dependencies with the `make doc` command. The documentation is generated in the `build/docs`
 directory. [ApiGen](http://apigen.org/) is required. The directory can later be cleaned with the
 `make clean` command.
@@ -2504,30 +2504,30 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
 
 
-[Connection]:                   http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Connection.html
-[ConnectionAlreadyEstablished]: http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
-[ConnectionNotDefined]:         http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
-[ConnectionNotEstablished]:     http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
-[ConnectionCollection]:         http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
-[CreatedAtProperty]:            http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.CreatedAtProperty.html
-[DateTimeProperty]:             http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.DateTimeProperty.html
-[Model]:                        http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Model.html
-[ModelAlreadyInstantiated]:     http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
-[ModelNotDefined]:              http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
-[ModelCollection]:              http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelCollection.html
-[ModelProvider]:                http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelProvider.html
-[Query]:                        http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Query.html
-[RecordNotFound]:               http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotFound.html
-[RecordNotValid]:               http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotValid.html
-[RelationNotDefined]:           http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
-[RuntimeActiveRecordCache]:     http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ActiveRecordCache.RuntimeActiveRecordCache.html
-[ScopeNotDefined]:              http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
-[StatementInvocationFailed]:    http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
-[StatementNotValid]:            http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.StatementNotValid.html
-[UnableToSetFetchMode]:         http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
-[UpdatedAtProperty]:            http://api.icanboogie.org/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.UpdatedAtProperty.html
-[DateTime]:                     http://api.icanboogie.org/datetime/1.2/class-ICanBoogie.DateTime.html
-[ValidationErrors]:             http://api.icanboogie.org/validate/latest/class-ICanBoogie.Validate.ValidationErrors.html
+[Connection]:                   https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Connection.html
+[ConnectionAlreadyEstablished]: https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
+[ConnectionNotDefined]:         https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
+[ConnectionNotEstablished]:     https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
+[ConnectionCollection]:         https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
+[CreatedAtProperty]:            https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.CreatedAtProperty.html
+[DateTimeProperty]:             https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.DateTimeProperty.html
+[Model]:                        https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Model.html
+[ModelAlreadyInstantiated]:     https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
+[ModelNotDefined]:              https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
+[ModelCollection]:              https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelCollection.html
+[ModelProvider]:                https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelProvider.html
+[Query]:                        https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Query.html
+[RecordNotFound]:               https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotFound.html
+[RecordNotValid]:               https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotValid.html
+[RelationNotDefined]:           https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
+[RuntimeActiveRecordCache]:     https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ActiveRecordCache.RuntimeActiveRecordCache.html
+[ScopeNotDefined]:              https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
+[StatementInvocationFailed]:    https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
+[StatementNotValid]:            https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.StatementNotValid.html
+[UnableToSetFetchMode]:         https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
+[UpdatedAtProperty]:            https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.UpdatedAtProperty.html
+[DateTime]:                     https://icanboogie.org/api/datetime/1.2/class-ICanBoogie.DateTime.html
+[ValidationErrors]:             https://icanboogie.org/api/validate/master/class-ICanBoogie.Validate.ValidationErrors.html
 [icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord
-[ICanBoogie]:                   http://icanboogie.org
+[ICanBoogie]:                   https://icanboogie.org
 [PDO]:                          http://php.net/manual/en/book.pdo.php
