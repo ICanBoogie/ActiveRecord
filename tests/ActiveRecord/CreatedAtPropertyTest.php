@@ -15,7 +15,7 @@ use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\A;
 use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\B;
 
-class CreatedAtPropertyTest extends \PHPUnit_Framework_TestCase
+class CreatedAtPropertyTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @dataProvider provide_test_property

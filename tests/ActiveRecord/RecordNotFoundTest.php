@@ -13,7 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 
-class RecordNotFoundTest extends \PHPUnit_Framework_TestCase
+class RecordNotFoundTest extends \PHPUnit\Framework\TestCase
 {
 	static private $records;
 

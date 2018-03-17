@@ -13,7 +13,7 @@ use ICanBoogie\ActiveRecordTest\ValidateCase;
 /**
  * @covers \ICanBoogie\ActiveRecord
  */
-class ActiveRecordTest extends \PHPUnit_Framework_TestCase
+class ActiveRecordTest extends \PHPUnit\Framework\TestCase
 {
 	private $sample_model;
 

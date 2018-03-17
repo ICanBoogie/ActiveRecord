@@ -13,7 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 
-class ScopeNotDefinedTest extends \PHPUnit_Framework_TestCase
+class ScopeNotDefinedTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @var Model

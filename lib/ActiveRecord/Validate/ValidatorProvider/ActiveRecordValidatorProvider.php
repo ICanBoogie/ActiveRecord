@@ -30,8 +30,8 @@ class ActiveRecordValidatorProvider extends BuiltinValidatorProvider
 	 *
 	 * @inheritdoc
 	 */
-	public function __construct(array $instances = [], array $aliases = [])
+	public function __construct(array $aliases = [])
 	{
-		parent::__construct($instances, $aliases + self::$active_record_validators);
+		parent::__construct($aliases + self::$active_record_validators);
 	}
 }

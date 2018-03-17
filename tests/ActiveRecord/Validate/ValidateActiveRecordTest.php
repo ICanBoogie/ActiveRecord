@@ -18,7 +18,7 @@ use ICanBoogie\Validate\ValidationErrors;
  * @group validate
  * @medium
  */
-class ValidateActiveRecordTest extends \PHPUnit_Framework_TestCase
+class ValidateActiveRecordTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @dataProvider provide_test_validate

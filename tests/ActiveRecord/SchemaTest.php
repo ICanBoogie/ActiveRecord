@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class SchemaTest extends \PHPUnit_Framework_TestCase
+class SchemaTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @dataProvider provide_test_primary

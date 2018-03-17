@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\QueryTest\Dog;
 
-class QueryTest extends \PHPUnit_Framework_TestCase
+class QueryTest extends \PHPUnit\Framework\TestCase
 {
 	static private $n = 10;
 

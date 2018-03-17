@@ -21,7 +21,7 @@ use ICanBoogie\ActiveRecord\ModelTest\Driver;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
 
-class ModelTest extends \PHPUnit_Framework_TestCase
+class ModelTest extends \PHPUnit\Framework\TestCase
 {
 	private $prefix = 'myprefix';
 

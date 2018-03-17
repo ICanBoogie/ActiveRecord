@@ -14,12 +14,12 @@ namespace ICanBoogie\ActiveRecord\Validate\Validator;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\Validate\Context;
-use ICanBoogie\Validate\Validator\AbstractValidator;
+use ICanBoogie\Validate\Validator\ValidatorAbstract;
 
 /**
  * Validates that a value is unique in a table's column.
  */
-class Unique extends AbstractValidator
+class Unique extends ValidatorAbstract
 {
 	const ALIAS = 'unique';
 	const DEFAULT_MESSAGE = '`{value}` is already used';

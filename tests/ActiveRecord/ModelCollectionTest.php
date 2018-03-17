@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class ModelCollectionTest extends \PHPUnit_Framework_TestCase
+class ModelCollectionTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @var ConnectionCollection

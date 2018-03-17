@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class ModelNotDefinedTest extends \PHPUnit_Framework_TestCase
+class ModelNotDefinedTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_get_id()
 	{

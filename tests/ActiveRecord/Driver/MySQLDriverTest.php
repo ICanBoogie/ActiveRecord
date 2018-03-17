@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Schema;
 
-class MySQLDriverTest extends \PHPUnit_Framework_TestCase
+class MySQLDriverTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @requires PHP 5.6

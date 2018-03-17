@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class ConnectionNotDefinedTest extends \PHPUnit_Framework_TestCase
+class ConnectionNotDefinedTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_get_id()
 	{

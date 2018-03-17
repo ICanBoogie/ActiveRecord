@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\HasManyRelationTest\Article;
 use ICanBoogie\ActiveRecord\HasManyRelationTest\Comment;
 
-class HasManyRelationTest extends \PHPUnit_Framework_TestCase
+class HasManyRelationTest extends \PHPUnit\Framework\TestCase
 {
 	private $articles;
 	private $comments;

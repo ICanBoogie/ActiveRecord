@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class RelationNotDefinedTest extends \PHPUnit_Framework_TestCase
+class RelationNotDefinedTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_exception()
 	{

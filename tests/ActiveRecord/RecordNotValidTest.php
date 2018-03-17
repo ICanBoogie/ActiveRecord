@@ -20,7 +20,7 @@ use ICanBoogie\Validate\Validator\Email;
  * @group validate
  * @small
  */
-class RecordNotValidTest extends \PHPUnit_Framework_TestCase
+class RecordNotValidTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_exception()
 	{

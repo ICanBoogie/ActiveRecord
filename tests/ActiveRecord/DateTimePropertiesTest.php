@@ -15,7 +15,7 @@ use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\DateTimePropertiesTest\A;
 use ICanBoogie\ActiveRecord\DateTimePropertiesTest\B;
 
-class DateTimePropertiesTest extends \PHPUnit_Framework_TestCase
+class DateTimePropertiesTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_properties()
 	{

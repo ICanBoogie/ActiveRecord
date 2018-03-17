@@ -4,7 +4,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
 
-class ConnectionTest extends \PHPUnit_Framework_TestCase
+class ConnectionTest extends \PHPUnit\Framework\TestCase
 {
 	private $id;
 

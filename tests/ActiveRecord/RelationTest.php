@@ -13,7 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 
-class RelationTest extends \PHPUnit_Framework_TestCase
+class RelationTest extends \PHPUnit\Framework\TestCase
 {
 	private $model;
 

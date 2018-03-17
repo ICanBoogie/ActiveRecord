@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class UnableToSetFetchModeTest extends \PHPUnit_Framework_TestCase
+class UnableToSetFetchModeTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_get_id()
 	{

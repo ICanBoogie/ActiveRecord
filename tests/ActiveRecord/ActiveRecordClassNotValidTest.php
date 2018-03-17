@@ -13,7 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 
-class ActiveRecordClassNotValidTest extends \PHPUnit_Framework_TestCase
+class ActiveRecordClassNotValidTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_get_class()
 	{

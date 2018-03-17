@@ -17,7 +17,7 @@ use ICanBoogie\ActiveRecord;
  * @group validate
  * @small
  */
-class RecordAdapterTest extends \PHPUnit_Framework_TestCase
+class RecordAdapterTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_adapter()
 	{

@@ -19,7 +19,7 @@ use ICanBoogie\Validate\Context;
  * @group validate
  * @medium
  */
-class UniqueTest extends \PHPUnit_Framework_TestCase
+class UniqueTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_normalize_options()
 	{

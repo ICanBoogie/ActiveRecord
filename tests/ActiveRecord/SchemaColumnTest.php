@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class SchemaColumnTest extends \PHPUnit_Framework_TestCase
+class SchemaColumnTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @dataProvider provide_test_to_string

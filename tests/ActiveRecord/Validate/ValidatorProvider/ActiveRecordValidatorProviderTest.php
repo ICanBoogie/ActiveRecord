@@ -17,7 +17,7 @@ use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
  * @group validate
  * @small
  */
-class ActiveRecordValidatorProviderTest extends \PHPUnit_Framework_TestCase
+class ActiveRecordValidatorProviderTest extends \PHPUnit\Framework\TestCase
 {
 	/**
 	 * @dataProvider provide_test_provider

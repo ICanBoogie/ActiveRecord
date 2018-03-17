@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 
-class RunTimeActiveRecordCacheTest extends \PHPUnit_Framework_TestCase
+class RunTimeActiveRecordCacheTest extends \PHPUnit\Framework\TestCase
 {
 	public function test_cache()
 	{
