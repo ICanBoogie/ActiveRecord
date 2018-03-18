@@ -25,11 +25,6 @@ class ExceptionTest extends \PHPUnit\Framework\TestCase
 
 	public function provide_test_implementing()
 	{
-		$fake_model = $this
-			->getMockBuilder(Model::class)
-			->disableOriginalConstructor()
-			->getMockForAbstractClass();
-
 		return [
 
 			[ 'ConnectionNotDefined', [ 'connection-name' ] ],
@@ -37,7 +32,6 @@ class ExceptionTest extends \PHPUnit\Framework\TestCase
 			[ 'ConnectionAlreadyEstablished', [ 'connection-name' ] ],
 
 			[ 'RecordNotFound', [ "message", [] ] ],
-			[ 'ScopeNotDefined', [ 'scope-name', $fake_model ] ],
 
 			[ 'ModelNotDefined' , [ 'model-name' ] ],
 			[ 'ModelAlreadyInstantiated' , [ 'model-name' ] ],

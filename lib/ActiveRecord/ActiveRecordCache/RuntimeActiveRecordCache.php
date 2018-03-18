@@ -23,12 +23,12 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements \Ite
 	 *
 	 * @var ActiveRecord[]
 	 */
-	protected $records = [];
+	private $records = [];
 
 	/**
 	 * @inheritdoc
 	 */
-	public function store(ActiveRecord $record)
+	public function store(ActiveRecord $record): void
 	{
 		$key = $record->{ $this->model->primary };
 
@@ -43,7 +43,7 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements \Ite
 	/**
 	 * @inheritdoc
 	 */
-	public function retrieve($key)
+	public function retrieve($key): ?ActiveRecord
 	{
 		if (empty($this->records[$key]))
 		{
@@ -56,7 +56,7 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements \Ite
 	/**
 	 * @inheritdoc
 	 */
-	public function eliminate($key)
+	public function eliminate($key): void
 	{
 		unset($this->records[$key]);
 	}
@@ -64,7 +64,7 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements \Ite
 	/**
 	 * @inheritdoc
 	 */
-	public function clear()
+	public function clear(): void
 	{
 		$this->records = [];
 	}

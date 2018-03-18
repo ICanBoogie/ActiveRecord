@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototyped;
 
 use function ICanBoogie\singularize;
+use function var_dump;
 
 /**
  * A representation of a database table.
@@ -63,12 +64,7 @@ class Table extends Prototyped
 	 */
 	protected $connection;
 
-	/**
-	 * Returns the connection used by the table.
-	 *
-	 * @return Connection
-	 */
-	protected function get_connection()
+	protected function get_connection(): Connection
 	{
 		return $this->connection;
 	}
@@ -80,10 +76,7 @@ class Table extends Prototyped
 	 */
 	protected $name;
 
-	/**
-	 * @return string
-	 */
-	protected function get_name()
+	protected function get_name(): string
 	{
 		return $this->name;
 	}
@@ -95,11 +88,13 @@ class Table extends Prototyped
 	 */
 	protected $unprefixed_name;
 
-	/**
-	 * @return string
-	 */
-	protected function get_unprefixed_name()
+	protected function get_unprefixed_name(): string
 	{
+		if ($this->unprefixed_name === null)
+		{
+			var_dump($this);
+		}
+
 		return $this->unprefixed_name;
 	}
 
@@ -110,9 +105,6 @@ class Table extends Prototyped
 	 */
 	protected $primary;
 
-	/**
-	 * @return array|null|string
-	 */
 	protected function get_primary()
 	{
 		return $this->primary;
@@ -128,10 +120,7 @@ class Table extends Prototyped
 	 */
 	protected $alias;
 
-	/**
-	 * @return string
-	 */
-	protected function get_alias()
+	protected function get_alias(): string
 	{
 		return $this->alias;
 	}
@@ -143,10 +132,7 @@ class Table extends Prototyped
 	 */
 	protected $schema;
 
-	/**
-	 * @return Schema
-	 */
-	protected function get_schema()
+	protected function get_schema(): Schema
 	{
 		return $this->schema;
 	}
@@ -158,10 +144,7 @@ class Table extends Prototyped
 	 */
 	protected $schema_options;
 
-	/**
-	 * @return array
-	 */
-	protected function get_schema_options()
+	protected function get_schema_options(): array
 	{
 		return $this->schema_options;
 	}
@@ -170,14 +153,11 @@ class Table extends Prototyped
 	 * The parent is used when the table is in a hierarchy, which is the case if the table
 	 * extends another table.
 	 *
-	 * @var Table
+	 * @var Table|null
 	 */
 	protected $parent;
 
-	/**
-	 * @return Table
-	 */
-	protected function get_parent()
+	protected function get_parent(): ?Table
 	{
 		return $this->parent;
 	}
@@ -192,10 +172,7 @@ class Table extends Prototyped
 	 */
 	protected $update_join;
 
-	/**
-	 * @return string
-	 */
-	protected function lazy_get_update_join()
+	protected function lazy_get_update_join(): string
 	{
 		$join = '';
 		$parent = $this->parent;
@@ -219,10 +196,7 @@ class Table extends Prototyped
 	 */
 	protected $select_join;
 
-	/**
-	 * @return string
-	 */
-	protected function lazy_get_select_join()
+	protected function lazy_get_select_join(): string
 	{
 		$join = "`{$this->alias}`" . $this->update_join;
 
@@ -247,7 +221,7 @@ class Table extends Prototyped
 	 *
 	 * @return Schema
 	 */
-	protected function lazy_get_extended_schema()
+	protected function lazy_get_extended_schema(): Schema
 	{
 		$table = $this;
 		$options = [];
@@ -279,7 +253,7 @@ class Table extends Prototyped
 		unset($this->select_join);
 
 		$this->map_construct_attributes($attributes);
-		$this->assert_has_name();
+		$this->assert_has_unprefixed_name();
 		$this->assert_has_schema();
 		$this->assert_parent_is_valid();
 		$this->ensure_has_alias();
@@ -314,7 +288,7 @@ class Table extends Prototyped
 	 *
 	 * @return Statement
 	 */
-	public function __invoke($query, array $args = [], array $options = [])
+	public function __invoke(string $query, array $args = [], array $options = []): Statement
 	{
 		$statement = $this->prepare($query, $options);
 
@@ -326,7 +300,7 @@ class Table extends Prototyped
 	 *
 	 * @param array $attributes
 	 */
-	protected function map_construct_attributes(array $attributes)
+	private function map_construct_attributes(array $attributes): void
 	{
 		foreach ($attributes as $attribute => $value)
 		{
@@ -345,9 +319,9 @@ class Table extends Prototyped
 	/**
 	 * Asserts that the table has a name.
 	 */
-	protected function assert_has_name()
+	private function assert_has_unprefixed_name()
 	{
-		if (!$this->unprefixed_name)
+		if (empty($this->unprefixed_name))
 		{
 			throw new \InvalidArgumentException("The `NAME` attribute is empty.");
 		}
@@ -356,9 +330,9 @@ class Table extends Prototyped
 	/**
 	 * Asserts that the table has a schema.
 	 */
-	protected function assert_has_schema()
+	private function assert_has_schema()
 	{
-		if (!$this->schema_options)
+		if (empty($this->schema_options))
 		{
 			throw new \InvalidArgumentException("The `SCHEMA` attribute is empty.");
 		}
@@ -367,7 +341,7 @@ class Table extends Prototyped
 	/**
 	 * Asserts that the table has a valid connection.
 	 */
-	protected function assert_has_connection()
+	private function assert_has_connection()
 	{
 		$connection = $this->connection;
 
@@ -385,7 +359,7 @@ class Table extends Prototyped
 	/**
 	 * Asserts the parent is valid, if one is specified.
 	 */
-	protected function assert_parent_is_valid()
+	private function assert_parent_is_valid()
 	{
 		$parent = $this->parent;
 
@@ -403,7 +377,7 @@ class Table extends Prototyped
 	/**
 	 * Asserts the implements definition is valid.
 	 */
-	protected function assert_implements_is_valid()
+	private function assert_implements_is_valid()
 	{
 		$implements = $this->implements;
 
@@ -436,7 +410,7 @@ class Table extends Prototyped
 	/**
 	 * Ensures the table has an alias, make one otherwise.
 	 */
-	protected function ensure_has_alias()
+	private function ensure_has_alias(): void
 	{
 		if ($this->alias)
 		{
@@ -444,11 +418,11 @@ class Table extends Prototyped
 		}
 
 		$alias = $this->unprefixed_name;
-		$pos = strrpos($alias, '_');
+		$pos = \strrpos($alias, '_');
 
 		if ($pos !== false)
 		{
-			$alias = substr($alias, $pos + 1);
+			$alias = \substr($alias, $pos + 1);
 		}
 
 		$this->alias = singularize($alias);
@@ -461,7 +435,7 @@ class Table extends Prototyped
 	 *
 	 * @param Table $parent
 	 */
-	protected function construct_with_parent(Table $parent)
+	private function construct_with_parent(Table $parent): void
 	{
 		$this->connection = $parent->connection;
 		$primary = $parent->primary;
@@ -471,7 +445,7 @@ class Table extends Prototyped
 
 		if ($parent->implements)
 		{
-			$this->implements = array_merge($parent->implements, $this->implements);
+			$this->implements = \array_merge($parent->implements, $this->implements);
 		}
 	}
 
@@ -486,9 +460,9 @@ class Table extends Prototyped
 	/**
 	 * Creates table.
 	 *
-	 * @throws \Exception if install fails.
+	 * @throws \Throwable if install fails.
 	 */
-	public function install()
+	public function install(): void
 	{
 		$this->connection->create_table($this->unprefixed_name, $this->schema);
 	}
@@ -496,9 +470,9 @@ class Table extends Prototyped
 	/**
 	 * Drops table.
 	 *
-	 * @throws \Exception if uninstall fails.
+	 * @throws \Throwable if uninstall fails.
 	 */
-	public function uninstall()
+	public function uninstall(): void
 	{
 		$this->drop();
 	}
@@ -508,7 +482,7 @@ class Table extends Prototyped
 	 *
 	 * @return bool `true` if the table exists, `false` otherwise.
 	 */
-	public function is_installed()
+	public function is_installed(): bool
 	{
 		return $this->connection->table_exists($this->unprefixed_name);
 	}
@@ -534,12 +508,12 @@ class Table extends Prototyped
 	 *
 	 * @return string
 	 */
-	public function resolve_statement($statement)
+	public function resolve_statement(string $statement): string
 	{
 		$primary = $this->primary;
-		$primary = is_array($primary) ? '__multicolumn_primary__' . implode('_', $primary) : $primary;
+		$primary = \is_array($primary) ? '__multicolumn_primary__' . \implode('_', $primary) : $primary;
 
-		return strtr($statement, [
+		return \strtr($statement, [
 
 			'{alias}' => $this->alias,
 			'{prefix}' => $this->connection->table_name_prefix,
@@ -556,11 +530,12 @@ class Table extends Prototyped
 	 * The statement is resolved by the {@link resolve_statement()} method before the call is
 	 * forwarded.
 	 *
-	 * @inheritdoc
+	 * @param string $query
+	 * @param array $options
 	 *
 	 * @return Statement
 	 */
-	public function prepare($query, $options = [])
+	public function prepare(string $query, array $options = []): Statement
 	{
 		$query = $this->resolve_statement($query);
 
@@ -575,7 +550,7 @@ class Table extends Prototyped
 	 *
 	 * @return string
 	 */
-	public function quote($string, $parameter_type = \PDO::PARAM_STR)
+	public function quote(string $string, int $parameter_type = \PDO::PARAM_STR): string
 	{
 		return $this->connection->quote($string, $parameter_type);
 	}
@@ -591,7 +566,7 @@ class Table extends Prototyped
 	 *
 	 * @return mixed
 	 */
-	public function execute($query, array $args = [], array $options = [])
+	public function execute(string $query, array $args = [], array $options = [])
 	{
 		$statement = $this->prepare($query, $options);
 
@@ -606,7 +581,7 @@ class Table extends Prototyped
 	 *
 	 * @return array
 	 */
-	protected function filter_values(array $values, $extended = false)
+	private function filter_values(array $values, bool $extended = false): array
 	{
 		$filtered = [];
 		$holders = [];
@@ -635,7 +610,7 @@ class Table extends Prototyped
 	 *
 	 * @return mixed
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function save(array $values, $id = null, array $options = [])
 	{
@@ -647,7 +622,16 @@ class Table extends Prototyped
 		return $this->save_callback($values, $id, $options);
 	}
 
-	protected function save_callback(array $values, $id = null, array $options = [])
+	/**
+	 * @param array $values
+	 * @param null $id
+	 * @param array $options
+	 *
+	 * @return bool|int|null|string
+	 *
+	 * @throws \Exception
+	 */
+	private function save_callback(array $values, $id = null, array $options = [])
 	{
 		if ($id)
 		{
@@ -670,7 +654,7 @@ class Table extends Prototyped
 
 		$driver_name = $this->connection->driver_name;
 
-		list($filtered, $holders, $identifiers) = $this->filter_values($values);
+		[ $filtered, $holders, $identifiers ] = $this->filter_values($values);
 
 		// FIXME: ALL THIS NEED REWRITE !
 
@@ -682,8 +666,7 @@ class Table extends Prototyped
 			{
 				$filtered[] = $id;
 
-				$statement = 'UPDATE `{self}` SET ' . implode(', ', $holders) . ' WHERE `{primary}` = ?';
-
+				$statement = 'UPDATE `{self}` SET ' . \implode(', ', $holders) . ' WHERE `{primary}` = ?';
 				$statement = $this->prepare($statement);
 
 				$rc = $statement->execute($filtered);
@@ -698,8 +681,7 @@ class Table extends Prototyped
 						$holders[] = '`{primary}` = ?';
 					}
 
-					$statement = 'INSERT INTO `{self}` SET ' . implode(', ', $holders);
-
+					$statement = 'INSERT INTO `{self}` SET ' . \implode(', ', $holders);
 					$statement = $this->prepare($statement);
 
 					$rc = $statement->execute($filtered);
@@ -722,8 +704,8 @@ class Table extends Prototyped
 				$filtered[] = $parent_id;
 			}
 
-			$identifiers = implode(', ', $identifiers);
-			$placeholders = implode(', ', array_fill(0, count($filtered), '?'));
+			$identifiers = \implode(', ', $identifiers);
+			$placeholders = \implode(', ', \array_fill(0, \count($filtered), '?'));
 
 			$statement = "INSERT INTO `{self}` ($identifiers) VALUES ($placeholders)";
 			$statement = $this->prepare($statement);
@@ -766,7 +748,7 @@ class Table extends Prototyped
 	 */
 	public function insert(array $values, array $options = [])
 	{
-		list($values, $holders, $identifiers) = $this->filter_values($values);
+		[ $values, $holders, $identifiers ] = $this->filter_values($values);
 
 		if (!$values)
 		{
@@ -786,7 +768,7 @@ class Table extends Prototyped
 				$query .= ' IGNORE ';
 			}
 
-			$query .= ' INTO `{self}` SET ' . implode(', ', $holders);
+			$query .= ' INTO `{self}` SET ' . \implode(', ', $holders);
 
 			if ($on_duplicate)
 			{
@@ -797,17 +779,17 @@ class Table extends Prototyped
 					# removing the primary key and its corresponding value
 					#
 
-					$update_values = array_combine(array_keys($holders), $values);
+					$update_values = \array_combine(\array_keys($holders), $values);
 					$update_holders = $holders;
 
 					$primary = $this->primary;
 
-					if (is_array($primary))
+					if (\is_array($primary))
 					{
-						$flip = array_flip($primary);
+						$flip = \array_flip($primary);
 
-						$update_holders = array_diff_key($update_holders, $flip);
-						$update_values = array_diff_key($update_values, $flip);
+						$update_holders = \array_diff_key($update_holders, $flip);
+						$update_values = \array_diff_key($update_values, $flip);
 					}
 					else
 					{
@@ -815,23 +797,23 @@ class Table extends Prototyped
 						unset($update_values[$primary]);
 					}
 
-					$update_values = array_values($update_values);
+					$update_values = \array_values($update_values);
 				}
 				else
 				{
 					list($update_values, $update_holders) = $this->filter_values($on_duplicate);
 				}
 
-				$query .= ' ON DUPLICATE KEY UPDATE ' . implode(', ', $update_holders);
+				$query .= ' ON DUPLICATE KEY UPDATE ' . \implode(', ', $update_holders);
 
-				$values = array_merge($values, $update_values);
+				$values = \array_merge($values, $update_values);
 			}
 		}
 		else if ($driver_name == 'sqlite')
 		{
-			$holders = array_fill(0, count($identifiers), '?');
+			$holders = \array_fill(0, \count($identifiers), '?');
 
-			$query = 'INSERT' . ($on_duplicate ? ' OR REPLACE' : '') . ' INTO `{self}` (' . implode(', ', $identifiers) . ') VALUES (' . implode(', ', $holders) . ')';
+			$query = 'INSERT' . ($on_duplicate ? ' OR REPLACE' : '') . ' INTO `{self}` (' . \implode(', ', $identifiers) . ') VALUES (' . \implode(', ', $holders) . ')';
 		}
 		else
 		{
@@ -869,7 +851,7 @@ class Table extends Prototyped
 
 				if ($holders)
 				{
-					$query = 'UPDATE `{self}` SET ' . implode(', ', $holders) . ' WHERE `{primary}` = ?';
+					$query = 'UPDATE `{self}` SET ' . \implode(', ', $holders) . ' WHERE `{primary}` = ?';
 					$table_values[] = $key;
 
 					$rc = $table->execute($query, $table_values);
@@ -888,7 +870,7 @@ class Table extends Prototyped
 
 		list($values, $holders) = $this->filter_values($values, true);
 
-		$query = 'UPDATE `{self}` ' . $this->update_join . ' SET ' . implode(', ', $holders) . ' WHERE `{primary}` = ?';
+		$query = "UPDATE `{self}` $this->update_join  SET " . implode(', ', $holders) . ' WHERE `{primary}` = ?';
 		$values[] = $key;
 
 		return $this->execute($query, $values);
@@ -910,7 +892,7 @@ class Table extends Prototyped
 
 		$where = 'where ';
 
-		if (is_array($this->primary))
+		if (\is_array($this->primary))
 		{
 			$parts = [];
 
@@ -919,14 +901,14 @@ class Table extends Prototyped
 				$parts[] = '`' . $identifier . '` = ?';
 			}
 
-			$where .= implode(' and ', $parts);
+			$where .= \implode(' and ', $parts);
 		}
 		else
 		{
 			$where .= '`{primary}` = ?';
 		}
 
-		$statement = $this->prepare('delete from `{self}` ' . $where);
+		$statement = $this->prepare('DELETE FROM `{self}` ' . $where);
 		$statement((array) $key);
 
 		return !!$statement->rowCount();
@@ -960,7 +942,7 @@ class Table extends Prototyped
 	 *
 	 * @return mixed
 	 */
-	public function drop(array $options=[])
+	public function drop(array $options = [])
 	{
 		$query = 'DROP TABLE ';
 

@@ -24,7 +24,7 @@ class DateTimePropertySupport
 	 * @param mixed $property Reference to the property to set.
 	 * @param \DateTimeInterface|string $datetime Date and time.
 	 */
-	static public function set(&$property, $datetime)
+	static public function set(&$property, $datetime): void
 	{
 		$property = $datetime === 'now' ? DateTime::now() : $datetime;
 	}
@@ -36,7 +36,7 @@ class DateTimePropertySupport
 	 *
 	 * @return DateTime The function always return a {@link DateTime} instance.
 	 */
-	static public function get(&$property)
+	static public function get(&$property): DateTime
 	{
 		if ($property instanceof DateTime)
 		{
@@ -52,7 +52,7 @@ class DateTimePropertySupport
 	 *
 	 * @return DateTime
 	 */
-	static public function ensureNotEmpty(&$property, $datetime = 'now')
+	static public function ensureNotEmpty(&$property, $datetime = 'now'): DateTime
 	{
 		if (!self::get($property)->is_empty) {
 			return $property;

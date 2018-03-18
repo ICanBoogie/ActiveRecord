@@ -26,38 +26,29 @@ class ActiveRecordClassNotValid extends \LogicException implements Exception
 
 	/**
 	 * @var string
+	 * @uses get_class
 	 */
 	private $class;
 
-	/**
-	 * @return string
-	 */
-	protected function get_class()
+	private function get_class(): string
 	{
 		return $this->class;
 	}
 
 	/**
-	 * @param string $class
+	 * @param mixed $class
 	 * @param string|null $message
 	 * @param int $code
-	 * @param \Exception|null $previous
+	 * @param \Throwable|null $previous
 	 */
-	public function __construct($class, $message = null, $code = 500, \Exception $previous = null)
+	public function __construct($class, string $message = null, int $code = 500, \Throwable $previous = null)
 	{
 		$this->class = $class;
 
 		parent::__construct($message ?: $this->format_message($class), $code, $previous);
 	}
 
-	/**
-	 * Formats exception message.
-	 *
-	 * @param string $class
-	 *
-	 * @return string
-	 */
-	protected function format_message($class)
+	private function format_message(string $class): string
 	{
 		return format("ActiveRecord class is not valid: %class", [
 

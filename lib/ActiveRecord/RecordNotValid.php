@@ -29,36 +29,27 @@ class RecordNotValid extends \LogicException implements Exception
 
 	/**
 	 * @var ActiveRecord
+	 * @uses get_record
 	 */
 	private $record;
 
-	/**
-	 * @return ActiveRecord
-	 */
-	protected function get_record()
+	private function get_record(): ActiveRecord
 	{
 		return $this->record;
 	}
 
 	/**
 	 * @var ValidationErrors
+	 * @uses get_errors
 	 */
 	private $errors;
 
-	/**
-	 * @return ValidationErrors
-	 */
-	protected function get_errors()
+	private function get_errors(): ValidationErrors
 	{
 		return $this->errors;
 	}
 
-	/**
-	 * @param ActiveRecord $record
-	 * @param ValidationErrors $errors
-	 * @param \Exception|null $previous
-	 */
-	public function __construct(ActiveRecord $record, ValidationErrors $errors, \Exception $previous = null)
+	public function __construct(ActiveRecord $record, ValidationErrors $errors, \Throwable $previous = null)
 	{
 		$this->record = $record;
 		$this->errors = $errors;
@@ -66,14 +57,7 @@ class RecordNotValid extends \LogicException implements Exception
 		parent::__construct($this->format_message($errors), 500, $previous);
 	}
 
-	/**
-	 * Formats exception message.
-	 *
-	 * @param ValidationErrors $errors
-	 *
-	 * @return string
-	 */
-	protected function format_message(ValidationErrors $errors)
+	private function format_message(ValidationErrors $errors): string
 	{
 		$message = self::DEFAULT_MESSAGE . "\n";
 

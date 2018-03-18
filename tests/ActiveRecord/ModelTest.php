@@ -607,8 +607,24 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 		/* @var $car Car */
 		$car = $cars->new([ 'name' => '4two' ]);
 		$this->assertInstanceOf(Car::class, $car);
-		$this->assertNull($car->driver);
-		$this->assertNull($car->brand);
+
+		try
+		{
+			$car->driver;
+		}
+		catch (\LogicException $e)
+		{
+			$this->assertStringStartsWith("Unable to establish relation", $e->getMessage());
+		}
+
+		try
+		{
+			$car->brand;
+		}
+		catch (\LogicException $e)
+		{
+			$this->assertStringStartsWith("Unable to establish relation", $e->getMessage());
+		}
 
 		# driver
 
@@ -771,7 +787,7 @@ EOT
 
 		$records[1]->delete();
 		$this->assertNull($activerecord_cache->retrieve(1));
-		$this->setExpectedException(RecordNotFound::class);
+		$this->expectException(RecordNotFound::class);
 		$model[1];
 	}
 

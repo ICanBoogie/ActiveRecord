@@ -27,10 +27,11 @@ class RelationCollection implements \ArrayAccess
 	 * Parent model.
 	 *
 	 * @var Model
+	 * @uses get_model
 	 */
-	protected $model;
+	private $model;
 
-	protected function get_model()
+	private function get_model(): Model
 	{
 		return $this->model;
 	}
@@ -40,11 +41,9 @@ class RelationCollection implements \ArrayAccess
 	 *
 	 * @var Relation[]
 	 */
-	protected $relations;
+	private $relations;
 
 	/**
-	 * Initialize the {@link $model} property.
-	 *
 	 * @param Model $model The parent model.
 	 */
 	public function __construct(Model $model)
@@ -125,14 +124,14 @@ class RelationCollection implements \ArrayAccess
 	 */
 	public function belongs_to($belongs_to)
 	{
-		if (func_num_args() > 1)
+		if (\func_num_args() > 1)
 		{
-			$belongs_to = func_get_args();
+			$belongs_to = \func_get_args();
 		}
 
 		foreach ((array) $belongs_to as $definition)
 		{
-			if (!is_array($definition))
+			if (!\is_array($definition))
 			{
 				$definition = [ $definition ];
 			}
@@ -171,7 +170,7 @@ class RelationCollection implements \ArrayAccess
 	 */
 	public function has_many($related, array $options = [])
 	{
-		if (is_array($related))
+		if (\is_array($related))
 		{
 			$relation_list = $related;
 

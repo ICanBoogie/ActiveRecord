@@ -31,15 +31,17 @@ class Statement extends \PDOStatement
 	 * The database connection that created this statement.
 	 *
 	 * @var Connection
+	 * @uses get_connection
+	 * @uses set_connection
 	 */
 	private $connection;
 
-	protected function get_connection()
+	private function get_connection(): Connection
 	{
 		return $this->connection;
 	}
 
-	protected function set_connection(Connection $connection)
+	protected function set_connection(Connection $connection): void
 	{
 		$this->connection = $connection;
 	}
@@ -52,13 +54,13 @@ class Statement extends \PDOStatement
 	 *     $statement(1, 2, 3);
 	 *     $statement([ 1, 2, 3 ]);
 	 *
+	 * @param array|mixed... $args
+	 *
 	 * @return $this
 	 */
-	public function __invoke()
+	public function __invoke(...$args): self
 	{
-		$args = func_get_args();
-
-		if ($args && is_array($args[0]))
+		if ($args && \is_array($args[0]))
 		{
 			$args = $args[0];
 		}
@@ -90,7 +92,7 @@ class Statement extends \PDOStatement
 	 */
 	public function execute($args = [])
 	{
-		$start = microtime(true);
+		$start = \microtime(true);
 
 		if (!empty($this->connection))
 		{
@@ -99,7 +101,7 @@ class Statement extends \PDOStatement
 
 		try
 		{
-			$this->connection->profiling[] = [ $start, microtime(true), $this->queryString . ' ' . json_encode($args) ];
+			$this->connection->profiling[] = [ $start, \microtime(true), $this->queryString . ' ' . \json_encode($args) ];
 
 			return parent::execute($args);
 		}

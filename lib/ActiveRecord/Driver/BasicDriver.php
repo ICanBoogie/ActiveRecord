@@ -27,17 +27,13 @@ abstract class BasicDriver implements Driver
 
 	/**
 	 * @var callable
+	 * @uses get_connection
 	 */
 	private $connection_provider;
 
-	/**
-	 * @return Connection
-	 */
-	protected function get_connection()
+	private function get_connection(): Connection
 	{
-		$connection_provider = $this->connection_provider;
-
-		return $connection_provider();
+		return ($this->connection_provider)();
 	}
 
 	/**
@@ -55,9 +51,9 @@ abstract class BasicDriver implements Driver
 	{
 		$connection = $this->connection;
 
-		if (is_array($string))
+		if (\is_array($string))
 		{
-			return array_map(function($v) use($connection) {
+			return \array_map(function ($v) use ($connection) {
 
 				return $connection->quote($v);
 
@@ -74,9 +70,9 @@ abstract class BasicDriver implements Driver
 	{
 		$quote = '`';
 
-		if (is_array($identifier))
+		if (\is_array($identifier))
 		{
-			return array_map(function($v) use ($quote) {
+			return \array_map(function ($v) use ($quote) {
 
 				return $quote . $v . $quote;
 
@@ -93,9 +89,7 @@ abstract class BasicDriver implements Driver
 	{
 		if ($value instanceof \DateTimeInterface)
 		{
-			$value = DateTime::from($value);
-
-			return $value->utc->as_db;
+			return DateTime::from($value)->utc->as_db;
 		}
 
 		if ($value === false)
@@ -118,7 +112,7 @@ abstract class BasicDriver implements Driver
 	 *
 	 * @return string
 	 */
-	protected function resolve_table_name($unprefixed_table_name)
+	protected function resolve_table_name(string $unprefixed_table_name): string
 	{
 		return $this->connection->table_name_prefix . $unprefixed_table_name;
 	}
@@ -130,7 +124,7 @@ abstract class BasicDriver implements Driver
 	 *
 	 * @return string
 	 */
-	protected function resolve_quoted_table_name($unprefixed_table_name)
+	protected function resolve_quoted_table_name(string $unprefixed_table_name): string
 	{
 		return $this->quote_identifier($this->connection->table_name_prefix . $unprefixed_table_name);
 	}
@@ -143,7 +137,7 @@ abstract class BasicDriver implements Driver
 	 *
 	 * @return string
 	 */
-	protected function resolve_index_name($unprefixed_table_name, $index_id)
+	protected function resolve_index_name(string $unprefixed_table_name, string $index_id): string
 	{
 		return $index_id;
 	}

@@ -28,10 +28,11 @@ class ModelCollection implements \ArrayAccess
 	 * Instantiated models.
 	 *
 	 * @var Model[]
+	 * @uses get_instances
 	 */
-	protected $instances = [];
+	private $instances = [];
 
-	protected function get_instances()
+	private function get_instances(): array
 	{
 		return $this->instances;
 	}
@@ -40,30 +41,26 @@ class ModelCollection implements \ArrayAccess
 	 * Models definitions.
 	 *
 	 * @var array
+	 * @uses get_definitions
 	 */
-	protected $definitions = [];
+	private $definitions = [];
 
-	protected function get_definitions()
+	private function get_definitions(): array
 	{
 		return $this->definitions;
 	}
 
 	/**
 	 * @var ConnectionCollection
+	 * @uses get_connections
 	 */
-	protected $connections;
+	private $connections;
 
-	protected function get_connections()
+	private function get_connections(): ConnectionCollection
 	{
 		return $this->connections;
 	}
 
-	/**
-	 * Initializes the {@link $connections} and {@link $definitions} properties.
-	 *
-	 * @param ConnectionCollection $connections
-	 * @param array $definitions Model definitions.
-	 */
 	public function __construct(ConnectionCollection $connections, array $definitions = [])
 	{
 		$this->connections = $connections;
@@ -157,6 +154,65 @@ class ModelCollection implements \ArrayAccess
 	}
 
 	/**
+	 * Install all the models.
+	 *
+	 * @throws \Throwable
+	 */
+	public function install(): void
+	{
+		foreach (\array_keys($this->definitions) as $id)
+		{
+			$model = $this[$id];
+
+			if ($model->is_installed())
+			{
+				continue;
+			}
+
+			$model->install();
+		}
+	}
+
+	/**
+	 * Uninstall all the models.
+	 *
+	 * @throws \Throwable
+	 */
+	public function uninstall(): void
+	{
+		foreach (\array_keys($this->definitions) as $id)
+		{
+			$model = $this[$id];
+
+			if (!$model->is_installed())
+			{
+				continue;
+
+			}
+
+			$model->uninstall();
+		}
+	}
+
+	/**
+	 * Check if models are installed.
+	 *
+	 * @return array An array of key/value pair where _key_ is a model identifier and
+	 * _value_ `true` if the model is installed, `false` otherwise.
+	 */
+	public function is_installed(): array
+	{
+		$rc = [];
+
+		foreach (\array_keys($this->definitions) as $id)
+		{
+			$rc[$id] = $this[$id]->is_installed();
+		}
+
+		return $rc;
+	}
+
+	/**
 	 * Resolves model attributes.
 	 *
 	 * The methods replaces {@link Model::CONNECTION} and {@link Model::EXTENDING} identifier
@@ -166,7 +222,7 @@ class ModelCollection implements \ArrayAccess
 	 *
 	 * @return array
 	 */
-	protected function resolve_model_attributes(array $attributes)
+	private function resolve_model_attributes(array $attributes): array
 	{
 		$attributes += [
 
@@ -200,73 +256,10 @@ class ModelCollection implements \ArrayAccess
 	 *
 	 * @return Model
 	 */
-	protected function instantiate_model(array $attributes)
+	private function instantiate_model(array $attributes): Model
 	{
 		$class = $attributes[Model::CLASSNAME];
 
 		return new $class($this, $attributes);
-	}
-
-	/**
-	 * Install all the models.
-	 *
-	 * @return ModelCollection
-	 */
-	public function install()
-	{
-		foreach (array_keys($this->definitions) as $id)
-		{
-			$model = $this[$id];
-
-			if ($model->is_installed())
-			{
-				continue;
-			}
-
-			$model->install();
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Uninstall all the models.
-	 *
-	 * @return ModelCollection
-	 */
-	public function uninstall()
-	{
-		foreach (array_keys($this->definitions) as $id)
-		{
-			$model = $this[$id];
-
-			if (!$model->is_installed())
-			{
-				continue;
-
-			}
-
-			$model->uninstall();
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Check if models are installed.
-	 *
-	 * @return array An array of key/value pair where _key_ is a model identifier and
-	 * _value_ `true` if the model is installed, `false` otherwise.
-	 */
-	public function is_installed()
-	{
-		$rc = [];
-
-		foreach (array_keys($this->definitions) as $id)
-		{
-			$rc[$id] = $this[$id]->is_installed();
-		}
-
-		return $rc;
 	}
 }

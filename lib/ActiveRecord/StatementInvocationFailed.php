@@ -25,32 +25,27 @@ class StatementInvocationFailed extends \LogicException implements Exception
 
 	/**
 	 * @var Statement
+	 * @uses get_statement
 	 */
 	private $statement;
 
-	protected function get_statement()
+	private function get_statement()
 	{
 		return $this->statement;
 	}
 
 	/**
 	 * @var array
+	 * @uses get_args
 	 */
 	private $args;
 
-	protected function get_args()
+	private function get_args()
 	{
 		return $this->args;
 	}
 
-	/**
-	 * @param Statement $statement
-	 * @param array $args
-	 * @param string|null $message
-	 * @param int $code
-	 * @param \Exception|null $previous
-	 */
-	public function __construct(Statement $statement, array $args, $message = null, $code = 500, \Exception $previous = null)
+	public function __construct(Statement $statement, array $args, string $message = null, int $code = 500, \Throwable $previous = null)
 	{
 		$this->statement = $statement;
 		$this->args = $args;
@@ -68,6 +63,6 @@ class StatementInvocationFailed extends \LogicException implements Exception
 	 */
 	private function format_message(Statement $statement, array $args)
 	{
-		return "Statement execution failed: {$statement->queryString}, with: " . json_encode($args);
+		return "Statement execution failed: {$statement->queryString}, with: " . \json_encode($args);
 	}
 }

@@ -56,12 +56,7 @@ class Unique extends ValidatorAbstract
 		return [ self::OPTION_COLUMN ];
 	}
 
-	/**
-	 * @param Context $context
-	 *
-	 * @return ActiveRecord
-	 */
-	protected function resolve_record(Context $context)
+	private function resolve_record(Context $context): ActiveRecord
 	{
 		$reader = $context->reader;
 

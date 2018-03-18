@@ -18,10 +18,7 @@ class Sample extends ActiveRecord
 	 */
 	private $id;
 
-	/**
-	 * @return int|null
-	 */
-	protected function get_id()
+	protected function get_id(): ?int
 	{
 		return $this->id;
 	}
@@ -33,7 +30,7 @@ class Sample extends ActiveRecord
 	 *
 	 * @inheritdoc
 	 */
-	protected function alter_persistent_properties(array $properties, ActiveRecord\Schema $schema)
+	protected function alter_persistent_properties(array $properties, ActiveRecord\Schema $schema): array
 	{
 		return array_merge(parent::alter_persistent_properties($properties, $schema), [
 
@@ -45,7 +42,7 @@ class Sample extends ActiveRecord
 	/**
 	 * @param int $id
 	 */
-	protected function update_primary_key($id)
+	protected function update_primary_key($id): void
 	{
 		$this->id = $id;
 	}

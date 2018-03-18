@@ -18,7 +18,7 @@ use ICanBoogie\Accessor\AccessorTrait;
  *
  * @property-read string $statement The invalid statement.
  * @property-read array $args The arguments of the statement.
- * @property-read \PDOException $original The original exception.
+ * @property-read \PDOException|null $original The original exception.
  */
 class StatementNotValid extends \RuntimeException implements Exception
 {
@@ -26,30 +26,33 @@ class StatementNotValid extends \RuntimeException implements Exception
 
 	/**
 	 * @var string
+	 * @uses get_statement
 	 */
 	private $statement;
 
-	protected function get_statement()
+	private function get_statement(): string
 	{
 		return $this->statement;
 	}
 
 	/**
 	 * @var array
+	 * @uses get_args
 	 */
 	private $args;
 
-	protected function get_args()
+	private function get_args(): array
 	{
 		return $this->args;
 	}
 
 	/**
-	 * @var \PDOException
+	 * @var \PDOException|null
+	 * @uses get_original
 	 */
 	private $original;
 
-	protected function get_original()
+	private function get_original(): ?\PDOException
 	{
 		return $this->original;
 	}
@@ -59,13 +62,13 @@ class StatementNotValid extends \RuntimeException implements Exception
 	 * @param int $code
 	 * @param \PDOException|null $original
 	 */
-	public function __construct($statement, $code = 500, \PDOException $original = null)
+	public function __construct($statement, int $code = 500, \PDOException $original = null)
 	{
 		$args = [];
 
-		if (is_array($statement))
+		if (\is_array($statement))
 		{
-			list($statement, $args) = $statement;
+			[ $statement, $args ] = $statement;
 		}
 
 		$this->statement = $statement;
@@ -75,31 +78,22 @@ class StatementNotValid extends \RuntimeException implements Exception
 		parent::__construct($this->format_message($statement, $args, $original), $code);
 	}
 
-	/**
-	 * Formats exception message.
-	 *
-	 * @param string $statement
-	 * @param array $args
-	 * @param \PDOException $original
-	 *
-	 * @return string
-	 */
-	protected function format_message($statement, array $args, \PDOException $original = null)
+	private function format_message(string $statement, array $args, \PDOException $previous = null): string
 	{
 		$message = null;
 
-		if ($original)
+		if ($previous)
 		{
-			$er = array_pad($original->errorInfo, 3, '');
+			$er = \array_pad($previous->errorInfo, 3, '');
 
-			$message = sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
+			$message = \sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
 		}
 
 		$message .= "`$statement`";
 
 		if ($args)
 		{
-			$message .= " " . ($args ? json_encode($args) : "[]");
+			$message .= " " . ($args ? \json_encode($args) : "[]");
 		}
 
 		return $message;

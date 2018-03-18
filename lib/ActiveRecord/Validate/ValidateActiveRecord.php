@@ -81,13 +81,12 @@ class ValidateActiveRecord
 	 *
 	 * @param array $rules
 	 * @param callable $validator_provider
-	 * @param callable $message_formatter
 	 *
 	 * @return Validation
 	 */
-	protected function create_validator(array $rules, callable $validator_provider = null, callable $message_formatter = null)
+	protected function create_validator(array $rules, callable $validator_provider = null): Validation
 	{
-		return new Validation($rules, $validator_provider, $message_formatter);
+		return new Validation($rules, $validator_provider);
 	}
 
 	/**
@@ -97,7 +96,7 @@ class ValidateActiveRecord
 	 *
 	 * @return RecordAdapter
 	 */
-	protected function create_reader(ActiveRecord $record)
+	protected function create_reader(ActiveRecord $record): RecordAdapter
 	{
 		return new RecordAdapter($record);
 	}

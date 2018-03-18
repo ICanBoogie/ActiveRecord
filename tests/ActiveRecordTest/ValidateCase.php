@@ -50,7 +50,7 @@ class ValidateCase extends ActiveRecord
 	/**
 	 * @inheritdoc
 	 */
-	public function create_validation_rules()
+	public function create_validation_rules(): array
 	{
 		return parent::create_validation_rules() + [
 

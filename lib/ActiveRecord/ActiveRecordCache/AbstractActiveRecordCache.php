@@ -26,9 +26,6 @@ abstract class AbstractActiveRecordCache implements ActiveRecordCache
 	 */
 	protected $model;
 
-	/**
-	 * @param Model $model
-	 */
 	public function __construct(Model $model)
 	{
 		$this->model = $model;

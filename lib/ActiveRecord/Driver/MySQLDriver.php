@@ -11,7 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord\Driver;
 
-use ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaColumn;
 
@@ -23,7 +22,7 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function render_column(SchemaColumn $column)
+	public function render_column(SchemaColumn $column): string
 	{
 		return (string) $column;
 	}
@@ -31,7 +30,7 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function create_table($unprefixed_table_name, Schema $schema)
+	public function create_table(string $unprefixed_table_name, Schema $schema): void
 	{
 		$statement = $this->render_create_table($unprefixed_table_name, $schema);
 		$this->connection->exec($statement);
@@ -43,7 +42,7 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function create_indexes($unprefixed_table_name, Schema $schema)
+	public function create_indexes(string $unprefixed_table_name, Schema $schema): void
 	{
 		$this->create_indexes_of('', $unprefixed_table_name, $schema->indexes);
 	}
@@ -51,7 +50,7 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function create_unique_indexes($unprefixed_table_name, Schema $schema)
+	public function create_unique_indexes(string $unprefixed_table_name, Schema $schema): void
 	{
 		$this->create_indexes_of('UNIQUE', $unprefixed_table_name, $schema->unique_indexes);
 	}
@@ -59,21 +58,21 @@ class MySQLDriver extends BasicDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function table_exists($unprefixed_name)
+	public function table_exists(string $unprefixed_name): bool
 	{
 		$tables = $this->connection->query('SHOW TABLES')->all(\PDO::FETCH_COLUMN);
 
-		return in_array($this->resolve_table_name($unprefixed_name), $tables);
+		return \in_array($this->resolve_table_name($unprefixed_name), $tables);
 	}
 
 	/**
 	 * @inheritdoc
 	 */
-	public function optimize()
+	public function optimize(): void
 	{
 		$connection = $this->connection;
 		$tables = $connection->query('SHOW TABLES')->all(\PDO::FETCH_COLUMN);
-		$connection->exec('OPTIMIZE TABLE ' . implode(', ', $tables));
+		$connection->exec('OPTIMIZE TABLE ' . \implode(', ', $tables));
 	}
 
 	/**
@@ -84,14 +83,14 @@ class MySQLDriver extends BasicDriver
 	 *
 	 * @return string
 	 */
-	protected function render_create_table($unprefixed_table_name, Schema $schema)
+	protected function render_create_table(string $unprefixed_table_name, Schema $schema): string
 	{
 		$connection = $this->connection;
 		$quoted_table_name = $this->resolve_quoted_table_name($unprefixed_table_name);
 		$lines = $this->render_create_table_lines($schema);
 		$lines[] = $this->render_create_table_primary_key($schema);
 
-		return "CREATE TABLE $quoted_table_name\n(\n\t" . implode(",\n\t", array_filter($lines)) . "\n)"
+		return "CREATE TABLE $quoted_table_name\n(\n\t" . \implode(",\n\t", \array_filter($lines)) . "\n)"
 		. " CHARACTER SET $connection->charset  COLLATE $connection->collate";
 	}
 
@@ -102,7 +101,7 @@ class MySQLDriver extends BasicDriver
 	 *
 	 * @return array
 	 */
-	protected function render_create_table_lines(Schema $schema)
+	protected function render_create_table_lines(Schema $schema): array
 	{
 		$lines = [];
 
@@ -123,7 +122,7 @@ class MySQLDriver extends BasicDriver
 	 *
 	 * @return string
 	 */
-	protected function render_create_table_line(Schema $schema, $column_id, $column)
+	protected function render_create_table_line(Schema $schema, string $column_id, SchemaColumn $column): string
 	{
 		return $this->quote_identifier($column_id) . " " . $this->render_column($column);
 	}
@@ -135,7 +134,7 @@ class MySQLDriver extends BasicDriver
 	 *
 	 * @return string
 	 */
-	protected function render_create_table_primary_key(Schema $schema)
+	protected function render_create_table_primary_key(Schema $schema): string
 	{
 		$primary = $schema->primary;
 
@@ -146,9 +145,9 @@ class MySQLDriver extends BasicDriver
 
 		$quoted_primary_key = $this->quote_identifier($primary);
 
-		if (is_array($quoted_primary_key))
+		if (\is_array($quoted_primary_key))
 		{
-			$quoted_primary_key = implode(', ', $quoted_primary_key);
+			$quoted_primary_key = \implode(', ', $quoted_primary_key);
 		}
 
 		return "PRIMARY KEY($quoted_primary_key)";
@@ -161,7 +160,7 @@ class MySQLDriver extends BasicDriver
 	 * @param string $unprefixed_table_name
 	 * @param array $indexes
 	 */
-	protected function create_indexes_of($type, $unprefixed_table_name, array $indexes)
+	protected function create_indexes_of(string $type, string $unprefixed_table_name, array $indexes): void
 	{
 		if (!$indexes)
 		{
@@ -179,7 +178,7 @@ class MySQLDriver extends BasicDriver
 		foreach ($indexes as $index_name => $column_names)
 		{
 			$column_names = $this->quote_identifier($column_names);
-			$rendered_column_names = implode(', ', $column_names);
+			$rendered_column_names = \implode(', ', $column_names);
 			$quoted_index_name = $this->quote_identifier($this->resolve_index_name($unprefixed_table_name, $index_name));
 
 			$connection->exec("CREATE {$type}INDEX $quoted_index_name ON $quoted_table_name ($rendered_column_names)");

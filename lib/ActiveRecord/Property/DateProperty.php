@@ -34,7 +34,7 @@ trait DateProperty
 	 *
 	 * @return DateTime
 	 */
-	protected function get_date()
+	protected function get_date(): DateTime
 	{
 		return DateTimePropertySupport::get($this->date);
 	}
@@ -44,7 +44,7 @@ trait DateProperty
 	 *
 	 * @param mixed $date
 	 */
-	protected function set_date($date)
+	protected function set_date($date): void
 	{
 		DateTimePropertySupport::set($this->date, $date);
 	}

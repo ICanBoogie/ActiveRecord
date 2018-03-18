@@ -22,14 +22,14 @@ class SQLiteDriver extends MySQLDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function render_column(SchemaColumn $column)
+	public function render_column(SchemaColumn $column): string
 	{
 		if ($column->primary && $column->type == SchemaColumn::TYPE_INTEGER)
 		{
 			return "INTEGER NOT NULL";
 		}
 
-		return implode(' ', array_filter([
+		return \implode(' ', \array_filter([
 
 			$column->formatted_type,
 			$column->formatted_attributes,
@@ -44,19 +44,19 @@ class SQLiteDriver extends MySQLDriver
 	/**
 	 * @inheritdoc
 	 */
-	protected function render_create_table($unprefixed_table_name, Schema $schema)
+	protected function render_create_table(string $unprefixed_table_name, Schema $schema): string
 	{
 		$quoted_table_name = $this->resolve_quoted_table_name($unprefixed_table_name);
 		$lines = $this->render_create_table_lines($schema);
 		$lines[] = $this->render_create_table_primary_key($schema);
 
-		return "CREATE TABLE $quoted_table_name\n(\n\t" . implode(",\n\t", array_filter($lines)) . "\n)";
+		return "CREATE TABLE $quoted_table_name\n(\n\t" . \implode(",\n\t", \array_filter($lines)) . "\n)";
 	}
 
 	/**
 	 * @inheritdoc
 	 */
-	public function table_exists($unprefixed_name)
+	public function table_exists(string $unprefixed_name): bool
 	{
 		$name = $this->resolve_table_name($unprefixed_name);
 
@@ -70,7 +70,7 @@ class SQLiteDriver extends MySQLDriver
 	/**
 	 * @inheritdoc
 	 */
-	public function optimize()
+	public function optimize(): void
 	{
 		$this->connection->exec('VACUUM');
 	}
@@ -78,8 +78,8 @@ class SQLiteDriver extends MySQLDriver
 	/**
 	 * @inheritdoc
 	 */
-	protected function resolve_index_name($unprefixed_table_name, $index_id)
+	protected function resolve_index_name(string $unprefixed_table_name, string $index_id): string
 	{
-		return $index_id . '_' . substr(sha1($unprefixed_table_name), 0 , 8);
+		return $index_id . '_' . \substr(\sha1($unprefixed_table_name), 0 , 8);
 	}
 }

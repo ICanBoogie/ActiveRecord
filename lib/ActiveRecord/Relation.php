@@ -32,10 +32,11 @@ abstract class Relation
 	 * The parent model of the relation.
 	 *
 	 * @var Model
+	 * @uses get_parent
 	 */
-	protected $parent;
+	private $parent;
 
-	protected function get_parent()
+	private function get_parent(): Model
 	{
 		return $this->parent;
 	}
@@ -44,10 +45,11 @@ abstract class Relation
 	 * The related model of the relation.
 	 *
 	 * @var Model
+	 * @uses get_related
 	 */
-	protected $related;
+	private $related;
 
-	protected function get_related()
+	private function get_related(): Model
 	{
 		$related = $this->related;
 
@@ -65,10 +67,11 @@ abstract class Relation
 	 * The name of the relation.
 	 *
 	 * @var string
+	 * @uses get_as
 	 */
-	protected $as;
+	private $as;
 
-	protected function get_as()
+	private function get_as(): string
 	{
 		return $this->as;
 	}
@@ -77,10 +80,11 @@ abstract class Relation
 	 * Local key. Default: The parent model's primary key.
 	 *
 	 * @var string
+	 * @uses get_local_key
 	 */
-	protected $local_key;
+	private $local_key;
 
-	protected function get_local_key()
+	private function get_local_key(): string
 	{
 		return $this->local_key;
 	}
@@ -89,10 +93,11 @@ abstract class Relation
 	 * Foreign key. Default: The parent model's primary key.
 	 *
 	 * @var string
+	 * @uses get_foreign_key
 	 */
-	protected $foreign_key;
+	private $foreign_key;
 
-	protected function get_foreign_key()
+	private function get_foreign_key(): string
 	{
 		return $this->foreign_key;
 	}
@@ -138,7 +143,7 @@ abstract class Relation
 	 *
 	 * @param ActiveRecord $record
 	 *
-	 * @return Query
+	 * @return mixed
 	 */
 	abstract public function __invoke(ActiveRecord $record);
 
@@ -148,7 +153,7 @@ abstract class Relation
 	 * @param Prototype $prototype The active record prototype.
 	 * @param string $property The name of the property.
 	 */
-	protected function alter_prototype(Prototype $prototype, $property)
+	protected function alter_prototype(Prototype $prototype, string $property): void
 	{
 		$prototype["get_$property"] = $this;
 	}
@@ -158,11 +163,11 @@ abstract class Relation
 	 *
 	 * @param Model $model
 	 *
-	 * @throws \LogicException if the class is {@link ActiveRecord}.
+	 * @throws ActiveRecordClassNotValid
 	 *
 	 * @return string
 	 */
-	protected function resolve_activerecord_class(Model $model)
+	protected function resolve_activerecord_class(Model $model): string
 	{
 		$activerecord_class = $model->activerecord_class;
 
@@ -181,12 +186,12 @@ abstract class Relation
 	 *
 	 * @return string
 	 */
-	protected function resolve_property_name($related)
+	protected function resolve_property_name($related): string
 	{
 		$related_id = $related instanceof Model ? $related->id : $related;
-		$parts = explode('.', $related_id);
+		$parts = \explode('.', $related_id);
 
-		return array_pop($parts);
+		return \array_pop($parts);
 	}
 
 	/**
@@ -194,17 +199,17 @@ abstract class Relation
 	 *
 	 * @return Model
 	 */
-	protected function resolve_related()
+	protected function resolve_related(): Model
 	{
 		$related = $this->related;
 
-		if (!$related instanceof Model)
+		if ($related instanceof Model)
 		{
-			/* @var $related string */
-
-			$this->related = $related = $this->parent->models[$related];
+			return $related;
 		}
 
-		return $related;
+		/* @var $related string */
+
+		return $this->related = $this->parent->models[$related];
 	}
 }

@@ -44,15 +44,26 @@ class ActiveRecord extends Prototyped
 	 */
 	private $model;
 
+	protected function get_model(): Model
+	{
+		return $this->model
+			?: $this->model = ActiveRecord\get_model($this->model_id);
+	}
+
 	/**
 	 * Identifier of the model managing the active record.
 	 *
 	 * Note: Due to a PHP bug (or feature), the visibility of the property MUST NOT be private.
 	 * https://bugs.php.net/bug.php?id=40412
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	protected $model_id;
+
+	protected function get_model_id(): ?string
+	{
+		return $this->model_id;
+	}
 
 	/**
 	 * Initializes the {@link $model} and {@link $model_id} properties.
@@ -72,7 +83,7 @@ class ActiveRecord extends Prototyped
 			$model = static::MODEL_ID;
 		}
 
-		if (is_string($model))
+		if (\is_string($model))
 		{
 			$this->model_id = $model;
 		}
@@ -83,7 +94,9 @@ class ActiveRecord extends Prototyped
 		}
 		else
 		{
-			throw new \InvalidArgumentException("\$model must be an instance of ICanBoogie\\ActiveRecord\\Model or a model identifier. Given:" . (is_object($model) ? get_class($model) : gettype($model)));
+			throw new \InvalidArgumentException(
+				"\$model must be an instance of ICanBoogie\\ActiveRecord\\Model or a model identifier. Given:" . (\is_object($model) ? \get_class($model) : \gettype($model))
+			);
 		}
 	}
 
@@ -99,7 +112,7 @@ class ActiveRecord extends Prototyped
 
 		unset($properties['model']);
 
-		foreach (array_keys($properties) as $property)
+		foreach (\array_keys($properties) as $property)
 		{
 			if ($this->$property instanceof self)
 			{
@@ -126,36 +139,15 @@ class ActiveRecord extends Prototyped
 	}
 
 	/**
-	 * Returns the model managing the active record.
-	 *
-	 * @return Model
-	 */
-	protected function get_model()
-	{
-		return $this->model
-			?: $this->model = ActiveRecord\get_model($this->model_id);
-	}
-
-	/**
-	 * Returns the identifier of the model managing the active record.
-	 *
-	 * @return string
-	 */
-	protected function get_model_id()
-	{
-		return $this->model_id;
-	}
-
-	/**
 	 * Whether the record is new or not.
 	 *
 	 * @return bool
 	 */
-	protected function get_is_new()
+	protected function get_is_new(): bool
 	{
 		$primary = $this->get_model()->primary;
 
-		if (is_array($primary))
+		if (\is_array($primary))
 		{
 			foreach ($primary as $property)
 			{
@@ -198,7 +190,7 @@ class ActiveRecord extends Prototyped
 
 		$primary = $model->primary;
 
-		if (is_array($primary))
+		if (\is_array($primary))
 		{
 			return $model->insert($properties, [ 'on duplicate' => true ]);
 		}
@@ -239,10 +231,8 @@ class ActiveRecord extends Prototyped
 	 * Assert that a record is valid.
 	 *
 	 * @throws RecordNotValid if the record is not valid.
-	 *
-	 * @return $this
 	 */
-	public function assert_is_valid()
+	public function assert_is_valid(): void
 	{
 		$errors = $this->validate();
 
@@ -250,16 +240,12 @@ class ActiveRecord extends Prototyped
 		{
 			throw new RecordNotValid($this, $errors);
 		}
-
-		return $this;
 	}
 
 	/**
 	 * Creates validation rules.
-	 *
-	 * @return array
 	 */
-	public function create_validation_rules()
+	public function create_validation_rules(): array
 	{
 		return [];
 	}
@@ -273,7 +259,7 @@ class ActiveRecord extends Prototyped
 	 *
 	 * @return array The altered persistent properties
 	 */
-	protected function alter_persistent_properties(array $properties, Schema $schema)
+	protected function alter_persistent_properties(array $properties, Schema $schema): array
 	{
 		foreach ($properties as $identifier => $value)
 		{
@@ -293,7 +279,7 @@ class ActiveRecord extends Prototyped
 	 *
 	 * @param array|string|int $primary_key
 	 */
-	protected function update_primary_key($primary_key)
+	protected function update_primary_key($primary_key): void
 	{
 		$model = $this->model;
 		$property = $model->primary;
@@ -311,9 +297,9 @@ class ActiveRecord extends Prototyped
 	 *
 	 * @return bool `true` if the record was deleted, `false` otherwise.
 	 *
-	 * @throws \Exception in attempt to delete a record from a model which primary key is empty.
+	 * @throws \LogicException in attempt to delete a record from a model which primary key is empty.
 	 */
-	public function delete()
+	public function delete(): bool
 	{
 		$model = $this->model;
 		$primary = $model->primary;

@@ -95,7 +95,6 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 			$this->assertInstanceOf(\PDOException::class, $e->original);
 			$this->assertNull($e->getPrevious());
 
-			$this->assertInstanceOf(Statement::class, $e->statement);
 			$this->assertEquals($statement, $e->statement);
 			$this->assertSame([ 1, "oneone"], $e->args);
 

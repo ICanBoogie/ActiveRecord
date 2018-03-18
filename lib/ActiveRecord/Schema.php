@@ -20,8 +20,8 @@ use ICanBoogie\OffsetNotDefined;
  * @property-read SchemaColumn[] $columns The columns of the schema.
  * @property-read array $indexes The indexes of the schema.
  * @property-read array $unique_indexes The unique indexes of the schema.
- * @property-read array|string $primary The primary key of the schema. The primary key is an
- * array if it uses multiple columns.
+ * @property-read array|string|null $primary The primary key of the schema. A multi-dimensional
+ * primary key is returned as an array.
  */
 class Schema implements \ArrayAccess, \IteratorAggregate
 {
@@ -29,23 +29,19 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * @var SchemaColumn[]
+	 * @uses get_columns
+	 * @uses get_primary
+	 * @uses get_indexes
+	 * @uses get_unique_indexes
 	 */
-	protected $columns = [];
+	private $columns = [];
 
-	/**
-	 * @return SchemaColumn[]
-	 */
-	protected function get_columns()
+	private function get_columns(): array
 	{
 		return $this->columns;
 	}
 
-	/**
-	 * Returns the primary key of the schema.
-	 *
-	 * @return array|string|null A multi-dimensional primary key is returned as an array.
-	 */
-	protected function get_primary()
+	private function get_primary()
 	{
 		$primary = [];
 
@@ -59,37 +55,24 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 			$primary[] = $column_id;
 		}
 
-		switch (count($primary))
+		switch (\count($primary))
 		{
 			case 0: return null;
-			case 1: return reset($primary);
+			case 1: return \reset($primary);
 			default: return $primary;
 		}
 	}
 
-	/**
-	 * Returns the indexes of the schema.
-	 *
-	 * @return array
-	 */
-	protected function get_indexes()
+	private function get_indexes(): array
 	{
 		return $this->collect_indexes_by_type('indexed');
 	}
 
-	/**
-	 * Returns unique indexes.
-	 *
-	 * @return array
-	 */
-	protected function get_unique_indexes()
+	private function get_unique_indexes(): array
 	{
 		return $this->collect_indexes_by_type('unique');
 	}
 
-	/**
-	 * @param array $options Schema options.
-	 */
 	public function __construct(array $options)
 	{
 		foreach ($options as $column_id => $column_options)
@@ -137,7 +120,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 */
 	public function offsetSet($column_id, $column_options)
 	{
-		if (is_string($column_options))
+		if (\is_string($column_options))
 		{
 			$column_options = [ $column_options ];
 		}
@@ -177,7 +160,7 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	private function collect_indexes_by_type($type)
+	private function collect_indexes_by_type(string $type): array
 	{
 		$indexes = [];
 
@@ -203,8 +186,8 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	public function filter(array $values)
+	public function filter(array $values): array
 	{
-		return array_intersect_key($values, $this->columns);
+		return \array_intersect_key($values, $this->columns);
 	}
 }

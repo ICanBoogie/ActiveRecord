@@ -15,6 +15,7 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\DateTime;
 use ICanBoogie\Prototype\MethodNotDefined;
 use ICanBoogie\PrototypeTrait;
+use const PHP_INT_MAX;
 
 /**
  * The class offers many features to compose model queries. Most query related
@@ -48,26 +49,24 @@ class Query implements \IteratorAggregate
 		PrototypeTrait::__call as private __prototype_call;
 	}
 
-	const LIMIT_MAX = '18446744073709551615';
+	const LIMIT_MAX = PHP_INT_MAX;
 
 	/**
 	 * Part of the `SELECT` clause.
 	 *
 	 * @var string
 	 */
-	protected $select;
+	private $select;
 
 	/**
 	 * `JOIN` clauses.
 	 *
 	 * @var array
+	 * @uses get_joints
 	 */
-	protected $joints = [];
+	private $joints = [];
 
-	/**
-	 * @return array
-	 */
-	protected function get_joints()
+	private function get_joints(): array
 	{
 		return $this->joints;
 	}
@@ -76,13 +75,12 @@ class Query implements \IteratorAggregate
 	 * Joints arguments.
 	 *
 	 * @var array
+	 * @uses get_joints_args
+	 * @uses get_args
 	 */
-	protected $joints_args = [];
+	private $joints_args = [];
 
-	/**
-	 * @return array
-	 */
-	protected function get_joints_args()
+	private function get_joints_args(): array
 	{
 		return $this->joints_args;
 	}
@@ -91,16 +89,11 @@ class Query implements \IteratorAggregate
 	 * The conditions collected from {@link where()}, {@link and()}, `filter_by_*`, and scopes.
 	 *
 	 * @var array
+	 * @uses get_conditions
 	 */
-	protected $conditions = [];
+	private $conditions = [];
 
-	/**
-	 * Return the conditions collected from {@link where()}, {@link and()}, `filter_by_*`,
-	 * and scopes.
-	 *
-	 * @return array
-	 */
-	protected function get_conditions()
+	private function get_conditions(): array
 	{
 		return $this->conditions;
 	}
@@ -109,91 +102,35 @@ class Query implements \IteratorAggregate
 	 * Arguments for the conditions.
 	 *
 	 * @var array
+	 * @uses get_conditions_args
+	 * @uses get_args
 	 */
-	protected $conditions_args = [];
+	private $conditions_args = [];
 
-	/**
-	 * Return the arguments to the conditions.
-	 *
-	 * @return array
-	 */
-	protected function get_conditions_args()
+	private function get_conditions_args(): array
 	{
 		return $this->conditions_args;
 	}
-
-	/**
-	 * Part of the `GROUP BY` clause.
-	 *
-	 * @var string
-	 */
-	protected $group;
-
-	/**
-	 * Part of the `ORDER BY` clause.
-	 *
-	 * @var mixed
-	 */
-	protected $order;
 
 	/**
 	 * Part of the `HAVING` clause.
 	 *
 	 * @var string
 	 */
-	protected $having;
+	private $having;
 
 	/**
 	 * Arguments to the `HAVING` clause.
 	 *
 	 * @var array
+	 * @uses get_having_args
+	 * @uses get_args
 	 */
-	protected $having_args = [];
+	private $having_args = [];
 
-	/**
-	 * Return the arguments to the `HAVING` clause.
-	 *
-	 * @return array
-	 */
-	protected function get_having_args()
+	private function get_having_args(): array
 	{
 		return $this->having_args;
-	}
-
-	/**
-	 * The number of records the skip before fetching.
-	 *
-	 * @var int
-	 */
-	protected $offset;
-
-	/**
-	 * The maximum number of records to fetch.
-	 *
-	 * @var int
-	 */
-	protected $limit;
-
-	/**
-	 * Fetch mode.
-	 *
-	 * @var mixed
-	 */
-	protected $mode;
-
-	/**
-	 * The target model of the query.
-	 *
-	 * @var Model
-	 */
-	protected $model;
-
-	/**
-	 * @return Model
-	 */
-	protected function get_model()
-	{
-		return $this->model;
 	}
 
 	/**
@@ -202,14 +139,60 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_args()
+	private function get_args(): array
 	{
-		return array_merge($this->joints_args, $this->conditions_args, $this->having_args);
+		return \array_merge($this->joints_args, $this->conditions_args, $this->having_args);
 	}
 
 	/**
-	 * Constructor.
+	 * Part of the `GROUP BY` clause.
 	 *
+	 * @var string
+	 */
+	private $group;
+
+	/**
+	 * Part of the `ORDER BY` clause.
+	 *
+	 * @var mixed
+	 */
+	private $order;
+
+	/**
+	 * The number of records the skip before fetching.
+	 *
+	 * @var int
+	 */
+	private $offset;
+
+	/**
+	 * The maximum number of records to fetch.
+	 *
+	 * @var int
+	 */
+	private $limit;
+
+	/**
+	 * Fetch mode.
+	 *
+	 * @var mixed
+	 */
+	private $mode;
+
+	/**
+	 * The target model of the query.
+	 *
+	 * @var Model
+	 * @uses get_model
+	 */
+	private $model;
+
+	private function get_model(): Model
+	{
+		return $this->model;
+	}
+
+	/**
 	 * @param Model $model The model to query.
 	 */
 	public function __construct(Model $model)
@@ -226,7 +209,7 @@ class Query implements \IteratorAggregate
 	{
 		$scopes = $this->get_model_scope();
 
-		if (in_array($property, $scopes))
+		if (\in_array($property, $scopes))
 		{
 			return $this->model->scope($property, [ $this ]);
 		}
@@ -246,16 +229,16 @@ class Query implements \IteratorAggregate
 			return $this->where(...$arguments);
 		}
 
-		if (strpos($method, 'filter_by_') === 0)
+		if (\strpos($method, 'filter_by_') === 0)
 		{
-			return $this->dynamic_filter(substr($method, 10), $arguments); // 10 is for: strlen('filter_by_')
+			return $this->dynamic_filter(\substr($method, 10), $arguments); // 10 is for: strlen('filter_by_')
 		}
 
 		$scopes = $this->get_model_scope();
 
-		if (in_array($method, $scopes))
+		if (\in_array($method, $scopes))
 		{
-			array_unshift($arguments, $this);
+			\array_unshift($arguments, $this);
 
 			return $this->model->scope($method, $arguments);
 		}
@@ -279,7 +262,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	public function __toString()
+	public function __toString(): string
 	{
 		return $this->resolve_statement
 		(
@@ -294,7 +277,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_select()
+	private function render_select(): string
 	{
 		return 'SELECT ' . ($this->select ? $this->select : '*');
 	}
@@ -306,7 +289,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_from()
+	private function render_from(): string
 	{
 		return 'FROM {self_and_related}';
 	}
@@ -316,9 +299,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_joints()
+	private function render_joints(): string
 	{
-		return implode(' ', $this->joints);
+		return \implode(' ', $this->joints);
 	}
 
 	/**
@@ -326,7 +309,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_main()
+	private function render_main(): string
 	{
 		$query = '';
 
@@ -339,7 +322,7 @@ class Query implements \IteratorAggregate
 
 		if ($conditions)
 		{
-			$query .= ' WHERE ' . implode(' AND ', $conditions);
+			$query .= ' WHERE ' . \implode(' AND ', $conditions);
 		}
 
 		$group = $this->group;
@@ -377,28 +360,28 @@ class Query implements \IteratorAggregate
 	/**
 	 * Render the `ORDER` clause.
 	 *
-	 * @param mixed $order
+	 * @param array $order
 	 *
 	 * @return string
 	 */
-	protected function render_order($order)
+	private function render_order(array $order): string
 	{
-		if (count($order) == 1)
+		if (\count($order) == 1)
 		{
 			return 'ORDER BY ' . $order[0];
 		}
 
 		$connection = $this->model->connection;
 
-		$field = array_shift($order);
-		$field_values = is_array($order[0]) ? $order[0] : $order;
-		$field_values = array_map(function($v) use($connection) {
+		$field = \array_shift($order);
+		$field_values = \is_array($order[0]) ? $order[0] : $order;
+		$field_values = \array_map(function ($v) use ($connection) {
 
 			return $connection->quote($v);
 
 		}, $field_values);
 
-		return "ORDER BY FIELD($field, " . implode(', ', $field_values) . ")";
+		return "ORDER BY FIELD($field, " . \implode(', ', $field_values) . ")";
 	}
 
 	/**
@@ -409,7 +392,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function render_offset_and_limit($offset, $limit)
+	private function render_offset_and_limit($offset, $limit): string
 	{
 		if ($offset && $limit)
 		{
@@ -441,7 +424,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	protected function resolve_statement($statement)
+	private function resolve_statement(string $statement): string
 	{
 		return $this->model->resolve_statement($statement);
 	}
@@ -451,7 +434,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @var array
 	 */
-	static protected $scopes_by_classes = [];
+	static private $scopes_by_classes = [];
 
 	/**
 	 * Return the available scopes for a model class.
@@ -459,10 +442,12 @@ class Query implements \IteratorAggregate
 	 * The method uses reflexion to find the scopes, the result is cached.
 	 *
 	 * @return array
+	 *
+	 * @throws \ReflectionException
 	 */
-	protected function get_model_scope()
+	private function get_model_scope()
 	{
-		$class = get_class($this->model);
+		$class = \get_class($this->model);
 
 		if (isset(self::$scopes_by_classes[$class]))
 		{
@@ -478,12 +463,12 @@ class Query implements \IteratorAggregate
 		{
 			$name = $method->name;
 
-			if (strpos($name, 'scope_') !== 0)
+			if (\strpos($name, 'scope_') !== 0)
 			{
 				continue;
 			}
 
-			$scopes[] = substr($name, 6);
+			$scopes[] = \substr($name, 6);
 		}
 
 		return self::$scopes_by_classes[$class] = $scopes;
@@ -494,9 +479,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $expression The expression of the `SELECT` clause. e.g. 'nid, title'.
 	 *
-	 * @return Query
+	 * @return $this
 	 */
-	public function select($expression)
+	public function select($expression): self
 	{
 		$this->select = $expression;
 
@@ -545,13 +530,13 @@ class Query implements \IteratorAggregate
 	 * $query->join("INNER JOIN `articles` USING(`nid`)");
 	 * </pre>
 	 *
-	 * @return Query
+	 * @return $this
 	 */
-	public function join($expression, $options = [])
+	public function join($expression, $options = []): self
 	{
-		if (is_string($expression) && $expression{0} == ':')
+		if (\is_string($expression) && $expression{0} == ':')
 		{
-			$expression = $this->model->models[substr($expression, 1)];
+			$expression = $this->model->models[\substr($expression, 1)];
 		}
 
 		if ($expression instanceof self)
@@ -582,7 +567,7 @@ class Query implements \IteratorAggregate
 	 * - `as`: The alias of the subquery. Default: The query's model alias.
 	 * - `on`: The column on which the joint is created. Default: The query's model primary key.
 	 */
-	private function join_with_query(Query $query, array $options = [])
+	private function join_with_query(Query $query, array $options = []): void
 	{
 		$options += [
 
@@ -607,7 +592,7 @@ class Query implements \IteratorAggregate
 		}
 
 		$this->joints[] = "$mode JOIN($query) `$as`{$on}";
-		$this->joints_args = array_merge($this->joints_args, $query->args);
+		$this->joints_args = \array_merge($this->joints_args, $query->args);
 	}
 
 	/**
@@ -620,12 +605,12 @@ class Query implements \IteratorAggregate
 	 * - `on`: The column on which the joint is created, or an _ON_ expression. Default:
 	 * The model's primary key. @todo
 	 */
-	private function join_with_model(Model $model, array $options = [])
+	private function join_with_model(Model $model, array $options = []): void
 	{
 		$primary = $this->model->primary;
 		$model_schema = $model->extended_schema;
 
-		if (is_array($primary))
+		if (\is_array($primary))
 		{
 			foreach ($primary as $column)
 			{
@@ -641,9 +626,9 @@ class Query implements \IteratorAggregate
 		{
 			$primary = $model_schema->primary;
 
-			if (is_array($primary))
+			if (\is_array($primary))
 			{
-				$primary = reset($primary);
+				$primary = \reset($primary);
 			}
 		}
 
@@ -672,7 +657,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return string
 	 */
-	private function render_join_on($column, $as, Query $query)
+	private function render_join_on(string $column, string $as, Query $query): string
 	{
 		if (isset($query->model->schema[$column]) && isset($this->model->schema[$column]))
 		{
@@ -708,48 +693,48 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array An array made of the condition string and its arguments.
 	 */
-	private function deferred_parse_conditions(...$conditions_and_args)
+	private function deferred_parse_conditions(...$conditions_and_args): array
 	{
-		$conditions = array_shift($conditions_and_args);
+		$conditions = \array_shift($conditions_and_args);
 		$args = $conditions_and_args;
 
-		if (is_array($conditions))
+		if (\is_array($conditions))
 		{
 			$c = '';
 			$conditions_args = [];
 
 			foreach ($conditions as $column => $arg)
 			{
-				if (is_array($arg) || $arg instanceof self)
+				if (\is_array($arg) || $arg instanceof self)
 				{
 					$joined = '';
 
-					if (is_array($arg))
+					if (\is_array($arg))
 					{
 						foreach ($arg as $value)
 						{
-							$joined .= ',' . (is_numeric($value) ? $value : $this->model->quote($value));
+							$joined .= ',' . (\is_numeric($value) ? $value : $this->model->quote($value));
 						}
 
-						$joined = substr($joined, 1);
+						$joined = \substr($joined, 1);
 					}
 					else
 					{
 						$joined = (string) $arg;
-						$conditions_args = array_merge($conditions_args, $arg->args);
+						$conditions_args = \array_merge($conditions_args, $arg->args);
 					}
 
-					$c .= ' AND `' . ($column{0} == '!' ? substr($column, 1) . '` NOT' : $column . '`') . ' IN(' . $joined . ')';
+					$c .= ' AND `' . ($column{0} == '!' ? \substr($column, 1) . '` NOT' : $column . '`') . ' IN(' . $joined . ')';
 				}
 				else
 				{
 					$conditions_args[] = $arg;
 
-					$c .= ' AND `' . ($column{0} == '!' ? substr($column, 1) . '` !' : $column . '` ') . '= ?';
+					$c .= ' AND `' . ($column{0} == '!' ? \substr($column, 1) . '` !' : $column . '` ') . '= ?';
 				}
 			}
 
-			$conditions = substr($c, 5);
+			$conditions = \substr($c, 5);
 		}
 		else
 		{
@@ -757,7 +742,7 @@ class Query implements \IteratorAggregate
 
 			if ($args)
 			{
-				if (is_array($args[0]))
+				if (\is_array($args[0]))
 				{
 					$conditions_args = $args[0];
 				}
@@ -792,13 +777,13 @@ class Query implements \IteratorAggregate
 	 * @param string $filter
 	 * @param array $conditions_args
 	 *
-	 * @return Query
+	 * @return $this
 	 */
-	private function dynamic_filter($filter, array $conditions_args = [])
+	private function dynamic_filter(string $filter, array $conditions_args = []): self
 	{
-		$conditions = explode('_and_', $filter);
+		$conditions = \explode('_and_', $filter);
 
-		return $this->where(array_combine($conditions, $conditions_args));
+		return $this->where(\array_combine($conditions, $conditions_args));
 	}
 
 	/**
@@ -852,11 +837,11 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param mixed ...$conditions_and_args
 	 *
-	 * @return Query
+	 * @return $this
 	 */
-	public function where(...$conditions_and_args)
+	public function where(...$conditions_and_args): self
 	{
-		list($conditions, $conditions_args) = $this->deferred_parse_conditions(...$conditions_and_args);
+		[ $conditions, $conditions_args ] = $this->deferred_parse_conditions(...$conditions_and_args);
 
 		if ($conditions)
 		{
@@ -864,7 +849,7 @@ class Query implements \IteratorAggregate
 
 			if ($conditions_args)
 			{
-				$this->conditions_args = array_merge($this->conditions_args, $conditions_args);
+				$this->conditions_args = \array_merge($this->conditions_args, $conditions_args);
 			}
 		}
 
@@ -878,7 +863,7 @@ class Query implements \IteratorAggregate
 	 * 'weight, date DESC', or field to order with, in which case `$field_values` is required.
 	 * @param array $field_values Values of the field specified by `$order_or_field_name`.
 	 *
-	 * @return Query
+	 * @return $this
 	 */
 	public function order($order_or_field_name, $field_values = null)
 	{
@@ -892,7 +877,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $group
 	 *
-	 * @return Query
+	 * @return $this
 	 */
 	public function group($group)
 	{
@@ -906,7 +891,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param mixed ...$conditions_and_args
 	 *
-	 * @return Query
+	 * @return $this
 	 */
 	public function having(...$conditions_and_args)
 	{
@@ -923,7 +908,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param $offset
 	 *
-	 * @return Query
+	 * @return $this
 	 */
 	public function offset($offset)
 	{
@@ -949,16 +934,16 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param int $limit
 	 *
-	 * @return Query
+	 * @return $this
 	 */
 	public function limit($limit)
 	{
 		$offset = null;
 
-		if (func_num_args() == 2)
+		if (\func_num_args() == 2)
 		{
 			$offset = $limit;
-			$limit = func_get_arg(1);
+			$limit = \func_get_arg(1);
 		}
 
 		$this->offset = (int) $offset;
@@ -970,15 +955,15 @@ class Query implements \IteratorAggregate
 	/**
 	 * Set the fetch mode for the query.
 	 *
-	 * @param mixed $mode
+	 * @param mixed ...$mode
 	 *
-	 * @return Query
+	 * @return $this
 	 *
 	 * @see http://www.php.net/manual/en/pdostatement.setfetchmode.php
 	 */
-	public function mode($mode)
+	public function mode(...$mode): self
 	{
-		$this->mode = func_get_args();
+		$this->mode = $mode;
 
 		return $this;
 	}
@@ -991,7 +976,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Statement
 	 */
-	protected function prepare()
+	private function prepare(): Statement
 	{
 		return $this->model->connection->prepare((string) $this);
 	}
@@ -1001,7 +986,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Statement
 	 */
-	protected function get_prepared()
+	protected function get_prepared(): Statement
 	{
 		return $this->prepare();
 	}
@@ -1011,7 +996,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return Statement
 	 */
-	public function query()
+	public function query(): Statement
 	{
 		$statement = $this->prepare();
 		$statement->execute($this->args);
@@ -1030,7 +1015,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	private function resolve_fetch_mode(...$mode)
+	private function resolve_fetch_mode(...$mode): array
 	{
 		if ($mode)
 		{
@@ -1063,7 +1048,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	public function all(...$mode)
+	public function all(...$mode): array
 	{
 		return $this->query()->fetchAll(...$this->resolve_fetch_mode(...$mode));
 	}
@@ -1073,7 +1058,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_all()
+	protected function get_all(): array
 	{
 		return $this->all();
 	}
@@ -1093,9 +1078,9 @@ class Query implements \IteratorAggregate
 		$statement = $query->query();
 		$args = $query->resolve_fetch_mode(...$mode);
 
-		if (count($args) > 1 && $args[0] == \PDO::FETCH_CLASS)
+		if (\count($args) > 1 && $args[0] == \PDO::FETCH_CLASS)
 		{
-			array_shift($args);
+			\array_shift($args);
 
 			$rc = $statement->fetchObject(...$args);
 
@@ -1125,7 +1110,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return array
 	 */
-	protected function get_pairs()
+	protected function get_pairs(): array
 	{
 		return $this->all(\PDO::FETCH_KEY_PAIR);
 	}
@@ -1133,7 +1118,7 @@ class Query implements \IteratorAggregate
 	/**
 	 * Return the value of the first column of the first row.
 	 *
-	 * @return string
+	 * @return mixed
 	 */
 	protected function get_rc()
 	{
@@ -1163,9 +1148,9 @@ class Query implements \IteratorAggregate
 	 */
 	public function exists($key = null)
 	{
-		if ($key !== null && func_num_args() > 1)
+		if ($key !== null && \func_num_args() > 1)
 		{
-			$key = func_get_args();
+			$key = \func_get_args();
 		}
 
 		$query = clone $this;
@@ -1192,9 +1177,9 @@ class Query implements \IteratorAggregate
 		->limit(0, 0)
 		->all(\PDO::FETCH_COLUMN);
 
-		if ($rc && is_array($key))
+		if ($rc && \is_array($key))
 		{
-			$exists = array_combine($key, array_fill(0, count($key), false));
+			$exists = \array_combine($key, \array_fill(0, \count($key), false));
 
 			foreach ($rc as $key)
 			{
@@ -1233,11 +1218,11 @@ class Query implements \IteratorAggregate
 	 * Handle all the computations.
 	 *
 	 * @param string $method
-	 * @param string $column
+	 * @param string|null $column
 	 *
 	 * @return int|array
 	 */
-	private function compute($method, $column)
+	private function compute(string $method, string $column = null)
 	{
 		$query = 'SELECT ';
 
@@ -1273,11 +1258,11 @@ class Query implements \IteratorAggregate
 	/**
 	 * Implement the 'COUNT' computation.
 	 *
-	 * @param string $column The name of the column to count.
+	 * @param string|null $column The name of the column to count.
 	 *
 	 * @return int|array
 	 */
-	public function count($column = null)
+	public function count(string $column = null)
 	{
 		return $this->compute('COUNT', $column);
 	}
@@ -1287,7 +1272,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return int
 	 */
-	protected function get_count()
+	protected function get_count(): int
 	{
 		return $this->count();
 	}
@@ -1299,7 +1284,7 @@ class Query implements \IteratorAggregate
 	 *
 	 * @return int
 	 */
-	public function average($column)
+	public function average(string $column)
 	{
 		return $this->compute('AVG', $column);
 	}
@@ -1309,9 +1294,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $column
 	 *
-	 * @return int
+	 * @return mixed
 	 */
-	public function minimum($column)
+	public function minimum(string $column)
 	{
 		return $this->compute('MIN', $column);
 	}
@@ -1321,9 +1306,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $column
 	 *
-	 * @return int
+	 * @return mixed
 	 */
-	public function maximum($column)
+	public function maximum(string $column)
 	{
 		return $this->compute('MAX', $column);
 	}
@@ -1333,9 +1318,9 @@ class Query implements \IteratorAggregate
 	 *
 	 * @param string $column
 	 *
-	 * @return int
+	 * @return mixed
 	 */
-	public function sum($column)
+	public function sum(string $column)
 	{
 		return $this->compute('SUM', $column);
 	}

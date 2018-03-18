@@ -26,37 +26,23 @@ class ConnectionAlreadyEstablished extends \LogicException implements Exception
 
 	/**
 	 * @var string
+	 * @uses get_id
 	 */
 	private $id;
 
-	/**
-	 * @return string
-	 */
-	protected function get_id()
+	private function get_id(): string
 	{
 		return $this->id;
 	}
 
-	/**
-	 * @param string $id
-	 * @param int $code
-	 * @param \Exception|null $previous
-	 */
-	public function __construct($id, $code = 500, \Exception $previous = null)
+	public function __construct(string $id, int $code = 500, \Throwable $previous = null)
 	{
 		$this->id = $id;
 
 		parent::__construct($this->format_message($id), $code, $previous);
 	}
 
-	/**
-	 * Formats exception message.
-	 *
-	 * @param string $id
-	 *
-	 * @return string
-	 */
-	protected function format_message($id)
+	private function format_message(string $id): string
 	{
 		return format("Connection already established: %id.", [
 

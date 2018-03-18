@@ -10,7 +10,7 @@ class Sample extends ActiveRecord
 
 	public $email;
 
-	public function create_validation_rules()
+	public function create_validation_rules(): array
 	{
 		return [
 

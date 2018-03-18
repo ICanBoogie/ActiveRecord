@@ -28,7 +28,7 @@ class Connection extends \PDO implements Driver
 {
 	use AccessorTrait;
 
-	static private $drivers_mapping = [
+	private const DRIVERS_MAPPING = [
 
 		'mysql' => Driver\MySQLDriver::class,
 		'sqlite' => Driver\SQLiteDriver::class
@@ -39,13 +39,11 @@ class Connection extends \PDO implements Driver
 	 * Connection identifier.
 	 *
 	 * @var string
+	 * @uses get_id
 	 */
 	private $id;
 
-	/**
-	 * @return string
-	 */
-	protected function get_id()
+	private function get_id(): string
 	{
 		return $this->id;
 	}
@@ -58,13 +56,11 @@ class Connection extends \PDO implements Driver
 	 * By default, the prefix is the empty string, that is there is not prefix.
 	 *
 	 * @var string
+	 * @uses get_table_name_prefix
 	 */
 	private $table_name_prefix = Options::DEFAULT_TABLE_NAME_PREFIX;
 
-	/**
-	 * @return string
-	 */
-	protected function get_table_name_prefix()
+	private function get_table_name_prefix(): string
 	{
 		return $this->table_name_prefix;
 	}
@@ -73,13 +69,11 @@ class Connection extends \PDO implements Driver
 	 * Charset for the connection. Also used to specify the charset while creating tables.
 	 *
 	 * @var string
+	 * @uses get_charset
 	 */
 	private $charset = Options::DEFAULT_CHARSET;
 
-	/**
-	 * @return string
-	 */
-	protected function get_charset()
+	private function get_charset(): string
 	{
 		return $this->charset;
 	}
@@ -88,13 +82,11 @@ class Connection extends \PDO implements Driver
 	 * Used to specify the collate while creating tables.
 	 *
 	 * @var string
+	 * @uses get_collate
 	 */
 	private $collate = Options::DEFAULT_COLLATE;
 
-	/**
-	 * @return string
-	 */
-	protected function get_collate()
+	private function get_collate(): string
 	{
 		return $this->collate;
 	}
@@ -103,13 +95,11 @@ class Connection extends \PDO implements Driver
 	 * Timezone of the connection.
 	 *
 	 * @var string
+	 * @uses get_timezone
 	 */
 	private $timezone = Options::DEFAULT_TIMEZONE;
 
-	/**
-	 * @return string
-	 */
-	protected function get_timezone()
+	private function get_timezone(): string
 	{
 		return $this->timezone;
 	}
@@ -118,26 +108,22 @@ class Connection extends \PDO implements Driver
 	 * Driver name for the connection.
 	 *
 	 * @var string
+	 * @uses get_driver_name
 	 */
 	private $driver_name;
 
-	/**
-	 * @return string
-	 */
-	protected function get_driver_name()
+	private function get_driver_name(): string
 	{
 		return $this->driver_name;
 	}
 
 	/**
 	 * @var Driver
+	 * @uses lazy_get_driver
 	 */
 	private $driver;
 
-	/**
-	 * @return Driver
-	 */
-	protected function lazy_get_driver()
+	private function lazy_get_driver(): Driver
 	{
 		return $this->resolve_driver($this->driver_name);
 	}
@@ -170,7 +156,7 @@ class Connection extends \PDO implements Driver
 	 * @param string $password
 	 * @param array $options
 	 */
-	public function __construct($dsn, $username = null, $password = null, $options = [])
+	public function __construct(string $dsn, string $username = null, string $password = null, array $options = [])
 	{
 		unset($this->driver);
 
@@ -190,7 +176,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @return Statement
 	 */
-	public function __invoke(...$args)
+	public function __invoke(...$args): Statement
 	{
 		return $this->query(...$args);
 	}
@@ -204,7 +190,7 @@ class Connection extends \PDO implements Driver
 	 */
 	protected function resolve_driver_name($dsn)
 	{
-		return explode(':', $dsn, 2)[0];
+		return \explode(':', $dsn, 2)[0];
 	}
 
 	/**
@@ -216,14 +202,14 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @throws DriverNotDefined
 	 */
-	protected function resolve_driver_class($driver_name)
+	private function resolve_driver_class(string $driver_name): string
 	{
-		if (empty(self::$drivers_mapping[$driver_name]))
+		if (empty(self::DRIVERS_MAPPING[$driver_name]))
 		{
 			throw new DriverNotDefined($driver_name);
 		}
 
-		return self::$drivers_mapping[$driver_name];
+		return self::DRIVERS_MAPPING[$driver_name];
 	}
 
 	/**
@@ -233,11 +219,11 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @return Driver
 	 */
-	protected function resolve_driver($driver_name)
+	private function resolve_driver(string $driver_name): Driver
 	{
 		$driver_class = $this->resolve_driver_class($driver_name);
 
-		return new $driver_class(function() { return $this; });
+		return new $driver_class(function () { return $this; });
 	}
 
 	/**
@@ -245,7 +231,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @param array $options
 	 */
-	protected function apply_options(array $options)
+	private function apply_options(array $options): void
 	{
 		$options = Options::normalize($options);
 
@@ -257,7 +243,7 @@ class Connection extends \PDO implements Driver
 			$this->table_name_prefix .= '_';
 		}
 
-		list($this->charset, $this->collate) = extract_charset_and_collate($options[Options::CHARSET_AND_COLLATE]);
+		[ $this->charset, $this->collate ] = extract_charset_and_collate($options[Options::CHARSET_AND_COLLATE]);
 
 		$this->timezone = $options[Options::TIMEZONE];
 	}
@@ -269,7 +255,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @param array $options
 	 */
-	protected function before_connection(array &$options)
+	private function before_connection(array &$options): void
 	{
 		if ($this->driver_name != 'mysql')
 		{
@@ -290,7 +276,7 @@ class Connection extends \PDO implements Driver
 		];
 	}
 
-	protected function after_connection()
+	private function after_connection(): void
 	{
 		$this->setAttribute(self::ATTR_ERRMODE, self::ERRMODE_EXCEPTION);
 		$this->setAttribute(self::ATTR_STATEMENT_CLASS, [ Statement::class ]);
@@ -341,7 +327,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @return Statement
 	 */
-	public function query($statement, array $args = [], array $options = [])
+	public function query($statement, array $args = [], array $options = []): Statement
 	{
 		$statement = $this->prepare($statement, $options);
 		$statement->execute($args);
@@ -394,9 +380,9 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @return string The resolved statement.
 	 */
-	public function resolve_statement($statement)
+	public function resolve_statement($statement): string
 	{
-		return strtr($statement, [
+		return \strtr($statement, [
 
 			'{prefix}' => $this->table_name_prefix,
 			'{charset}' => $this->charset,
@@ -410,7 +396,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @see \PDO::beginTransaction()
 	 */
-	public function begin()
+	public function begin(): bool
 	{
 		return $this->beginTransaction();
 	}
@@ -450,7 +436,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function render_column(SchemaColumn $column)
+	public function render_column(SchemaColumn $column): string
 	{
 		return $this->driver->render_column($column);
 	}
@@ -460,7 +446,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function create_table($unprefixed_name, Schema $schema)
+	public function create_table(string $unprefixed_name, Schema $schema): void
 	{
 		$this->driver->create_table($unprefixed_name, $schema);
 	}
@@ -470,7 +456,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function create_indexes($unprefixed_table_name, Schema $schema)
+	public function create_indexes(string $unprefixed_table_name, Schema $schema): void
 	{
 		$this->driver->create_indexes($unprefixed_table_name, $schema);
 	}
@@ -480,7 +466,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function create_unique_indexes($unprefixed_table_name, Schema $schema)
+	public function create_unique_indexes(string $unprefixed_table_name, Schema $schema): void
 	{
 		$this->driver->create_unique_indexes($unprefixed_table_name, $schema);
 	}
@@ -490,7 +476,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function table_exists($unprefixed_name)
+	public function table_exists(string $unprefixed_name): bool
 	{
 		return $this->driver->table_exists($unprefixed_name);
 	}
@@ -500,7 +486,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function optimize()
+	public function optimize(): void
 	{
 		$this->driver->optimize();
 	}

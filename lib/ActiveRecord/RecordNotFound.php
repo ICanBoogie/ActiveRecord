@@ -29,23 +29,16 @@ class RecordNotFound extends \LogicException implements Exception
 	 * object, otherwise the `null` value.
 	 *
 	 * @var ActiveRecord[]
+	 * @uses get_records
 	 */
 	private $records;
 
-	protected function get_records()
+	private function get_records(): array
 	{
 		return $this->records;
 	}
 
-	/**
-	 * Initializes the {@link $records} property.
-	 *
-	 * @param string $message
-	 * @param array $records
-	 * @param int $code Defaults to 404.
-	 * @param \Exception $previous Previous exception.
-	 */
-	public function __construct($message, array $records = [], $code = 404, \Exception $previous = null)
+	public function __construct(string $message, array $records = [], int $code = 404, \Throwable $previous = null)
 	{
 		$this->records = $records;
 

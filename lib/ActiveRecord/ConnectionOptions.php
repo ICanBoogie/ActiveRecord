@@ -2,11 +2,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-/**
- * Connection options.
- *
- * @package ICanBoogie\ActiveRecord
- */
 final class ConnectionOptions
 {
 	/**
@@ -65,7 +60,7 @@ final class ConnectionOptions
 	 *
 	 * @return array
 	 */
-	static public function normalize(array $options)
+	static public function normalize(array $options): array
 	{
 		return $options + [
 

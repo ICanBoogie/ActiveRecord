@@ -17,7 +17,7 @@ namespace ICanBoogie\ActiveRecord;
 class ModelProvider
 {
 	/**
-	 * @var callable {@link Model} provider
+	 * @var callable|null {@link Model} provider
 	 */
 	static private $provider;
 
@@ -26,9 +26,9 @@ class ModelProvider
 	 *
 	 * @param callable $provider
 	 *
-	 * @return callable The previous provider, or `null` if none was defined.
+	 * @return callable|null The previous provider, or `null` if none was defined.
 	 */
-	static public function define(callable $provider)
+	static public function define(callable $provider): ?callable
 	{
 		$previous = self::$provider;
 
@@ -42,7 +42,7 @@ class ModelProvider
 	 *
 	 * @return callable|null
 	 */
-	static public function defined()
+	static public function defined(): ?callable
 	{
 		return self::$provider;
 	}
@@ -50,7 +50,7 @@ class ModelProvider
 	/**
 	 * Undefine the provider.
 	 */
-	static public function undefine()
+	static public function undefine(): void
 	{
 		self::$provider = null;
 	}
@@ -64,7 +64,7 @@ class ModelProvider
 	 *
 	 * @throws ModelNotDefined if the model cannot be provided.
 	 */
-	static public function provide($id)
+	static public function provide(string $id): Model
 	{
 		$provider = self::$provider;
 

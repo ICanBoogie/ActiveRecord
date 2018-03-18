@@ -25,36 +25,30 @@ class UnableToSetFetchMode extends \RuntimeException implements Exception
 	use AccessorTrait;
 
 	/**
-	 * @var int
+	 * @var mixed
+	 * @uses get_mode
 	 */
 	private $mode;
 
-	protected function get_mode()
+	private function get_mode()
 	{
 		return $this->mode;
 	}
 
 	/**
-	 * @param int $mode
-	 * @param null $message
+	 * @param mixed $mode
+	 * @param string $message
 	 * @param int $code
-	 * @param \Exception|null $previous
+	 * @param \Throwable|null $previous
 	 */
-	public function __construct($mode, $message = null, $code = 500, \Exception $previous = null)
+	public function __construct($mode, string $message = null, int $code = 500, \Throwable $previous = null)
 	{
 		$this->mode = $mode;
 
 		parent::__construct($message ?: $this->format_message($mode), $code, $previous);
 	}
 
-	/**
-	 * Formats exception message.
-	 *
-	 * @param int $mode
-	 *
-	 * @return string
-	 */
-	protected function format_message($mode)
+	private function format_message($mode): string
 	{
 		return format("Unable to set fetch mode: %mode", [ 'mode' => $mode ]);
 	}

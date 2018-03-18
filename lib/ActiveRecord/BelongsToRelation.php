@@ -49,13 +49,13 @@ class BelongsToRelation extends Relation
 	/**
 	 * @inheritdoc
 	 */
-	public function __invoke(ActiveRecord $record)
+	public function __invoke(ActiveRecord $record): ActiveRecord
 	{
 		$key = $record->{ $this->local_key };
 
 		if (!$key)
 		{
-			return null;
+			throw new \LogicException("Unable to establish relation, primary key is empty.");
 		}
 
 		return $this->resolve_related()[$key];
@@ -66,7 +66,7 @@ class BelongsToRelation extends Relation
 	 *
 	 * @inheritdoc
 	 */
-	protected function alter_prototype(Prototype $prototype, $property)
+	protected function alter_prototype(Prototype $prototype, string $property): void
 	{
 		parent::alter_prototype($prototype, $property);
 
@@ -80,7 +80,7 @@ class BelongsToRelation extends Relation
 	/**
 	 * @inheritdoc
 	 */
-	protected function resolve_property_name($related)
+	protected function resolve_property_name($related): string
 	{
 		return singularize(parent::resolve_property_name($related));
 	}

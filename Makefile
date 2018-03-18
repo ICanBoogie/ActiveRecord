@@ -1,8 +1,8 @@
 # customization
 
 PACKAGE_NAME = icanboogie/activerecord
-PACKAGE_VERSION = 4.0
-PHPUNIT_VERSION = phpunit-5.phar
+PACKAGE_VERSION = 5.0
+PHPUNIT_VERSION = phpunit-7.phar
 PHPUNIT_FILENAME = build/$(PHPUNIT_VERSION)
 PHPUNIT = php $(PHPUNIT_FILENAME)
 
@@ -20,14 +20,14 @@ update:
 autoload: vendor
 	@composer dump-autoload
 
+test-dependencies: vendor $(PHPUNIT_FILENAME)
+
 $(PHPUNIT_FILENAME):
 	mkdir -p build
 	wget https://phar.phpunit.de/$(PHPUNIT_VERSION) -O $(PHPUNIT_FILENAME)
 
 test: test-dependencies
 	@$(PHPUNIT)
-
-test-dependencies: vendor $(PHPUNIT_FILENAME)
 
 test-coverage: test-dependencies
 	@mkdir -p build/coverage
@@ -37,7 +37,7 @@ test-coveralls: test-dependencies
 	@mkdir -p build/logs
 	COMPOSER_ROOT_VERSION=$(PACKAGE_VERSION) composer require satooshi/php-coveralls
 	@$(PHPUNIT) --coverage-clover build/logs/clover.xml
-	php vendor/bin/coveralls -v
+	php vendor/bin/php-coveralls -v
 
 doc: vendor
 	@mkdir -p build/docs

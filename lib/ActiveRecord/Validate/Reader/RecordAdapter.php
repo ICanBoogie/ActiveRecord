@@ -25,20 +25,14 @@ class RecordAdapter extends AbstractAdapter
 {
 	use AccessorTrait;
 
-	/**
-	 * @param ActiveRecord $source
-	 */
+	protected function get_record(): ActiveRecord
+	{
+		return $this->source;
+	}
+
 	public function __construct(ActiveRecord $source)
 	{
 		parent::__construct($source);
-	}
-
-	/**
-	 * @return ActiveRecord
-	 */
-	protected function get_record()
-	{
-		return $this->source;
 	}
 
 	/**

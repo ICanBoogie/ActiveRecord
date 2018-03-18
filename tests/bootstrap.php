@@ -15,12 +15,11 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ActiveRecordCache\RuntimeActiveRecordCache;
 use ICanBoogie\Prototype;
 
-$loader = require __DIR__ . '/../vendor/autoload.php';
-$loader->addPsr4('ICanBoogie\\', __DIR__);
+require __DIR__ . '/../vendor/autoload.php';
 
 date_default_timezone_set('Europe/Madrid');
 
-Prototype::configure([
+Prototype::bind([
 
 	ActiveRecord::class => [
 

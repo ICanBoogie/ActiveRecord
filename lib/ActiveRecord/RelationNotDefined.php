@@ -28,10 +28,11 @@ class RelationNotDefined extends OffsetNotDefined implements Exception
 	 * Name of the undefined relation.
 	 *
 	 * @var string
+	 * @uses get_relation_name
 	 */
 	private $relation_name;
 
-	protected function get_relation_name()
+	private function get_relation_name(): string
 	{
 		return $this->relation_name;
 	}
@@ -40,21 +41,16 @@ class RelationNotDefined extends OffsetNotDefined implements Exception
 	 * Relation collection.
 	 *
 	 * @var RelationCollection
+	 * @uses get_collection
 	 */
 	private $collection;
 
-	protected function get_collection()
+	private function get_collection(): RelationCollection
 	{
 		return $this->collection;
 	}
 
-	/**
-	 * @param string $relation_name
-	 * @param RelationCollection $collection
-	 * @param int $code
-	 * @param \Exception|null $previous
-	 */
-	public function __construct($relation_name, RelationCollection $collection, $code = 500, \Exception $previous = null)
+	public function __construct(string $relation_name, RelationCollection $collection, int $code = 500, \Throwable $previous = null)
 	{
 		$this->relation_name = $relation_name;
 		$this->collection = $collection;
