@@ -33,7 +33,7 @@ class TableTest extends \PHPUnit\Framework\TestCase
 	 */
 	static private $dogs;
 
-	static public function setUpBeforeClass()
+	static public function setUpBeforeClass(): void
 	{
 		self::$connection = new Connection
 		(
@@ -71,11 +71,9 @@ class TableTest extends \PHPUnit\Framework\TestCase
 		self::$dogs->install();
 	}
 
-	/**
-	 * @expectedException \InvalidArgumentException
-	 */
 	public function test_invalid_table_name()
 	{
+		$this->expectException(\InvalidArgumentException::class);
 		new Table([
 
 			Table::NAME => 'invalid-name',
@@ -90,12 +88,10 @@ class TableTest extends \PHPUnit\Framework\TestCase
 
 	/**
 	 * @dataProvider provide_test_readonly_properties
-	 * @expectedException \ICanBoogie\PropertyNotWritable
-	 *
-	 * @param string $property Property name.
 	 */
-	public function test_readonly_properties($property)
+	public function test_readonly_properties(string $property)
 	{
+		$this->expectException(\ICanBoogie\PropertyNotWritable::class);
 		self::$animals->$property = null;
 	}
 

@@ -41,7 +41,7 @@ class RecordNotValidTest extends \PHPUnit\Framework\TestCase
 		$this->assertSame($record, $exception->record);
 		$this->assertSame($errors, $exception->errors);
 
-		$this->assertContains(Email::DEFAULT_MESSAGE, $exception->getMessage());
-		$this->assertContains(Unique::DEFAULT_MESSAGE, $exception->getMessage());
+		$this->assertStringContainsString(Email::DEFAULT_MESSAGE, $exception->getMessage());
+		$this->assertStringContainsString(Unique::DEFAULT_MESSAGE, $exception->getMessage());
 	}
 }

@@ -44,7 +44,7 @@ class QueryTest extends \PHPUnit\Framework\TestCase
 	 */
 	private $connections;
 
-	static public function setUpBeforeClass()
+	public static function setUpBeforeClass(): void
 	{
 		$connections = new ConnectionCollection([
 
@@ -124,7 +124,7 @@ class QueryTest extends \PHPUnit\Framework\TestCase
 		}
 	}
 
-	public function setUp()
+	protected function setUp(): void
 	{
 		$this->connections = new ConnectionCollection([
 
@@ -134,12 +134,13 @@ class QueryTest extends \PHPUnit\Framework\TestCase
 	}
 
 	/**
-	 * @expectedException \ICanBoogie\PropertyNotWritable
+	 *
 	 * @dataProvider provide_test_readonly_properties
 	 */
 	public function test_readonly_properties($property)
 	{
 		$query = new Query(self::$animals);
+		$this->expectException(\ICanBoogie\PropertyNotWritable::class);
 		$query->$property = null;
 	}
 
@@ -158,8 +159,8 @@ class QueryTest extends \PHPUnit\Framework\TestCase
 	{
 		$all = self::$dogs->all;
 
-		$this->assertInternalType('array', $all);
-		$this->assertEquals(self::$n, count($all));
+		$this->assertIsArray($all);
+		$this->assertCount(self::$n, $all);
 	}
 
 	public function test_order()

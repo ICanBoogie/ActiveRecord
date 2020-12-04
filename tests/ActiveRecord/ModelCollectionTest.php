@@ -28,7 +28,7 @@ class ModelCollectionTest extends \PHPUnit\Framework\TestCase
 	 */
 	private $definitions;
 
-	public function setUp()
+	protected function setUp(): void
 	{
 		$this->connections = new ConnectionCollection([
 
@@ -78,7 +78,7 @@ class ModelCollectionTest extends \PHPUnit\Framework\TestCase
 	public function test_get_instances()
 	{
 		$models = $this->models;
-		$this->assertInternalType('array', $models->definitions);
+		$this->assertIsArray($models->definitions);
 		$this->assertEquals([], $models->instances);
 		$this->assertInstanceOf(Model::class, $models['articles']);
 		$this->assertInstanceOf(Model::class, $models['comments']);
@@ -94,7 +94,7 @@ class ModelCollectionTest extends \PHPUnit\Framework\TestCase
 	public function test_get_definitions()
 	{
 		$models = $this->models;
-		$this->assertInternalType('array', $models->definitions);
+		$this->assertIsArray($models->definitions);
 		$this->assertEquals([ 'articles', 'comments', 'other' ], array_keys($models->definitions));
 	}
 
@@ -143,11 +143,9 @@ class ModelCollectionTest extends \PHPUnit\Framework\TestCase
 		$this->assertSame($articles, $this->models['articles']);
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\ActiveRecord\ModelNotDefined
-	 */
 	public function test_offset_get_undefined()
 	{
+		$this->expectException(\ICanBoogie\ActiveRecord\ModelNotDefined::class);
 		$this->models[uniqid()];
 	}
 

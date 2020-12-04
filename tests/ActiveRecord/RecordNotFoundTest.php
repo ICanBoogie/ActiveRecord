@@ -22,7 +22,7 @@ class RecordNotFoundTest extends \PHPUnit\Framework\TestCase
 	 */
 	static private $exception;
 
-	static public function setupBeforeClass()
+	static public function setupBeforeClass(): void
 	{
 		self::$records = [
 
@@ -42,7 +42,7 @@ class RecordNotFoundTest extends \PHPUnit\Framework\TestCase
 
 	public function test_get_records()
 	{
-		$this->assertInternalType('array', self::$exception->records);
+		$this->assertIsArray(self::$exception->records);
 		$this->assertSame(self::$records, self::$exception->records);
 	}
 }

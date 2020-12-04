@@ -25,7 +25,7 @@ class ScopeNotDefinedTest extends \PHPUnit\Framework\TestCase
 	 */
 	private $exception;
 
-	public function setUp()
+	protected function setUp(): void
 	{
 		$this->model = $this
 			->getMockBuilder(Model::class)

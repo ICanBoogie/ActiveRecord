@@ -15,7 +15,7 @@ class ConnectionCollectionTest extends \PHPUnit\Framework\TestCase
 {
 	private $connections;
 
-	public function setUp()
+	protected function setUp(): void
 	{
 		$this->connections = new ConnectionCollection
 		([
@@ -54,19 +54,17 @@ class ConnectionCollectionTest extends \PHPUnit\Framework\TestCase
 
 	/**
 	 * @depends test_should_get_connection
-	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished
 	 */
 	public function test_should_throw_an_exception_on_setting_established_connection()
 	{
 		$this->connections['one'];
+		$this->expectException(\ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished::class);
 		$this->connections['one'] = [ 'dsn' => 'sqlite::memory:' ];
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionNotDefined
-	 */
 	public function test_should_throw_an_exception_on_getting_undefined_connection()
 	{
+		$this->expectException(\ICanBoogie\ActiveRecord\ConnectionNotDefined::class);
 		$this->connections['undefined'];
 	}
 
@@ -80,11 +78,9 @@ class ConnectionCollectionTest extends \PHPUnit\Framework\TestCase
 		$this->assertInstanceOf(Connection::class, $this->connections['two']);
 	}
 
-	/**
-	 * @expectedException \InvalidArgumentException
-	 */
 	public function test_should_throw_an_exception_on_setting_invalid_connection()
 	{
+		$this->expectException(\InvalidArgumentException::class);
 		$this->connections['invalid'] = [
 
 			'd_s_n' => 'sqlite::memory:'
@@ -105,27 +101,23 @@ class ConnectionCollectionTest extends \PHPUnit\Framework\TestCase
 
 	/**
 	 * @depends test_should_get_connection
-	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished
 	 */
 	public function test_should_throw_exception_on_unsetting_established_connection()
 	{
 		$this->connections['one'];
+		$this->expectException(\ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished::class);
 		unset($this->connections['one']);
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionNotDefined
-	 */
 	public function testConnectionNotDefined()
 	{
+		$this->expectException(\ICanBoogie\ActiveRecord\ConnectionNotDefined::class);
 		$this->connections['two'];
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\ActiveRecord\ConnectionNotEstablished
-	 */
 	public function testConnectionNotEstablished()
 	{
+		$this->expectException(\ICanBoogie\ActiveRecord\ConnectionNotEstablished::class);
 		$this->connections['bad'];
 	}
 

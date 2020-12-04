@@ -29,12 +29,12 @@ class MySQLDriverTest extends \PHPUnit\Framework\TestCase
 		$connection
 			->expects($this->any())
 			->method('exec')
-			->willReturnCallback(function($statement) {
+			->willReturnCallback(function(string $statement) {
 
-				$this->assertContains("`id` BIGINT UNSIGNED NOT NULL", $statement);
-				$this->assertContains("`name` VARCHAR( 255 ) NOT NULL", $statement);
-				$this->assertContains("`value` TEXT NOT NULL", $statement);
-				$this->assertContains("PRIMARY KEY(`id`, `name`)", $statement);
+				$this->assertStringContainsString("`id` BIGINT UNSIGNED NOT NULL", $statement);
+				$this->assertStringContainsString("`name` VARCHAR( 255 ) NOT NULL", $statement);
+				$this->assertStringContainsString("`value` TEXT NOT NULL", $statement);
+				$this->assertStringContainsString("PRIMARY KEY(`id`, `name`)", $statement);
 
 			});
 

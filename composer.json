@@ -23,12 +23,11 @@
 	},
 	"minimum-stability": "dev",
 	"prefer-stable": true,
-	"prefer-dist": true,
 	"require": {
-		"php": "^7.2",
+		"php": ">=7.2",
 		"ext-pdo": "*",
 		"icanboogie/prototype": "^5.0",
-		"icanboogie/inflector": "^1.4",
+		"icanboogie/inflector": "^1.4|^2.0",
 		"icanboogie/datetime": "^1.2",
 		"icanboogie/validate": "^0.2"
 	},

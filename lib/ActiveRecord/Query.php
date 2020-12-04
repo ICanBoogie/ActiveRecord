@@ -534,7 +534,7 @@ class Query implements \IteratorAggregate
 	 */
 	public function join($expression, $options = []): self
 	{
-		if (\is_string($expression) && $expression{0} == ':')
+		if (\is_string($expression) && $expression[0] == ':')
 		{
 			$expression = $this->model->models[\substr($expression, 1)];
 		}
@@ -724,13 +724,13 @@ class Query implements \IteratorAggregate
 						$conditions_args = \array_merge($conditions_args, $arg->args);
 					}
 
-					$c .= ' AND `' . ($column{0} == '!' ? \substr($column, 1) . '` NOT' : $column . '`') . ' IN(' . $joined . ')';
+					$c .= ' AND `' . ($column[0] == '!' ? \substr($column, 1) . '` NOT' : $column . '`') . ' IN(' . $joined . ')';
 				}
 				else
 				{
 					$conditions_args[] = $arg;
 
-					$c .= ' AND `' . ($column{0} == '!' ? \substr($column, 1) . '` !' : $column . '` ') . '= ?';
+					$c .= ' AND `' . ($column[0] == '!' ? \substr($column, 1) . '` !' : $column . '` ') . '= ?';
 				}
 			}
 

@@ -56,7 +56,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 	 */
 	private $counts_records_count;
 
-	public function setUp()
+	protected function setUp(): void
 	{
 		$connections = new ConnectionCollection([
 
@@ -149,11 +149,9 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 		$this->counts_records_count = count($names);
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\Prototype\MethodNotDefined
-	 */
 	public function test_call_undefined_method()
 	{
+		$this->expectException(\ICanBoogie\Prototype\MethodNotDefined::class);
 		$this->models['nodes']->undefined_method();
 	}
 
@@ -247,7 +245,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 			$records = $e->records;
 			$message = $e->getMessage();
 
-			$this->assertContains((string) $id, $message);
+			$this->assertStringContainsString((string) $id, $message);
 
 			$this->assertInstanceOf(ActiveRecord::class, $records[1]);
 			$this->assertInstanceOf(ActiveRecord::class, $records[2]);
@@ -273,9 +271,9 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 			$records = $e->records;
 			$message = $e->getMessage();
 
-			$this->assertContains((string) $id1, $message);
-			$this->assertContains((string) $id2, $message);
-			$this->assertContains((string) $id2, $message);
+			$this->assertStringContainsString((string) $id1, $message);
+			$this->assertStringContainsString((string) $id2, $message);
+			$this->assertStringContainsString((string) $id2, $message);
 
 			$this->assertNull($records[$id1]);
 			$this->assertNull($records[$id2]);
@@ -306,7 +304,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 
 		$records = $model->find($id1, $id2, $id3);
 
-		$this->assertInternalType('array', $records);
+		$this->assertIsArray($records);
 		$this->assertInstanceOf(Article::class, $records[$id1]);
 		$this->assertInstanceOf(Article::class, $records[$id2]);
 		$this->assertInstanceOf(Article::class, $records[$id3]);
@@ -329,7 +327,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 
 		$records = $model->find([ $id1, $id2, $id3 ]);
 
-		$this->assertInternalType('array', $records);
+		$this->assertIsArray($records);
 		$this->assertInstanceOf(Article::class, $records[$id1]);
 		$this->assertInstanceOf(Article::class, $records[$id2]);
 		$this->assertInstanceOf(Article::class, $records[$id3]);
@@ -373,11 +371,12 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 
 	/**
 	 * @dataProvider provide_test_readonly_properties
-	 * @expectedException \ICanBoogie\PropertyNotWritable
+	 *
 	 * @param string $property Property name.
 	 */
 	public function test_readonly_properties($property)
 	{
+		$this->expectException(\ICanBoogie\PropertyNotWritable::class);
 		$this->model->$property = null;
 	}
 
@@ -400,8 +399,8 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 	public function test_get_all()
 	{
 		$all = $this->model->all;
-		$this->assertInternalType('array', $all);
-		$this->assertEquals($this->model_records_count, count($all));
+		$this->assertIsArray($all);
+		$this->assertCount($this->model_records_count, $all);
 		$this->assertContainsOnlyInstancesOf(ActiveRecord::class, $all);
 	}
 
@@ -437,15 +436,14 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 		];
 	}
 
-	/**
-	 * @expectedException \InvalidArgumentException
-	 */
 	public function testInvalidConnection()
 	{
 		$models = $this
 			->getMockBuilder(ModelCollection::class)
 			->disableOriginalConstructor()
 			->getMock();
+
+		$this->expectException(\InvalidArgumentException::class);
 
 		/* @var ModelCollection $models */
 
@@ -493,19 +491,15 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 		$this->assertEquals('Madonna', $record->title);
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\ActiveRecord\ScopeNotDefined
-	 */
 	public function test_scope_not_defined()
 	{
+		$this->expectException(\ICanBoogie\ActiveRecord\ScopeNotDefined::class);
 		$this->model->scope('undefined' . uniqid());
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\ActiveRecord\ScopeNotDefined
-	 */
 	public function test_scope_not_defined_from_query()
 	{
+		$this->expectException(\ICanBoogie\ActiveRecord\ScopeNotDefined::class);
 		$this->model->ordered->undefined_scope();
 	}
 

@@ -12,33 +12,39 @@
 namespace ICanBoogie;
 
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
-use ICanBoogie\ActiveRecord\ModelNotDefined;
 use ICanBoogie\ActiveRecord\ModelProvider;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecordTest\Sample;
 use ICanBoogie\ActiveRecordTest\ValidateCase;
+use InvalidArgumentException;
+use LogicException;
+use PHPUnit\Framework\TestCase;
+use function mt_rand;
+use function serialize;
+use function strrev;
+use function uniqid;
+use function unserialize;
 
 /**
  * @group record
  */
-class ActiveRecordTest extends \PHPUnit\Framework\TestCase
+class ActiveRecordTest extends TestCase
 {
-	private $sample_model;
+	use ConnectionHelper;
 
-	public function setUp()
+	private static $sample_model;
+
+	protected function setUp(): void
 	{
-		$sample_model = &$this->sample_model;
-
-		if ($sample_model)
+		if (self::$sample_model)
 		{
 			return;
 		}
 
-		$sample_model = $this->mockModel();
+		self::$sample_model = $sample_model = $this->mockModel();
 
-		ModelProvider::define(function($model_id) use ($sample_model) {
+		ModelProvider::define(function (string $model_id) use ($sample_model): ?Model {
 
 			if ($model_id === 'sample')
 			{
@@ -59,7 +65,7 @@ class ActiveRecordTest extends \PHPUnit\Framework\TestCase
 	public function test_should_resolve_model_from_const()
 	{
 		$record = new Sample;
-		$this->assertSame($this->sample_model, $record->model);
+		$this->assertSame(self::$sample_model, $record->model);
 	}
 
 	public function test_should_use_provided_model()
@@ -69,11 +75,9 @@ class ActiveRecordTest extends \PHPUnit\Framework\TestCase
 		$this->assertSame($model, $record->model);
 	}
 
-	/**
-	 * @expectedException \InvalidArgumentException
-	 */
 	public function test_should_throw_exception_on_invalid_model()
 	{
+		$this->expectException(InvalidArgumentException::class);
 		new Sample(123);
 	}
 
@@ -100,13 +104,13 @@ class ActiveRecordTest extends \PHPUnit\Framework\TestCase
 
 	public function test_serialize_should_preserve_model_id()
 	{
-		$record = new ActiveRecord($this->sample_model);
+		$record = new ActiveRecord(self::$sample_model);
 		$serialized_record = serialize($record);
 		$unserialized_record = unserialize($serialized_record);
 
 		$this->assertEquals($record->model_id, $unserialized_record->model_id);
 
-		$record = new Sample($this->sample_model);
+		$record = new Sample(self::$sample_model);
 		$serialized_record = serialize($record);
 		$unserialized_record = unserialize($serialized_record);
 		$this->assertEquals($record->model_id, $unserialized_record->model_id);
@@ -131,30 +135,27 @@ class ActiveRecordTest extends \PHPUnit\Framework\TestCase
 		$primary = 'id';
 		$allow_null_with_value = uniqid();
 
-		$schema = new Schema([
-
-			$primary => 'serial',
-			'reversed' => 'varchar',
-			'date' => 'datetime',
-			'do_not_allow_null' => [ 'varchar' ],
-			'allow_null' => [ 'varchar', 'null' => true ],
-			'allow_null_with_value' => [ 'varchar', 'null' => true ]
-
-		]);
-
 		$model = $this
 			->getMockBuilder(Model::class)
 			->disableOriginalConstructor()
-			->setMethods([ 'get_extended_schema', 'get_primary', 'save' ])
+			->onlyMethods([ 'save', 'get_id' ])
+			->addMethods([ 'get_extended_schema' ])
 			->getMock();
 		$model
-			->expects($this->once())
-			->method('get_primary')
-			->willReturn($primary);
+			->method('get_id')
+			->willReturn('madonna');
 		$model
-			->expects($this->once())
 			->method('get_extended_schema')
-			->willReturn($schema);
+			->willReturn(new Schema([
+
+				$primary => 'serial',
+				'reversed' => 'varchar',
+				'date' => 'datetime',
+				'do_not_allow_null' => [ 'varchar' ],
+				'allow_null' => [ 'varchar', 'null' => true ],
+				'allow_null_with_value' => [ 'varchar', 'null' => true ],
+
+			]));
 		$model
 			->expects($this->once())
 			->method('save')
@@ -162,34 +163,29 @@ class ActiveRecordTest extends \PHPUnit\Framework\TestCase
 
 				'reverse' => strrev($reverse),
 				'allow_null' => null,
-				'allow_null_with_value' => $allow_null_with_value
+				'allow_null_with_value' => $allow_null_with_value,
 
 			])
 			->willReturn($id);
 
 		$record = new Sample($model);
 		$record->reverse = $reverse;
-		$record->{ 'do_not_allow_null' } = null;
-		$record->{ 'allow_null' } = null;
-		$record->{ 'allow_null_with_value' } = $allow_null_with_value;
+		$record->{'do_not_allow_null'} = null;
+		$record->{'allow_null'} = null;
+		$record->{'allow_null_with_value'} = $allow_null_with_value;
 
 		$this->assertSame($id, $record->save());
 	}
 
-	/**
-	 * @expectedException \LogicException
-	 */
 	public function test_delete_missing_primary()
 	{
 		$model = $this->mockModel();
 		$record = new ActiveRecord($model);
+		$this->expectException(LogicException::class);
 		$record->delete();
 	}
 
-	/**
-	 * @return Model
-	 */
-	private function mockModel()
+	private function mockModel(): Model
 	{
 		return $this
 			->getMockBuilder(Model::class)

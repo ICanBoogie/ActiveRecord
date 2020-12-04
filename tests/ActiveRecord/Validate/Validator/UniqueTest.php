@@ -14,12 +14,14 @@ namespace ICanBoogie\ActiveRecord\Validate\Validator;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\Validate\Context;
+use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group validate
  * @medium
  */
-class UniqueTest extends \PHPUnit\Framework\TestCase
+class UniqueTest extends TestCase
 {
 	public function test_normalize_options()
 	{
@@ -28,32 +30,26 @@ class UniqueTest extends \PHPUnit\Framework\TestCase
 		$options = $validator->normalize_params([ Unique::OPTION_COLUMN => $column ]);
 		$this->assertArrayHasKey(Unique::OPTION_COLUMN, $options);
 		$this->assertArrayNotHasKey(0, $options);
-		$this->assertSame($column, $options[Unique::OPTION_COLUMN]);
+		$this->assertSame($column, $options[ Unique::OPTION_COLUMN ]);
 	}
 
 	/**
 	 * @dataProvider provide_test_validate
-	 *
-	 * @param string $column
-	 * @param bool $should_use_primary
 	 */
-	public function test_validate($column, $should_use_primary)
+	public function test_validate(?string $column, bool $should_use_primary)
 	{
 		$attribute = 'attribute' . uniqid();
 		$value = 'value' . uniqid();
 		$primary = 'primary' . uniqid();
 		$key = $should_use_primary ? 'key' . uniqid() : null;
-		$context = $this->mockContext($attribute, $value, $column ?: $attribute, $primary, $key);
+		$context = $this->makeContext($attribute, $value, $column ?: $attribute, $primary, $key);
 		$context->validator_params = [ Unique::OPTION_COLUMN => $column ];
 
 		$validator = new Unique;
 		$validator->validate($value, $context);
 	}
 
-	/**
-	 * @return array
-	 */
-	public function provide_test_validate()
+	public function provide_test_validate(): array
 	{
 		return [
 
@@ -65,29 +61,23 @@ class UniqueTest extends \PHPUnit\Framework\TestCase
 		];
 	}
 
-	/**
-	 * @expectedException \InvalidArgumentException
-	 */
 	public function test_validate_with_invalid_reader()
 	{
 		$context = new Context;
 		$context->attribute = uniqid();
-		$context->reader = new \stdClass;
+		$context->reader = new class() {
+		};
 
 		$validator = new Unique;
+		$this->expectException(InvalidArgumentException::class);
 		$validator->validate(uniqid(), $context);
 	}
 
-	/**
-	 * @param string $attribute
-	 * @param string $value
-	 * @param string $column
-	 * @param string $primary
-	 * @param string $key
-	 *
-	 * @return Context
-	 */
-	private function mockContext($attribute, $value, $column, $primary, $key)
+	private function makeContext(string $attribute,
+		string $value,
+		string $column,
+		string $primary,
+		string $key = null): Context
 	{
 		$context = new Context;
 		$context->reader = $this->mockReader($value, $column, $primary, $key);
@@ -96,15 +86,10 @@ class UniqueTest extends \PHPUnit\Framework\TestCase
 		return $context;
 	}
 
-	/**
-	 * @param string $value
-	 * @param string $column
-	 * @param string $primary
-	 * @param string $key
-	 *
-	 * @return RecordAdapter
-	 */
-	private function mockReader($value, $column, $primary, $key)
+	private function mockReader(string $value,
+		string $column,
+		string $primary,
+		string $key = null): RecordAdapter
 	{
 		$expected = true;
 
@@ -116,7 +101,7 @@ class UniqueTest extends \PHPUnit\Framework\TestCase
 		$query = $this
 			->getMockBuilder(ActiveRecord\Query::class)
 			->setConstructorArgs([ $model ])
-			->setMethods([ 'get_exists' ])
+			->onlyMethods([ 'get_exists' ])
 			->getMock();
 		$query
 			->expects($this->once())
@@ -126,10 +111,13 @@ class UniqueTest extends \PHPUnit\Framework\TestCase
 		$model = $this
 			->getMockBuilder(ActiveRecord\Model::class)
 			->disableOriginalConstructor()
-			->setMethods([ 'get_primary', 'where' ])
+			->onlyMethods([ 'get_id', 'get_primary' ])
+			->addMethods([ 'where' ])
 			->getMock();
 		$model
-			->expects($this->once())
+			->method('get_id')
+			->willReturn("madonna");
+		$model
 			->method('get_primary')
 			->willReturn($primary);
 		$model
@@ -140,8 +128,6 @@ class UniqueTest extends \PHPUnit\Framework\TestCase
 
 		$record = new ActiveRecord($model);
 		$record->$primary = $key;
-
-		/* @var $record ActiveRecord */
 
 		return new RecordAdapter($record);
 	}

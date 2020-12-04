@@ -13,7 +13,7 @@ class ConnectionTest extends \PHPUnit\Framework\TestCase
 	 */
 	private $connection;
 
-	public function setUp()
+	protected function setUp(): void
 	{
 		$this->id = 'db' . uniqid();
 

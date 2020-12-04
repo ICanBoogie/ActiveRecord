@@ -18,6 +18,6 @@ class DriverNotDefinedTest extends \PHPUnit\Framework\TestCase
 		$driver_name = uniqid();
 		$exception = new DriverNotDefined($driver_name);
 		$this->assertSame($driver_name, $exception->driver_name);
-		$this->assertContains($driver_name, $exception->getMessage());
+		$this->assertStringContainsString($driver_name, $exception->getMessage());
 	}
 }

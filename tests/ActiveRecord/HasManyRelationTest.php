@@ -19,7 +19,7 @@ class HasManyRelationTest extends \PHPUnit\Framework\TestCase
 	private $articles;
 	private $comments;
 
-	public function setUp()
+	protected function setUp(): void
 	{
 		$connections = new ConnectionCollection([
 
@@ -97,11 +97,9 @@ class HasManyRelationTest extends \PHPUnit\Framework\TestCase
 		$this->assertSame($this->articles->primary, $relation->foreign_key);
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\ActiveRecord\RelationNotDefined
-	 */
 	public function test_undefined_relation()
 	{
+		$this->expectException(\ICanBoogie\ActiveRecord\RelationNotDefined::class);
 		$this->articles->relations['undefined_relation'];
 	}
 

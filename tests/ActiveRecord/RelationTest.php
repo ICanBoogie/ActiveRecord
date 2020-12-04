@@ -17,7 +17,7 @@ class RelationTest extends \PHPUnit\Framework\TestCase
 {
 	private $model;
 
-	public function setUp()
+	protected function setUp(): void
 	{
 		$activerecord = $this
 			->getMockBuilder(ActiveRecord::class)
@@ -58,11 +58,9 @@ class RelationTest extends \PHPUnit\Framework\TestCase
 		$this->model = $model;
 	}
 
-	/**
-	 * @expectedException \ICanBoogie\ActiveRecord\ActiveRecordClassNotValid
-	 */
 	public function test_should_throw_exception_when_default_activerecord_class()
 	{
+		$this->expectException(\ICanBoogie\ActiveRecord\ActiveRecordClassNotValid::class);
 		$model = $this
 			->getMockBuilder(Model::class)
 			->disableOriginalConstructor()

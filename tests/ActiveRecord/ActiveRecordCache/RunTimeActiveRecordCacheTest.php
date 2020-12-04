@@ -13,8 +13,9 @@ namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
+use PHPUnit\Framework\TestCase;
 
-class RunTimeActiveRecordCacheTest extends \PHPUnit\Framework\TestCase
+class RunTimeActiveRecordCacheTest extends TestCase
 {
 	public function test_cache()
 	{
@@ -24,14 +25,14 @@ class RunTimeActiveRecordCacheTest extends \PHPUnit\Framework\TestCase
 		$model = $this
 			->getMockBuilder(Model::class)
 			->disableOriginalConstructor()
-			->setMethods([ 'get_primary'])
+			->onlyMethods([ 'get_id', 'get_primary'])
 			->getMock();
 		$model
-			->expects($this->any())
+			->method('get_id')
+			->willReturn('madonna');
+		$model
 			->method('get_primary')
 			->willReturn($primary);
-
-		/* @var $model Model */
 
 		$record = new ActiveRecord($model);
 		$record->$primary = $key;

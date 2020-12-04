@@ -17,7 +17,7 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 {
 	static private $connection;
 
-	static public function setupBeforeClass()
+	static public function setupBeforeClass(): void
 	{
 		self::$connection = $connection = new Connection('sqlite::memory:');
 
@@ -34,7 +34,7 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 		$this->assertInstanceOf(Statement::class, $statement);
 
 		$records = $statement->all;
-		$this->assertInternalType('array', $records);
+		$this->assertIsArray($records);
 		$this->assertCount(3, $records);
 	}
 
@@ -64,7 +64,7 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 			$this->assertInstanceOf(\PDOException::class, $e->original);
 			$this->assertNull($e->getPrevious());
 
-			$this->assertInternalType('string', $e->statement);
+			$this->assertIsString($e->statement);
 			$this->assertEquals($statement, $e->statement);
 			$this->assertEmpty($e->args);
 			$this->assertEquals('HY000(1) no such column: undefined_column — `SELECT undefined_column FROM test WHERE b = ?`', $e->getMessage());
@@ -129,7 +129,7 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 			$this->assertInstanceOf(\PDOException::class, $e->original);
 			$this->assertNull($e->getPrevious());
 
-			$this->assertInternalType('string', $e->statement);
+			$this->assertIsString($e->statement);
 			$this->assertEquals($statement, $e->statement);
 			$this->assertEmpty($e->args);
 			$this->assertEquals('HY000(1) no such table: undefined_table — `DELETE FROM undefined_table`', $e->getMessage());
@@ -168,7 +168,7 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 		{
 			$this->assertSame($statement, $e->statement);
 			$this->assertSame([ $arg ], $e->args);
-			$this->assertContains($arg, $e->getMessage());
+			$this->assertStringContainsString($arg, $e->getMessage());
 
 			return;
 		}
@@ -199,10 +199,6 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 		$this->assertSame($statement, call_user_func_array([ $statement, 'mode' ], $arguments));
 	}
 
-	/**
-	 * @requires PHP 5.6.0
-	 * @expectedException \ICanBoogie\ActiveRecord\UnableToSetFetchMode
-	 */
 	public function test_invalid_mode_should_throw_an_exception()
 	{
 		$invalid_mode = uniqid();
@@ -217,6 +213,8 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 			->method('setFetchMode')
 			->with($invalid_mode)
 			->willReturn(false);
+
+		$this->expectException(\ICanBoogie\ActiveRecord\UnableToSetFetchMode::class);
 
 		/* @var $statement Statement */
 		$this->assertSame($statement, $statement->mode($invalid_mode));
