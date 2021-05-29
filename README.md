@@ -1,7 +1,7 @@
 # Active Record
 
 [![Release](https://img.shields.io/packagist/v/ICanBoogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
-[![Build Status](https://img.shields.io/travis/ICanBoogie/ActiveRecord/4.0.svg)](http://travis-ci.org/ICanBoogie/ActiveRecord)
+[![Build Status](https://img.shields.io/github/workflow/status/ICanBoogie/ActiveRecord/test)](https://github.com/ICanBoogie/ActiveRecord/actions?query=workflow%3Atest)
 [![HHVM](https://img.shields.io/hhvm/icanboogie/activerecord.svg)](http://hhvm.h4cc.de/package/icanboogie/activerecord)
 [![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord/4.0.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
 [![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord/4.0.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
@@ -539,7 +539,7 @@ $models = new ModelCollection($connections, [
 	'users' => [
 
 		Model::SCHEMA => [
-    
+
             'uid' => 'serial',
             'name' => 'varchar'
             // …
@@ -793,7 +793,7 @@ try
 catch (RecordNotValid $e)
 {
 	$errors = $e->errors;
-	
+
 	// …
 }
 ```

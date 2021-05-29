@@ -32,7 +32,7 @@ test-coverage: test-dependencies
 .PHONY: test-coveralls
 test-coveralls: test-dependencies
 	@mkdir -p build/logs
-	@$(PHPUNIT) --coverage-clover ../build/logs/clover.xml
+	@$(PHPUNIT) --coverage-clover build/logs/clover.xml
 
 .PHONY: test-container
 test-container:

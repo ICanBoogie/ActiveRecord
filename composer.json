@@ -32,6 +32,7 @@
 		"icanboogie/validate": "^0.2"
 	},
 	"require-dev": {
+		"ext-pdo_mysql": "*",
 		"phpunit/phpunit": "^8.5"
 	},
 	"suggest": {
