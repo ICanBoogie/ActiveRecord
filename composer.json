@@ -27,9 +27,12 @@
 		"php": ">=7.2",
 		"ext-pdo": "*",
 		"icanboogie/prototype": "^5.0",
-		"icanboogie/inflector": "^1.4|^2.0",
+		"icanboogie/inflector": "^2.0",
 		"icanboogie/datetime": "^1.2",
 		"icanboogie/validate": "^0.2"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^8.5"
 	},
 	"suggest": {
 		"icanboogie/bind-activerecord": "Binds icanboogie/artiverecord to ICanBoogie"

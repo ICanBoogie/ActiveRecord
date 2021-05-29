@@ -2455,22 +2455,9 @@ The package requires PHP 7.2 or later and the [PDO extension](http://php.net/man
 
 ## Installation
 
-The recommended way to install this package is through [Composer](http://getcomposer.org/):
-
+```bash
+composer require icanboogie/activerecord
 ```
-$ composer require icanboogie/activerecord
-```
-
-
-
-
-
-### Cloning the repository
-
-The package is [available on GitHub](https://github.com/ICanBoogie/ActiveRecord), its repository
-can be cloned with the following command line:
-
-	$ git clone https://github.com/ICanBoogie/ActiveRecord.git
 
 
 
@@ -2490,16 +2477,9 @@ directory. [ApiGen](http://apigen.org/) is required. The directory can later be 
 
 ## Testing
 
-The test suite is ran with the `make test` command. [PHPUnit](https://phpunit.de/) and
-[Composer](http://getcomposer.org/) need to be globally available to run the suite. The command
-installs dependencies as required. The `make test-coverage` command runs test suite and also creates
-an HTML coverage report in "build/coverage". The directory can later be cleaned with the `make
-clean` command.
-
-The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
-
-[![Build Status](https://img.shields.io/travis/ICanBoogie/ActiveRecord/4.0.svg)](https://travis-ci.org/ICanBoogie/ActiveRecord)
-[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord/4.0.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
+Run `make test-container` to create and log into the test container, then run `make test` to run the
+test suite. Alternatively, run `make test-coverage` to run the test suite with test coverage. Open
+`build/coverage/index.html` to see the breakdown of the code coverage.
 
 
 
@@ -2507,7 +2487,7 @@ The package is continuously tested by [Travis CI](http://about.travis-ci.org/).
 
 ## License
 
-**icanboogie/activerecord** is licensed under the New BSD License - See the [LICENSE](LICENSE) file for details.
+**icanboogie/activerecord** is released under the [New BSD License](LICENSE).
 
 
 
