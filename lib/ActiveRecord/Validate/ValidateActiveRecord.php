@@ -28,8 +28,6 @@ class ValidateActiveRecord
 	/**
 	 * Validates an active record.
 	 *
-	 * @param ActiveRecord $record
-	 *
 	 * @return ValidationErrors|array An array of errors.
 	 */
 	public function __invoke(ActiveRecord $record)
@@ -51,22 +49,16 @@ class ValidateActiveRecord
 
 	/**
 	 * Resolves validation rules.
-	 *
-	 * @param ActiveRecord $record
-	 *
-	 * @return array
 	 */
-	protected function resolve_rules(ActiveRecord $record)
+	protected function resolve_rules(ActiveRecord $record): array
 	{
 		return $record->create_validation_rules();
 	}
 
 	/**
 	 * Creates validator provider.
-	 *
-	 * @return ValidatorProvider
 	 */
-	protected function create_validator_provider()
+	protected function create_validator_provider(): ValidatorProvider
 	{
 		return new ValidatorProviderCollection([
 
@@ -79,9 +71,6 @@ class ValidateActiveRecord
 	/**
 	 * Creates validations.
 	 *
-	 * @param array $rules
-	 * @param callable $validator_provider
-	 *
 	 * @return Validation
 	 */
 	protected function create_validator(array $rules, callable $validator_provider = null): Validation
@@ -91,10 +80,6 @@ class ValidateActiveRecord
 
 	/**
 	 * Creates the value reader for the active record.
-	 *
-	 * @param ActiveRecord $record
-	 *
-	 * @return RecordAdapter
 	 */
 	protected function create_reader(ActiveRecord $record): RecordAdapter
 	{

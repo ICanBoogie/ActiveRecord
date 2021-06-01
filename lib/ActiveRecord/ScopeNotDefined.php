@@ -21,13 +21,16 @@ use ICanBoogie\Accessor\AccessorTrait;
  */
 class ScopeNotDefined extends \LogicException implements Exception
 {
+	/**
+	 * @uses get_scope_name
+	 * @uses get_model
+	 */
 	use AccessorTrait;
 
 	/**
 	 * Name of the scope.
 	 *
 	 * @var string
-	 * @uses get_scope_name
 	 */
 	private $scope_name;
 
@@ -40,7 +43,6 @@ class ScopeNotDefined extends \LogicException implements Exception
 	 * Model on which the scope was invoked.
 	 *
 	 * @var Model
-	 * @uses get_model
 	 */
 	private $model;
 
@@ -65,7 +67,7 @@ class ScopeNotDefined extends \LogicException implements Exception
 		parent::__construct($this->format_message($scope_name, $model), $code, $previous);
 	}
 
-	private function format_message(string $scope_name, Model $model)
+	private function format_message(string $scope_name, Model $model): string
 	{
 		return "Unknown scope `{$scope_name}` for model `{$model->unprefixed_name}`.";
 	}

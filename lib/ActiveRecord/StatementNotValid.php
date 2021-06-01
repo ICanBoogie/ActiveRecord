@@ -12,21 +12,26 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
+use PDOException;
 
 /**
  * Exception thrown in attempt to execute a statement that is not valid.
  *
  * @property-read string $statement The invalid statement.
  * @property-read array $args The arguments of the statement.
- * @property-read \PDOException|null $original The original exception.
+ * @property-read PDOException|null $original The original exception.
  */
 class StatementNotValid extends \RuntimeException implements Exception
 {
+	/**
+	 * @uses get_statement
+	 * @uses get_args
+	 * @uses get_original
+	 */
 	use AccessorTrait;
 
 	/**
 	 * @var string
-	 * @uses get_statement
 	 */
 	private $statement;
 
@@ -36,23 +41,24 @@ class StatementNotValid extends \RuntimeException implements Exception
 	}
 
 	/**
-	 * @var array
-	 * @uses get_args
+	 * @var array<string, mixed>
 	 */
 	private $args;
 
+	/**
+	 * @return array<string, mixed>
+	 */
 	private function get_args(): array
 	{
 		return $this->args;
 	}
 
 	/**
-	 * @var \PDOException|null
-	 * @uses get_original
+	 * @var PDOException|null
 	 */
 	private $original;
 
-	private function get_original(): ?\PDOException
+	private function get_original(): ?PDOException
 	{
 		return $this->original;
 	}
@@ -60,9 +66,9 @@ class StatementNotValid extends \RuntimeException implements Exception
 	/**
 	 * @param array|string $statement
 	 * @param int $code
-	 * @param \PDOException|null $original
+	 * @param PDOException|null $original
 	 */
-	public function __construct($statement, int $code = 500, \PDOException $original = null)
+	public function __construct($statement, int $code = 500, PDOException $original = null)
 	{
 		$args = [];
 
@@ -78,7 +84,7 @@ class StatementNotValid extends \RuntimeException implements Exception
 		parent::__construct($this->format_message($statement, $args, $original), $code);
 	}
 
-	private function format_message(string $statement, array $args, \PDOException $previous = null): string
+	private function format_message(string $statement, array $args, PDOException $previous = null): string
 	{
 		$message = null;
 

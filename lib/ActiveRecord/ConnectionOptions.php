@@ -56,9 +56,9 @@ final class ConnectionOptions
 	/**
 	 * Normalizes options.
 	 *
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 *
-	 * @return array
+	 * @return array<string, mixed>
 	 */
 	static public function normalize(array $options): array
 	{

@@ -33,8 +33,6 @@ trait StartedAtProperty
 
 	/**
 	 * Returns the date and time at which the record was started.
-	 *
-	 * @return DateTime
 	 */
 	protected function get_started_at(): DateTime
 	{

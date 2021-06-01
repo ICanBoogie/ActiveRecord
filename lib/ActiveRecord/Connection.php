@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
+use PDOException;
 
 /**
  * A connection to a database.
@@ -26,6 +27,15 @@ use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
  */
 class Connection extends \PDO implements Driver
 {
+	/**
+	 * @uses get_id
+	 * @uses get_table_name_prefix
+	 * @uses get_charset
+	 * @uses get_collate
+	 * @uses get_timezone
+	 * @uses get_driver_name
+	 * @uses lazy_get_driver
+	 */
 	use AccessorTrait;
 
 	private const DRIVERS_MAPPING = [
@@ -39,7 +49,6 @@ class Connection extends \PDO implements Driver
 	 * Connection identifier.
 	 *
 	 * @var string
-	 * @uses get_id
 	 */
 	private $id;
 
@@ -56,7 +65,6 @@ class Connection extends \PDO implements Driver
 	 * By default, the prefix is the empty string, that is there is not prefix.
 	 *
 	 * @var string
-	 * @uses get_table_name_prefix
 	 */
 	private $table_name_prefix = Options::DEFAULT_TABLE_NAME_PREFIX;
 
@@ -69,7 +77,6 @@ class Connection extends \PDO implements Driver
 	 * Charset for the connection. Also used to specify the charset while creating tables.
 	 *
 	 * @var string
-	 * @uses get_charset
 	 */
 	private $charset = Options::DEFAULT_CHARSET;
 
@@ -82,7 +89,6 @@ class Connection extends \PDO implements Driver
 	 * Used to specify the collate while creating tables.
 	 *
 	 * @var string
-	 * @uses get_collate
 	 */
 	private $collate = Options::DEFAULT_COLLATE;
 
@@ -95,7 +101,6 @@ class Connection extends \PDO implements Driver
 	 * Timezone of the connection.
 	 *
 	 * @var string
-	 * @uses get_timezone
 	 */
 	private $timezone = Options::DEFAULT_TIMEZONE;
 
@@ -108,7 +113,6 @@ class Connection extends \PDO implements Driver
 	 * Driver name for the connection.
 	 *
 	 * @var string
-	 * @uses get_driver_name
 	 */
 	private $driver_name;
 
@@ -119,7 +123,6 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * @var Driver
-	 * @uses lazy_get_driver
 	 */
 	private $driver;
 
@@ -151,10 +154,7 @@ class Connection extends \PDO implements Driver
 	 * @link http://www.php.net/manual/en/pdo.construct.php
 	 * @link http://dev.mysql.com/doc/refman/5.5/en/time-zone-support.html
 	 *
-	 * @param string $dsn
-	 * @param string $username
-	 * @param string $password
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 */
 	public function __construct(string $dsn, string $username = null, string $password = null, array $options = [])
 	{
@@ -171,10 +171,6 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * Alias to {@link query}.
-	 *
-	 * @param array $args
-	 *
-	 * @return Statement
 	 */
 	public function __invoke(...$args): Statement
 	{
@@ -183,22 +179,14 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * Resolve the driver name from the DSN string.
-	 *
-	 * @param string $dsn
-	 *
-	 * @return string
 	 */
-	protected function resolve_driver_name($dsn)
+	protected function resolve_driver_name(string $dsn): string
 	{
 		return \explode(':', $dsn, 2)[0];
 	}
 
 	/**
 	 * Resolves driver class.
-	 *
-	 * @param string $driver_name
-	 *
-	 * @return string
 	 *
 	 * @throws DriverNotDefined
 	 */
@@ -214,10 +202,6 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * Resolves a {@link Driver} implementation.
-	 *
-	 * @param string $driver_name
-	 *
-	 * @return Driver
 	 */
 	private function resolve_driver(string $driver_name): Driver
 	{
@@ -229,7 +213,7 @@ class Connection extends \PDO implements Driver
 	/**
 	 * Applies options to the instance.
 	 *
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 */
 	private function apply_options(array $options): void
 	{
@@ -253,7 +237,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * May alter the options according to the driver.
 	 *
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 */
 	private function before_connection(array &$options): void
 	{
@@ -302,7 +286,7 @@ class Connection extends \PDO implements Driver
 			/* @var $statement Statement */
 			$statement = parent::prepare($statement, $options);
 		}
-		catch (\PDOException $e)
+		catch (PDOException $e)
 		{
 			throw new StatementNotValid($statement, 500, $e);
 		}
@@ -361,7 +345,7 @@ class Connection extends \PDO implements Driver
 
 			return parent::exec($statement);
 		}
-		catch (\PDOException $e)
+		catch (PDOException $e)
 		{
 			throw new StatementNotValid($statement, 500, $e);
 		}

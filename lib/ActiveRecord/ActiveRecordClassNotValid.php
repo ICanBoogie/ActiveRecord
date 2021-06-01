@@ -13,6 +13,8 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 
+use Throwable;
+
 use function ICanBoogie\format;
 
 /**
@@ -22,11 +24,13 @@ use function ICanBoogie\format;
  */
 class ActiveRecordClassNotValid extends \LogicException implements Exception
 {
+	/**
+	 * @uses get_class
+	 */
 	use AccessorTrait;
 
 	/**
 	 * @var string
-	 * @uses get_class
 	 */
 	private $class;
 
@@ -39,9 +43,9 @@ class ActiveRecordClassNotValid extends \LogicException implements Exception
 	 * @param mixed $class
 	 * @param string|null $message
 	 * @param int $code
-	 * @param \Throwable|null $previous
+	 * @param Throwable|null $previous
 	 */
-	public function __construct($class, string $message = null, int $code = 500, \Throwable $previous = null)
+	public function __construct($class, string $message = null, int $code = 500, Throwable $previous = null)
 	{
 		$this->class = $class;
 

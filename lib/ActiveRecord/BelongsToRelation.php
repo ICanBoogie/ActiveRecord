@@ -22,9 +22,8 @@ use function ICanBoogie\singularize;
 class BelongsToRelation extends Relation
 {
 	/**
-	 * @param Model $parent
 	 * @param Model|string $related
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 */
 	public function __construct(Model $parent, $related, array $options = [])
 	{

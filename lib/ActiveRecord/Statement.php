@@ -25,14 +25,20 @@ use ICanBoogie\Accessor\AccessorTrait;
  */
 class Statement extends \PDOStatement
 {
+	/**
+	 * @uses get_connection
+	 * @uses set_connection
+	 * @uses get_once
+	 * @uses get_all
+	 * @uses get_rc
+	 * @uses get_pairs
+	 */
 	use AccessorTrait;
 
 	/**
 	 * The database connection that created this statement.
 	 *
 	 * @var Connection
-	 * @uses get_connection
-	 * @uses set_connection
 	 */
 	private $connection;
 

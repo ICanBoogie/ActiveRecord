@@ -23,6 +23,9 @@ use ICanBoogie\Validate\Reader\AbstractAdapter;
  */
 class RecordAdapter extends AbstractAdapter
 {
+	/**
+	 * @uses get_record
+	 */
 	use AccessorTrait;
 
 	protected function get_record(): ActiveRecord

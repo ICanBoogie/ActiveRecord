@@ -21,13 +21,16 @@ use ICanBoogie\Accessor\AccessorTrait;
  */
 class ConnectionCollection implements \ArrayAccess, \IteratorAggregate
 {
+	/**
+	 * @uses get_definitions
+	 * @uses get_established
+	 */
 	use AccessorTrait;
 
 	/**
 	 * Connections definitions.
 	 *
 	 * @var array
-	 * @uses get_definitions
 	 */
 	private $definitions;
 
@@ -40,7 +43,6 @@ class ConnectionCollection implements \ArrayAccess, \IteratorAggregate
 	 * Established connections.
 	 *
 	 * @var Connection[]
-	 * @uses get_established
 	 */
 	private $established = [];
 

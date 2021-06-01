@@ -29,8 +29,6 @@ trait DateTimeProperty
 
 	/**
 	 * Returns the date and time.
-	 *
-	 * @return DateTime
 	 */
 	protected function get_datetime(): DateTime
 	{

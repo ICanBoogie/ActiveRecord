@@ -20,11 +20,13 @@ use ICanBoogie\Accessor\AccessorTrait;
  */
 class DriverNotDefined extends \LogicException implements Exception
 {
+	/**
+	 * @uses get_driver_name
+	 */
 	use AccessorTrait;
 
 	/**
 	 * @var string
-	 * @uses get_driver_name
 	 */
 	private $driver_name;
 
@@ -33,7 +35,7 @@ class DriverNotDefined extends \LogicException implements Exception
 		return $this->driver_name;
 	}
 
-	public function __construct(string $driver_name, string $message = null, $code = 500, \Throwable $previous = null)
+	public function __construct(string $driver_name, string $message = null, int $code = 500, \Throwable $previous = null)
 	{
 		$this->driver_name = $driver_name;
 

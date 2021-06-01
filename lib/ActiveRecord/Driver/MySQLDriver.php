@@ -77,11 +77,6 @@ class MySQLDriver extends BasicDriver
 
 	/**
 	 * Renders _create table_ statement.
-	 *
-	 * @param string $unprefixed_table_name
-	 * @param Schema $schema
-	 *
-	 * @return string
 	 */
 	protected function render_create_table(string $unprefixed_table_name, Schema $schema): string
 	{
@@ -96,10 +91,6 @@ class MySQLDriver extends BasicDriver
 
 	/**
 	 * Renders the lines used to create a table.
-	 *
-	 * @param Schema $schema
-	 *
-	 * @return array
 	 */
 	protected function render_create_table_lines(Schema $schema): array
 	{
@@ -115,12 +106,6 @@ class MySQLDriver extends BasicDriver
 
 	/**
 	 * Renders a line used to create a table.
-	 *
-	 * @param Schema $schema
-	 * @param string $column_id
-	 * @param SchemaColumn $column
-	 *
-	 * @return string
 	 */
 	protected function render_create_table_line(Schema $schema, string $column_id, SchemaColumn $column): string
 	{
@@ -129,10 +114,6 @@ class MySQLDriver extends BasicDriver
 
 	/**
 	 * Renders primary key clause to create table.
-	 *
-	 * @param Schema $schema
-	 *
-	 * @return string
 	 */
 	protected function render_create_table_primary_key(Schema $schema): string
 	{
@@ -155,10 +136,6 @@ class MySQLDriver extends BasicDriver
 
 	/**
 	 * Creates indexes of a give type.
-	 *
-	 * @param string $type e.g. "UNIQUE".
-	 * @param string $unprefixed_table_name
-	 * @param array $indexes
 	 */
 	protected function create_indexes_of(string $type, string $unprefixed_table_name, array $indexes): void
 	{

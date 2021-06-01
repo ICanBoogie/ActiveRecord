@@ -33,8 +33,6 @@ trait FinishedAtProperty
 
 	/**
 	 * Returns the date and time at which the record was finished.
-	 *
-	 * @return DateTime
 	 */
 	protected function get_finished_at(): DateTime
 	{

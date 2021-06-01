@@ -3,8 +3,8 @@
 [![Release](https://img.shields.io/packagist/v/ICanBoogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
 [![Build Status](https://img.shields.io/github/workflow/status/ICanBoogie/ActiveRecord/test)](https://github.com/ICanBoogie/ActiveRecord/actions?query=workflow%3Atest)
 [![HHVM](https://img.shields.io/hhvm/icanboogie/activerecord.svg)](http://hhvm.h4cc.de/package/icanboogie/activerecord)
-[![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord/4.0.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
-[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord/4.0.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
+[![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
+[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
 [![Packagist](https://img.shields.io/packagist/dt/icanboogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
 
 __Connections__, __models__ and __active records__ are the foundations of everything that concerns
@@ -52,32 +52,32 @@ use ICanBoogie\Prototype;
 
 Prototype::configure([
 
-	ActiveRecord::class => [
+    ActiveRecord::class => [
 
-		'validate' => function(ActiveRecord $record) {
+        'validate' => function(ActiveRecord $record) {
 
-			static $validate;
+            static $validate;
 
-			if (!$validate)
-			{
-				$validate = new ValidateActiveRecord;
-			}
+            if (!$validate)
+            {
+                $validate = new ValidateActiveRecord;
+            }
 
-			return $validate($record);
+            return $validate($record);
 
-		}
+        }
 
-	],
+    ],
 
-	Model::class => [
+    Model::class => [
 
-		'lazy_get_activerecord_cache' => function(Model $model) {
+        'lazy_get_activerecord_cache' => function(Model $model) {
 
-			return new RuntimeActiveRecordCache($model);
+            return new RuntimeActiveRecordCache($model);
 
-		}
+        }
 
-	]
+    ]
 
 ]);
 ```
@@ -177,33 +177,33 @@ use ICanBoogie\ActiveRecord\ModelCollection;
 
 class NodeModel extends Model
 {
-	// …
+    // …
 }
 
 class Node extends ActiveRecord
 {
-	public $id;
-	public $title;
-	public $number;
+    public $id;
+    public $title;
+    public $number;
 
-	// …
+    // …
 }
 
 /* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
 
 $models = new ModelCollection($connections, [
 
-	'nodes' => [
+    'nodes' => [
 
-		Model::ACTIVERECORD_CLASS => Node::class,
-		Model::SCHEMA => [
+        Model::ACTIVERECORD_CLASS => Node::class,
+        Model::SCHEMA => [
 
-			'id' => 'serial',
-			'title' => [ 'varchar', 80 ],
-			'number' => [ 'integer', 'unsigned' => true ]
+            'id' => 'serial',
+            'title' => [ 'varchar', 80 ],
+            'number' => [ 'integer', 'unsigned' => true ]
 
-		]
-	]
+        ]
+    ]
 ]);
 
 $models->install();
@@ -212,8 +212,8 @@ $node_model = $models['nodes'];
 
 $node = Node::from([
 
-	'title' => "My first node",
-	'number' => 123
+    'title' => "My first node",
+    'number' => 123
 
 ], [ $node_model ]);
 // ^ because we don't use a model provider yet, we need to specify the model to the active record
@@ -222,8 +222,8 @@ $node = Node::from([
 
 $node = $node_model->new([
 
-	'title' => "My first node",
-	'number' => 123
+    'title' => "My first node",
+    'number' => 123
 
 ]);
 
@@ -302,8 +302,8 @@ keys:
 <?php
 
 [
-	'nid' => 'serial', // bigint(20) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (`nid`)
-	'uid' => 'foreign' // bigint(20) unsigned NOT NULL, KEY `uid` (`uid`)
+    'nid' => 'serial', // bigint(20) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (`nid`)
+    'uid' => 'foreign' // bigint(20) unsigned NOT NULL, KEY `uid` (`uid`)
 ];
 ```
 
@@ -314,11 +314,11 @@ The size of the field can be defined as an integer for the `blob`, `char`, `inte
 <?php
 
 [
-	'title' => 'varchar', // varchar(255) NOT NULL
-	'slug' => [ 'varchar', 80 ], // varchar(80) NOT NULL
-	'weight' => 'integer', // int(11) NOT NULL
-	'small_count' => [ 'integer', 8 ], // int(8) NOT NULL,
-	'price' => [ 'float', [ 10, 3 ] ], // float(10,3) NOT NULL
+    'title' => 'varchar', // varchar(255) NOT NULL
+    'slug' => [ 'varchar', 80 ], // varchar(80) NOT NULL
+    'weight' => 'integer', // int(11) NOT NULL
+    'small_count' => [ 'integer', 8 ], // int(8) NOT NULL,
+    'price' => [ 'float', [ 10, 3 ] ], // float(10,3) NOT NULL
 ];
 ```
 
@@ -329,7 +329,7 @@ The size of the field can be defined using the qualifiers `tiny`, `small`, `medi
 <?php
 
 [
-	'body' => [ 'text', 'long' ] // longtext NOT NULL
+    'body' => [ 'text', 'long' ] // longtext NOT NULL
 ];
 ```
 
@@ -355,11 +355,11 @@ The qualifier `indexed` specifies that a field should be indexed:
 <?php
 
 [
-	'slug' => [ 'varchar', 'indexed' => true ], // varchar(255) NOT NULL, KEY `slug` (`slug`)
-	'is_online' => [ 'boolean', 'indexed' => true ], // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
+    'slug' => [ 'varchar', 'indexed' => true ], // varchar(255) NOT NULL, KEY `slug` (`slug`)
+    'is_online' => [ 'boolean', 'indexed' => true ], // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
 
-	'page_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL
-	'content_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL, KEY `page-content` (`page_id`, `content_id`)
+    'page_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL
+    'content_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL, KEY `page-content` (`page_id`, `content_id`)
 ];
 ```
 
@@ -370,9 +370,9 @@ created if multiple columns have the `primary` qualifier:
 <?php
 
 [
-	'vtid' => [ 'foreign', 'primary' => true ],
-	'nid' => [ 'foreign', 'primary' => true ],
-	'weight' => [ 'integer', 'unsigned' => true ]
+    'vtid' => [ 'foreign', 'primary' => true ],
+    'nid' => [ 'foreign', 'primary' => true ],
+    'weight' => [ 'integer', 'unsigned' => true ]
 ];
 
 // ADD PRIMARY KEY ( `vtid` , `nid` )
@@ -405,7 +405,7 @@ Note: The method only checks if the corresponding table exists, not if its schem
 
 if ($model->is_installed())
 {
-	echo "The model is already installed.";
+    echo "The model is already installed.";
 }
 ```
 
@@ -448,39 +448,39 @@ use ICanBoogie\DateTime;
 
 $models = new ModelCollection($connections, [
 
-	'nodes' => [
+    'nodes' => [
 
-		Model::SCHEMA => [
+        Model::SCHEMA => [
 
-			'nid' => 'serial',
-			'title' => 'varchar'
+            'nid' => 'serial',
+            'title' => 'varchar'
 
-		]
-	],
+        ]
+    ],
 
-	'contents' => [
+    'contents' => [
 
-		Model::EXTENDING => 'nodes',
-		Model::SCHEMA => [
+        Model::EXTENDING => 'nodes',
+        Model::SCHEMA => [
 
-			'body' => 'text',
-			'date' => 'date'
+            'body' => 'text',
+            'date' => 'date'
 
-		]
-	],
+        ]
+    ],
 
-	'news' => [
+    'news' => [
 
-		Model::EXTENDING => 'contents'
+        Model::EXTENDING => 'contents'
 
-	]
+    ]
 ]);
 
 $models['news']->save([
 
-	'title' => "Testing!",
-	'body' => "Testing...",
-	'date' => DateTime::now()
+    'title' => "Testing!",
+    'body' => "Testing...",
+    'date' => DateTime::now()
 
 ]);
 ```
@@ -524,28 +524,28 @@ use ICanBoogie\ActiveRecord\ModelCollection;
 
 $models = new ModelCollection($connections, [
 
-	'news' => [
+    'news' => [
 
-		Model::BELONGS_TO => 'users',
-		Model::SCHEMA => [
+        Model::BELONGS_TO => 'users',
+        Model::SCHEMA => [
 
-			'news_id' => 'serial',
-			'uid' => 'foreign'
-			// …
+            'news_id' => 'serial',
+            'uid' => 'foreign'
+            // …
 
-		]
-	],
+        ]
+    ],
 
-	'users' => [
+    'users' => [
 
-		Model::SCHEMA => [
+        Model::SCHEMA => [
 
             'uid' => 'serial',
             'name' => 'varchar'
             // …
 
         ]
-	]
+    ]
 
 ]);
 
@@ -582,29 +582,29 @@ use ICanBoogie\ActiveRecord\ModelCollection;
 
 $models = new ModelCollection($connections, [
 
-	'comments' => [
+    'comments' => [
 
-		Model::ACTIVERECORD_CLASS => Comment::class,
-		Model::SCHEMA => [
+        Model::ACTIVERECORD_CLASS => Comment::class,
+        Model::SCHEMA => [
 
-			'comment_id' => 'serial',
-			'article_id' => 'foreign',
-			'body' => 'text'
+            'comment_id' => 'serial',
+            'article_id' => 'foreign',
+            'body' => 'text'
 
-		]
-	],
+        ]
+    ],
 
-	'articles' => [
+    'articles' => [
 
-		Model::ACTIVERECORD_CLASS => Article::class,
-		Model::HAS_MANY => 'comments',
-		Model::SCHEMA => [
+        Model::ACTIVERECORD_CLASS => Article::class,
+        Model::HAS_MANY => 'comments',
+        Model::SCHEMA => [
 
-			'article_id' => 'serial',
-			'title' => 'varchar'
+            'article_id' => 'serial',
+            'title' => 'varchar'
 
-		]
-	]
+        ]
+    ]
 
 ]);
 ```
@@ -667,21 +667,21 @@ use ICanBoogie\ActiveRecord;
 
 class Node extends ActiveRecord
 {
-	const MODEL_ID = "nodes";
+    const MODEL_ID = "nodes";
 
-	// …
+    // …
 
-	protected function get_next()
-	{
-		return $this->model->own->visible->where('date > ?', $this->date)->order('date')->one;
-	}
+    protected function get_next()
+    {
+        return $this->model->own->visible->where('date > ?', $this->date)->order('date')->one;
+    }
 
-	protected function get_previous()
-	{
-		return $this->model->own->visible->where('date < ?', $this->date)->order('date DESC')->one;
-	}
+    protected function get_previous()
+    {
+        return $this->model->own->visible->where('date < ?', $this->date)->order('date DESC')->one;
+    }
 
-	// …
+    // …
 }
 ```
 
@@ -699,10 +699,10 @@ usually preferred for its shorter notation:
 
 $record = Article::from([
 
-	'title' => "An example",
-	'body' => "My first article",
-	'language' => "en",
-	'is_online' => true
+    'title' => "An example",
+    'body' => "My first article",
+    'language' => "en",
+    'is_online' => true
 
 ]);
 ```
@@ -724,29 +724,29 @@ use ICanBoogie\ActiveRecord;
 
 class User extends ActiveRecord
 {
-	use ActiveRecord\Property\CreatedAtProperty;
-	use ActiveRecord\Property\UpdatedAtProperty;
+    use ActiveRecord\Property\CreatedAtProperty;
+    use ActiveRecord\Property\UpdatedAtProperty;
 
-	public $id;
-	public $username;
-	public $email;
+    public $id;
+    public $username;
+    public $email;
 
-	// …
+    // …
 
-	/**
-	 * @inheritdoc
-	 */
-	public function create_validation_rules()
-	{
-		return [
+    /**
+     * @inheritdoc
+     */
+    public function create_validation_rules()
+    {
+        return [
 
-			'username' => 'required|max-length:32|unique',
-			'email' => 'required|email|unique',
-			'created_at' => 'required|datetime',
-			'updated_at' => 'required|datetime',
+            'username' => 'required|max-length:32|unique',
+            'email' => 'required|email|unique',
+            'created_at' => 'required|datetime',
+            'updated_at' => 'required|datetime',
 
-		];
-	}
+        ];
+    }
 }
 
 // ...
@@ -756,7 +756,7 @@ $errors = $user->validate();
 
 if ($errors)
 {
-	// …
+    // …
 }
 ```
 
@@ -788,13 +788,13 @@ use ICanBoogie\ActiveRecord\RecordNotValid;
 
 try
 {
-	$record->save();
+    $record->save();
 }
 catch (RecordNotValid $e)
 {
-	$errors = $e->errors;
+    $errors = $e->errors;
 
-	// …
+    // …
 }
 ```
 
@@ -851,10 +851,10 @@ use ICanBoogie\ActiveRecord\Property\UpdatedAtProperty;
 
 class Node extends ActiveRecord
 {
-	public $title;
+    public $title;
 
-	use CreatedAtProperty;
-	use UpdatedAtProperty;
+    use CreatedAtProperty;
+    use UpdatedAtProperty;
 }
 
 $node = new Node;
@@ -1141,24 +1141,24 @@ use ICanBoogie\ActiveRecord\Query;
 
 class Model extends \ICanBoogie\ActiveRecord\Model
 {
-	// …
+    // …
 
-	protected function scope_similar_site(Query $query, $site_id = null)
-	{
-		return $query->and('site_id = 0 OR site_id = ?', $site_id !== null ? $site_id : $this->current_site_id);
-	}
+    protected function scope_similar_site(Query $query, $site_id = null)
+    {
+        return $query->and('site_id = 0 OR site_id = ?', $site_id !== null ? $site_id : $this->current_site_id);
+    }
 
-	protected function scope_similar_language(Query $query, $language = null)
-	{
-		return $query->and('language = "" OR language = ?', $language !== null ? $language : $this->current_language);
-	}
+    protected function scope_similar_language(Query $query, $language = null)
+    {
+        return $query->and('language = "" OR language = ?', $language !== null ? $language : $this->current_language);
+    }
 
-	protected function scope_visible(Query $query, $visible = true)
-	{
-		return $query->similar_site->similar_language->filter_by_is_online($visible);
-	}
+    protected function scope_visible(Query $query, $visible = true)
+    {
+        return $query->similar_site->similar_language->filter_by_is_online($visible);
+    }
 
-	// …
+    // …
 }
 ```
 
@@ -1460,7 +1460,7 @@ of a result set:
 
 foreach ($model->where('is_online = 1') as $node)
 {
-	// …
+    // …
 }
 ```
 
@@ -1785,9 +1785,9 @@ $taxonomy_query = $models['taxonomy.terms/nodes']
 ->join(':taxonomy_vocabulary/scopes')
 ->where([
 
-	'termslug' => "music",
-	'vocabularyslug' => "category",
-	'constructor' => "articles"
+    'termslug' => "music",
+    'vocabularyslug' => "category",
+    'constructor' => "articles"
 
 ])
 ->select('nid');
@@ -2034,15 +2034,15 @@ use ICanBoogie\ActiveRecord\ConnectionCollection;
 
 $connections = new ConnectionCollection([
 
-	'one' => [
+    'one' => [
 
-		'dsn' => 'sqlite::memory:'
-	],
+        'dsn' => 'sqlite::memory:'
+    ],
 
-	'bad' => [
+    'bad' => [
 
-		'dsn' => 'mysql:dbname=bad_database' . uniqid()
-	]
+        'dsn' => 'mysql:dbname=bad_database' . uniqid()
+    ]
 
 ]);
 ```
@@ -2054,9 +2054,9 @@ Or after:
 
 $connections['two'] = [
 
-	'dsn' => 'mysql:dbname=example',
-	'username' => 'root',
-	'password' => 'root'
+    'dsn' => 'mysql:dbname=example',
+    'username' => 'root',
+    'password' => 'root'
 
 ];
 ```
@@ -2103,7 +2103,7 @@ if a connection is defined.
 
 if (isset($connections['one']))
 {
-	echo "The connection 'one' is defined.\n";
+    echo "The connection 'one' is defined.\n";
 }
 ```
 
@@ -2117,7 +2117,7 @@ _read-only_.
 
 foreach ($connections->definitions as $id => $definition)
 {
-	echo "The connection '$id' is defined.\n";
+    echo "The connection '$id' is defined.\n";
 }
 ```
 
@@ -2137,7 +2137,7 @@ The property is _read-only_.
 
 foreach ($connections->established as $id => $connection)
 {
-	echo "The connection '$id' is established.\n";
+    echo "The connection '$id' is established.\n";
 }
 ```
 
@@ -2150,7 +2150,7 @@ The [ConnectionCollection][] instance itself can be used to traverse established
 
 foreach ($connections as $id => $connection)
 {
-	echo "The connection '$id' is established.\n";
+    echo "The connection '$id' is established.\n";
 }
 ```
 
@@ -2186,22 +2186,22 @@ use ICanBoogie\ActiveRecord\ModelCollection;
 
 $models = new ModelCollection($connections, [
 
-	'nodes' => [
+    'nodes' => [
 
-		// …
-		Model::SCHEMA => [
+        // …
+        Model::SCHEMA => [
 
-			'nid' => 'serial',
-			'title' => 'varchar'
-			// …
-		]
-	],
+            'nid' => 'serial',
+            'title' => 'varchar'
+            // …
+        ]
+    ],
 
-	'contents' => [
+    'contents' => [
 
-		// …
-		Model::EXTENDING => 'nodes'
-	]
+        // …
+        Model::EXTENDING => 'nodes'
+    ]
 ]);
 ```
 
@@ -2216,8 +2216,8 @@ use ICanBoogie\ActiveRecord\Model;
 
 $models['new'] = [
 
-	// …
-	Model::EXTENDING => 'contents'
+    // …
+    Model::EXTENDING => 'contents'
 ];
 ```
 
@@ -2260,7 +2260,7 @@ The `isset()` function checks if a model is defined.
 
 if (isset($models['nodes']))
 {
-	echo "The model 'node' is defined.\n";
+    echo "The model 'node' is defined.\n";
 }
 ```
 
@@ -2274,7 +2274,7 @@ _read-only_.
 
 foreach ($models->definitions as $id => $definition)
 {
-	echo "The model '$id' is defined.\n";
+    echo "The model '$id' is defined.\n";
 }
 ```
 
@@ -2294,7 +2294,7 @@ property is _read-only_.
 
 foreach ($models->instances as $id => $model)
 {
-	echo "The model '$id' has been instantiated.\n";
+    echo "The model '$id' has been instantiated.\n";
 }
 ```
 
@@ -2343,7 +2343,7 @@ use function ICanBoogie\ActiveRecord\get_model;
 
 ModelProvider::define(function($id) use($models) {
 
-	return $models[$id];
+    return $models[$id];
 
 });
 
@@ -2374,7 +2374,7 @@ use ICanBoogie\Prototype;
 
 Prototype::from('ICanBoogie\ActiveRecord\Model')['lazy_get_activerecord_cache'] = function(Model $model) {
 
-	return new MyActiveRecordCache($model);
+    return new MyActiveRecordCache($model);
 
 };
 ```
@@ -2388,7 +2388,7 @@ Or using a `prototype` configuration fragment:
 
 return [
 
-	'ICanBoogie\ActiveRecord\Model::lazy_get_activerecord_cache' => 'my_activerecord_cache_provider'
+    'ICanBoogie\ActiveRecord\Model::lazy_get_activerecord_cache' => 'my_activerecord_cache_provider'
 
 ];
 ```
@@ -2407,15 +2407,15 @@ interface so that they can easily be identified:
 
 try
 {
-	// …
+    // …
 }
 catch (\ICanBoogie\ActiveRecord\Exception $e)
 {
-	// an ActiveRecord exception
+    // an ActiveRecord exception
 }
 catch (\Exception $e)
 {
-	// some other exception
+    // some other exception
 }
 ```
 
@@ -2493,29 +2493,29 @@ test suite. Alternatively, run `make test-coverage` to run the test suite with t
 
 
 
-[Connection]:                   https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Connection.html
-[ConnectionAlreadyEstablished]: https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
-[ConnectionNotDefined]:         https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
-[ConnectionNotEstablished]:     https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
-[ConnectionCollection]:         https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
-[CreatedAtProperty]:            https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.CreatedAtProperty.html
-[DateTimeProperty]:             https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.DateTimeProperty.html
-[Model]:                        https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Model.html
-[ModelAlreadyInstantiated]:     https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
-[ModelNotDefined]:              https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
-[ModelCollection]:              https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelCollection.html
-[ModelProvider]:                https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ModelProvider.html
-[Query]:                        https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Query.html
-[RecordNotFound]:               https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotFound.html
-[RecordNotValid]:               https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.RecordNotValid.html
-[RelationNotDefined]:           https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
-[RuntimeActiveRecordCache]:     https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ActiveRecordCache.RuntimeActiveRecordCache.html
-[ScopeNotDefined]:              https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
-[StatementInvocationFailed]:    https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
-[StatementNotValid]:            https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.StatementNotValid.html
-[UnableToSetFetchMode]:         https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
-[UpdatedAtProperty]:            https://icanboogie.org/api/activerecord/4.0/class-ICanBoogie.ActiveRecord.Property.UpdatedAtProperty.html
-[DateTime]:                     https://icanboogie.org/api/datetime/1.2/class-ICanBoogie.DateTime.html
+[Connection]:                   https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Connection.html
+[ConnectionAlreadyEstablished]: https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
+[ConnectionNotDefined]:         https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
+[ConnectionNotEstablished]:     https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
+[ConnectionCollection]:         https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
+[CreatedAtProperty]:            https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Property.CreatedAtProperty.html
+[DateTimeProperty]:             https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Property.DateTimeProperty.html
+[Model]:                        https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Model.html
+[ModelAlreadyInstantiated]:     https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
+[ModelNotDefined]:              https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
+[ModelCollection]:              https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelCollection.html
+[ModelProvider]:                https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelProvider.html
+[Query]:                        https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Query.html
+[RecordNotFound]:               https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.RecordNotFound.html
+[RecordNotValid]:               https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.RecordNotValid.html
+[RelationNotDefined]:           https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.RelationNotDefined.html
+[RuntimeActiveRecordCache]:     https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ActiveRecordCache.RuntimeActiveRecordCache.html
+[ScopeNotDefined]:              https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ScopeNotDefined.html
+[StatementInvocationFailed]:    https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.StatementInvocationFailed.html
+[StatementNotValid]:            https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.StatementNotValid.html
+[UnableToSetFetchMode]:         https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.UnableToSetFetchMode.html
+[UpdatedAtProperty]:            https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Property.UpdatedAtProperty.html
+[DateTime]:                     https://icanboogie.org/api/datetime/master/class-ICanBoogie.DateTime.html
 [ValidationErrors]:             https://icanboogie.org/api/validate/master/class-ICanBoogie.Validate.ValidationErrors.html
 [icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord
 [ICanBoogie]:                   https://icanboogie.org

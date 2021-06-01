@@ -23,11 +23,13 @@ use ICanBoogie\DateTime;
  */
 abstract class BasicDriver implements Driver
 {
+	/**
+	 * @uses get_connection
+	 */
 	use AccessorTrait;
 
 	/**
 	 * @var callable
-	 * @uses get_connection
 	 */
 	private $connection_provider;
 
@@ -119,10 +121,6 @@ abstract class BasicDriver implements Driver
 
 	/**
 	 * Returns quoted table name, including possible prefix.
-	 *
-	 * @param string $unprefixed_table_name
-	 *
-	 * @return string
 	 */
 	protected function resolve_quoted_table_name(string $unprefixed_table_name): string
 	{
@@ -131,11 +129,6 @@ abstract class BasicDriver implements Driver
 
 	/**
 	 * Returns index name.
-	 *
-	 * @param string $unprefixed_table_name
-	 * @param string $index_id
-	 *
-	 * @return string
 	 */
 	protected function resolve_index_name(string $unprefixed_table_name, string $index_id): string
 	{

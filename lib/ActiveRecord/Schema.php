@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\OffsetNotDefined;
+use IteratorAggregate;
 
 /**
  * Representation of a database table schema.
@@ -22,20 +23,27 @@ use ICanBoogie\OffsetNotDefined;
  * @property-read array $unique_indexes The unique indexes of the schema.
  * @property-read array|string|null $primary The primary key of the schema. A multi-dimensional
  * primary key is returned as an array.
+ *
+ * @implements IteratorAggregate<string, SchemaColumn>
  */
-class Schema implements \ArrayAccess, \IteratorAggregate
+class Schema implements \ArrayAccess, IteratorAggregate
 {
-	use AccessorTrait;
-
-	/**
-	 * @var SchemaColumn[]
+	/*
 	 * @uses get_columns
 	 * @uses get_primary
 	 * @uses get_indexes
 	 * @uses get_unique_indexes
 	 */
+	use AccessorTrait;
+
+	/**
+	 * @var array<string, SchemaColumn>
+	 */
 	private $columns = [];
 
+	/**
+	 * @return array<string, SchemaColumn>
+	 */
 	private function get_columns(): array
 	{
 		return $this->columns;
@@ -73,6 +81,9 @@ class Schema implements \ArrayAccess, \IteratorAggregate
 		return $this->collect_indexes_by_type('unique');
 	}
 
+	/**
+	 * @param array<string, array> $options
+	 */
 	public function __construct(array $options)
 	{
 		foreach ($options as $column_id => $column_options)

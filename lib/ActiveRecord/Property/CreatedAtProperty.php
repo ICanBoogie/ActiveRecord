@@ -31,8 +31,6 @@ trait CreatedAtProperty
 
 	/**
 	 * Returns the date and time at which the record was created.
-	 *
-	 * @return DateTime
 	 */
 	protected function get_created_at(): DateTime
 	{

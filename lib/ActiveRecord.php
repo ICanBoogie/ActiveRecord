@@ -15,6 +15,7 @@ use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\Validate\ValidationErrors;
+use LogicException;
 
 /**
  * Active Record facilitates the creation and use of business objects whose data require persistent
@@ -28,19 +29,17 @@ use ICanBoogie\Validate\ValidationErrors;
  */
 class ActiveRecord extends Prototyped
 {
-	const SAVE_SKIP_VALIDATION = 'skip_validation';
+	public const SAVE_SKIP_VALIDATION = 'skip_validation';
 
 	/**
 	 * The identifier of the model managing the record.
-	 *
-	 *  @var string
 	 */
-	const MODEL_ID = null;
+	public const MODEL_ID = null;
 
 	/**
 	 * Model managing the active record.
 	 *
-	 * @var Model
+	 * @var Model|null
 	 */
 	private $model;
 
@@ -106,7 +105,7 @@ class ActiveRecord extends Prototyped
 	 * Properties whose value are instances of the {@link ActiveRecord} class are removed from the
 	 * exported properties.
 	 */
-	public function __sleep()
+	public function __sleep(): array
 	{
 		$properties = parent::__sleep();
 
@@ -168,7 +167,7 @@ class ActiveRecord extends Prototyped
 	/**
 	 * Saves the active record using its model.
 	 *
-	 * @param array $options Save options.
+	 * @param array<string, mixed> $options Save options.
 	 *
 	 * @return bool|int Primary key value of the active record, or a boolean if the primary key
 	 * is not a serial.
@@ -236,7 +235,7 @@ class ActiveRecord extends Prototyped
 	{
 		$errors = $this->validate();
 
-		if ($errors)
+		if (count($errors))
 		{
 			throw new RecordNotValid($this, $errors);
 		}
@@ -244,6 +243,8 @@ class ActiveRecord extends Prototyped
 
 	/**
 	 * Creates validation rules.
+	 *
+	 * @return array<string, mixed>
 	 */
 	public function create_validation_rules(): array
 	{
@@ -254,10 +255,10 @@ class ActiveRecord extends Prototyped
 	 * Unless it's an acceptable value for a column, columns with `null` values are discarded.
 	 * This way, we don't have to define every properties before saving our active record.
 	 *
-	 * @param array $properties
+	 * @param array<string, mixed> $properties
 	 * @param Schema $schema The model's extended schema.
 	 *
-	 * @return array The altered persistent properties
+	 * @return array<string, mixed> The altered persistent properties
 	 */
 	protected function alter_persistent_properties(array $properties, Schema $schema): array
 	{
@@ -286,7 +287,7 @@ class ActiveRecord extends Prototyped
 
 		if (!$property)
 		{
-			throw new \LogicException("Unable to update primary key, model `$model->id` doesn't define one.");
+			throw new LogicException("Unable to update primary key, model `$model->id` doesn't define one.");
 		}
 
 		$this->$property = $primary_key;
@@ -297,7 +298,7 @@ class ActiveRecord extends Prototyped
 	 *
 	 * @return bool `true` if the record was deleted, `false` otherwise.
 	 *
-	 * @throws \LogicException in attempt to delete a record from a model which primary key is empty.
+	 * @throws LogicException in attempt to delete a record from a model which primary key is empty.
 	 */
 	public function delete(): bool
 	{
@@ -306,7 +307,7 @@ class ActiveRecord extends Prototyped
 
 		if (!$primary)
 		{
-			throw new \LogicException("Unable to delete record, model `$model->id` doesn't have a primary key.");
+			throw new LogicException("Unable to delete record, model `$model->id` doesn't have a primary key.");
 		}
 
 		return $model->delete($this->$primary);

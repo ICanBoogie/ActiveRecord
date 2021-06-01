@@ -21,13 +21,13 @@ use ICanBoogie\Validate\Validator\ValidatorAbstract;
  */
 class Unique extends ValidatorAbstract
 {
-	const ALIAS = 'unique';
-	const DEFAULT_MESSAGE = '`{value}` is already used';
+	public const ALIAS = 'unique';
+	public const DEFAULT_MESSAGE = '`{value}` is already used';
 
 	/**
 	 * Specify the column to check, otherwise `attribute` is used.
 	 */
-	const OPTION_COLUMN = 'column';
+	public const OPTION_COLUMN = 'column';
 
 	/**
 	 * @inheritdoc

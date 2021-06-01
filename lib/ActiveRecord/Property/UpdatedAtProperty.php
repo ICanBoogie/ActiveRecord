@@ -31,8 +31,6 @@ trait UpdatedAtProperty
 
 	/**
 	 * Returns the date and time at which the record was updated.
-	 *
-	 * @return DateTime
 	 */
 	protected function get_updated_at(): DateTime
 	{

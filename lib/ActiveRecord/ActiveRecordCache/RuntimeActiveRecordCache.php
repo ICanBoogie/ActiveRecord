@@ -11,12 +11,16 @@
 
 namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
 
+use ArrayIterator;
 use ICanBoogie\ActiveRecord;
+use IteratorAggregate;
 
 /**
  * Cache records during run time.
+ *
+ * @implements IteratorAggregate<string, ActiveRecord>
  */
-class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements \IteratorAggregate
+class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements IteratorAggregate
 {
 	/**
 	 * Cached records.
@@ -74,6 +78,6 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements \Ite
 	 */
 	public function getIterator()
 	{
-		return new \ArrayIterator($this->records);
+		return new ArrayIterator($this->records);
 	}
 }

@@ -21,26 +21,28 @@ use ICanBoogie\Accessor\AccessorTrait;
  */
 class StatementInvocationFailed extends \LogicException implements Exception
 {
+	/**
+	 * @uses get_statement
+	 * @uses get_args
+	 */
 	use AccessorTrait;
 
 	/**
 	 * @var Statement
-	 * @uses get_statement
 	 */
 	private $statement;
 
-	private function get_statement()
+	private function get_statement(): Statement
 	{
 		return $this->statement;
 	}
 
 	/**
 	 * @var array
-	 * @uses get_args
 	 */
 	private $args;
 
-	private function get_args()
+	private function get_args(): array
 	{
 		return $this->args;
 	}
@@ -56,12 +58,9 @@ class StatementInvocationFailed extends \LogicException implements Exception
 	/**
 	 * Formats a message from a statement and its arguments.
 	 *
-	 * @param Statement $statement
-	 * @param array $args
-	 *
-	 * @return string
+	 * @param array<string, mixed> $args
 	 */
-	private function format_message(Statement $statement, array $args)
+	private function format_message(Statement $statement, array $args): string
 	{
 		return "Statement execution failed: {$statement->queryString}, with: " . \json_encode($args);
 	}

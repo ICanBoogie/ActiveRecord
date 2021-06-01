@@ -29,12 +29,15 @@ use ICanBoogie\PropertyNotDefined;
  */
 class SchemaColumn
 {
-	const TYPE_BLOB = 'blob';
-	const TYPE_BOOLEAN = 'boolean';
-	const TYPE_INTEGER = 'integer';
-	const TYPE_TEXT = 'text';
-	const TYPE_VARCHAR = 'varchar';
+	public const TYPE_BLOB = 'blob';
+	public const TYPE_BOOLEAN = 'boolean';
+	public const TYPE_INTEGER = 'integer';
+	public const TYPE_TEXT = 'text';
+	public const TYPE_VARCHAR = 'varchar';
 
+	/**
+	 * @uses get_primary
+	 */
 	use AccessorTrait;
 
 	/**
@@ -69,7 +72,6 @@ class SchemaColumn
 
 	/**
 	 * @var bool
-	 * @uses get_primary
 	 */
 	private $primary = false;
 

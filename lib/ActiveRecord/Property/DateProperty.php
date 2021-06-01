@@ -31,8 +31,6 @@ trait DateProperty
 
 	/**
 	 * Returns the date.
-	 *
-	 * @return DateTime
 	 */
 	protected function get_date(): DateTime
 	{

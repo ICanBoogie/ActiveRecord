@@ -21,14 +21,17 @@
 		"issues": "https://github.com/ICanBoogie/ActiveRecord/issues",
 		"source": "https://github.com/ICanBoogie/ActiveRecord"
 	},
+	"config": {
+		"sort-packages": true
+	},
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"require": {
 		"php": ">=7.2",
 		"ext-pdo": "*",
-		"icanboogie/prototype": "^5.0",
-		"icanboogie/inflector": "^2.0",
 		"icanboogie/datetime": "^1.2",
+		"icanboogie/inflector": "^2.0",
+		"icanboogie/prototype": "^5.0",
 		"icanboogie/validate": "^0.2"
 	},
 	"require-dev": {

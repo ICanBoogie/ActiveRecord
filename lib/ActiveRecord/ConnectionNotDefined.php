@@ -22,11 +22,13 @@ use function ICanBoogie\format;
  */
 class ConnectionNotDefined extends \LogicException implements Exception
 {
+	/**
+	 * @uses get_id
+	 */
 	use AccessorTrait;
 
 	/**
 	 * @var string
-	 * @uses get_id
 	 */
 	private $id;
 

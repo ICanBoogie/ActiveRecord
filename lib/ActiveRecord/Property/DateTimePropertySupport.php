@@ -33,8 +33,6 @@ class DateTimePropertySupport
 	 * Returns the {@link DateTime} instance of a property.
 	 *
 	 * @param mixed $property Reference to the property to return.
-	 *
-	 * @return DateTime The function always return a {@link DateTime} instance.
 	 */
 	static public function get(&$property): DateTime
 	{
@@ -49,8 +47,6 @@ class DateTimePropertySupport
 	/**
 	 * @param mixed $property Reference to the property to ensure.
 	 * @param \DateTimeInterface|string $datetime
-	 *
-	 * @return DateTime
 	 */
 	static public function ensureNotEmpty(&$property, $datetime = 'now'): DateTime
 	{

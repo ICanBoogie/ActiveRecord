@@ -20,11 +20,13 @@ use ICanBoogie\Accessor\AccessorTrait;
  */
 class ConnectionNotEstablished extends \RuntimeException implements Exception
 {
+	/**
+	 * @uses get_id
+	 */
 	use AccessorTrait;
 
 	/**
 	 * @var string
-	 * @uses get_id
 	 */
 	private $id;
 
