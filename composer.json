@@ -27,7 +27,7 @@
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"require": {
-		"php": ">=7.2",
+		"php": ">=8.0",
 		"ext-pdo": "*",
 		"icanboogie/datetime": "^1.2",
 		"icanboogie/inflector": "^2.0",
@@ -36,7 +36,7 @@
 	},
 	"require-dev": {
 		"ext-pdo_mysql": "*",
-		"phpunit/phpunit": "^8.5"
+		"phpunit/phpunit": "^9.5"
 	},
 	"suggest": {
 		"icanboogie/bind-activerecord": "Binds icanboogie/artiverecord to ICanBoogie"

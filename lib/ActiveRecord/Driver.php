@@ -11,6 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use Throwable;
+
 /**
  * Connection driver interface.
  */
@@ -19,67 +21,51 @@ interface Driver
 	/**
 	 * Quotes a string, or an array of strings.
 	 *
-	 * @param string|array $string
+	 * @param string|string[] $string
 	 *
-	 * @return string|array
+	 * @return string|string[]
 	 */
-	public function quote_string($string);
+	public function quote_string(string|array $string): string|array;
 
 	/**
 	 * Quotes an identifier, or an array of identifiers.
 	 *
-	 * @param string|array $identifier
+	 * @param string|string[] $identifier
 	 *
-	 * @return string|array
+	 * @return string|string[]
 	 */
-	public function quote_identifier($identifier);
+	public function quote_identifier(string|array $identifier): string|array;
 
 	/**
 	 * Casts a value into a database compatible representation.
 	 *
-	 * @param mixed $value
 	 * @param string|null $type One of `SchemaColumn::TYPE_*`.
-	 *
-	 * @return mixed
 	 */
-	public function cast_value($value, $type = null);
+	public function cast_value(mixed $value, string $type = null): mixed;
 
 	/**
 	 * Renders a column definition.
-	 *
-	 * @param SchemaColumn $column
-	 *
-	 * @return string
 	 */
 	public function render_column(SchemaColumn $column): string;
 
 	/**
 	 * Creates a table given a schema.
 	 *
-	 * @param string $unprefixed_table_name
-	 * @param Schema $schema
-	 *
-	 * @throws \Throwable
+	 * @throws Throwable
 	 */
 	public function create_table(string $unprefixed_table_name, Schema $schema): void;
 
 	/**
 	 * Creates indexes given a schema.
 	 *
-	 * @param string $unprefixed_table_name
-	 * @param Schema $schema
-	 *
-	 * @throws \Throwable
+	 * @throws Throwable
 	 */
 	public function create_indexes(string $unprefixed_table_name, Schema $schema): void;
 
 	/**
 	 * Creates unique indexes given a schema.
 	 *
-	 * @param string $unprefixed_table_name
-	 * @param Schema $schema
-	 *
-	 * @throws \Throwable
+	 * @throws Throwable
 	 */
 	public function create_unique_indexes(string $unprefixed_table_name, Schema $schema): void;
 

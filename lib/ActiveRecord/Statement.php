@@ -12,22 +12,25 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
+use PDO;
+use PDOStatement;
 
 /**
  * A database statement.
  *
- * @property Connection $connection Connection associated with the statement.
+ * @property-read Connection $connection Connection associated with the statement.
+ * @property-read PDOStatement $pdo_statement The decorated PDO statement.
  * @property-read array $all An array with the matching records.
  * @property-read array $pairs An array of key/value pairs, where _key_ is the value of the first
  * column and _value_ the value of the second column.
  * @property-read mixed $one The first matching record.
  * @property-read string $rc The value of the first column of the first row.
  */
-class Statement extends \PDOStatement
+final class Statement
 {
 	/**
 	 * @uses get_connection
-	 * @uses set_connection
+	 * @uses get_pdo_statement
 	 * @uses get_once
 	 * @uses get_all
 	 * @uses get_rc
@@ -35,21 +38,21 @@ class Statement extends \PDOStatement
 	 */
 	use AccessorTrait;
 
-	/**
-	 * The database connection that created this statement.
-	 *
-	 * @var Connection
-	 */
-	private $connection;
+	public function __construct(
+		private PDOStatement $statement,
+		private Connection $connection
+	) {
+
+	}
 
 	private function get_connection(): Connection
 	{
 		return $this->connection;
 	}
 
-	protected function set_connection(Connection $connection): void
+	private function get_pdo_statement(): PDOStatement
 	{
-		$this->connection = $connection;
+		return $this->statement;
 	}
 
 	/**
@@ -66,13 +69,11 @@ class Statement extends \PDOStatement
 	 */
 	public function __invoke(...$args): self
 	{
-		if ($args && \is_array($args[0]))
-		{
+		if ($args && \is_array($args[0])) {
 			$args = $args[0];
 		}
 
-		if ($this->execute($args) === false)
-		{
+		if ($this->execute($args) === false) {
 			throw new StatementInvocationFailed($this, $args);
 		}
 
@@ -84,7 +85,7 @@ class Statement extends \PDOStatement
 	 */
 	public function __toString()
 	{
-		return $this->queryString;
+		return $this->statement->queryString;
 	}
 
 	/**
@@ -100,19 +101,17 @@ class Statement extends \PDOStatement
 	{
 		$start = \microtime(true);
 
-		if (!empty($this->connection))
-		{
-			$this->connection->queries_count++;
-		}
+		$this->connection->queries_count++;
 
-		try
-		{
-			$this->connection->profiling[] = [ $start, \microtime(true), $this->queryString . ' ' . \json_encode($args) ];
+		try {
+			$this->connection->profiling[] = [
+				$start,
+				\microtime(true),
+				$this->statement->queryString . ' ' . \json_encode($args),
+			];
 
-			return parent::execute($args);
-		}
-		catch (\PDOException $e)
-		{
+			return $this->statement->execute($args);
+		} catch (\PDOException $e) {
 			throw new StatementNotValid([ $this, $args ], 500, $e);
 		}
 	}
@@ -120,18 +119,13 @@ class Statement extends \PDOStatement
 	/**
 	 * Set the fetch mode for the statement.
 	 *
-	 * @param mixed $mode
-	 *
-	 * @return Statement Return the instance.
-	 *
 	 * @throws UnableToSetFetchMode if the mode cannot be set.
 	 *
 	 * @see http://www.php.net/manual/en/pdostatement.setfetchmode.php
 	 */
-	public function mode(...$mode)
+	public function mode(int $mode, string|object|null $className = null, ...$params): Statement
 	{
-		if (!$this->setFetchMode(...$mode))
-		{
+		if (!$this->statement->setFetchMode($mode, $className, $params)) {
 			throw new UnableToSetFetchMode($mode);
 		}
 
@@ -141,19 +135,16 @@ class Statement extends \PDOStatement
 	/**
 	 * Fetches the first row of the result set and closes the cursor.
 	 *
-	 * @param int $fetch_style
-	 * @param int $cursor_orientation
-	 * @param int $cursor_offset
-	 *
-	 * @return mixed
-	 *
 	 * @see PDOStatement::fetch()
 	 */
-	public function one($fetch_style = \PDO::FETCH_BOTH, $cursor_orientation = \PDO::FETCH_ORI_NEXT, $cursor_offset = 0)
-	{
-		$rc = $this->fetch(...func_get_args());
+	public function one(
+		int $mode = PDO::FETCH_BOTH,
+		int $cursor_orientation = PDO::FETCH_ORI_NEXT,
+		int $cursor_offset = 0
+	): mixed {
+		$rc = $this->statement->fetch(...func_get_args());
 
-		$this->closeCursor();
+		$this->statement->closeCursor();
 
 		return $rc;
 	}
@@ -161,7 +152,7 @@ class Statement extends \PDOStatement
 	/**
 	 * Alias for `one()`.
 	 */
-	protected function get_one()
+	protected function get_one(): mixed
 	{
 		return $this->one();
 	}
@@ -173,11 +164,11 @@ class Statement extends \PDOStatement
 	 *
 	 * @see PDOStatement::fetchColumn()
 	 */
-	protected function get_rc()
+	protected function get_rc(): mixed
 	{
-		$rc = $this->fetchColumn();
+		$rc = $this->statement->fetchColumn();
 
-		$this->closeCursor();
+		$this->statement->closeCursor();
 
 		return $rc;
 	}
@@ -189,17 +180,17 @@ class Statement extends \PDOStatement
 	 *
 	 * @return array
 	 */
-	public function all(...$mode)
+	public function all(...$mode): array
 	{
-		return $this->fetchAll(...$mode);
+		return $this->statement->fetchAll(...$mode);
 	}
 
 	/**
 	 * Alias for `all()`.
 	 */
-	protected function get_all()
+	protected function get_all(): array
 	{
-		return $this->fetchAll();
+		return $this->statement->fetchAll();
 	}
 
 	/**
@@ -208,8 +199,8 @@ class Statement extends \PDOStatement
 	 * @return array An array of key/value pairs, where _key_ is the value of the first
 	 * column and _value_ the value of the second column.
 	 */
-	protected function get_pairs()
+	protected function get_pairs(): array
 	{
-		return $this->fetchAll(\PDO::FETCH_KEY_PAIR);
+		return $this->statement->fetchAll(PDO::FETCH_KEY_PAIR);
 	}
 }

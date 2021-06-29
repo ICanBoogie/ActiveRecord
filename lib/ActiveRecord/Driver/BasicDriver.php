@@ -49,7 +49,7 @@ abstract class BasicDriver implements Driver
 	/**
 	 * @inheritdoc
 	 */
-	public function quote_string($string)
+	public function quote_string(string|array $string): string|array
 	{
 		$connection = $this->connection;
 
@@ -68,7 +68,7 @@ abstract class BasicDriver implements Driver
 	/**
 	 * @inheritdoc
 	 */
-	public function quote_identifier($identifier)
+	public function quote_identifier(string|array $identifier): string|array
 	{
 		$quote = '`';
 
@@ -87,7 +87,7 @@ abstract class BasicDriver implements Driver
 	/**
 	 * @inheritdoc
 	 */
-	public function cast_value($value, $type = null)
+	public function cast_value(mixed $value, string $type = null): mixed
 	{
 		if ($value instanceof \DateTimeInterface)
 		{

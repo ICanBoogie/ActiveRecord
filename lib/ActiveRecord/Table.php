@@ -729,7 +729,7 @@ class Table extends Prototyped
 
 		if (!$id)
 		{
-			$id = $this->connection->lastInsertId();
+			$id = $this->connection->pdo->lastInsertId();
 		}
 
 		return $id;
@@ -911,7 +911,7 @@ class Table extends Prototyped
 		$statement = $this->prepare('DELETE FROM `{self}` ' . $where);
 		$statement((array) $key);
 
-		return !!$statement->rowCount();
+		return !!$statement->pdo_statement->rowCount();
 	}
 
 	/**

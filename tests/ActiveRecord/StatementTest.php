@@ -177,7 +177,6 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 	}
 
 	/**
-	 * @requires PHP 5.6.0
 	 * @dataProvider provide_modes
 	 *
 	 * @param $arguments
@@ -193,31 +192,10 @@ class StatementTest extends \PHPUnit\Framework\TestCase
 			->expects($this->once())
 			->method('setFetchMode')
 			->willReturn(true);
-		call_user_func_array([ $a, 'with' ], $arguments);
+		$a->with(...$arguments);
 
 		/* @var $statement Statement */
-		$this->assertSame($statement, call_user_func_array([ $statement, 'mode' ], $arguments));
-	}
-
-	public function test_invalid_mode_should_throw_an_exception()
-	{
-		$invalid_mode = uniqid();
-
-		$statement = $this
-			->getMockBuilder(Statement::class)
-			->disableOriginalConstructor()
-			->setMethods([ 'setFetchMode' ])
-			->getMock();
-		$statement
-			->expects($this->once())
-			->method('setFetchMode')
-			->with($invalid_mode)
-			->willReturn(false);
-
-		$this->expectException(\ICanBoogie\ActiveRecord\UnableToSetFetchMode::class);
-
-		/* @var $statement Statement */
-		$this->assertSame($statement, $statement->mode($invalid_mode));
+		$this->assertSame($statement, $statement->mode(...$arguments));
 	}
 
 	/**

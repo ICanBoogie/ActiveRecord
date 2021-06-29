@@ -377,7 +377,7 @@ class Query implements \IteratorAggregate
 		$field_values = \is_array($order[0]) ? $order[0] : $order;
 		$field_values = \array_map(function ($v) use ($connection) {
 
-			return $connection->quote($v);
+			return $connection->pdo->quote($v);
 
 		}, $field_values);
 
@@ -1050,7 +1050,7 @@ class Query implements \IteratorAggregate
 	 */
 	public function all(...$mode): array
 	{
-		return $this->query()->fetchAll(...$this->resolve_fetch_mode(...$mode));
+		return $this->query()->pdo_statement->fetchAll(...$this->resolve_fetch_mode(...$mode));
 	}
 
 	/**
@@ -1082,9 +1082,9 @@ class Query implements \IteratorAggregate
 		{
 			\array_shift($args);
 
-			$rc = $statement->fetchObject(...$args);
+			$rc = $statement->pdo_statement->fetchObject(...$args);
 
-			$statement->closeCursor();
+			$statement->pdo_statement->closeCursor();
 
 			return $rc;
 		}
@@ -1245,7 +1245,7 @@ class Query implements \IteratorAggregate
 		}
 
 		$query .= ' AS count ' . $this->render_from() . $this->render_main();
-		$statement = $this->model->__invoke($query);
+		$statement = ($this->model)($query);
 
 		if ($method == 'COUNT' && $column)
 		{
@@ -1259,10 +1259,8 @@ class Query implements \IteratorAggregate
 	 * Implement the 'COUNT' computation.
 	 *
 	 * @param string|null $column The name of the column to count.
-	 *
-	 * @return int|array
 	 */
-	public function count(string $column = null)
+	public function count(string $column = null): int|array
 	{
 		return $this->compute('COUNT', $column);
 	}

@@ -295,14 +295,14 @@ class Model extends Table implements \ArrayAccess
 
 		$query_class = $this->resolve_query_class();
 
-		if (\is_callable([ $query_class, $method ])
+		if (\method_exists($query_class, $method)
 		|| \strpos($method, 'filter_by_') === 0
 		|| \method_exists($this, 'scope_' . $method))
 		{
 			return $this->query()->$method(...$arguments);
 		}
 
-		if (\is_callable([ RelationCollection::class, $method ]))
+		if (\is_callable([ $this->relations, $method ]))
 		{
 			return $this->relations->$method(...$arguments);
 		}

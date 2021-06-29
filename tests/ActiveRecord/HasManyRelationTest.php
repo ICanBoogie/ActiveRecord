@@ -13,11 +13,12 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\HasManyRelationTest\Article;
 use ICanBoogie\ActiveRecord\HasManyRelationTest\Comment;
+use PHPUnit\Framework\TestCase;
 
-class HasManyRelationTest extends \PHPUnit\Framework\TestCase
+final class HasManyRelationTest extends TestCase
 {
-	private $articles;
-	private $comments;
+	private Model $articles;
+	private Model $comments;
 
 	protected function setUp(): void
 	{
@@ -31,7 +32,7 @@ class HasManyRelationTest extends \PHPUnit\Framework\TestCase
 
 			'comments' => [
 
-				Model::ACTIVERECORD_CLASS => __CLASS__ . '\Comment',
+				Model::ACTIVERECORD_CLASS => Comment::class,
 				Model::ID => 'comments',
 				Model::NAME => 'comments',
 				Model::SCHEMA => [
@@ -45,7 +46,7 @@ class HasManyRelationTest extends \PHPUnit\Framework\TestCase
 
 			'articles' => [
 
-				Model::ACTIVERECORD_CLASS => __CLASS__ . '\Article',
+				Model::ACTIVERECORD_CLASS => Article::class,
 				Model::HAS_MANY => 'comments',
 				Model::ID => 'articles',
 				Model::NAME => 'articles',
@@ -99,7 +100,7 @@ class HasManyRelationTest extends \PHPUnit\Framework\TestCase
 
 	public function test_undefined_relation()
 	{
-		$this->expectException(\ICanBoogie\ActiveRecord\RelationNotDefined::class);
+		$this->expectException(RelationNotDefined::class);
 		$this->articles->relations['undefined_relation'];
 	}
 

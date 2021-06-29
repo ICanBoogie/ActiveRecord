@@ -13,21 +13,29 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
+use PDO;
 use PDOException;
+
+use function explode;
+use function strtr;
 
 /**
  * A connection to a database.
  *
- * @property-read string $charset The character set used to communicate with the database. Defaults to "utf8".
- * @property-read string $collate The collation of the character set. Defaults to "utf8_general_ci".
+ * @property-read PDO pdo
+ * @property-read string $charset The character set used to communicate with the database. Defaults
+ *     to "utf8".
+ * @property-read string $collate The collation of the character set. Defaults to
+ *     "utf8_general_ci".
  * @property-read Driver $driver
  * @property-read string $driver_name Name of the PDO driver.
- * @property-read string $id Identifier of the database connection.
+ * @property-read string|null $id Identifier of the database connection.
  * @property-read string $table_name_prefix The prefix to prepend to every table name.
  */
-class Connection extends \PDO implements Driver
+class Connection implements Driver
 {
 	/**
+	 * @uses get_pdo
 	 * @uses get_id
 	 * @uses get_table_name_prefix
 	 * @uses get_charset
@@ -41,18 +49,21 @@ class Connection extends \PDO implements Driver
 	private const DRIVERS_MAPPING = [
 
 		'mysql' => Driver\MySQLDriver::class,
-		'sqlite' => Driver\SQLiteDriver::class
+		'sqlite' => Driver\SQLiteDriver::class,
 
 	];
 
+	private function get_pdo(): PDO
+	{
+		return $this->pdo;
+	}
+
 	/**
 	 * Connection identifier.
-	 *
-	 * @var string
 	 */
-	private $id;
+	private ?string $id;
 
-	private function get_id(): string
+	private function get_id(): ?string
 	{
 		return $this->id;
 	}
@@ -63,10 +74,8 @@ class Connection extends \PDO implements Driver
 	 * If set to "dev", all table names will be named like "dev_nodes", "dev_contents", etc.
 	 * This is a convenient way of creating a namespace for tables in a shared database.
 	 * By default, the prefix is the empty string, that is there is not prefix.
-	 *
-	 * @var string
 	 */
-	private $table_name_prefix = Options::DEFAULT_TABLE_NAME_PREFIX;
+	private string $table_name_prefix = Options::DEFAULT_TABLE_NAME_PREFIX;
 
 	private function get_table_name_prefix(): string
 	{
@@ -75,10 +84,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * Charset for the connection. Also used to specify the charset while creating tables.
-	 *
-	 * @var string
 	 */
-	private $charset = Options::DEFAULT_CHARSET;
+	private string $charset = Options::DEFAULT_CHARSET;
 
 	private function get_charset(): string
 	{
@@ -87,10 +94,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * Used to specify the collate while creating tables.
-	 *
-	 * @var string
 	 */
-	private $collate = Options::DEFAULT_COLLATE;
+	private string $collate = Options::DEFAULT_COLLATE;
 
 	private function get_collate(): string
 	{
@@ -99,10 +104,8 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * Timezone of the connection.
-	 *
-	 * @var string
 	 */
-	private $timezone = Options::DEFAULT_TIMEZONE;
+	private string $timezone = Options::DEFAULT_TIMEZONE;
 
 	private function get_timezone(): string
 	{
@@ -111,20 +114,15 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * Driver name for the connection.
-	 *
-	 * @var string
 	 */
-	private $driver_name;
+	private string $driver_name;
 
 	private function get_driver_name(): string
 	{
 		return $this->driver_name;
 	}
 
-	/**
-	 * @var Driver
-	 */
-	private $driver;
+	private Driver $driver;
 
 	private function lazy_get_driver(): Driver
 	{
@@ -133,17 +131,17 @@ class Connection extends \PDO implements Driver
 
 	/**
 	 * The number of database queries and executions, used for statistics purpose.
-	 *
-	 * @var int
 	 */
-	public $queries_count = 0;
+	public int $queries_count = 0;
 
 	/**
 	 * The number of micro seconds spent per request.
 	 *
 	 * @var array[]
 	 */
-	public $profiling = [];
+	public array $profiling = [];
+
+	private PDO $pdo;
 
 	/**
 	 * Establish a connection to a database.
@@ -156,15 +154,19 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @param array<string, mixed> $options
 	 */
-	public function __construct(string $dsn, string $username = null, string $password = null, array $options = [])
-	{
+	public function __construct(
+		string $dsn,
+		string $username = null,
+		string $password = null,
+		array $options = []
+	) {
 		unset($this->driver);
 
 		$this->driver_name = $this->resolve_driver_name($dsn);
 		$this->apply_options($options);
 		$this->before_connection($options);
 
-		parent::__construct($dsn, $username, $password, $options);
+		$this->pdo = new PDO($dsn, $username, $password, $options);
 
 		$this->after_connection();
 	}
@@ -182,7 +184,7 @@ class Connection extends \PDO implements Driver
 	 */
 	protected function resolve_driver_name(string $dsn): string
 	{
-		return \explode(':', $dsn, 2)[0];
+		return explode(':', $dsn, 2)[0];
 	}
 
 	/**
@@ -192,12 +194,7 @@ class Connection extends \PDO implements Driver
 	 */
 	private function resolve_driver_class(string $driver_name): string
 	{
-		if (empty(self::DRIVERS_MAPPING[$driver_name]))
-		{
-			throw new DriverNotDefined($driver_name);
-		}
-
-		return self::DRIVERS_MAPPING[$driver_name];
+		return self::DRIVERS_MAPPING[$driver_name] ?? throw new DriverNotDefined($driver_name);
 	}
 
 	/**
@@ -207,7 +204,11 @@ class Connection extends \PDO implements Driver
 	{
 		$driver_class = $this->resolve_driver_class($driver_name);
 
-		return new $driver_class(function () { return $this; });
+		return new $driver_class(
+			function () {
+				return $this;
+			}
+		);
 	}
 
 	/**
@@ -222,12 +223,13 @@ class Connection extends \PDO implements Driver
 		$this->id = $options[Options::ID];
 		$this->table_name_prefix = $options[Options::TABLE_NAME_PREFIX];
 
-		if ($this->table_name_prefix)
-		{
+		if ($this->table_name_prefix) {
 			$this->table_name_prefix .= '_';
 		}
 
-		[ $this->charset, $this->collate ] = extract_charset_and_collate($options[Options::CHARSET_AND_COLLATE]);
+		[ $this->charset, $this->collate ] = extract_charset_and_collate(
+			$options[Options::CHARSET_AND_COLLATE]
+		);
 
 		$this->timezone = $options[Options::TIMEZONE];
 	}
@@ -241,29 +243,26 @@ class Connection extends \PDO implements Driver
 	 */
 	private function before_connection(array &$options): void
 	{
-		if ($this->driver_name != 'mysql')
-		{
+		if ($this->driver_name != 'mysql') {
 			return;
 		}
 
 		$init_command = 'SET NAMES ' . $this->charset;
 
-		if ($this->timezone)
-		{
+		if ($this->timezone) {
 			$init_command .= ', time_zone = "' . $this->timezone . '"';
 		}
 
 		$options += [
 
-			self::MYSQL_ATTR_INIT_COMMAND => $init_command
+			PDO::MYSQL_ATTR_INIT_COMMAND => $init_command,
 
 		];
 	}
 
 	private function after_connection(): void
 	{
-		$this->setAttribute(self::ATTR_ERRMODE, self::ERRMODE_EXCEPTION);
-		$this->setAttribute(self::ATTR_STATEMENT_CLASS, [ Statement::class ]);
+		$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	}
 
 	/**
@@ -271,47 +270,39 @@ class Connection extends \PDO implements Driver
 	 * mode and connection.
 	 *
 	 * @param string $statement Query statement.
-	 * @param array $options
+	 * @param array<string, mixed> $options
 	 *
 	 * @return Statement The prepared statement.
 	 *
 	 * @throws StatementNotValid if the statement cannot be prepared.
 	 */
-	public function prepare($statement, $options = [])
+	public function prepare(string $statement, array $options = []): Statement
 	{
 		$statement = $this->resolve_statement($statement);
 
-		try
-		{
-			/* @var $statement Statement */
-			$statement = parent::prepare($statement, $options);
-		}
-		catch (PDOException $e)
-		{
+		try {
+			$statement = $this->pdo->prepare($statement, $options);
+		} catch (PDOException $e) {
 			throw new StatementNotValid($statement, 500, $e);
 		}
 
-		$statement->connection = $this;
-
-		if (isset($options['mode']))
-		{
-			$mode = (array) $options['mode'];
+		if (isset($options['mode'])) {
+			$mode = (array)$options['mode'];
 
 			$statement->setFetchMode(...$mode);
 		}
 
-		return $statement;
+		return new Statement($statement, $this);
 	}
 
 	/**
 	 * Overrides the method in order to prepare (and resolve) the statement and execute it with
 	 * the specified arguments and options.
 	 *
-	 * @inheritdoc
-	 *
-	 * @return Statement
+	 * @param array<string|int, mixed> $args
+	 * @param array<string, mixed> $options
 	 */
-	public function query($statement, array $args = [], array $options = []): Statement
+	public function query(string $statement, array $args = [], array $options = []): Statement
 	{
 		$statement = $this->prepare($statement, $options);
 		$statement->execute($args);
@@ -331,22 +322,17 @@ class Connection extends \PDO implements Driver
 	 *
 	 * Using this method increments the `queries_by_connection` stat.
 	 *
-	 * @inheritdoc
-	 *
 	 * @throws StatementNotValid if the statement cannot be executed.
 	 */
-	public function exec($statement)
+	public function exec(string $statement): false|int
 	{
 		$statement = $this->resolve_statement($statement);
 
-		try
-		{
+		try {
 			$this->queries_count++;
 
-			return parent::exec($statement);
-		}
-		catch (PDOException $e)
-		{
+			return $this->pdo->exec($statement);
+		} catch (PDOException $e) {
 			throw new StatementNotValid($statement, 500, $e);
 		}
 	}
@@ -359,19 +345,13 @@ class Connection extends \PDO implements Driver
 	 * - `{prefix}`: replaced by the {@link $table_name_prefix} property.
 	 * - `{charset}`: replaced by the {@link $charset} property.
 	 * - `{collate}`: replaced by the {@link $collate} property.
-	 *
-	 * @param string $statement
-	 *
-	 * @return string The resolved statement.
 	 */
-	public function resolve_statement($statement): string
+	public function resolve_statement(string $statement): string
 	{
-		return \strtr($statement, [
-
+		return strtr($statement, [
 			'{prefix}' => $this->table_name_prefix,
 			'{charset}' => $this->charset,
-			'{collate}' => $this->collate
-
+			'{collate}' => $this->collate,
 		]);
 	}
 
@@ -382,7 +362,7 @@ class Connection extends \PDO implements Driver
 	 */
 	public function begin(): bool
 	{
-		return $this->beginTransaction();
+		return $this->pdo->beginTransaction();
 	}
 
 	/**
@@ -390,7 +370,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function quote_string($string)
+	public function quote_string(string|array $string): string|array
 	{
 		return $this->driver->quote_string($string);
 	}
@@ -400,7 +380,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function quote_identifier($identifier)
+	public function quote_identifier(string|array $identifier): string|array
 	{
 		return $this->driver->quote_identifier($identifier);
 	}
@@ -410,7 +390,7 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function cast_value($value, $type = null)
+	public function cast_value(mixed $value, string $type = null): mixed
 	{
 		return $this->driver->cast_value($value, $type);
 	}
@@ -430,9 +410,9 @@ class Connection extends \PDO implements Driver
 	 *
 	 * @codeCoverageIgnore
 	 */
-	public function create_table(string $unprefixed_name, Schema $schema): void
+	public function create_table(string $unprefixed_table_name, Schema $schema): void
 	{
-		$this->driver->create_table($unprefixed_name, $schema);
+		$this->driver->create_table($unprefixed_table_name, $schema);
 	}
 
 	/**
