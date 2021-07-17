@@ -41,6 +41,7 @@ test-container:
 .PHONY: lint
 lint:
 	@phpcs
+	@vendor/bin/phpstan
 
 .PHONY: doc
 doc: vendor
