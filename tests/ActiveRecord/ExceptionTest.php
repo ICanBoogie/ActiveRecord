@@ -13,32 +13,32 @@ namespace ICanBoogie\ActiveRecord;
 
 class ExceptionTest extends \PHPUnit\Framework\TestCase
 {
-	/**
-	 * @dataProvider provide_test_implementing
-	 */
-	public function test_implementing($classname, $ctor_args)
-	{
-		$r = new \ReflectionClass(__NAMESPACE__ . '\\' . $classname);
-		$exception = $r->newInstanceArgs($ctor_args);
-		$this->assertInstanceOf(Exception::class, $exception);
-	}
+    /**
+     * @dataProvider provide_test_implementing
+     */
+    public function test_implementing($classname, $ctor_args)
+    {
+        $r = new \ReflectionClass(__NAMESPACE__ . '\\' . $classname);
+        $exception = $r->newInstanceArgs($ctor_args);
+        $this->assertInstanceOf(Exception::class, $exception);
+    }
 
-	public function provide_test_implementing()
-	{
-		return [
+    public function provide_test_implementing()
+    {
+        return [
 
-			[ 'ConnectionNotDefined', [ 'connection-name' ] ],
-			[ 'ConnectionNotEstablished', [ 'connection-name', 'message' ] ],
-			[ 'ConnectionAlreadyEstablished', [ 'connection-name' ] ],
+            [ 'ConnectionNotDefined', [ 'connection-name' ] ],
+            [ 'ConnectionNotEstablished', [ 'connection-name', 'message' ] ],
+            [ 'ConnectionAlreadyEstablished', [ 'connection-name' ] ],
 
-			[ 'RecordNotFound', [ "message", [] ] ],
+            [ 'RecordNotFound', [ "message", [] ] ],
 
-			[ 'ModelNotDefined' , [ 'model-name' ] ],
-			[ 'ModelAlreadyInstantiated' , [ 'model-name' ] ],
+            [ 'ModelNotDefined', [ 'model-name' ] ],
+            [ 'ModelAlreadyInstantiated', [ 'model-name' ] ],
 
-			[ 'StatementNotValid' , [ 'statement' ] ],
-			[ 'UnableToSetFetchMode' , [ 'mode' ] ]
+            [ 'StatementNotValid', [ 'statement' ] ],
+            [ 'UnableToSetFetchMode', [ 'mode' ] ]
 
-		];
-	}
+        ];
+    }
 }

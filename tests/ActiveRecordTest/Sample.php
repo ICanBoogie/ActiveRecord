@@ -11,39 +11,39 @@ use ICanBoogie\ActiveRecord;
  */
 class Sample extends ActiveRecord
 {
-	const MODEL_ID = 'sample';
+    public const MODEL_ID = 'sample';
 
-	/**
-	 * @var int|null
-	 */
-	private $id;
+    /**
+     * @var int|null
+     */
+    private $id;
 
-	protected function get_id(): ?int
-	{
-		return $this->id;
-	}
+    protected function get_id(): ?int
+    {
+        return $this->id;
+    }
 
-	public $reverse;
+    public $reverse;
 
-	/**
-	 * Reverses the value of the `reverse` property.
-	 *
-	 * @inheritdoc
-	 */
-	protected function alter_persistent_properties(array $properties, ActiveRecord\Schema $schema): array
-	{
-		return array_merge(parent::alter_persistent_properties($properties, $schema), [
+    /**
+     * Reverses the value of the `reverse` property.
+     *
+     * @inheritdoc
+     */
+    protected function alter_persistent_properties(array $properties, ActiveRecord\Schema $schema): array
+    {
+        return array_merge(parent::alter_persistent_properties($properties, $schema), [
 
-			'reverse' => strrev($this->reverse)
+            'reverse' => strrev($this->reverse)
 
-		]);
-	}
+        ]);
+    }
 
-	/**
-	 * @param int $id
-	 */
-	protected function update_primary_key($id): void
-	{
-		$this->id = $id;
-	}
+    /**
+     * @param int $id
+     */
+    protected function update_primary_key($id): void
+    {
+        $this->id = $id;
+    }
 }

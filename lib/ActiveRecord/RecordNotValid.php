@@ -23,52 +23,50 @@ use ICanBoogie\Validate\ValidationErrors;
  */
 class RecordNotValid extends \LogicException implements Exception
 {
-	use AccessorTrait;
+    use AccessorTrait;
 
-	const DEFAULT_MESSAGE = "The record is not valid.";
+    public const DEFAULT_MESSAGE = "The record is not valid.";
 
-	/**
-	 * @var ActiveRecord
-	 * @uses get_record
-	 */
-	private $record;
+    /**
+     * @var ActiveRecord
+     * @uses get_record
+     */
+    private $record;
 
-	private function get_record(): ActiveRecord
-	{
-		return $this->record;
-	}
+    private function get_record(): ActiveRecord
+    {
+        return $this->record;
+    }
 
-	/**
-	 * @var ValidationErrors
-	 * @uses get_errors
-	 */
-	private $errors;
+    /**
+     * @var ValidationErrors
+     * @uses get_errors
+     */
+    private $errors;
 
-	private function get_errors(): ValidationErrors
-	{
-		return $this->errors;
-	}
+    private function get_errors(): ValidationErrors
+    {
+        return $this->errors;
+    }
 
-	public function __construct(ActiveRecord $record, ValidationErrors $errors, \Throwable $previous = null)
-	{
-		$this->record = $record;
-		$this->errors = $errors;
+    public function __construct(ActiveRecord $record, ValidationErrors $errors, \Throwable $previous = null)
+    {
+        $this->record = $record;
+        $this->errors = $errors;
 
-		parent::__construct($this->format_message($errors), 500, $previous);
-	}
+        parent::__construct($this->format_message($errors), 500, $previous);
+    }
 
-	private function format_message(ValidationErrors $errors): string
-	{
-		$message = self::DEFAULT_MESSAGE . "\n";
+    private function format_message(ValidationErrors $errors): string
+    {
+        $message = self::DEFAULT_MESSAGE . "\n";
 
-		foreach ($errors as $attribute => $attribute_errors)
-		{
-			foreach ($attribute_errors as $error)
-			{
-				$message .= "\n- $attribute: $error";
-			}
-		}
+        foreach ($errors as $attribute => $attribute_errors) {
+            foreach ($attribute_errors as $error) {
+                $message .= "\n- $attribute: $error";
+            }
+        }
 
-		return $message;
-	}
+        return $message;
+    }
 }

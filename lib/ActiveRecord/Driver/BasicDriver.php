@@ -23,115 +23,106 @@ use ICanBoogie\DateTime;
  */
 abstract class BasicDriver implements Driver
 {
-	/**
-	 * @uses get_connection
-	 */
-	use AccessorTrait;
+    /**
+     * @uses get_connection
+     */
+    use AccessorTrait;
 
-	/**
-	 * @var callable
-	 */
-	private $connection_provider;
+    /**
+     * @var callable
+     */
+    private $connection_provider;
 
-	private function get_connection(): Connection
-	{
-		return ($this->connection_provider)();
-	}
+    private function get_connection(): Connection
+    {
+        return ($this->connection_provider)();
+    }
 
-	/**
-	 * @param callable $connection_provider A callable that provides a database connection.
-	 */
-	public function __construct(callable $connection_provider)
-	{
-		$this->connection_provider = $connection_provider;
-	}
+    /**
+     * @param callable $connection_provider A callable that provides a database connection.
+     */
+    public function __construct(callable $connection_provider)
+    {
+        $this->connection_provider = $connection_provider;
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function quote_string(string|array $string): string|array
-	{
-		$connection = $this->connection;
+    /**
+     * @inheritdoc
+     */
+    public function quote_string(string|array $string): string|array
+    {
+        $connection = $this->connection;
 
-		if (\is_array($string))
-		{
-			return \array_map(function ($v) use ($connection) {
+        if (\is_array($string)) {
+            return \array_map(function ($v) use ($connection) {
+                return $connection->quote($v);
+            }, $string);
+        }
 
-				return $connection->quote($v);
+        return $connection->quote($string);
+    }
 
-			}, $string);
-		}
+    /**
+     * @inheritdoc
+     */
+    public function quote_identifier(string|array $identifier): string|array
+    {
+        $quote = '`';
 
-		return $connection->quote($string);
-	}
+        if (\is_array($identifier)) {
+            return \array_map(function ($v) use ($quote) {
+                return $quote . $v . $quote;
+            }, $identifier);
+        }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function quote_identifier(string|array $identifier): string|array
-	{
-		$quote = '`';
+        return $quote . $identifier . $quote;
+    }
 
-		if (\is_array($identifier))
-		{
-			return \array_map(function ($v) use ($quote) {
+    /**
+     * @inheritdoc
+     */
+    public function cast_value(mixed $value, string $type = null): mixed
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return DateTime::from($value)->utc->as_db;
+        }
 
-				return $quote . $v . $quote;
+        if ($value === false) {
+            return 0;
+        }
 
-			}, $identifier);
-		}
+        if ($value === true) {
+            return 1;
+        }
 
-		return $quote . $identifier . $quote;
-	}
+        return $value;
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function cast_value(mixed $value, string $type = null): mixed
-	{
-		if ($value instanceof \DateTimeInterface)
-		{
-			return DateTime::from($value)->utc->as_db;
-		}
+    /**
+     * Returns table name, including possible prefix.
+     *
+     * @param string $unprefixed_table_name
+     *
+     * @return string
+     */
+    protected function resolve_table_name(string $unprefixed_table_name): string
+    {
+        return $this->connection->table_name_prefix . $unprefixed_table_name;
+    }
 
-		if ($value === false)
-		{
-			return 0;
-		}
+    /**
+     * Returns quoted table name, including possible prefix.
+     */
+    protected function resolve_quoted_table_name(string $unprefixed_table_name): string
+    {
+        return $this->quote_identifier($this->connection->table_name_prefix . $unprefixed_table_name);
+    }
 
-		if ($value === true)
-		{
-			return 1;
-		}
-
-		return $value;
-	}
-
-	/**
-	 * Returns table name, including possible prefix.
-	 *
-	 * @param string $unprefixed_table_name
-	 *
-	 * @return string
-	 */
-	protected function resolve_table_name(string $unprefixed_table_name): string
-	{
-		return $this->connection->table_name_prefix . $unprefixed_table_name;
-	}
-
-	/**
-	 * Returns quoted table name, including possible prefix.
-	 */
-	protected function resolve_quoted_table_name(string $unprefixed_table_name): string
-	{
-		return $this->quote_identifier($this->connection->table_name_prefix . $unprefixed_table_name);
-	}
-
-	/**
-	 * Returns index name.
-	 */
-	protected function resolve_index_name(string $unprefixed_table_name, string $index_id): string
-	{
-		return $index_id;
-	}
+    /**
+     * Returns index name.
+     */
+    protected function resolve_index_name(string $unprefixed_table_name, string $index_id): string
+    {
+        return $index_id;
+    }
 }

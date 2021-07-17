@@ -1,8 +1,6 @@
 # Active Record
 
 [![Release](https://img.shields.io/packagist/v/ICanBoogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
-[![Build Status](https://img.shields.io/github/workflow/status/ICanBoogie/ActiveRecord/test)](https://github.com/ICanBoogie/ActiveRecord/actions?query=workflow%3Atest)
-[![HHVM](https://img.shields.io/hhvm/icanboogie/activerecord.svg)](http://hhvm.h4cc.de/package/icanboogie/activerecord)
 [![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
 [![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
 [![Packagist](https://img.shields.io/packagist/dt/icanboogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
@@ -21,6 +19,12 @@ Connections are established and models are instantiated on demand, so feel free 
 hundreds of them.
 
 
+
+#### Installation
+
+```bash
+composer require icanboogie/activerecord
+```
 
 
 
@@ -2443,23 +2447,12 @@ already instantiated model.
 
 
 
+## Continuous Integration
 
+The project is continuously tested by [GitHub actions](https://github.com/ICanBoogie/ActiveRecord/actions).
 
-## Requirements
-
-The package requires PHP 8.0 or later and the [PDO extension](http://php.net/manual/en/intro.pdo.php).
-
-
-
-
-
-## Installation
-
-```bash
-composer require icanboogie/activerecord
-```
-
-
+[![Tests](https://github.com/ICanBoogie/ActiveRecord/workflows/test/badge.svg?branch=master)](https://github.com/ICanBoogie/ActiveRecord/actions?query=workflow%3Atest)
+[![Code Style](https://github.com/ICanBoogie/ActiveRecord/workflows/code-style/badge.svg?branch=master)](https://github.com/ICanBoogie/ActiveRecord/actions?query=workflow%3Acode-style)
 
 
 
@@ -2473,8 +2466,6 @@ directory. [ApiGen](http://apigen.org/) is required. The directory can later be 
 
 
 
-
-
 ## Testing
 
 Run `make test-container` to create and log into the test container, then run `make test` to run the
@@ -2483,13 +2474,9 @@ test suite. Alternatively, run `make test-coverage` to run the test suite with t
 
 
 
-
-
 ## License
 
 **icanboogie/activerecord** is released under the [New BSD License](LICENSE).
-
-
 
 
 

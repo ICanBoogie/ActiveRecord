@@ -20,40 +20,37 @@ use ICanBoogie\Validate\ValidationErrors;
  */
 class ValidateActiveRecordTest extends \PHPUnit\Framework\TestCase
 {
-	/**
-	 * @dataProvider provide_test_validate
-	 *
-	 * @param ActiveRecord $record
-	 * @param bool $should_validate
-	 */
-	public function test_validate($record, $should_validate)
-	{
-		$validate = new ValidateActiveRecord;
+    /**
+     * @dataProvider provide_test_validate
+     *
+     * @param ActiveRecord $record
+     * @param bool $should_validate
+     */
+    public function test_validate($record, $should_validate)
+    {
+        $validate = new ValidateActiveRecord();
 
-		if ($should_validate)
-		{
-			$this->assertEmpty($validate($record));
-		}
-		else
-		{
-			$this->assertInstanceOf(ValidationErrors::class, $validate($record));
-		}
-	}
+        if ($should_validate) {
+            $this->assertEmpty($validate($record));
+        } else {
+            $this->assertInstanceOf(ValidationErrors::class, $validate($record));
+        }
+    }
 
-	/**
-	 * @return array
-	 */
-	public function provide_test_validate()
-	{
-		return [
+    /**
+     * @return array
+     */
+    public function provide_test_validate()
+    {
+        return [
 
-			[ Sample::from(), false ],
-			[ Sample::from([ 'email' => uniqid() ]), false ],
-			[ Sample::from([ 'email' => 'person@domain.tld' ]), true ],
-			[ SampleNoRules::from(), true ],
-			[ SampleNoRules::from([ 'email' => uniqid() ]), true ],
-			[ SampleNoRules::from([ 'email' => 'person@domain.tld' ]), true ],
+            [ Sample::from(), false ],
+            [ Sample::from([ 'email' => uniqid() ]), false ],
+            [ Sample::from([ 'email' => 'person@domain.tld' ]), true ],
+            [ SampleNoRules::from(), true ],
+            [ SampleNoRules::from([ 'email' => uniqid() ]), true ],
+            [ SampleNoRules::from([ 'email' => 'person@domain.tld' ]), true ],
 
-		];
-	}
+        ];
+    }
 }

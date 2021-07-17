@@ -25,64 +25,63 @@ use ICanBoogie\Validate\ValidatorProvider\ValidatorProviderCollection;
  */
 class ValidateActiveRecord
 {
-	/**
-	 * Validates an active record.
-	 *
-	 * @return ValidationErrors|array An array of errors.
-	 */
-	public function __invoke(ActiveRecord $record)
-	{
-		$rules = $this->resolve_rules($record);
+    /**
+     * Validates an active record.
+     *
+     * @return ValidationErrors|array An array of errors.
+     */
+    public function __invoke(ActiveRecord $record)
+    {
+        $rules = $this->resolve_rules($record);
 
-		if (!$rules)
-		{
-			return [];
-		}
+        if (!$rules) {
+            return [];
+        }
 
-		$validator = $this->create_validator(
-			$rules,
-			$this->create_validator_provider()
-		);
+        $validator = $this->create_validator(
+            $rules,
+            $this->create_validator_provider()
+        );
 
-		return $validator->validate($this->create_reader($record));
-	}
+        return $validator->validate($this->create_reader($record));
+    }
 
-	/**
-	 * Resolves validation rules.
-	 */
-	protected function resolve_rules(ActiveRecord $record): array
-	{
-		return $record->create_validation_rules();
-	}
+    /**
+     * Resolves validation rules.
+     */
+    protected function resolve_rules(ActiveRecord $record): array
+    {
+        return $record->create_validation_rules();
+    }
 
-	/**
-	 * Creates validator provider.
-	 */
-	protected function create_validator_provider(): ValidatorProvider
-	{
-		return new ValidatorProviderCollection([
+    /**
+     * Creates validator provider.
+     */
+    protected function create_validator_provider(): ValidatorProvider
+    {
+        return new ValidatorProviderCollection([
 
-			new ActiveRecordValidatorProvider,
-			new BuiltinValidatorProvider(),
+            new ActiveRecordValidatorProvider(),
+            new BuiltinValidatorProvider(),
 
-		]);
-	}
+        ]);
+    }
 
-	/**
-	 * Creates validations.
-	 *
-	 * @return Validation
-	 */
-	protected function create_validator(array $rules, callable $validator_provider = null): Validation
-	{
-		return new Validation($rules, $validator_provider);
-	}
+    /**
+     * Creates validations.
+     *
+     * @return Validation
+     */
+    protected function create_validator(array $rules, callable $validator_provider = null): Validation
+    {
+        return new Validation($rules, $validator_provider);
+    }
 
-	/**
-	 * Creates the value reader for the active record.
-	 */
-	protected function create_reader(ActiveRecord $record): RecordAdapter
-	{
-		return new RecordAdapter($record);
-	}
+    /**
+     * Creates the value reader for the active record.
+     */
+    protected function create_reader(ActiveRecord $record): RecordAdapter
+    {
+        return new RecordAdapter($record);
+    }
 }

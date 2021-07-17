@@ -22,62 +22,60 @@ use IteratorAggregate;
  */
 class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements IteratorAggregate
 {
-	/**
-	 * Cached records.
-	 *
-	 * @var ActiveRecord[]
-	 */
-	private $records = [];
+    /**
+     * Cached records.
+     *
+     * @var ActiveRecord[]
+     */
+    private $records = [];
 
-	/**
-	 * @inheritdoc
-	 */
-	public function store(ActiveRecord $record): void
-	{
-		$key = $record->{ $this->model->primary };
+    /**
+     * @inheritdoc
+     */
+    public function store(ActiveRecord $record): void
+    {
+        $key = $record->{$this->model->primary};
 
-		if (!$key || isset($this->records[$key]))
-		{
-			return;
-		}
+        if (!$key || isset($this->records[$key])) {
+            return;
+        }
 
-		$this->records[$key] = $record;
-	}
+        $this->records[$key] = $record;
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function retrieve($key): ?ActiveRecord
-	{
-		if (empty($this->records[$key]))
-		{
-			return null;
-		}
+    /**
+     * @inheritdoc
+     */
+    public function retrieve($key): ?ActiveRecord
+    {
+        if (empty($this->records[$key])) {
+            return null;
+        }
 
-		return $this->records[$key];
-	}
+        return $this->records[$key];
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function eliminate($key): void
-	{
-		unset($this->records[$key]);
-	}
+    /**
+     * @inheritdoc
+     */
+    public function eliminate($key): void
+    {
+        unset($this->records[$key]);
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function clear(): void
-	{
-		$this->records = [];
-	}
+    /**
+     * @inheritdoc
+     */
+    public function clear(): void
+    {
+        $this->records = [];
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function getIterator()
-	{
-		return new ArrayIterator($this->records);
-	}
+    /**
+     * @inheritdoc
+     */
+    public function getIterator()
+    {
+        return new ArrayIterator($this->records);
+    }
 }

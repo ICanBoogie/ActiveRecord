@@ -24,28 +24,28 @@ use ICanBoogie\DateTime;
  */
 trait FinishedAtProperty
 {
-	/**
-	 * The date and time at which the record was finished.
-	 *
-	 * @var mixed
-	 */
-	private $finished_at;
+    /**
+     * The date and time at which the record was finished.
+     *
+     * @var mixed
+     */
+    private $finished_at;
 
-	/**
-	 * Returns the date and time at which the record was finished.
-	 */
-	protected function get_finished_at(): DateTime
-	{
-		return DateTimePropertySupport::get($this->finished_at);
-	}
+    /**
+     * Returns the date and time at which the record was finished.
+     */
+    protected function get_finished_at(): DateTime
+    {
+        return DateTimePropertySupport::get($this->finished_at);
+    }
 
-	/**
-	 * Sets the date and time at which the record was finished.
-	 *
-	 * @param mixed $datetime
-	 */
-	protected function set_finished_at($datetime): void
-	{
-		DateTimePropertySupport::set($this->finished_at, $datetime);
-	}
+    /**
+     * Sets the date and time at which the record was finished.
+     *
+     * @param mixed $datetime
+     */
+    protected function set_finished_at($datetime): void
+    {
+        DateTimePropertySupport::set($this->finished_at, $datetime);
+    }
 }

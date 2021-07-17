@@ -18,31 +18,31 @@ use ICanBoogie\ActiveRecord;
  */
 interface ActiveRecordCache
 {
-	/**
-	 * Stores an {@link ActiveRecord} instance in the cache.
-	 *
-	 * @param ActiveRecord $record
-	 */
-	public function store(ActiveRecord $record): void;
+    /**
+     * Stores an {@link ActiveRecord} instance in the cache.
+     *
+     * @param ActiveRecord $record
+     */
+    public function store(ActiveRecord $record): void;
 
-	/**
-	 * Retrieves an {@link ActiveRecord} instance from the cache.
-	 *
-	 * @param mixed $key
-	 *
-	 * @return ActiveRecord|null
-	 */
-	public function retrieve($key): ?ActiveRecord;
+    /**
+     * Retrieves an {@link ActiveRecord} instance from the cache.
+     *
+     * @param mixed $key
+     *
+     * @return ActiveRecord|null
+     */
+    public function retrieve($key): ?ActiveRecord;
 
-	/**
-	 * Eliminates an {@link ActiveRecord} instance from the cache.
-	 *
-	 * @param mixed $key
-	 */
-	public function eliminate($key): void;
+    /**
+     * Eliminates an {@link ActiveRecord} instance from the cache.
+     *
+     * @param mixed $key
+     */
+    public function eliminate($key): void;
 
-	/**
-	 * Clears the cache.
-	 */
-	public function clear(): void;
+    /**
+     * Clears the cache.
+     */
+    public function clear(): void;
 }

@@ -22,34 +22,34 @@ use function ICanBoogie\format;
  */
 class ConnectionNotDefined extends \LogicException implements Exception
 {
-	/**
-	 * @uses get_id
-	 */
-	use AccessorTrait;
+    /**
+     * @uses get_id
+     */
+    use AccessorTrait;
 
-	/**
-	 * @var string
-	 */
-	private $id;
+    /**
+     * @var string
+     */
+    private $id;
 
-	private function get_id(): string
-	{
-		return $this->id;
-	}
+    private function get_id(): string
+    {
+        return $this->id;
+    }
 
-	public function __construct(string $id, int $code = 500, \Throwable $previous = null)
-	{
-		$this->id = $id;
+    public function __construct(string $id, int $code = 500, \Throwable $previous = null)
+    {
+        $this->id = $id;
 
-		parent::__construct($this->format_message($id), $code, $previous);
-	}
+        parent::__construct($this->format_message($id), $code, $previous);
+    }
 
-	private function format_message(string $id): string
-	{
-		return format("Connection not defined: %id.", [
+    private function format_message(string $id): string
+    {
+        return format("Connection not defined: %id.", [
 
-			'id' => $id
+            'id' => $id
 
-		]);
-	}
+        ]);
+    }
 }

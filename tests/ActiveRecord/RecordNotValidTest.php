@@ -22,26 +22,26 @@ use ICanBoogie\Validate\Validator\Email;
  */
 class RecordNotValidTest extends \PHPUnit\Framework\TestCase
 {
-	public function test_exception()
-	{
-		$record = new ActiveRecord($this->getMockBuilder(Model::class)->disableOriginalConstructor()->getMock());
-		$errors = new ValidationErrors([
+    public function test_exception()
+    {
+        $record = new ActiveRecord($this->getMockBuilder(Model::class)->disableOriginalConstructor()->getMock());
+        $errors = new ValidationErrors([
 
-			'email' => [
+            'email' => [
 
-				Email::DEFAULT_MESSAGE,
-				Unique::DEFAULT_MESSAGE,
+                Email::DEFAULT_MESSAGE,
+                Unique::DEFAULT_MESSAGE,
 
-			]
+            ]
 
-		]);
+        ]);
 
-		$exception = new RecordNotValid($record, $errors);
+        $exception = new RecordNotValid($record, $errors);
 
-		$this->assertSame($record, $exception->record);
-		$this->assertSame($errors, $exception->errors);
+        $this->assertSame($record, $exception->record);
+        $this->assertSame($errors, $exception->errors);
 
-		$this->assertStringContainsString(Email::DEFAULT_MESSAGE, $exception->getMessage());
-		$this->assertStringContainsString(Unique::DEFAULT_MESSAGE, $exception->getMessage());
-	}
+        $this->assertStringContainsString(Email::DEFAULT_MESSAGE, $exception->getMessage());
+        $this->assertStringContainsString(Unique::DEFAULT_MESSAGE, $exception->getMessage());
+    }
 }

@@ -24,28 +24,28 @@ use ICanBoogie\DateTime;
  */
 trait StartAtProperty
 {
-	/**
-	 * The date and time at which the record was start.
-	 *
-	 * @var mixed
-	 */
-	private $start_at;
+    /**
+     * The date and time at which the record was start.
+     *
+     * @var mixed
+     */
+    private $start_at;
 
-	/**
-	 * Returns the date and time at which the record was start.
-	 */
-	protected function get_start_at(): DateTime
-	{
-		return DateTimePropertySupport::get($this->start_at);
-	}
+    /**
+     * Returns the date and time at which the record was start.
+     */
+    protected function get_start_at(): DateTime
+    {
+        return DateTimePropertySupport::get($this->start_at);
+    }
 
-	/**
-	 * Sets the date and time at which the record was start.
-	 *
-	 * @param mixed $datetime
-	 */
-	protected function set_start_at($datetime): void
-	{
-		DateTimePropertySupport::set($this->start_at, $datetime);
-	}
+    /**
+     * Sets the date and time at which the record was start.
+     *
+     * @param mixed $datetime
+     */
+    protected function set_start_at($datetime): void
+    {
+        DateTimePropertySupport::set($this->start_at, $datetime);
+    }
 }

@@ -21,33 +21,33 @@ use ICanBoogie\Validate\ValidatorProvider\ValidatorProviderCollection;
  */
 class ActiveRecordValidatorProviderTest extends \PHPUnit\Framework\TestCase
 {
-	/**
-	 * @dataProvider provide_test_provider
-	 *
-	 * @param string $alias
-	 * @param string $class
-	 */
-	public function test_provider($alias, $class)
-	{
-		$provider = new ValidatorProviderCollection([
+    /**
+     * @dataProvider provide_test_provider
+     *
+     * @param string $alias
+     * @param string $class
+     */
+    public function test_provider($alias, $class)
+    {
+        $provider = new ValidatorProviderCollection([
 
-			new ActiveRecordValidatorProvider,
-			new BuiltinValidatorProvider,
+            new ActiveRecordValidatorProvider(),
+            new BuiltinValidatorProvider(),
 
-		]);
+        ]);
 
-		$this->assertInstanceOf($class, $provider($alias));
-	}
+        $this->assertInstanceOf($class, $provider($alias));
+    }
 
-	/**
-	 * @return array
-	 */
-	public function provide_test_provider()
-	{
-		return [
+    /**
+     * @return array
+     */
+    public function provide_test_provider()
+    {
+        return [
 
-			[ 'unique', Unique::class ]
+            [ 'unique', Unique::class ]
 
-		];
-	}
+        ];
+    }
 }

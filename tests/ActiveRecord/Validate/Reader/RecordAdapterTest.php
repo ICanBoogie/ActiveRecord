@@ -19,29 +19,29 @@ use ICanBoogie\ActiveRecord;
  */
 class RecordAdapterTest extends \PHPUnit\Framework\TestCase
 {
-	public function test_adapter()
-	{
-		$p = 'property' . uniqid();
-		$v = uniqid();
+    public function test_adapter()
+    {
+        $p = 'property' . uniqid();
+        $v = uniqid();
 
-		$record = new ActiveRecord($this->mockModel());
-		$record->$p = $v;
+        $record = new ActiveRecord($this->mockModel());
+        $record->$p = $v;
 
-		$reader = new RecordAdapter($record);
+        $reader = new RecordAdapter($record);
 
-		$this->assertSame($record, $reader->record);
-		$this->assertSame($v, $record->$p);
-		$this->assertNull($reader->read('p' . uniqid()));
-	}
+        $this->assertSame($record, $reader->record);
+        $this->assertSame($v, $record->$p);
+        $this->assertNull($reader->read('p' . uniqid()));
+    }
 
-	/**
-	 * @return ActiveRecord\Model
-	 */
-	private function mockModel()
-	{
-		return $this
-			->getMockBuilder(ActiveRecord\Model::class)
-			->disableOriginalConstructor()
-			->getMock();
-	}
+    /**
+     * @return ActiveRecord\Model
+     */
+    private function mockModel()
+    {
+        return $this
+            ->getMockBuilder(ActiveRecord\Model::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+    }
 }

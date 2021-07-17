@@ -21,66 +21,61 @@ use function ICanBoogie\singularize;
  */
 class BelongsToRelation extends Relation
 {
-	/**
-	 * @param Model|string $related
-	 * @param array<string, mixed> $options
-	 */
-	public function __construct(Model $parent, $related, array $options = [])
-	{
-		if (empty($options['local_key']) || empty($options['foreign_key']))
-		{
-			if (!$related instanceof Model)
-			{
-				$related = $parent->models[$related];
-			}
+    /**
+     * @param Model|string $related
+     * @param array<string, mixed> $options
+     */
+    public function __construct(Model $parent, $related, array $options = [])
+    {
+        if (empty($options['local_key']) || empty($options['foreign_key'])) {
+            if (!$related instanceof Model) {
+                $related = $parent->models[$related];
+            }
 
-			$options += [
+            $options += [
 
-				'local_key' => $related->primary,
-				'foreign_key' => $related->primary
+                'local_key' => $related->primary,
+                'foreign_key' => $related->primary
 
-			];
-		}
+            ];
+        }
 
-		parent::__construct($parent, $related, $options);
-	}
+        parent::__construct($parent, $related, $options);
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function __invoke(ActiveRecord $record): ActiveRecord
-	{
-		$key = $record->{ $this->local_key };
+    /**
+     * @inheritdoc
+     */
+    public function __invoke(ActiveRecord $record): ActiveRecord
+    {
+        $key = $record->{$this->local_key};
 
-		if (!$key)
-		{
-			throw new \LogicException("Unable to establish relation, primary key is empty.");
-		}
+        if (!$key) {
+            throw new \LogicException("Unable to establish relation, primary key is empty.");
+        }
 
-		return $this->resolve_related()[$key];
-	}
+        return $this->resolve_related()[$key];
+    }
 
-	/**
-	 * Adds a setter for the property to update the local key.
-	 *
-	 * @inheritdoc
-	 */
-	protected function alter_prototype(Prototype $prototype, string $property): void
-	{
-		parent::alter_prototype($prototype, $property);
+    /**
+     * Adds a setter for the property to update the local key.
+     *
+     * @inheritdoc
+     */
+    protected function alter_prototype(Prototype $prototype, string $property): void
+    {
+        parent::alter_prototype($prototype, $property);
 
-		$prototype["set_$property"] = function(ActiveRecord $record, ActiveRecord $related) {
+        $prototype["set_$property"] = function (ActiveRecord $record, ActiveRecord $related) {
+            $record->{$this->local_key} = $related->{$this->foreign_key};
+        };
+    }
 
-			$record->{ $this->local_key } = $related->{ $this->foreign_key };
-
-		};
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	protected function resolve_property_name($related): string
-	{
-		return singularize(parent::resolve_property_name($related));
-	}
+    /**
+     * @inheritdoc
+     */
+    protected function resolve_property_name($related): string
+    {
+        return singularize(parent::resolve_property_name($related));
+    }
 }

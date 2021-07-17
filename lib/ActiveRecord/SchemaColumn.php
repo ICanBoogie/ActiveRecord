@@ -29,319 +29,298 @@ use ICanBoogie\PropertyNotDefined;
  */
 class SchemaColumn
 {
-	public const TYPE_BLOB = 'blob';
-	public const TYPE_BOOLEAN = 'boolean';
-	public const TYPE_INTEGER = 'integer';
-	public const TYPE_TEXT = 'text';
-	public const TYPE_VARCHAR = 'varchar';
+    /**
+     * @uses get_primary
+     */
+    use AccessorTrait;
 
-	/**
-	 * @uses get_primary
-	 */
-	use AccessorTrait;
+    public const TYPE_BLOB = 'blob';
+    public const TYPE_BOOLEAN = 'boolean';
+    public const TYPE_INTEGER = 'integer';
+    public const TYPE_TEXT = 'text';
+    public const TYPE_VARCHAR = 'varchar';
 
-	/**
-	 * @var string
-	 */
-	public $type;
+    /**
+     * @var string
+     */
+    public $type;
 
-	/**
-	 * @var string|int
-	 */
-	public $size;
+    /**
+     * @var string|int
+     */
+    public $size;
 
-	/**
-	 * @var bool
-	 */
-	public $unsigned = false;
+    /**
+     * @var bool
+     */
+    public $unsigned = false;
 
-	/**
-	 * @var mixed
-	 */
-	public $default;
+    /**
+     * @var mixed
+     */
+    public $default;
 
-	/**
-	 * @var bool
-	 */
-	public $null = false;
+    /**
+     * @var bool
+     */
+    public $null = false;
 
-	/**
-	 * @var bool
-	 */
-	public $unique = false;
+    /**
+     * @var bool
+     */
+    public $unique = false;
 
-	/**
-	 * @var bool
-	 */
-	private $primary = false;
+    /**
+     * @var bool
+     */
+    private $primary = false;
 
-	private function get_primary(): bool
-	{
-		return $this->primary;
-	}
+    private function get_primary(): bool
+    {
+        return $this->primary;
+    }
 
-	/**
-	 * @var bool
-	 */
-	public $auto_increment = false;
+    /**
+     * @var bool
+     */
+    public $auto_increment = false;
 
-	/**
-	 * @var bool
-	 */
-	public $indexed = false;
+    /**
+     * @var bool
+     */
+    public $indexed = false;
 
-	/**
-	 * @var string
-	 */
-	public $charset;
+    /**
+     * @var string
+     */
+    public $charset;
 
-	/**
-	 * @var string
-	 */
-	public $comment;
+    /**
+     * @var string
+     */
+    public $comment;
 
-	/**
-	 * @param array $options
-	 */
-	public function __construct(array $options)
-	{
-		static $option_translate = [
+    /**
+     * @param array $options
+     */
+    public function __construct(array $options)
+    {
+        static $option_translate = [
 
-			0 => 'type',
-			1 => 'size',
-			'auto increment' => 'auto_increment'
+            0 => 'type',
+            1 => 'size',
+            'auto increment' => 'auto_increment'
 
-		];
+        ];
 
-		foreach ($options as $option => $value)
-		{
-			if (isset($option_translate[$option]))
-			{
-				$option = $option_translate[$option];
-			}
+        foreach ($options as $option => $value) {
+            if (isset($option_translate[$option])) {
+                $option = $option_translate[$option];
+            }
 
-			if (!\property_exists($this, $option))
-			{
-				throw new PropertyNotDefined([ $option, $this ]);
-			}
+            if (!\property_exists($this, $option)) {
+                throw new PropertyNotDefined([ $option, $this ]);
+            }
 
-			$this->$option = $value;
-		}
+            $this->$option = $value;
+        }
 
-		switch ($this->type)
-		{
-			case 'serial':
+        switch ($this->type) {
+            case 'serial':
+                $this->type = self::TYPE_INTEGER;
+                $this->size = 'big';
+                $this->unsigned = true;
+                $this->primary = true;
+                $this->null = false;
+                $this->auto_increment = true;
 
-				$this->type = self::TYPE_INTEGER;
-				$this->size = 'big';
-				$this->unsigned = true;
-				$this->primary = true;
-				$this->null = false;
-				$this->auto_increment = true;
+                break;
 
-				break;
+            case 'foreign':
+                $this->type = self::TYPE_INTEGER;
+                $this->size = 'big';
+                $this->unsigned = true;
+                $this->null = false;
+                $this->indexed = !$this->primary;
 
-			case 'foreign':
+                break;
+        }
+    }
 
-				$this->type = self::TYPE_INTEGER;
-				$this->size = 'big';
-				$this->unsigned = true;
-				$this->null = false;
-				$this->indexed = !$this->primary;
+    /**
+     * Returns the formatted type, including the size.
+     *
+     * @return string
+     */
+    protected function get_formatted_type()
+    {
+        $rc = '';
 
-				break;
-		}
-	}
+        $type = $this->type;
+        $size = $this->size;
 
-	/**
-	 * Returns the formatted type, including the size.
-	 *
-	 * @return string
-	 */
-	protected function get_formatted_type()
-	{
-		$rc = '';
+        if (!$size && $type == self::TYPE_VARCHAR) {
+            $size = 255;
+        }
 
-		$type = $this->type;
-		$size = $this->size;
+        switch ($type) {
+            case self::TYPE_INTEGER:
+            case self::TYPE_TEXT:
+            case self::TYPE_BLOB:
+                $t = [
 
-		if (!$size && $type == self::TYPE_VARCHAR)
-		{
-			$size = 255;
-		}
+                    self::TYPE_BLOB => 'BLOB',
+                    self::TYPE_INTEGER => 'INT',
+                    self::TYPE_TEXT => 'TEXT',
 
-		switch ($type)
-		{
-			case self::TYPE_INTEGER:
-			case self::TYPE_TEXT:
-			case self::TYPE_BLOB:
+                ][$type];
 
-				$t = [
+                if (\is_numeric($size)) {
+                    $rc .= "$t( $size )";
+                } else {
+                    $rc .= \strtoupper($size) . $t;
+                }
 
-					self::TYPE_BLOB => 'BLOB',
-					self::TYPE_INTEGER => 'INT',
-					self::TYPE_TEXT => 'TEXT',
+                break;
 
-				][ $type ];
+            default:
+                if ($size) {
+                    $rc .= \strtoupper($type) . "( $size )";
+                } else {
+                    $rc .= \strtoupper($type);
+                }
+        }
 
-				if (\is_numeric($size))
-				{
-					$rc .= "$t( $size )";
-				}
-				else
-				{
-					$rc .= \strtoupper($size) . $t;
-				}
+        return $rc;
+    }
 
-				break;
+    /**
+     * Returns the formatted default.
+     *
+     * @return string
+     */
+    protected function get_formatted_default(): string
+    {
+        $default = $this->default;
 
-			default:
+        if (!$default) {
+            return '';
+        }
 
-				if ($size)
-				{
-					$rc .= \strtoupper($type) . "( $size )";
-				}
-				else
-				{
-					$rc .= \strtoupper($type);
-				}
-		}
+        switch ($default) {
+            case 'CURRENT_TIMESTAMP':
+                return "DEFAULT $default";
 
-		return $rc;
-	}
+            default:
+                return "DEFAULT '$default'";
+        }
+    }
 
-	/**
-	 * Returns the formatted default.
-	 *
-	 * @return string
-	 */
-	protected function get_formatted_default(): string
-	{
-		$default = $this->default;
+    /**
+     * Returns the formatted attributes.
+     *
+     * @return string
+     */
+    protected function get_formatted_attributes(): string
+    {
+        return $this->unsigned ? 'UNSIGNED' : '';
+    }
 
-		if (!$default)
-		{
-			return '';
-		}
+    /**
+     * Returns the formatted null.
+     *
+     * @return string
+     */
+    protected function get_formatted_null(): string
+    {
+        return $this->null ? 'NULL' : 'NOT NULL';
+    }
 
-		switch ($default)
-		{
-			case 'CURRENT_TIMESTAMP':
+    /**
+     * Returns the formatted index.
+     *
+     * @return string
+     */
+    protected function get_formatted_index(): string
+    {
+        return \implode(' ', \array_filter([
 
-				return "DEFAULT $default";
+            $this->primary ? 'PRIMARY KEY' : '',
+            $this->unique ? 'UNIQUE' : ''
 
-			default:
+        ]));
+    }
 
-				return "DEFAULT '$default'";
-		}
-	}
+    /**
+     * Returns the formatted comment.
+     *
+     * @return string
+     */
+    protected function get_formatted_comment(): string
+    {
+        return $this->comment ? "`$this->comment`" : '';
+    }
 
-	/**
-	 * Returns the formatted attributes.
-	 *
-	 * @return string
-	 */
-	protected function get_formatted_attributes(): string
-	{
-		return $this->unsigned ? 'UNSIGNED' : '';
-	}
+    /**
+     * Returns the formatted charset.
+     *
+     * @return string
+     */
+    protected function get_formatted_charset(): string
+    {
+        $charset = $this->charset;
 
-	/**
-	 * Returns the formatted null.
-	 *
-	 * @return string
-	 */
-	protected function get_formatted_null(): string
-	{
-		return $this->null ? 'NULL' : 'NOT NULL';
-	}
+        if (!$charset) {
+            return '';
+        }
 
-	/**
-	 * Returns the formatted index.
-	 *
-	 * @return string
-	 */
-	protected function get_formatted_index(): string
-	{
-		return \implode(' ', \array_filter([
+        list($charset, $collate) = explode('/', $charset) + [ 1 => null ];
 
-			$this->primary ? 'PRIMARY KEY' : '',
-			$this->unique ? 'UNIQUE' : ''
+        return "CHARSET $charset" . ($collate ? " COLLATE {$charset}_{$collate}" : '');
+    }
 
-		]));
-	}
+    /**
+     * Returns the formatted auto increment.
+     *
+     * @return string
+     */
+    protected function get_formatted_auto_increment(): string
+    {
+        return $this->auto_increment ? 'AUTO_INCREMENT' : '';
+    }
 
-	/**
-	 * Returns the formatted comment.
-	 *
-	 * @return string
-	 */
-	protected function get_formatted_comment(): string
-	{
-		return $this->comment ? "`$this->comment`" : '';
-	}
+    /**
+     * Whether the column is a serial column.
+     *
+     * @return bool
+     */
+    protected function get_is_serial(): bool
+    {
+        return $this->type == self::TYPE_INTEGER && !$this->null && $this->auto_increment && $this->primary;
+    }
 
-	/**
-	 * Returns the formatted charset.
-	 *
-	 * @return string
-	 */
-	protected function get_formatted_charset(): string
-	{
-		$charset = $this->charset;
+    /**
+     * Renders the column into a string.
+     *
+     * @return string
+     */
+    public function render(): string
+    {
+        return implode(' ', array_filter([
 
-		if (!$charset)
-		{
-			return '';
-		}
+            $this->formatted_type,
+            $this->formatted_attributes,
+            $this->formatted_charset,
+            $this->formatted_null,
+            $this->formatted_auto_increment,
+            $this->formatted_default,
+            $this->formatted_comment
 
-		list($charset, $collate) = explode('/', $charset) + [ 1 => null ];
+        ]));
+    }
 
-		return "CHARSET $charset" . ($collate ? " COLLATE {$charset}_{$collate}" : '');
-	}
-
-	/**
-	 * Returns the formatted auto increment.
-	 *
-	 * @return string
-	 */
-	protected function get_formatted_auto_increment(): string
-	{
-		return $this->auto_increment ? 'AUTO_INCREMENT' : '';
-	}
-
-	/**
-	 * Whether the column is a serial column.
-	 *
-	 * @return bool
-	 */
-	protected function get_is_serial(): bool
-	{
-		return $this->type == self::TYPE_INTEGER && !$this->null && $this->auto_increment && $this->primary;
-	}
-
-	/**
-	 * Renders the column into a string.
-	 *
-	 * @return string
-	 */
-	public function render(): string
-	{
-		return implode(' ', array_filter([
-
-			$this->formatted_type,
-			$this->formatted_attributes,
-			$this->formatted_charset,
-			$this->formatted_null,
-			$this->formatted_auto_increment,
-			$this->formatted_default,
-			$this->formatted_comment
-
-		]));
-	}
-
-	public function __toString()
-	{
-		return (string) $this->render();
-	}
+    public function __toString()
+    {
+        return (string) $this->render();
+    }
 }

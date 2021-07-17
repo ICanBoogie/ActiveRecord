@@ -13,19 +13,19 @@ namespace ICanBoogie\ActiveRecord;
 
 class RelationNotDefinedTest extends \PHPUnit\Framework\TestCase
 {
-	public function test_exception()
-	{
-		$relation_name = uniqid();
-		$collection = $this
-			->getMockBuilder(RelationCollection::class)
-			->disableOriginalConstructor()
-			->getMock();
+    public function test_exception()
+    {
+        $relation_name = uniqid();
+        $collection = $this
+            ->getMockBuilder(RelationCollection::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
-		/* @var $collection RelationCollection */
+        /* @var $collection RelationCollection */
 
-		$exception = new RelationNotDefined($relation_name, $collection);
+        $exception = new RelationNotDefined($relation_name, $collection);
 
-		$this->assertSame($relation_name, $exception->relation_name);
-		$this->assertSame($collection, $exception->collection);
-	}
+        $this->assertSame($relation_name, $exception->relation_name);
+        $this->assertSame($collection, $exception->collection);
+    }
 }

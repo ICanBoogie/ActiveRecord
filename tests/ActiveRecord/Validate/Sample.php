@@ -6,16 +6,16 @@ use ICanBoogie\ActiveRecord;
 
 class Sample extends ActiveRecord
 {
-	const MODEL_ID = 'model';
+    public const MODEL_ID = 'model';
 
-	public $email;
+    public $email;
 
-	public function create_validation_rules(): array
-	{
-		return [
+    public function create_validation_rules(): array
+    {
+        return [
 
-			'email' => 'required|email'
+            'email' => 'required|email'
 
-		];
-	}
+        ];
+    }
 }

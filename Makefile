@@ -38,6 +38,10 @@ test-container:
 	@-docker-compose -f ./docker-compose.yml run --rm app bash
 	@docker-compose -f ./docker-compose.yml down -v
 
+.PHONY: lint
+lint:
+	@phpcs
+
 .PHONY: doc
 doc: vendor
 	@mkdir -p build/docs

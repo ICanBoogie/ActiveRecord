@@ -15,34 +15,34 @@ use ICanBoogie\ActiveRecord;
 
 class RecordNotFoundTest extends \PHPUnit\Framework\TestCase
 {
-	static private $records;
+    private static $records;
 
-	/**
-	 * @var RecordNotFound
-	 */
-	static private $exception;
+    /**
+     * @var RecordNotFound
+     */
+    private static $exception;
 
-	static public function setupBeforeClass(): void
-	{
-		self::$records = [
+    public static function setupBeforeClass(): void
+    {
+        self::$records = [
 
-			1 => new ActiveRecord('fake-model-id'),
-			2 => false,
-			3 => new ActiveRecord('fake-model-id')
+            1 => new ActiveRecord('fake-model-id'),
+            2 => false,
+            3 => new ActiveRecord('fake-model-id')
 
-		];
+        ];
 
-		self::$exception = new RecordNotFound("My message", self::$records);
-	}
+        self::$exception = new RecordNotFound("My message", self::$records);
+    }
 
-	public function test_message()
-	{
-		$this->assertEquals("My message", self::$exception->getMessage());
-	}
+    public function test_message()
+    {
+        $this->assertEquals("My message", self::$exception->getMessage());
+    }
 
-	public function test_get_records()
-	{
-		$this->assertIsArray(self::$exception->records);
-		$this->assertSame(self::$records, self::$exception->records);
-	}
+    public function test_get_records()
+    {
+        $this->assertIsArray(self::$exception->records);
+        $this->assertSame(self::$records, self::$exception->records);
+    }
 }

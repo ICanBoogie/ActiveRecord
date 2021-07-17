@@ -13,10 +13,10 @@ namespace ICanBoogie\ActiveRecord;
 
 class ConnectionAlreadyEstablishedTest extends \PHPUnit\Framework\TestCase
 {
-	public function test_get_id()
-	{
-		$id = 'testing';
-		$e = new ConnectionAlreadyEstablished($id);
-		$this->assertEquals($id, $e->id);
-	}
+    public function test_get_id()
+    {
+        $id = 'testing';
+        $e = new ConnectionAlreadyEstablished($id);
+        $this->assertEquals($id, $e->id);
+    }
 }

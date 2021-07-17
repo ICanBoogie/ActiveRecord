@@ -20,25 +20,25 @@ use ICanBoogie\Accessor\AccessorTrait;
  */
 class ConnectionNotEstablished extends \RuntimeException implements Exception
 {
-	/**
-	 * @uses get_id
-	 */
-	use AccessorTrait;
+    /**
+     * @uses get_id
+     */
+    use AccessorTrait;
 
-	/**
-	 * @var string
-	 */
-	private $id;
+    /**
+     * @var string
+     */
+    private $id;
 
-	private function get_id(): string
-	{
-		return $this->id;
-	}
+    private function get_id(): string
+    {
+        return $this->id;
+    }
 
-	public function __construct(string $id, string $message, int $code = 500, \Throwable $previous = null)
-	{
-		$this->id = $id;
+    public function __construct(string $id, string $message, int $code = 500, \Throwable $previous = null)
+    {
+        $this->id = $id;
 
-		parent::__construct($message, $code, $previous);
-	}
+        parent::__construct($message, $code, $previous);
+    }
 }

@@ -22,39 +22,39 @@ use function ICanBoogie\format;
  */
 class UnableToSetFetchMode extends \RuntimeException implements Exception
 {
-	/**
-	 * @uses get_mode
-	 */
-	use AccessorTrait;
+    /**
+     * @uses get_mode
+     */
+    use AccessorTrait;
 
-	/**
-	 * @var mixed
-	 */
-	private $mode;
+    /**
+     * @var mixed
+     */
+    private $mode;
 
-	/**
-	 * @return mixed
-	 */
-	private function get_mode()
-	{
-		return $this->mode;
-	}
+    /**
+     * @return mixed
+     */
+    private function get_mode()
+    {
+        return $this->mode;
+    }
 
-	/**
-	 * @param mixed $mode
-	 */
-	public function __construct($mode, string $message = null, int $code = 500, \Throwable $previous = null)
-	{
-		$this->mode = $mode;
+    /**
+     * @param mixed $mode
+     */
+    public function __construct($mode, string $message = null, int $code = 500, \Throwable $previous = null)
+    {
+        $this->mode = $mode;
 
-		parent::__construct($message ?: $this->format_message($mode), $code, $previous);
-	}
+        parent::__construct($message ?: $this->format_message($mode), $code, $previous);
+    }
 
-	/**
-	 * @param mixed $mode
-	 */
-	private function format_message($mode): string
-	{
-		return format("Unable to set fetch mode: %mode", [ 'mode' => $mode ]);
-	}
+    /**
+     * @param mixed $mode
+     */
+    private function format_message($mode): string
+    {
+        return format("Unable to set fetch mode: %mode", [ 'mode' => $mode ]);
+    }
 }

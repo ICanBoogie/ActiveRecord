@@ -19,19 +19,19 @@ use ICanBoogie\Validate\ValidatorProvider\SimpleValidatorProvider;
  */
 class ActiveRecordValidatorProvider extends SimpleValidatorProvider
 {
-	static private $active_record_validators = [
+    private static $active_record_validators = [
 
-		'unique' => Validator\Unique::class
+        'unique' => Validator\Unique::class
 
-	];
+    ];
 
-	/**
-	 * Adds aliases to active record validator classes.
-	 *
-	 * @inheritdoc
-	 */
-	public function __construct(array $aliases = [])
-	{
-		parent::__construct($aliases + self::$active_record_validators);
-	}
+    /**
+     * Adds aliases to active record validator classes.
+     *
+     * @inheritdoc
+     */
+    public function __construct(array $aliases = [])
+    {
+        parent::__construct($aliases + self::$active_record_validators);
+    }
 }

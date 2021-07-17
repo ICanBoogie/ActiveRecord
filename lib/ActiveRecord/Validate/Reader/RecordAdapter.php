@@ -23,33 +23,30 @@ use ICanBoogie\Validate\Reader\AbstractAdapter;
  */
 class RecordAdapter extends AbstractAdapter
 {
-	/**
-	 * @uses get_record
-	 */
-	use AccessorTrait;
+    /**
+     * @uses get_record
+     */
+    use AccessorTrait;
 
-	protected function get_record(): ActiveRecord
-	{
-		return $this->source;
-	}
+    protected function get_record(): ActiveRecord
+    {
+        return $this->source;
+    }
 
-	public function __construct(ActiveRecord $source)
-	{
-		parent::__construct($source);
-	}
+    public function __construct(ActiveRecord $source)
+    {
+        parent::__construct($source);
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function read($name)
-	{
-		try
-		{
-			return $this->source->$name;
-		}
-		catch (PropertyNotDefined $e)
-		{
-			return null;
-		}
-	}
+    /**
+     * @inheritdoc
+     */
+    public function read($name)
+    {
+        try {
+            return $this->source->$name;
+        } catch (PropertyNotDefined $e) {
+            return null;
+        }
+    }
 }

@@ -15,10 +15,10 @@ use ICanBoogie\ActiveRecord;
 
 class ActiveRecordClassNotValidTest extends \PHPUnit\Framework\TestCase
 {
-	public function test_get_class()
-	{
-		$expected = ActiveRecord::class;
-		$e = new ActiveRecordClassNotValid($expected);
-		$this->assertEquals($expected, $e->class);
-	}
+    public function test_get_class()
+    {
+        $expected = ActiveRecord::class;
+        $e = new ActiveRecordClassNotValid($expected);
+        $this->assertEquals($expected, $e->class);
+    }
 }

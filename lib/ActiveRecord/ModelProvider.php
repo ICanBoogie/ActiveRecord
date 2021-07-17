@@ -16,70 +16,70 @@ namespace ICanBoogie\ActiveRecord;
  */
 class ModelProvider
 {
-	/**
-	 * @var callable|null {@link Model} provider
-	 */
-	static private $provider;
+    /**
+     * @var callable|null {@link Model} provider
+     */
+    private static $provider;
 
-	/**
-	 * Defines the {@link Model} provider.
-	 *
-	 * @param callable $provider
-	 *
-	 * @return callable|null The previous provider, or `null` if none was defined.
-	 */
-	static public function define(callable $provider): ?callable
-	{
-		$previous = self::$provider;
+    /**
+     * Defines the {@link Model} provider.
+     *
+     * @param callable $provider
+     *
+     * @return callable|null The previous provider, or `null` if none was defined.
+     */
+    public static function define(callable $provider): ?callable
+    {
+        $previous = self::$provider;
 
-		self::$provider = $provider;
+        self::$provider = $provider;
 
-		return $previous;
-	}
+        return $previous;
+    }
 
-	/**
-	 * Returns the current provider.
-	 *
-	 * @return callable|null
-	 */
-	static public function defined(): ?callable
-	{
-		return self::$provider;
-	}
+    /**
+     * Returns the current provider.
+     *
+     * @return callable|null
+     */
+    public static function defined(): ?callable
+    {
+        return self::$provider;
+    }
 
-	/**
-	 * Undefine the provider.
-	 */
-	static public function undefine(): void
-	{
-		self::$provider = null;
-	}
+    /**
+     * Undefine the provider.
+     */
+    public static function undefine(): void
+    {
+        self::$provider = null;
+    }
 
-	/**
-	 * Returns a {@link Model} instance using the provider.
-	 *
-	 * @param string $id Model identifier.
-	 *
-	 * @return Model
-	 *
-	 * @throws ModelNotDefined if the model cannot be provided.
-	 */
-	static public function provide(string $id): Model
-	{
-		$provider = self::$provider;
+    /**
+     * Returns a {@link Model} instance using the provider.
+     *
+     * @param string $id Model identifier.
+     *
+     * @return Model
+     *
+     * @throws ModelNotDefined if the model cannot be provided.
+     */
+    public static function provide(string $id): Model
+    {
+        $provider = self::$provider;
 
-		if (!$provider)
-		{
-			throw new \LogicException("No provider is defined yet. Please define one with `ModelProvider::define(\$provider)`.");
-		}
+        if (!$provider) {
+            throw new \LogicException(
+                "No provider is defined yet. Please define one with `ModelProvider::define(\$provider)`."
+            );
+        }
 
-		$model = $provider($id);
+        $model = $provider($id);
 
-		if (!$model)
-		{
-			throw new ModelNotDefined($id);
-		}
+        if (!$model) {
+            throw new ModelNotDefined($id);
+        }
 
-		return $model;
-	}
+        return $model;
+    }
 }

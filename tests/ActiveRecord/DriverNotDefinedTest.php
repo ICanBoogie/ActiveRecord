@@ -13,11 +13,11 @@ namespace ICanBoogie\ActiveRecord;
 
 class DriverNotDefinedTest extends \PHPUnit\Framework\TestCase
 {
-	public function test_exception()
-	{
-		$driver_name = uniqid();
-		$exception = new DriverNotDefined($driver_name);
-		$this->assertSame($driver_name, $exception->driver_name);
-		$this->assertStringContainsString($driver_name, $exception->getMessage());
-	}
+    public function test_exception()
+    {
+        $driver_name = uniqid();
+        $exception = new DriverNotDefined($driver_name);
+        $this->assertSame($driver_name, $exception->driver_name);
+        $this->assertStringContainsString($driver_name, $exception->getMessage());
+    }
 }

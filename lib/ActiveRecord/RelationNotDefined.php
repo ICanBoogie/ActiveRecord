@@ -22,39 +22,43 @@ use ICanBoogie\OffsetNotDefined;
  */
 class RelationNotDefined extends OffsetNotDefined implements Exception
 {
-	use AccessorTrait;
+    use AccessorTrait;
 
-	/**
-	 * Name of the undefined relation.
-	 *
-	 * @var string
-	 * @uses get_relation_name
-	 */
-	private $relation_name;
+    /**
+     * Name of the undefined relation.
+     *
+     * @var string
+     * @uses get_relation_name
+     */
+    private $relation_name;
 
-	private function get_relation_name(): string
-	{
-		return $this->relation_name;
-	}
+    private function get_relation_name(): string
+    {
+        return $this->relation_name;
+    }
 
-	/**
-	 * Relation collection.
-	 *
-	 * @var RelationCollection
-	 * @uses get_collection
-	 */
-	private $collection;
+    /**
+     * Relation collection.
+     *
+     * @var RelationCollection
+     * @uses get_collection
+     */
+    private $collection;
 
-	private function get_collection(): RelationCollection
-	{
-		return $this->collection;
-	}
+    private function get_collection(): RelationCollection
+    {
+        return $this->collection;
+    }
 
-	public function __construct(string $relation_name, RelationCollection $collection, int $code = 500, \Throwable $previous = null)
-	{
-		$this->relation_name = $relation_name;
-		$this->collection = $collection;
+    public function __construct(
+        string $relation_name,
+        RelationCollection $collection,
+        int $code = 500,
+        \Throwable $previous = null
+    ) {
+        $this->relation_name = $relation_name;
+        $this->collection = $collection;
 
-		parent::__construct([ $relation_name, $collection ], $code, $previous);
-	}
+        parent::__construct([ $relation_name, $collection ], $code, $previous);
+    }
 }

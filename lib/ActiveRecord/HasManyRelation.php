@@ -20,18 +20,18 @@ use function ICanBoogie\pluralize;
  */
 class HasManyRelation extends Relation
 {
-	/**
-	 * @inheritdoc
-	 */
-	public function __invoke(ActiveRecord $record): Query
-	{
-		return $this
-			->resolve_related()
-			->where([ $this->foreign_key => $record->{ $this->local_key }]);
-	}
+    /**
+     * @inheritdoc
+     */
+    public function __invoke(ActiveRecord $record): Query
+    {
+        return $this
+            ->resolve_related()
+            ->where([ $this->foreign_key => $record->{$this->local_key} ]);
+    }
 
-	protected function resolve_property_name($related): string
-	{
-		return pluralize(parent::resolve_property_name($related));
-	}
+    protected function resolve_property_name($related): string
+    {
+        return pluralize(parent::resolve_property_name($related));
+    }
 }

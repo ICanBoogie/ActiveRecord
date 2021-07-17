@@ -20,28 +20,28 @@ use ICanBoogie\Accessor\AccessorTrait;
  */
 class ModelAlreadyInstantiated extends \LogicException implements Exception
 {
-	use AccessorTrait;
+    use AccessorTrait;
 
-	/**
-	 * @var string
-	 * @uses get_id
-	 */
-	private $id;
+    /**
+     * @var string
+     * @uses get_id
+     */
+    private $id;
 
-	private function get_id(): string
-	{
-		return $this->id;
-	}
+    private function get_id(): string
+    {
+        return $this->id;
+    }
 
-	public function __construct(string $id, int $code = 500, \Throwable $previous = null)
-	{
-		$this->id = $id;
+    public function __construct(string $id, int $code = 500, \Throwable $previous = null)
+    {
+        $this->id = $id;
 
-		parent::__construct($this->format_message($id), $code, $previous);
-	}
+        parent::__construct($this->format_message($id), $code, $previous);
+    }
 
-	private function format_message(string $id): string
-	{
-		return "Model already instantiated: $id.";
-	}
+    private function format_message(string $id): string
+    {
+        return "Model already instantiated: $id.";
+    }
 }

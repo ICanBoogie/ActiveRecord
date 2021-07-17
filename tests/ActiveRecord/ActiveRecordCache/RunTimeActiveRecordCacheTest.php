@@ -17,46 +17,45 @@ use PHPUnit\Framework\TestCase;
 
 class RunTimeActiveRecordCacheTest extends TestCase
 {
-	public function test_cache()
-	{
-		$primary = 'id';
-		$key = 123;
+    public function test_cache()
+    {
+        $primary = 'id';
+        $key = 123;
 
-		$model = $this
-			->getMockBuilder(Model::class)
-			->disableOriginalConstructor()
-			->onlyMethods([ 'get_id', 'get_primary'])
-			->getMock();
-		$model
-			->method('get_id')
-			->willReturn('madonna');
-		$model
-			->method('get_primary')
-			->willReturn($primary);
+        $model = $this
+            ->getMockBuilder(Model::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([ 'get_id', 'get_primary' ])
+            ->getMock();
+        $model
+            ->method('get_id')
+            ->willReturn('madonna');
+        $model
+            ->method('get_primary')
+            ->willReturn($primary);
 
-		$record = new ActiveRecord($model);
-		$record->$primary = $key;
+        $record = new ActiveRecord($model);
+        $record->$primary = $key;
 
-		$this->assertSame($primary, $model->primary);
+        $this->assertSame($primary, $model->primary);
 
-		$cache = new RuntimeActiveRecordCache($model);
-		$cache->store($record);
-		$this->assertSame($record, $cache->retrieve($key));
-		$cache->store($record);
-		$this->assertSame($record, $cache->retrieve($key));
+        $cache = new RuntimeActiveRecordCache($model);
+        $cache->store($record);
+        $this->assertSame($record, $cache->retrieve($key));
+        $cache->store($record);
+        $this->assertSame($record, $cache->retrieve($key));
 
-		$cache->eliminate($key);
-		$this->assertEmpty($cache->retrieve($key));
+        $cache->eliminate($key);
+        $this->assertEmpty($cache->retrieve($key));
 
-		$cache->store($record);
-		$this->assertSame($record, $cache->retrieve($key));
-		$cache->clear();
-		$this->assertEmpty($cache->retrieve($key));
+        $cache->store($record);
+        $this->assertSame($record, $cache->retrieve($key));
+        $cache->clear();
+        $this->assertEmpty($cache->retrieve($key));
 
-		foreach ($cache as $k => $r)
-		{
-			$this->assertSame($key, $k);
-			$this->assertSame($record, $r);
-		}
-	}
+        foreach ($cache as $k => $r) {
+            $this->assertSame($key, $k);
+            $this->assertSame($record, $r);
+        }
+    }
 }

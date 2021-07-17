@@ -23,85 +23,82 @@ use PDOException;
  */
 class StatementNotValid extends \RuntimeException implements Exception
 {
-	/**
-	 * @uses get_statement
-	 * @uses get_args
-	 * @uses get_original
-	 */
-	use AccessorTrait;
+    /**
+     * @uses get_statement
+     * @uses get_args
+     * @uses get_original
+     */
+    use AccessorTrait;
 
-	/**
-	 * @var string
-	 */
-	private $statement;
+    /**
+     * @var string
+     */
+    private $statement;
 
-	private function get_statement(): string
-	{
-		return $this->statement;
-	}
+    private function get_statement(): string
+    {
+        return $this->statement;
+    }
 
-	/**
-	 * @var array<string, mixed>
-	 */
-	private $args;
+    /**
+     * @var array<string, mixed>
+     */
+    private $args;
 
-	/**
-	 * @return array<string, mixed>
-	 */
-	private function get_args(): array
-	{
-		return $this->args;
-	}
+    /**
+     * @return array<string, mixed>
+     */
+    private function get_args(): array
+    {
+        return $this->args;
+    }
 
-	/**
-	 * @var PDOException|null
-	 */
-	private $original;
+    /**
+     * @var PDOException|null
+     */
+    private $original;
 
-	private function get_original(): ?PDOException
-	{
-		return $this->original;
-	}
+    private function get_original(): ?PDOException
+    {
+        return $this->original;
+    }
 
-	/**
-	 * @param array|string $statement
-	 * @param int $code
-	 * @param PDOException|null $original
-	 */
-	public function __construct($statement, int $code = 500, PDOException $original = null)
-	{
-		$args = [];
+    /**
+     * @param array|string $statement
+     * @param int $code
+     * @param PDOException|null $original
+     */
+    public function __construct($statement, int $code = 500, PDOException $original = null)
+    {
+        $args = [];
 
-		if (\is_array($statement))
-		{
-			[ $statement, $args ] = $statement;
-		}
+        if (\is_array($statement)) {
+            [ $statement, $args ] = $statement;
+        }
 
-		$this->statement = $statement;
-		$this->args = $args;
-		$this->original = $original;
+        $this->statement = $statement;
+        $this->args = $args;
+        $this->original = $original;
 
-		parent::__construct($this->format_message($statement, $args, $original), $code);
-	}
+        parent::__construct($this->format_message($statement, $args, $original), $code);
+    }
 
-	private function format_message(string $statement, array $args, PDOException $previous = null): string
-	{
-		$message = null;
+    private function format_message(string $statement, array $args, PDOException $previous = null): string
+    {
+        $message = null;
 
-		if ($previous)
-		{
-			$er = \array_pad($previous->errorInfo, 3, '');
+        if ($previous) {
+            $er = \array_pad($previous->errorInfo, 3, '');
 
-			$message = \sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
-		}
+            $message = \sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
+        }
 
-		$message .= "`$statement`";
+        $message .= "`$statement`";
 
-		if ($args)
-		{
-			$message .= " " . ($args ? \json_encode($args) : "[]");
-		}
+        if ($args) {
+            $message .= " " . ($args ? \json_encode($args) : "[]");
+        }
 
-		return $message;
-	}
+        return $message;
+    }
 }

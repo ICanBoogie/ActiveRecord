@@ -13,10 +13,10 @@ namespace ICanBoogie\ActiveRecord;
 
 class ConnectionNotDefinedTest extends \PHPUnit\Framework\TestCase
 {
-	public function test_get_id()
-	{
-		$id = 'testing';
-		$e = new ConnectionNotDefined($id);
-		$this->assertEquals($id, $e->id);
-	}
+    public function test_get_id()
+    {
+        $id = 'testing';
+        $e = new ConnectionNotDefined($id);
+        $this->assertEquals($id, $e->id);
+    }
 }

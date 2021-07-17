@@ -21,47 +21,52 @@ use ICanBoogie\Accessor\AccessorTrait;
  */
 class StatementInvocationFailed extends \LogicException implements Exception
 {
-	/**
-	 * @uses get_statement
-	 * @uses get_args
-	 */
-	use AccessorTrait;
+    /**
+     * @uses get_statement
+     * @uses get_args
+     */
+    use AccessorTrait;
 
-	/**
-	 * @var Statement
-	 */
-	private $statement;
+    /**
+     * @var Statement
+     */
+    private $statement;
 
-	private function get_statement(): Statement
-	{
-		return $this->statement;
-	}
+    private function get_statement(): Statement
+    {
+        return $this->statement;
+    }
 
-	/**
-	 * @var array
-	 */
-	private $args;
+    /**
+     * @var array
+     */
+    private $args;
 
-	private function get_args(): array
-	{
-		return $this->args;
-	}
+    private function get_args(): array
+    {
+        return $this->args;
+    }
 
-	public function __construct(Statement $statement, array $args, string $message = null, int $code = 500, \Throwable $previous = null)
-	{
-		$this->statement = $statement;
-		$this->args = $args;
+    public function __construct(
+        Statement $statement,
+        array $args,
+        string $message = null,
+        int $code = 500,
+        \Throwable $previous = null
+    ) {
+        $this->statement = $statement;
+        $this->args = $args;
 
-		parent::__construct($message ?: $this->format_message($statement, $args), $code, $previous);
-	}
+        parent::__construct($message ?: $this->format_message($statement, $args), $code, $previous);
+    }
 
-	/**
-	 * Formats a message from a statement and its arguments.
-	 *
-	 * @param array<string, mixed> $args
-	 */
-	private function format_message(Statement $statement, array $args): string
-	{
-		return "Statement execution failed: {$statement->queryString}, with: " . \json_encode($args);
-	}
+    /**
+     * Formats a message from a statement and its arguments.
+     *
+     * @param array<string, mixed> $args
+     */
+    private function format_message(Statement $statement, array $args): string
+    {
+        return "Statement execution failed: {$statement->queryString}, with: " . \json_encode($args);
+    }
 }

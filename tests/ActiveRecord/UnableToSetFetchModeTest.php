@@ -13,10 +13,10 @@ namespace ICanBoogie\ActiveRecord;
 
 class UnableToSetFetchModeTest extends \PHPUnit\Framework\TestCase
 {
-	public function test_get_id()
-	{
-		$mode = uniqid();
-		$e = new UnableToSetFetchMode($mode);
-		$this->assertEquals($mode, $e->mode);
-	}
+    public function test_get_id()
+    {
+        $mode = uniqid();
+        $e = new UnableToSetFetchMode($mode);
+        $this->assertEquals($mode, $e->mode);
+    }
 }

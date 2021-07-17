@@ -12,7 +12,6 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
-
 use Throwable;
 
 use function ICanBoogie\format;
@@ -24,40 +23,40 @@ use function ICanBoogie\format;
  */
 class ActiveRecordClassNotValid extends \LogicException implements Exception
 {
-	/**
-	 * @uses get_class
-	 */
-	use AccessorTrait;
+    /**
+     * @uses get_class
+     */
+    use AccessorTrait;
 
-	/**
-	 * @var string
-	 */
-	private $class;
+    /**
+     * @var string
+     */
+    private $class;
 
-	private function get_class(): string
-	{
-		return $this->class;
-	}
+    private function get_class(): string
+    {
+        return $this->class;
+    }
 
-	/**
-	 * @param mixed $class
-	 * @param string|null $message
-	 * @param int $code
-	 * @param Throwable|null $previous
-	 */
-	public function __construct($class, string $message = null, int $code = 500, Throwable $previous = null)
-	{
-		$this->class = $class;
+    /**
+     * @param mixed $class
+     * @param string|null $message
+     * @param int $code
+     * @param Throwable|null $previous
+     */
+    public function __construct($class, string $message = null, int $code = 500, Throwable $previous = null)
+    {
+        $this->class = $class;
 
-		parent::__construct($message ?: $this->format_message($class), $code, $previous);
-	}
+        parent::__construct($message ?: $this->format_message($class), $code, $previous);
+    }
 
-	private function format_message(string $class): string
-	{
-		return format("ActiveRecord class is not valid: %class", [
+    private function format_message(string $class): string
+    {
+        return format("ActiveRecord class is not valid: %class", [
 
-			'class' => $class
+            'class' => $class
 
-		]);
-	}
+        ]);
+    }
 }

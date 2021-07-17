@@ -6,7 +6,7 @@ use ICanBoogie\ActiveRecord;
 
 class SampleNoRules extends ActiveRecord
 {
-	const MODEL_ID = 'model';
+    public const MODEL_ID = 'model';
 
-	public $email;
+    public $email;
 }
