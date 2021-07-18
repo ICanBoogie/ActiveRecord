@@ -13,7 +13,12 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 use PDO;
+use PDOException;
 use PDOStatement;
+
+use function is_array;
+use function json_encode;
+use function microtime;
 
 /**
  * A database statement.
@@ -38,6 +43,9 @@ final class Statement
      */
     use AccessorTrait;
 
+    /**
+     * @param PDOStatement<mixed> $statement
+     */
     public function __construct(
         private PDOStatement $statement,
         private Connection $connection
@@ -49,6 +57,9 @@ final class Statement
         return $this->connection;
     }
 
+    /**
+     * @return PDOStatement<mixed>
+     */
     private function get_pdo_statement(): PDOStatement
     {
         return $this->statement;
@@ -62,13 +73,11 @@ final class Statement
      *     $statement(1, 2, 3);
      *     $statement([ 1, 2, 3 ]);
      *
-     * @param array|mixed... $args
-     *
      * @return $this
      */
-    public function __invoke(...$args): self
+    public function __invoke(mixed ...$args): self
     {
-        if ($args && \is_array($args[0])) {
+        if ($args && is_array($args[0])) {
             $args = $args[0];
         }
 
@@ -92,26 +101,26 @@ final class Statement
      *
      * The connection queries count is incremented.
      *
-     * @inheritdoc
+     * @param array<mixed>|null $params
      *
      * @throws StatementNotValid when the execution of the statement fails.
      */
-    public function execute($args = [])
+    public function execute(array $params = null): bool
     {
-        $start = \microtime(true);
+        $start = microtime(true);
 
         $this->connection->queries_count++;
 
         try {
             $this->connection->profiling[] = [
                 $start,
-                \microtime(true),
-                $this->statement->queryString . ' ' . \json_encode($args),
+                microtime(true),
+                $this->statement->queryString . ' ' . json_encode($params),
             ];
 
-            return $this->statement->execute($args);
-        } catch (\PDOException $e) {
-            throw new StatementNotValid([ $this, $args ], 500, $e);
+            return $this->statement->execute($params);
+        } catch (PDOException $e) {
+            throw new StatementNotValid([ $this, $params ], 500, $e);
         }
     }
 

@@ -12,14 +12,18 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
+use LogicException;
+use Throwable;
+
+use function json_encode;
 
 /**
  * Exception thrown when the execution of a statement fails.
  *
  * @property-read Statement $statement
- * @property-read array $args
+ * @property-read mixed[] $args
  */
-class StatementInvocationFailed extends \LogicException implements Exception
+class StatementInvocationFailed extends LogicException implements Exception
 {
     /**
      * @uses get_statement
@@ -27,46 +31,38 @@ class StatementInvocationFailed extends \LogicException implements Exception
      */
     use AccessorTrait;
 
-    /**
-     * @var Statement
-     */
-    private $statement;
-
     private function get_statement(): Statement
     {
         return $this->statement;
     }
 
     /**
-     * @var array
+     * @return mixed[]
      */
-    private $args;
-
     private function get_args(): array
     {
         return $this->args;
     }
 
+    /**
+     * @param mixed[] $args
+     */
     public function __construct(
-        Statement $statement,
-        array $args,
+        private Statement $statement,
+        private array $args,
         string $message = null,
-        int $code = 500,
-        \Throwable $previous = null
+        Throwable $previous = null
     ) {
-        $this->statement = $statement;
-        $this->args = $args;
-
-        parent::__construct($message ?: $this->format_message($statement, $args), $code, $previous);
+        parent::__construct($message ?: $this->format_message($statement, $args), 0, $previous);
     }
 
     /**
      * Formats a message from a statement and its arguments.
      *
-     * @param array<string, mixed> $args
+     * @param mixed[] $args
      */
     private function format_message(Statement $statement, array $args): string
     {
-        return "Statement execution failed: {$statement->queryString}, with: " . \json_encode($args);
+        return "Statement execution failed: {$statement->pdo_statement->queryString}, with: " . json_encode($args);
     }
 }

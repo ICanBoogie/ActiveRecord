@@ -18,16 +18,16 @@ use IteratorAggregate;
 /**
  * Cache records during run time.
  *
- * @implements IteratorAggregate<string, ActiveRecord>
+ * @implements IteratorAggregate<int|string, ActiveRecord>
  */
 class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements IteratorAggregate
 {
     /**
      * Cached records.
      *
-     * @var ActiveRecord[]
+     * @var array<int|string, ActiveRecord>
      */
-    private $records = [];
+    private array $records = [];
 
     /**
      * @inheritdoc
@@ -36,7 +36,7 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements Iter
     {
         $key = $record->{$this->model->primary};
 
-        if (!$key || isset($this->records[$key])) {
+        if (!$key) {
             return;
         }
 
@@ -46,19 +46,15 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements Iter
     /**
      * @inheritdoc
      */
-    public function retrieve($key): ?ActiveRecord
+    public function retrieve(string|int $key): ?ActiveRecord
     {
-        if (empty($this->records[$key])) {
-            return null;
-        }
-
-        return $this->records[$key];
+        return $this->records[$key] ?? null;
     }
 
     /**
      * @inheritdoc
      */
-    public function eliminate($key): void
+    public function eliminate(string|int $key): void
     {
         unset($this->records[$key]);
     }
@@ -72,9 +68,9 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements Iter
     }
 
     /**
-     * @inheritdoc
+     * @return iterable<int|string, ActiveRecord>
      */
-    public function getIterator()
+    public function getIterator(): iterable
     {
         return new ArrayIterator($this->records);
     }

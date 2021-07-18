@@ -367,8 +367,6 @@ class Connection
     }
 
     /**
-     * @inheritdoc
-     *
      * @codeCoverageIgnore
      */
     public function quote_string(string $string): string
@@ -376,21 +374,11 @@ class Connection
         return $this->pdo->quote($string);
     }
 
-    /**
-     * @inheritdoc
-     *
-     * @codeCoverageIgnore
-     */
     public function quote_identifier(string $identifier): string
     {
         return $this->driver->quote_identifier($identifier);
     }
 
-    /**
-     * @inheritdoc
-     *
-     * @codeCoverageIgnore
-     */
     public function cast_value(mixed $value, string $type = null): mixed
     {
         return $this->driver->cast_value($value, $type);
@@ -413,8 +401,6 @@ class Connection
     }
 
     /**
-     * @inheritdoc
-     *
      * @codeCoverageIgnore
      */
     public function table_exists(string $unprefixed_name): bool
@@ -423,8 +409,6 @@ class Connection
     }
 
     /**
-     * @inheritdoc
-     *
      * @codeCoverageIgnore
      */
     public function optimize(): void

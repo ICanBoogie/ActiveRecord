@@ -19,15 +19,8 @@ use ICanBoogie\ActiveRecord\Model;
  */
 abstract class AbstractActiveRecordCache implements ActiveRecordCache
 {
-    /**
-     * Model using the cache.
-     *
-     * @var Model
-     */
-    protected $model;
-
-    public function __construct(Model $model)
-    {
-        $this->model = $model;
+    public function __construct(
+        protected Model $model
+    ) {
     }
 }

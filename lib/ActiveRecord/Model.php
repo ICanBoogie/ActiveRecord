@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ArrayAccess;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\Prototype\MethodNotDefined;
@@ -42,7 +43,7 @@ use ICanBoogie\Prototype\MethodNotDefined;
  * @property-read Model|null $parent Parent model.
  * @property-read ModelCollection $models
  * @property-read array $all Retrieve all the records from the model.
- * @property-read string $activerecord_class Class of the active records of the model.
+ * @property-read class-string $activerecord_class Class of the active records of the model.
  * @property-read int $count The number of records of the model.
  * @property-read bool $exists Whether the SQL table associated with the model exists.
  * @property-read string $id The identifier of the model.
@@ -50,8 +51,10 @@ use ICanBoogie\Prototype\MethodNotDefined;
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
  * @property-read Model $parent_model The parent model.
  * @property-read RelationCollection $relations The relations of this model to other models.
+ *
+ * @implements ArrayAccess<int|string, ActiveRecord>
  */
-class Model extends Table implements \ArrayAccess
+class Model extends Table implements ArrayAccess
 {
     public const ACTIVERECORD_CLASS = 'activerecord_class';
     public const BELONGS_TO = 'belongs_to';
@@ -60,12 +63,9 @@ class Model extends Table implements \ArrayAccess
     public const ID = 'id';
     public const QUERY_CLASS = 'query_class';
 
-    /**
-     * @var ModelCollection
-     */
-    private $models;
+    private ModelCollection $models;
 
-    protected function get_models()
+    protected function get_models(): ModelCollection
     {
         return $this->models;
     }
@@ -73,10 +73,13 @@ class Model extends Table implements \ArrayAccess
     /**
      * Active record instances class.
      *
-     * @var string
+     * @var class-string
      */
     private $activerecord_class;
 
+    /**
+     * @return class-string
+     */
     protected function get_activerecord_class()
     {
         return $this->activerecord_class;
@@ -96,10 +99,8 @@ class Model extends Table implements \ArrayAccess
 
     /**
      * Returns the identifier of the model.
-     *
-     * @return string
      */
-    protected function get_id()
+    protected function get_id(): string
     {
         return $this->attributes[self::ID];
     }

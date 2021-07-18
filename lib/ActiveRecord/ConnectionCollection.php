@@ -11,15 +11,21 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ArrayAccess;
+use ArrayIterator;
 use ICanBoogie\Accessor\AccessorTrait;
+use IteratorAggregate;
+use PDOException;
 
 /**
  * Connection collection.
  *
  * @property-read array $definitions Connection definitions.
  * @property-read Connection[] $established Established connections.
+ *
+ * @implements IteratorAggregate<string, Connection>
  */
-class ConnectionCollection implements \ArrayAccess, \IteratorAggregate
+class ConnectionCollection implements ArrayAccess, IteratorAggregate
 {
     /**
      * @uses get_definitions
@@ -32,7 +38,7 @@ class ConnectionCollection implements \ArrayAccess, \IteratorAggregate
      *
      * @var array
      */
-    private $definitions;
+    private array $definitions;
 
     private function get_definitions(): array
     {
@@ -162,20 +168,21 @@ class ConnectionCollection implements \ArrayAccess, \IteratorAggregate
                 $options['password'],
                 $options['options']
             );
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             throw new ConnectionNotEstablished(
                 $id,
-                "Connection not established: {$e->getMessage()}.",
-                500
+                "Connection not established: {$e->getMessage()}."
             );
         }
     }
 
     /**
      * Returns an iterator for established connections.
+     *
+     * @return iterable<string, Connection>
      */
-    public function getIterator()
+    public function getIterator(): iterable
     {
-        return new \ArrayIterator($this->established);
+        return new ArrayIterator($this->established);
     }
 }

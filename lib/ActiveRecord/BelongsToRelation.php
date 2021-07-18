@@ -74,7 +74,7 @@ class BelongsToRelation extends Relation
     /**
      * @inheritdoc
      */
-    protected function resolve_property_name($related): string
+    protected function resolve_property_name(Model|string $related): string
     {
         return singularize(parent::resolve_property_name($related));
     }

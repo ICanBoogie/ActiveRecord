@@ -242,7 +242,7 @@ class Query implements \IteratorAggregate
         try {
             return self::__prototype_call($method, $arguments);
         } catch (MethodNotDefined $e) {
-            throw new ScopeNotDefined($method, $this->model, 500, $e);
+            throw new ScopeNotDefined($method, $this->model, $e);
         }
     }
 

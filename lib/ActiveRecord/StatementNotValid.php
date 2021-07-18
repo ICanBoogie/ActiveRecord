@@ -13,6 +13,11 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 use PDOException;
+use RuntimeException;
+
+use function array_pad;
+use function json_encode;
+use function sprintf;
 
 /**
  * Exception thrown in attempt to execute a statement that is not valid.
@@ -21,7 +26,7 @@ use PDOException;
  * @property-read array $args The arguments of the statement.
  * @property-read PDOException|null $original The original exception.
  */
-class StatementNotValid extends \RuntimeException implements Exception
+class StatementNotValid extends RuntimeException implements Exception
 {
     /**
      * @uses get_statement
@@ -88,15 +93,15 @@ class StatementNotValid extends \RuntimeException implements Exception
         $message = null;
 
         if ($previous) {
-            $er = \array_pad($previous->errorInfo, 3, '');
+            $er = array_pad($previous->errorInfo, 3, '');
 
-            $message = \sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
+            $message = sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
         }
 
         $message .= "`$statement`";
 
         if ($args) {
-            $message .= " " . ($args ? \json_encode($args) : "[]");
+            $message .= " " . ($args ? json_encode($args) : "[]");
         }
 
         return $message;

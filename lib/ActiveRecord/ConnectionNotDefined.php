@@ -13,6 +13,10 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 
+use LogicException;
+
+use Throwable;
+
 use function ICanBoogie\format;
 
 /**
@@ -20,36 +24,27 @@ use function ICanBoogie\format;
  *
  * @property-read string $id The identifier of the connection.
  */
-class ConnectionNotDefined extends \LogicException implements Exception
+class ConnectionNotDefined extends LogicException implements Exception
 {
     /**
      * @uses get_id
      */
     use AccessorTrait;
 
-    /**
-     * @var string
-     */
-    private $id;
-
     private function get_id(): string
     {
         return $this->id;
     }
 
-    public function __construct(string $id, int $code = 500, \Throwable $previous = null)
-    {
-        $this->id = $id;
-
-        parent::__construct($this->format_message($id), $code, $previous);
+    public function __construct(
+        private string $id,
+        Throwable $previous = null
+    ) {
+        parent::__construct($this->format_message($id), 0, $previous);
     }
 
     private function format_message(string $id): string
     {
-        return format("Connection not defined: %id.", [
-
-            'id' => $id
-
-        ]);
+        return format("Connection not defined: %id.", [ 'id' => $id ]);
     }
 }

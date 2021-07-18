@@ -27,19 +27,13 @@ interface ActiveRecordCache
 
     /**
      * Retrieves an {@link ActiveRecord} instance from the cache.
-     *
-     * @param mixed $key
-     *
-     * @return ActiveRecord|null
      */
-    public function retrieve($key): ?ActiveRecord;
+    public function retrieve(string|int $key): ?ActiveRecord;
 
     /**
      * Eliminates an {@link ActiveRecord} instance from the cache.
-     *
-     * @param mixed $key
      */
-    public function eliminate($key): void;
+    public function eliminate(string|int $key): void;
 
     /**
      * Clears the cache.

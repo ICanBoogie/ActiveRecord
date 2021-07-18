@@ -22,6 +22,8 @@ class HasManyRelation extends Relation
 {
     /**
      * @inheritdoc
+     *
+     * @return Query<ActiveRecord>
      */
     public function __invoke(ActiveRecord $record): Query
     {
@@ -30,7 +32,7 @@ class HasManyRelation extends Relation
             ->where([ $this->foreign_key => $record->{$this->local_key} ]);
     }
 
-    protected function resolve_property_name($related): string
+    protected function resolve_property_name(Model|string $related): string
     {
         return pluralize(parent::resolve_property_name($related));
     }

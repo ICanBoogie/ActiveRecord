@@ -12,23 +12,20 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
+use LogicException;
+use Throwable;
 
 /**
  * Exception thrown when there is no driver defined for a given driver name.
  *
  * @property-read string $driver_name
  */
-class DriverNotDefined extends \LogicException implements Exception
+class DriverNotDefined extends LogicException implements Exception
 {
     /**
      * @uses get_driver_name
      */
     use AccessorTrait;
-
-    /**
-     * @var string
-     */
-    private $driver_name;
 
     private function get_driver_name(): string
     {
@@ -36,14 +33,11 @@ class DriverNotDefined extends \LogicException implements Exception
     }
 
     public function __construct(
-        string $driver_name,
+        private string $driver_name,
         string $message = null,
-        int $code = 500,
-        \Throwable $previous = null
+        Throwable $previous = null
     ) {
-        $this->driver_name = $driver_name;
-
-        parent::__construct($message ?: $this->format_message($driver_name), $code, $previous);
+        parent::__construct($message ?? $this->format_message($driver_name), 0, $previous);
     }
 
     private function format_message(string $driver_name): string

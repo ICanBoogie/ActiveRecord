@@ -13,35 +13,37 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
+use LogicException;
+use Throwable;
 
 /**
  * Exception thrown when one or several records cannot be found.
  *
  * @property-read ActiveRecord[] $records
  */
-class RecordNotFound extends \LogicException implements Exception
+class RecordNotFound extends LogicException implements Exception
 {
+    /**
+     * @uses get_records
+     */
     use AccessorTrait;
 
     /**
-     * A key/value array where keys are the identifier of the record, and the value is the result
-     * of finding the record. If the record was found the value is a {@link ActiveRecord}
-     * object, otherwise the `null` value.
-     *
-     * @var ActiveRecord[]
-     * @uses get_records
+     * @return ActiveRecord[]
      */
-    private $records;
-
     private function get_records(): array
     {
         return $this->records;
     }
 
-    public function __construct(string $message, array $records = [], int $code = 404, \Throwable $previous = null)
-    {
-        $this->records = $records;
-
-        parent::__construct($message, $code, $previous);
+    /**
+     * @param ActiveRecord[] $records
+     */
+    public function __construct(
+        string $message,
+        private array $records = [],
+        Throwable $previous = null
+    ) {
+        parent::__construct($message, 0, $previous);
     }
 }

@@ -12,32 +12,31 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
+use LogicException;
+use Throwable;
 
 /**
  * Exception thrown in attempt to set/unset the definition of an already instantiated model.
  *
  * @property-read string $id The identifier of the model.
  */
-class ModelAlreadyInstantiated extends \LogicException implements Exception
+class ModelAlreadyInstantiated extends LogicException implements Exception
 {
-    use AccessorTrait;
-
     /**
-     * @var string
      * @uses get_id
      */
-    private $id;
+    use AccessorTrait;
 
     private function get_id(): string
     {
         return $this->id;
     }
 
-    public function __construct(string $id, int $code = 500, \Throwable $previous = null)
-    {
-        $this->id = $id;
-
-        parent::__construct($this->format_message($id), $code, $previous);
+    public function __construct(
+        private string $id,
+        Throwable $previous = null
+    ) {
+        parent::__construct($this->format_message($id), 0, $previous);
     }
 
     private function format_message(string $id): string

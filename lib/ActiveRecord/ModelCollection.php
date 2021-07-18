@@ -11,27 +11,44 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ArrayAccess;
 use ICanBoogie\Accessor\AccessorTrait;
+use InvalidArgumentException;
+use Throwable;
+
+use function array_keys;
+use function get_debug_type;
+use function is_array;
+use function sprintf;
 
 /**
  * Model collection.
  *
  * @property-read ConnectionCollection $connections
- * @property-read array $definitions
- * @property-read Model[] $instances
+ * @property-read array<string, array> $definitions
+ * @property-read array<string, Model> $instances
+ *
+ * @implements ArrayAccess<string, Model>
  */
-class ModelCollection implements \ArrayAccess
+class ModelCollection implements ArrayAccess
 {
+    /**
+     * @uses get_instances
+     * @uses get_definitions
+     * @uses get_connections
+     */
     use AccessorTrait;
 
     /**
      * Instantiated models.
      *
-     * @var Model[]
-     * @uses get_instances
+     * @var array<string, Model>
      */
-    private $instances = [];
+    private array $instances = [];
 
+    /**
+     * @return array<string, Model>
+     */
     private function get_instances(): array
     {
         return $this->instances;
@@ -40,46 +57,44 @@ class ModelCollection implements \ArrayAccess
     /**
      * Models definitions.
      *
-     * @var array
-     * @uses get_definitions
+     * @var array<string, array>
      */
-    private $definitions = [];
+    private array $definitions = [];
 
+    /**
+     * @return array<string, array>
+     */
     private function get_definitions(): array
     {
         return $this->definitions;
     }
 
     /**
-     * @var ConnectionCollection
-     * @uses get_connections
+     * @param ConnectionCollection $connections
+     * @param array<string, array> $definitions
      */
-    private $connections;
+    public function __construct(
+        private ConnectionCollection $connections,
+        array $definitions = []
+    ) {
+        foreach ($definitions as $id => $definition) {
+            $this[$id] = $definition;
+        }
+    }
 
     private function get_connections(): ConnectionCollection
     {
         return $this->connections;
     }
 
-    public function __construct(ConnectionCollection $connections, array $definitions = [])
-    {
-        $this->connections = $connections;
-
-        foreach ($definitions as $id => $definition) {
-            $this[$id] = $definition;
-        }
-    }
-
     /**
      * Checks if a model is defined.
      *
-     * @param string $id Model identifier.
-     *
-     * @return bool
+     * @param string $offset A Model identifier.
      */
-    public function offsetExists($id)
+    public function offsetExists($offset): bool
     {
-        return isset($this->definitions[$id]);
+        return isset($this->definitions[$offset]);
     }
 
     /**
@@ -88,21 +103,25 @@ class ModelCollection implements \ArrayAccess
      * The {@link Model::ID} and {@link Model::NAME} are set to the provided id if they are not
      * defined.
      *
-     * @param string $id Model identifier.
-     * @param array $definition Model definition.
+     * @param string $offset A Model identifier.
+     * @param array<string, mixed>|mixed $value A Model definition.
      *
      * @throws ModelAlreadyInstantiated in attempt to write a model already instantiated.
      */
-    public function offsetSet($id, $definition)
+    public function offsetSet($offset, $value): void
     {
-        if (isset($this->instances[$id])) {
-            throw new ModelAlreadyInstantiated($id);
+        if (!is_array($value)) {
+            throw new InvalidArgumentException(sprintf("Expected array, got %s.", get_debug_type($value)));
         }
 
-        $this->definitions[$id] = $definition + [
+        if (isset($this->instances[$offset])) {
+            throw new ModelAlreadyInstantiated($offset);
+        }
 
-                Model::ID => $id,
-                Model::NAME => $id
+        $this->definitions[$offset] = $value + [
+
+                Model::ID => $offset,
+                Model::NAME => $offset
 
             ];
     }
@@ -110,52 +129,50 @@ class ModelCollection implements \ArrayAccess
     /**
      * Returns a {@link Model} instance.
      *
-     * @param string $id Model identifier.
-     *
-     * @return Model
+     * @param string $offset A Model identifier.
      *
      * @throws ModelNotDefined when the model is not defined.
      */
-    public function offsetGet($id)
+    public function offsetGet($offset): Model
     {
-        if (isset($this->instances[$id])) {
-            return $this->instances[$id];
+        if (isset($this->instances[$offset])) {
+            return $this->instances[$offset];
         }
 
-        if (!isset($this->definitions[$id])) {
-            throw new ModelNotDefined($id);
+        if (!isset($this->definitions[$offset])) {
+            throw new ModelNotDefined($offset);
         }
 
-        return $this->instances[$id] = $this
+        return $this->instances[$offset] = $this
             ->instantiate_model($this
-                ->resolve_model_attributes($this->definitions[$id]));
+                ->resolve_model_attributes($this->definitions[$offset]));
     }
 
     /**
      * Unset the definition of a model.
      *
-     * @param string $id Model identifier.
+     * @param string $offset Model identifier.
      *
      * @throws ModelAlreadyInstantiated in attempt to unset the definition of an already
      * instantiated model.
      */
-    public function offsetUnset($id)
+    public function offsetUnset($offset): void
     {
-        if (isset($this->instances[$id])) {
-            throw new ModelAlreadyInstantiated($id);
+        if (isset($this->instances[$offset])) {
+            throw new ModelAlreadyInstantiated($offset);
         }
 
-        unset($this->definitions[$id]);
+        unset($this->definitions[$offset]);
     }
 
     /**
      * Install all the models.
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function install(): void
     {
-        foreach (\array_keys($this->definitions) as $id) {
+        foreach (array_keys($this->definitions) as $id) {
             $model = $this[$id];
 
             if ($model->is_installed()) {
@@ -169,11 +186,11 @@ class ModelCollection implements \ArrayAccess
     /**
      * Uninstall all the models.
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function uninstall(): void
     {
-        foreach (\array_keys($this->definitions) as $id) {
+        foreach (array_keys($this->definitions) as $id) {
             $model = $this[$id];
 
             if (!$model->is_installed()) {
@@ -187,14 +204,14 @@ class ModelCollection implements \ArrayAccess
     /**
      * Check if models are installed.
      *
-     * @return array An array of key/value pair where _key_ is a model identifier and
+     * @return array<string, bool> An array of key/value pair where _key_ is a model identifier and
      * _value_ `true` if the model is installed, `false` otherwise.
      */
     public function is_installed(): array
     {
         $rc = [];
 
-        foreach (\array_keys($this->definitions) as $id) {
+        foreach (array_keys($this->definitions) as $id) {
             $rc[$id] = $this[$id]->is_installed();
         }
 
@@ -207,9 +224,9 @@ class ModelCollection implements \ArrayAccess
      * The methods replaces {@link Model::CONNECTION} and {@link Model::EXTENDING} identifier
      * with instances.
      *
-     * @param array $attributes
+     * @param array<string, mixed> $attributes
      *
-     * @return array
+     * @return array<string, mixed>
      */
     private function resolve_model_attributes(array $attributes): array
     {
@@ -239,9 +256,7 @@ class ModelCollection implements \ArrayAccess
     /**
      * Instantiate a model with the specified attributes.
      *
-     * @param array $attributes
-     *
-     * @return Model
+     * @param array<string, mixed> $attributes
      */
     private function instantiate_model(array $attributes): Model
     {
