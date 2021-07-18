@@ -31,17 +31,14 @@ final class HasManyRelationTest extends TestCase
         $models = new ModelCollection($connections, [
 
             'comments' => [
-
                 Model::ACTIVERECORD_CLASS => Comment::class,
                 Model::ID => 'comments',
                 Model::NAME => 'comments',
-                Model::SCHEMA => [
-
-                    'comment_id' => 'serial',
-                    'article_id' => 'foreign',
-                    'body' => 'text'
-
-                ]
+                Model::SCHEMA => new Schema([
+                    'comment_id' => SchemaColumn::serial(primary: true),
+                    'article_id' => SchemaColumn::foreign(),
+                    'body' => new SchemaColumn('text'),
+                ])
             ],
 
             'articles' => [
@@ -50,12 +47,10 @@ final class HasManyRelationTest extends TestCase
                 Model::HAS_MANY => 'comments',
                 Model::ID => 'articles',
                 Model::NAME => 'articles',
-                Model::SCHEMA => [
-
-                    'article_id' => 'serial',
-                    'title' => 'varchar'
-
-                ]
+                Model::SCHEMA => new Schema([
+                    'article_id' => SchemaColumn::serial(primary: true),
+                    'title' => SchemaColumn::varchar(),
+                ])
             ]
         ]);
 
@@ -82,7 +77,7 @@ final class HasManyRelationTest extends TestCase
         }
     }
 
-    public function test_getters()
+    public function test_getters(): void
     {
         $relations = $this->articles->relations;
         $this->assertInstanceOf(RelationCollection::class, $relations);
@@ -96,13 +91,13 @@ final class HasManyRelationTest extends TestCase
         $this->assertSame($this->articles->primary, $relation->foreign_key);
     }
 
-    public function test_undefined_relation()
+    public function test_undefined_relation(): void
     {
         $this->expectException(RelationNotDefined::class);
         $this->articles->relations['undefined_relation'];
     }
 
-    public function test_getter()
+    public function test_getter(): void
     {
         $article = $this->articles[1];
         $article_comments = $article->comments;
@@ -111,7 +106,7 @@ final class HasManyRelationTest extends TestCase
         $this->assertSame($this->comments, $article_comments->model);
     }
 
-    public function test_getter_as()
+    public function test_getter_as(): void
     {
         $articles = $this->articles;
         $articles->has_many($this->comments, [ 'as' => 'article_comments' ]);

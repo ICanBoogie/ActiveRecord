@@ -18,26 +18,26 @@ use ICanBoogie\Prototype\MethodNotDefined;
 /**
  * Base class for activerecord models.
  *
- * @method Query select() select($expression) The method is forwarded to Query::select().
- * @method Query join() join($expression) The method is forwarded to Query::join().
- * @method Query where() where($conditions, $conditions_args = null, $_ = null)
+ * @method Query select($expression) The method is forwarded to Query::select().
+ * @method Query join($expression) The method is forwarded to Query::join().
+ * @method Query where($conditions, $conditions_args = null, $_ = null)
  *     The method is forwarded to {@link Query::where}.
- * @method Query group() group($group) The method is forwarded to Query::group().
- * @method Query order() order($order) The method is forwarded to Query::order().
- * @method Query limit() limit($limit, $offset = null) The method is forwarded to Query::limit().
- * @method Query offset() offset($offset) The method is forwarded to Query::offset().
- * @method bool exists() exists($key = null) The method is forwarded to Query::exists().
- * @method mixed count() count($column = null) The method is forwarded to Query::count().
- * @method string average() average($column) The method is forwarded to Query::average().
- * @method string maximum() maximum($column) The method is forwarded to Query::maximum().
- * @method string minimum() minimum($column) The method is forwarded to Query::minimum().
- * @method int sum() sum($column) The method is forwarded to Query::sum().
- * @method array all() all() The method is forwarded to Query::all().
- * @method ActiveRecord one() one() The method is forwarded to Query::one().
- * @method ActiveRecord new() new(array $properties = []) Instantiate a new record.
+ * @method Query group($group) The method is forwarded to Query::group().
+ * @method Query order($order) The method is forwarded to Query::order().
+ * @method Query limit($limit, $offset = null) The method is forwarded to Query::limit().
+ * @method Query offset($offset) The method is forwarded to Query::offset().
+ * @method bool exists($key = null) The method is forwarded to Query::exists().
+ * @method mixed count($column = null) The method is forwarded to Query::count().
+ * @method string average($column) The method is forwarded to Query::average().
+ * @method string maximum($column) The method is forwarded to Query::maximum().
+ * @method string minimum($column) The method is forwarded to Query::minimum().
+ * @method int sum($column) The method is forwarded to Query::sum().
+ * @method array all() The method is forwarded to Query::all().
+ * @method ActiveRecord one() The method is forwarded to Query::one().
+ * @method ActiveRecord new(array $properties = []) Instantiate a new record.
  *
- * @method Model belongs_to() belongs_to(...$args) Adds a _belongs_to_ relation.
- * @method Model has_many() has_many($related, $options = []) Adds a _has_many_ relation.
+ * @method Model belongs_to(...$args) Adds a _belongs_to_ relation.
+ * @method Model has_many($related, $options = []) Adds a _has_many_ relation.
  *
  * @property-read Model|null $parent Parent model.
  * @property-read ModelCollection $models
@@ -224,7 +224,7 @@ class Model extends Table implements \ArrayAccess
 
         if ($extends && !$attributes[self::SCHEMA]) {
             $attributes[self::NAME] = $extends->unprefixed_name;
-            $attributes[self::SCHEMA] = $extends->schema_options;
+            $attributes[self::SCHEMA] = $extends->schema;
             $attributes[self::EXTENDING] = $extends->parent;
 
             if (!$attributes[self::ACTIVERECORD_CLASS]) {

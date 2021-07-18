@@ -21,17 +21,17 @@ test-dependencies: vendor
 
 .PHONY: test
 test: test-dependencies
-	@$(PHPUNIT)
+	@$(PHPUNIT) $(ARGS)
 
 .PHONY: test-coverage
 test-coverage: test-dependencies
 	@mkdir -p build/coverage
-	@$(PHPUNIT) --coverage-html build/coverage
+	@XDEBUG_MODE=coverage $(PHPUNIT) --coverage-html build/coverage $(ARGS)
 
 .PHONY: test-coveralls
 test-coveralls: test-dependencies
 	@mkdir -p build/logs
-	@$(PHPUNIT) --coverage-clover build/logs/clover.xml
+	@XDEBUG_MODE=coverage $(PHPUNIT) --coverage-clover build/logs/clover.xml
 
 .PHONY: test-container
 test-container:

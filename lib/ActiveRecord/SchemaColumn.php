@@ -12,224 +12,260 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
-use ICanBoogie\PropertyNotDefined;
+
+use LogicException;
+
+use function array_filter;
+use function implode;
+use function in_array;
+use function is_numeric;
+use function strtoupper;
 
 /**
  * Representation of a schema column.
  *
- * @property-read string $formatted_attributes
+ * @property-read bool $is_serial
+ * @property-read string $formatted_type_attributes
  * @property-read string $formatted_auto_increment
- * @property-read string $formatted_charset
+ * @property-read string $formatted_collate
  * @property-read string $formatted_comment
  * @property-read string $formatted_default
  * @property-read string $formatted_index
  * @property-read string $formatted_null
  * @property-read string $formatted_type
- * @property-read string|array $primary
  */
 class SchemaColumn
 {
     /**
-     * @uses get_primary
+     * @uses is_serial
+     * @uses get_formatted_type_attributes
+     * @uses get_formatted_auto_increment
+     * @uses get_formatted_collate
+     * @uses get_formatted_comment
+     * @uses get_formatted_default
+     * @uses get_formatted_key
+     * @uses get_formatted_null
+     * @uses get_formatted_type
      */
     use AccessorTrait;
 
-    public const TYPE_BLOB = 'blob';
-    public const TYPE_BOOLEAN = 'boolean';
-    public const TYPE_INTEGER = 'integer';
-    public const TYPE_TEXT = 'text';
-    public const TYPE_VARCHAR = 'varchar';
+    public const TYPE_BLOB = 'BLOB';
+    public const TYPE_BOOLEAN = 'BOOLEAN';
+    public const TYPE_CHAR = 'CHAR';
+    public const TYPE_DATETIME = 'DATETIME';
+    public const TYPE_FLOAT = 'FLOAT';
+    public const TYPE_INT = 'INT';
+    public const TYPE_TIMESTAMP = 'TIMESTAMP';
+    public const TYPE_TEXT = 'TEXT';
+    public const TYPE_VARCHAR = 'VARCHAR';
 
-    /**
-     * @var string
+    public const SIZE_BIG = 'BIG';
+    public const SIZE_SMALL = 'SMALL';
+
+    public const NOW = 'NOW';
+    public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
+
+    /*
+     * https://dev.mysql.com/doc/refman/8.0/en/numeric-types.html
      */
-    public $type;
 
-    /**
-     * @var string|int
-     */
-    public $size;
+    public static function int(
+        ?string $size = null,
+        bool $unsigned = false,
+        bool $null = false,
+        bool $unique = false,
+    ): self {
+        return new self(
+            type: self::TYPE_INT,
+            size: $size,
+            unsigned: $unsigned,
+            null: $null,
+            unique: $unique,
+        );
+    }
 
-    /**
-     * @var bool
-     */
-    public $unsigned = false;
-
-    /**
-     * @var mixed
-     */
-    public $default;
-
-    /**
-     * @var bool
-     */
-    public $null = false;
-
-    /**
-     * @var bool
-     */
-    public $unique = false;
-
-    /**
-     * @var bool
-     */
-    private $primary = false;
-
-    private function get_primary(): bool
-    {
-        return $this->primary;
+    public static function float(
+        ?int $precision = null,
+        bool $unsigned = false,
+        bool $null = false,
+    ): self {
+        return new self(
+            type: self::TYPE_FLOAT,
+            size: $precision,
+            unsigned: $unsigned,
+            null: $null,
+        );
     }
 
     /**
-     * @var bool
+     * @see https://dev.mysql.com/doc/refman/8.0/en/numeric-type-syntax.html
      */
-    public $auto_increment = false;
+    public static function serial(
+        bool $primary = false
+    ): self {
+        return new self(
+            type: self::TYPE_INT,
+            size: self::SIZE_BIG,
+            unsigned: true,
+            null: false,
+            auto_increment: true,
+            unique: !$primary,
+            primary: $primary,
+        );
+    }
 
-    /**
-     * @var bool
-     */
-    public $indexed = false;
+    public static function foreign(
+        bool $unique = false,
+        bool $primary = false,
+    ): self {
+        return new self(
+            type: self::TYPE_INT,
+            size: self::SIZE_BIG,
+            unsigned: true,
+            null: false,
+            unique: $primary ? false : $unique,
+            primary: $primary,
+        );
+    }
 
-    /**
-     * @var string
+    /*
+     * https://dev.mysql.com/doc/refman/8.0/en/datetime.html
      */
-    public $charset;
 
-    /**
-     * @var string
-     */
-    public $comment;
+    public static function datetime(
+        bool $null = false,
+        ?string $default = null,
+    ): self {
+        self::assert_datetime_default($default);
 
-    /**
-     * @param array $options
-     */
-    public function __construct(array $options)
+        return new self(
+            type: self::TYPE_DATETIME,
+            null: $null,
+            default: $default,
+        );
+    }
+
+    public static function timestamp(
+        bool $null = false,
+        ?string $default = null,
+    ): self {
+        self::assert_datetime_default($default);
+
+        return new self(
+            type: self::TYPE_TIMESTAMP,
+            null: $null,
+            default: $default,
+        );
+    }
+
+    private static function assert_datetime_default(?string $default): void
     {
-        static $option_translate = [
-
-            0 => 'type',
-            1 => 'size',
-            'auto increment' => 'auto_increment'
-
-        ];
-
-        foreach ($options as $option => $value) {
-            if (isset($option_translate[$option])) {
-                $option = $option_translate[$option];
-            }
-
-            if (!\property_exists($this, $option)) {
-                throw new PropertyNotDefined([ $option, $this ]);
-            }
-
-            $this->$option = $value;
+        if ($default && !in_array($default, [ self::NOW, self::CURRENT_TIMESTAMP ])) {
+            throw new LogicException("Can only be one of 'NOW' or 'CURRENT_TIMESTAMP', given: $default.");
         }
+    }
 
-        switch ($this->type) {
-            case 'serial':
-                $this->type = self::TYPE_INTEGER;
-                $this->size = 'big';
-                $this->unsigned = true;
-                $this->primary = true;
-                $this->null = false;
-                $this->auto_increment = true;
+    /*
+     * https://dev.mysql.com/doc/refman/8.0/en/string-types.html
+     */
 
-                break;
+    public static function char(
+        int $size = 255,
+        bool $null = false,
+        bool $unique = false,
+        bool $primary = false,
+        ?string $comment = null,
+        ?string $collate = null,
+    ): self {
+        return new self(
+            type: self::TYPE_CHAR,
+            size: $size,
+            null: $null,
+            unique: $unique,
+            primary: $primary,
+            comment: $comment,
+            collate: $collate,
+        );
+    }
 
-            case 'foreign':
-                $this->type = self::TYPE_INTEGER;
-                $this->size = 'big';
-                $this->unsigned = true;
-                $this->null = false;
-                $this->indexed = !$this->primary;
+    public static function varchar(
+        int $size = 255,
+        bool $null = false,
+        bool $unique = false,
+        bool $primary = false,
+        ?string $comment = null,
+        ?string $collate = null,
+    ): self {
+        return new self(
+            type: self::TYPE_VARCHAR,
+            size: $size,
+            null: $null,
+            unique: $unique,
+            primary: $primary,
+            comment: $comment,
+            collate: $collate,
+        );
+    }
 
-                break;
-        }
+    public function __construct(
+        public string $type,
+        public string|int|null $size = null,
+        public bool $unsigned = false,
+        public bool $null = false,
+        public mixed $default = null,
+        public bool $auto_increment = false,
+        public bool $unique = false,
+        public bool $primary = false,
+        public ?string $comment = null,
+        public ?string $collate = null,
+    ) {
+        $this->type = strtoupper($type);
     }
 
     /**
      * Returns the formatted type, including the size.
-     *
-     * @return string
      */
-    protected function get_formatted_type()
+    protected function get_formatted_type(): string
     {
-        $rc = '';
-
-        $type = $this->type;
+        $type = strtoupper($this->type);
         $size = $this->size;
 
-        if (!$size && $type == self::TYPE_VARCHAR) {
-            $size = 255;
+        if (is_numeric($size)) {
+            return "$type($size)";
         }
 
-        switch ($type) {
-            case self::TYPE_INTEGER:
-            case self::TYPE_TEXT:
-            case self::TYPE_BLOB:
-                $t = [
-
-                    self::TYPE_BLOB => 'BLOB',
-                    self::TYPE_INTEGER => 'INT',
-                    self::TYPE_TEXT => 'TEXT',
-
-                ][$type];
-
-                if (\is_numeric($size)) {
-                    $rc .= "$t( $size )";
-                } else {
-                    $rc .= \strtoupper($size) . $t;
-                }
-
-                break;
-
-            default:
-                if ($size) {
-                    $rc .= \strtoupper($type) . "( $size )";
-                } else {
-                    $rc .= \strtoupper($type);
-                }
+        if ($size) {
+            return strtoupper($size) . $type;
         }
 
-        return $rc;
+        return $type;
     }
 
     /**
      * Returns the formatted default.
-     *
-     * @return string
      */
     protected function get_formatted_default(): string
     {
         $default = $this->default;
 
-        if (!$default) {
-            return '';
-        }
-
-        switch ($default) {
-            case 'CURRENT_TIMESTAMP':
-                return "DEFAULT $default";
-
-            default:
-                return "DEFAULT '$default'";
-        }
+        return match ($default) {
+            null => '',
+            self::CURRENT_TIMESTAMP => "DEFAULT CURRENT_TIMESTAMP",
+            self::NOW => "DEFAULT NOW",
+            default => "DEFAULT '$default'",
+        };
     }
 
     /**
      * Returns the formatted attributes.
-     *
-     * @return string
      */
-    protected function get_formatted_attributes(): string
+    protected function get_formatted_type_attributes(): string
     {
         return $this->unsigned ? 'UNSIGNED' : '';
     }
 
     /**
      * Returns the formatted null.
-     *
-     * @return string
      */
     protected function get_formatted_null(): string
     {
@@ -238,23 +274,19 @@ class SchemaColumn
 
     /**
      * Returns the formatted index.
-     *
-     * @return string
      */
-    protected function get_formatted_index(): string
+    protected function get_formatted_key(): string
     {
-        return \implode(' ', \array_filter([
+        return implode(' ', array_filter([
 
+            $this->unique ? 'UNIQUE' : '',
             $this->primary ? 'PRIMARY KEY' : '',
-            $this->unique ? 'UNIQUE' : ''
 
         ]));
     }
 
     /**
      * Returns the formatted comment.
-     *
-     * @return string
      */
     protected function get_formatted_comment(): string
     {
@@ -263,26 +295,14 @@ class SchemaColumn
 
     /**
      * Returns the formatted charset.
-     *
-     * @return string
      */
-    protected function get_formatted_charset(): string
+    protected function get_formatted_collate(): string
     {
-        $charset = $this->charset;
-
-        if (!$charset) {
-            return '';
-        }
-
-        list($charset, $collate) = explode('/', $charset) + [ 1 => null ];
-
-        return "CHARSET $charset" . ($collate ? " COLLATE {$charset}_{$collate}" : '');
+        return $this->collate ? "COLLATE $this->collate" : '';
     }
 
     /**
      * Returns the formatted auto increment.
-     *
-     * @return string
      */
     protected function get_formatted_auto_increment(): string
     {
@@ -291,36 +311,34 @@ class SchemaColumn
 
     /**
      * Whether the column is a serial column.
-     *
-     * @return bool
      */
     protected function get_is_serial(): bool
     {
-        return $this->type == self::TYPE_INTEGER && !$this->null && $this->auto_increment && $this->primary;
+        return $this->type == self::TYPE_INT
+            && !$this->null
+            && $this->auto_increment
+            && ($this->primary || $this->unique);
     }
 
     /**
      * Renders the column into a string.
-     *
-     * @return string
      */
     public function render(): string
     {
         return implode(' ', array_filter([
-
-            $this->formatted_type,
-            $this->formatted_attributes,
-            $this->formatted_charset,
-            $this->formatted_null,
-            $this->formatted_auto_increment,
-            $this->formatted_default,
-            $this->formatted_comment
-
+            $this->get_formatted_type(),
+            $this->get_formatted_type_attributes(),
+            $this->get_formatted_null(),
+            $this->get_formatted_default(),
+            $this->get_formatted_auto_increment(),
+            $this->get_formatted_key(),
+            $this->get_formatted_comment(),
+            $this->get_formatted_collate(),
         ]));
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        return (string) $this->render();
+        return $this->render();
     }
 }

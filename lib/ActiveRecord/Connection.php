@@ -15,6 +15,7 @@ use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
 use PDO;
 use PDOException;
+use Throwable;
 
 use function explode;
 use function strtr;
@@ -22,17 +23,16 @@ use function strtr;
 /**
  * A connection to a database.
  *
- * @property-read PDO pdo
+ * @property-read PDO $pdo
  * @property-read string $charset The character set used to communicate with the database. Defaults
  *     to "utf8".
  * @property-read string $collate The collation of the character set. Defaults to
  *     "utf8_general_ci".
- * @property-read Driver $driver
  * @property-read string $driver_name Name of the PDO driver.
  * @property-read string|null $id Identifier of the database connection.
  * @property-read string $table_name_prefix The prefix to prepend to every table name.
  */
-class Connection implements Driver
+class Connection
 {
     /**
      * @uses get_pdo
@@ -174,7 +174,7 @@ class Connection implements Driver
     /**
      * Alias to {@link query}.
      */
-    public function __invoke(...$args): Statement
+    public function __invoke(mixed ...$args): Statement
     {
         return $this->query(...$args);
     }
@@ -322,9 +322,10 @@ class Connection implements Driver
      *
      * Using this method increments the `queries_by_connection` stat.
      *
+     * @return false|int @FIXME https://github.com/sebastianbergmann/phpunit/issues/4735
      * @throws StatementNotValid if the statement cannot be executed.
      */
-    public function exec(string $statement): false|int
+    public function exec(string $statement): bool|int
     {
         $statement = $this->resolve_statement($statement);
 
@@ -370,9 +371,9 @@ class Connection implements Driver
      *
      * @codeCoverageIgnore
      */
-    public function quote_string(string|array $string): string|array
+    public function quote_string(string $string): string
     {
-        return $this->driver->quote_string($string);
+        return $this->pdo->quote($string);
     }
 
     /**
@@ -380,7 +381,7 @@ class Connection implements Driver
      *
      * @codeCoverageIgnore
      */
-    public function quote_identifier(string|array $identifier): string|array
+    public function quote_identifier(string $identifier): string
     {
         return $this->driver->quote_identifier($identifier);
     }
@@ -396,43 +397,19 @@ class Connection implements Driver
     }
 
     /**
-     * @inheritdoc
-     *
-     * @codeCoverageIgnore
-     */
-    public function render_column(SchemaColumn $column): string
-    {
-        return $this->driver->render_column($column);
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @codeCoverageIgnore
+     * @throws Throwable
      */
     public function create_table(string $unprefixed_table_name, Schema $schema): void
     {
-        $this->driver->create_table($unprefixed_table_name, $schema);
+        $this->driver->create_table($this->table_name_prefix . $unprefixed_table_name, $schema);
     }
 
     /**
-     * @inheritdoc
-     *
-     * @codeCoverageIgnore
+     * @throws Throwable
      */
     public function create_indexes(string $unprefixed_table_name, Schema $schema): void
     {
-        $this->driver->create_indexes($unprefixed_table_name, $schema);
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @codeCoverageIgnore
-     */
-    public function create_unique_indexes(string $unprefixed_table_name, Schema $schema): void
-    {
-        $this->driver->create_unique_indexes($unprefixed_table_name, $schema);
+        $this->driver->create_indexes($this->table_name_prefix . $unprefixed_table_name, $schema);
     }
 
     /**
@@ -442,7 +419,7 @@ class Connection implements Driver
      */
     public function table_exists(string $unprefixed_name): bool
     {
-        return $this->driver->table_exists($unprefixed_name);
+        return $this->driver->table_exists($this->table_name_prefix . $unprefixed_name);
     }
 
     /**

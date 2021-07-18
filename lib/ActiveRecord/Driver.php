@@ -20,21 +20,13 @@ interface Driver
 {
     /**
      * Quotes a string, or an array of strings.
-     *
-     * @param string|string[] $string
-     *
-     * @return string|string[]
      */
-    public function quote_string(string|array $string): string|array;
+    public function quote_string(string $string): string;
 
     /**
      * Quotes an identifier, or an array of identifiers.
-     *
-     * @param string|string[] $identifier
-     *
-     * @return string|string[]
      */
-    public function quote_identifier(string|array $identifier): string|array;
+    public function quote_identifier(string $identifier): string;
 
     /**
      * Casts a value into a database compatible representation.
@@ -44,39 +36,25 @@ interface Driver
     public function cast_value(mixed $value, string $type = null): mixed;
 
     /**
-     * Renders a column definition.
-     */
-    public function render_column(SchemaColumn $column): string;
-
-    /**
      * Creates a table given a schema.
      *
      * @throws Throwable
      */
-    public function create_table(string $unprefixed_table_name, Schema $schema): void;
+    public function create_table(string $table_name, Schema $schema): void;
 
     /**
      * Creates indexes given a schema.
      *
      * @throws Throwable
      */
-    public function create_indexes(string $unprefixed_table_name, Schema $schema): void;
-
-    /**
-     * Creates unique indexes given a schema.
-     *
-     * @throws Throwable
-     */
-    public function create_unique_indexes(string $unprefixed_table_name, Schema $schema): void;
+    public function create_indexes(string $table_name, Schema $schema): void;
 
     /**
      * Checks if a specified table exists in the database.
      *
-     * @param string $unprefixed_name The unprefixed name of the table.
-     *
-     * @return bool `true` if the table exists, `false` otherwise.
+     * @param string $name The unprefixed name of the table.
      */
-    public function table_exists(string $unprefixed_name): bool;
+    public function table_exists(string $name): bool;
 
     /**
      * Optimizes the tables of the database.

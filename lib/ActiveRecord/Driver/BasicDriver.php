@@ -11,9 +11,13 @@
 
 namespace ICanBoogie\ActiveRecord\Driver;
 
+use DateTimeInterface;
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Driver;
+use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaColumn;
+use ICanBoogie\ActiveRecord\SchemaIndex;
 use ICanBoogie\DateTime;
 
 /**
@@ -49,41 +53,25 @@ abstract class BasicDriver implements Driver
     /**
      * @inheritdoc
      */
-    public function quote_string(string|array $string): string|array
+    public function quote_string(string $string): string
     {
-        $connection = $this->connection;
-
-        if (\is_array($string)) {
-            return \array_map(function ($v) use ($connection) {
-                return $connection->quote($v);
-            }, $string);
-        }
-
-        return $connection->quote($string);
+        return $this->connection->pdo->quote($string);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function quote_identifier(string|array $identifier): string|array
+    public function quote_identifier(string $identifier): string
     {
-        $quote = '`';
-
-        if (\is_array($identifier)) {
-            return \array_map(function ($v) use ($quote) {
-                return $quote . $v . $quote;
-            }, $identifier);
-        }
-
-        return $quote . $identifier . $quote;
+        return "`$identifier`";
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function cast_value(mixed $value, string $type = null): mixed
     {
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return DateTime::from($value)->utc->as_db;
         }
 
@@ -98,31 +86,53 @@ abstract class BasicDriver implements Driver
         return $value;
     }
 
-    /**
-     * Returns table name, including possible prefix.
-     *
-     * @param string $unprefixed_table_name
-     *
-     * @return string
-     */
-    protected function resolve_table_name(string $unprefixed_table_name): string
+    public function create_table(string $table_name, Schema $schema): void
     {
-        return $this->connection->table_name_prefix . $unprefixed_table_name;
+        $this->connection->exec(
+            $this->render_create_table($table_name, $schema)
+        );
     }
 
     /**
-     * Returns quoted table name, including possible prefix.
+     * Renders the statement to create the specified table.
      */
-    protected function resolve_quoted_table_name(string $unprefixed_table_name): string
+    abstract protected function render_create_table(string $table_name, Schema $schema): string;
+
+    public function create_indexes(string $table_name, Schema $schema): void
     {
-        return $this->quote_identifier($this->connection->table_name_prefix . $unprefixed_table_name);
+        foreach ($schema->indexes as $index) {
+            $this->connection->exec(
+                $this->render_create_index($table_name, $index)
+            );
+        }
     }
 
     /**
-     * Returns index name.
+     * Renders the statement to create the specified index.
      */
-    protected function resolve_index_name(string $unprefixed_table_name, string $index_id): string
+    abstract protected function render_create_index(string $table_name, SchemaIndex $index): string;
+
+    /**
+     * @return string[]
+     */
+    protected function render_create_table_lines(Schema $schema): array
     {
-        return $index_id;
+        $lines = [];
+
+        foreach ($schema as $column_id => $column) {
+            $lines[$column_id] = $this->render_create_table_line($schema, $column_id, $column);
+        }
+
+        return $lines;
     }
+
+    protected function render_create_table_line(Schema $schema, string $column_id, SchemaColumn $column): string
+    {
+        return $this->quote_identifier($column_id) . " " . $this->render_column($column);
+    }
+
+    /**
+     * Renders the column definition.
+     */
+    abstract protected function render_column(SchemaColumn $column): string;
 }

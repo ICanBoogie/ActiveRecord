@@ -46,15 +46,8 @@ class ConnectionTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('+02:30', $this->connection->timezone);
     }
 
-    public function test_quote_identifier()
+    public function test_quote_identifier(): void
     {
         $this->assertSame("`identifier`", $this->connection->quote_identifier('identifier'));
-
-        $this->assertSame([
-
-            "`identifier1`",
-            "`identifier2`",
-
-        ], $this->connection->quote_identifier([ 'identifier1', 'identifier2' ]));
     }
 }

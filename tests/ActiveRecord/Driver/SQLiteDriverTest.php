@@ -1,14 +1,5 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ICanBoogie\ActiveRecord\Driver;
 
 use ICanBoogie\ActiveRecord\Connection;
@@ -18,7 +9,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
-final class MySQLDriverTest extends TestCase
+final class SQLiteDriverTest extends TestCase
 {
     private Connection|MockObject $connection;
 
@@ -34,17 +25,16 @@ final class MySQLDriverTest extends TestCase
      */
     public function test_create_table_and_indexes(): void
     {
-        //@TODO COLLATE
-
         $expected_table = <<<SQL
         CREATE TABLE `menus` (
-            `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `id` INTEGER NOT NULL,
             `uuid` CHAR(36) NOT NULL UNIQUE,
             `country` CHAR(2) NOT NULL,
             `week` CHAR(8) NOT NULL,
             `product` VARCHAR(255) NOT NULL,
             `name` VARCHAR(255) NOT NULL,
-            `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(`id`)
         )
         SQL;
 
@@ -67,7 +57,8 @@ final class MySQLDriverTest extends TestCase
             'created_at' => SchemaColumn::timestamp(default: SchemaColumn::CURRENT_TIMESTAMP),
         ]))
             ->index([ 'country', 'week', 'product' ], unique: true)
-            ->index('week', name: "my_week_index");
+            ->index('week', name: "my_week_index" )
+        ;
 
         $table_name = "menus";
 
@@ -75,8 +66,8 @@ final class MySQLDriverTest extends TestCase
         $this->makeDriver()->create_indexes($table_name, $schema);
     }
 
-    private function makeDriver(): MySQLDriver
+    private function makeDriver(): SQLiteDriver
     {
-        return new MySQLDriver(fn() => $this->connection);
+        return new SQLiteDriver(fn() => $this->connection);
     }
 }

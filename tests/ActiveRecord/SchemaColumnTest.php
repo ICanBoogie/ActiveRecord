@@ -11,88 +11,69 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class SchemaColumnTest extends \PHPUnit\Framework\TestCase
+use PHPUnit\Framework\TestCase;
+
+final class SchemaColumnTest extends TestCase
 {
     /**
      * @dataProvider provide_test_to_string
-     *
-     * @param $options
-     * @param string $expected
      */
-    public function test_to_string($options, $expected)
+    public function test_to_string(SchemaColumn $column, string $expected): void
     {
-        $this->assertEquals($expected, (string) new SchemaColumn($options));
+        $this->assertEquals($expected, (string) $column);
     }
 
-    public function provide_test_to_string()
+    /**
+     * @return array[]
+     */
+    public function provide_test_to_string(): array
     {
         return [
 
             [
-                [ 'varchar' ]
-                ,
-                "VARCHAR( 255 ) NOT NULL"
-            ],
-            [
-                [ 'type' => 'varchar' ]
-                ,
-                "VARCHAR( 255 ) NOT NULL"
-            ],
-            [
-                [ 'varchar', 32 ]
-                ,
-                "VARCHAR( 32 ) NOT NULL"
-            ],
-            [
-                [ 'type' => 'varchar', 'size' => 32 ]
-                ,
-                "VARCHAR( 32 ) NOT NULL"
-            ],
-            [
-                [ 'type' => 'varchar', 'size' => 32, 'charset' => 'ascii/general_ci' ]
-                ,
-                "VARCHAR( 32 ) CHARSET ascii COLLATE ascii_general_ci NOT NULL"
-            ],
-
-            [
-                [ 'integer', 'tiny' ]
-                ,
+                SchemaColumn::int(size: 'tiny'),
                 "TINYINT NOT NULL"
             ],
             [
-                [ 'integer', 'small' ]
-                ,
+                SchemaColumn::int(size: 'small'),
                 "SMALLINT NOT NULL"
             ],
             [
-                [ 'integer', 'big' ]
-                ,
+                SchemaColumn::int(size: 'big'),
                 "BIGINT NOT NULL"
             ],
             [
-                [ 'integer', 'big', 'null' => true, 'unsigned' => true ]
-                ,
+                SchemaColumn::int(size: 'big', unsigned: true, null: true),
                 "BIGINT UNSIGNED NULL"
             ],
-
             [
-                [ 'serial' ]
-                ,
-                "BIGINT UNSIGNED NOT NULL AUTO_INCREMENT"
+                SchemaColumn::varchar(),
+                "VARCHAR(255) NOT NULL"
             ],
-
             [
-                [ 'varchar', 'indexed' => true ]
-                ,
-                "VARCHAR( 255 ) NOT NULL"
+                SchemaColumn::varchar(size: 32),
+                "VARCHAR(32) NOT NULL"
             ],
-
             [
-                [ 'varchar', 'unique' => true ]
-                ,
-                "VARCHAR( 255 ) NOT NULL"
-            ]
-
+                SchemaColumn::varchar(unique: true, collate: 'ascii_general_ci'),
+                "VARCHAR(255) NOT NULL UNIQUE COLLATE ascii_general_ci"
+            ],
+            [
+                SchemaColumn::datetime(default: SchemaColumn::CURRENT_TIMESTAMP),
+                "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
+            ],
+            [
+                SchemaColumn::int('big'),
+                "BIGINT NOT NULL"
+            ],
+            [
+                SchemaColumn::serial(),
+                "BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE"
+            ],
+            [
+                SchemaColumn::serial(primary: true),
+                "BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY"
+            ],
         ];
     }
 }

@@ -11,7 +11,9 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class TableTest extends \PHPUnit\Framework\TestCase
+use PHPUnit\Framework\TestCase;
+
+final class TableTest extends TestCase
 {
     /**
      * @var Connection
@@ -23,10 +25,7 @@ class TableTest extends \PHPUnit\Framework\TestCase
      */
     private static $animals;
 
-    /**
-     * @var array
-     */
-    private static $animals_schema_options;
+    private static Schema $animals_schema;
 
     /**
      * @var Table
@@ -48,23 +47,19 @@ class TableTest extends \PHPUnit\Framework\TestCase
         self::$animals = new Table([
             Table::NAME => 'animals',
             Table::CONNECTION => self::$connection,
-            Table::SCHEMA => self::$animals_schema_options = [
-
-                'id' => 'serial',
-                'name' => 'varchar',
-                'date' => 'timestamp'
-
-            ]
+            Table::SCHEMA => self::$animals_schema = new Schema([
+                'id' => SchemaColumn::serial(primary: true),
+                'name' => SchemaColumn::varchar(),
+                'date' => SchemaColumn::timestamp(),
+            ])
         ]);
 
         self::$dogs = new Table([
             Table::EXTENDING => self::$animals,
             Table::NAME => 'dogs',
-            Table::SCHEMA => [
-
-                'bark_volume' => 'float'
-
-            ]
+            Table::SCHEMA => new Schema([
+                'bark_volume' => SchemaColumn::float(),
+            ])
         ]);
 
         self::$animals->install();
@@ -142,7 +137,7 @@ class TableTest extends \PHPUnit\Framework\TestCase
 
     public function test_get_schema_options()
     {
-        $this->assertEquals(self::$animals_schema_options, self::$animals->schema_options);
+        $this->assertEquals(self::$animals_schema, self::$animals->schema);
     }
 
     public function test_get_parent()
@@ -173,24 +168,19 @@ class TableTest extends \PHPUnit\Framework\TestCase
         $schema = self::$dogs->extended_schema;
 
         $this->assertInstanceOf(Schema::class, $schema);
-        $this->assertInstanceOf(SchemaColumn::class, $schema['id']);
-        $this->assertInstanceOf(SchemaColumn::class, $schema['name']);
-        $this->assertInstanceOf(SchemaColumn::class, $schema['bark_volume']);
     }
 
-    public function test_resolve_statement__multi_column_primary_key()
+    public function test_resolve_statement__multi_column_primary_key(): void
     {
         $table = new Table([
 
             Table::CONNECTION => self::$connection,
             Table::NAME => 'testing',
-            Table::SCHEMA => [
-
-                'p1' => [ 'integer', 'big', 'primary' => true ],
-                'p2' => [ 'integer', 'big', 'primary' => true ],
-                'f1' => 'varchar'
-
-            ]
+            Table::SCHEMA => new Schema([
+                'p1' => new SchemaColumn(type: 'int', size: 'big', primary: true),
+                'p2' => new SchemaColumn(type: 'int', size: 'big', primary: true),
+                'f1' => SchemaColumn::varchar(),
+            ])
         ]);
 
         $statement = 'SELECT FROM {self} WHERE {primary} = 1';

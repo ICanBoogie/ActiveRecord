@@ -21,6 +21,7 @@ use ICanBoogie\ActiveRecord\ModelTest\CustomQuery;
 use ICanBoogie\ActiveRecord\ModelTest\Driver;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
+use ICanBoogie\PropertyNotWritable;
 
 class ModelTest extends \PHPUnit\Framework\TestCase
 {
@@ -74,58 +75,44 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $models = new ModelCollection($connections, [
 
             'nodes' => [
-
-                Model::SCHEMA => [
-
-                    'nid' => 'serial',
-                    'title' => 'varchar'
-
-                ]
+                Model::SCHEMA => new Schema([
+                    'nid' => SchemaColumn::serial(primary: true),
+                    'title' => SchemaColumn::varchar(),
+                ]),
             ],
 
             'contents' => [
-
                 Model::EXTENDING => 'nodes',
-                Model::SCHEMA => [
-
-                    'body' => 'text',
-                    'date' => 'datetime'
-
-                ]
+                Model::SCHEMA => new Schema([
+                    'body' => new SchemaColumn('text'),
+                    'date' => new SchemaColumn('datetime'),
+                ])
             ],
 
             'articles' => [
-
                 Model::ACTIVERECORD_CLASS => Article::class,
                 Model::CLASSNAME => ArticleModel::class,
                 Model::HAS_MANY => 'comments',
                 Model::EXTENDING => 'contents'
-
             ],
 
             'comments' => [
-
                 Model::ACTIVERECORD_CLASS => Comment::class,
                 Model::BELONGS_TO => 'articles',
-                Model::SCHEMA => [
-
-                    'comment_id' => 'serial',
-                    'nid' => 'foreign',
-                    'body' => 'text'
-
-                ]
+                Model::SCHEMA => new Schema([
+                    'comment_id' => SchemaColumn::serial(primary: true),
+                    'nid' => SchemaColumn::foreign(),
+                    'body' => new SchemaColumn('text'),
+                ])
             ],
 
             'counts' => [
-
-                Model::SCHEMA => [
-
-                    'id' => 'serial',
-                    'name' => 'varchar',
-                    'date' => 'datetime'
-
-                ]
-            ]
+                Model::SCHEMA => new Schema([
+                    'id' => SchemaColumn::serial(primary: true),
+                    'name' => SchemaColumn::varchar(),
+                    'date' => new SchemaColumn('datetime'),
+                ])
+            ],
 
         ]);
 
@@ -151,13 +138,13 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->counts_records_count = count($names);
     }
 
-    public function test_call_undefined_method()
+    public function test_call_undefined_method(): void
     {
         $this->expectException(\ICanBoogie\Prototype\MethodNotDefined::class);
         $this->models['nodes']->undefined_method();
     }
 
-    public function test_should_instantiate_model()
+    public function test_should_instantiate_model(): void
     {
         /* @var $model Model */
         $models = $this->models;
@@ -170,24 +157,21 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('nodes', $model->unprefixed_name);
     }
 
-    public function test_get_parent()
+    public function test_get_parent(): void
     {
         $models = $this->models;
         $this->assertSame($models['nodes'], $models['contents']->parent);
         $this->assertSame($models['nodes'], $models['articles']->parent);
     }
 
-    public function test_get_parent_model()
+    public function test_get_parent_model(): void
     {
         $models = $this->models;
         $this->assertSame($models['nodes'], $models['contents']->parent_model);
         $this->assertSame($models['contents'], $models['articles']->parent_model);
     }
 
-    /**
-     * @requires PHP 5.6.0
-     */
-    public function test_should_default_id_from_name()
+    public function test_should_default_id_from_name(): void
     {
         $models = $this
             ->getMockBuilder(ModelCollection::class)
@@ -205,17 +189,15 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 
             Model::CONNECTION => $connection,
             Model::NAME => 'nodes',
-            Model::SCHEMA => [
-
-                'id' => 'serial'
-
-            ]
+            Model::SCHEMA => new Schema([
+                'id' => SchemaColumn::serial(primary: true),
+            ])
         ]);
 
         $this->assertEquals('nodes', $model->id);
     }
 
-    public function test_should_throw_not_found_when_record_does_not_exists()
+    public function test_should_throw_not_found_when_record_does_not_exists(): void
     {
         $id = rand();
 
@@ -227,7 +209,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function test_should_throw_not_found_when_one_record_does_not_exists()
+    public function test_should_throw_not_found_when_one_record_does_not_exists(): void
     {
         $id = rand();
         $model = $this->models['nodes'];
@@ -249,7 +231,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function test_should_throw_not_found_when_all_record_do_not_exists()
+    public function test_should_throw_not_found_when_all_record_do_not_exists(): void
     {
         $id1 = rand();
         $id2 = rand();
@@ -274,7 +256,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function test_find_one()
+    public function test_find_one(): void
     {
         $model = $this->models['articles'];
         $id = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
@@ -285,7 +267,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertSame($record, $model->find($id));
     }
 
-    public function test_find_many()
+    public function test_find_many(): void
     {
         $model = $this->models['articles'];
         $id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
@@ -308,7 +290,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertSame($records[$id3], $records2[$id3]);
     }
 
-    public function test_find_many_with_an_array()
+    public function test_find_many_with_an_array(): void
     {
         $model = $this->models['articles'];
         $id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
@@ -331,7 +313,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertSame($records[$id3], $records2[$id3]);
     }
 
-    public function test_offsets()
+    public function test_offsets(): void
     {
         $model = $this->models['nodes'];
         $this->assertFalse(isset($model[uniqid()]));
@@ -347,7 +329,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function test_new_record()
+    public function test_new_record(): void
     {
         $model = $this->models['articles'];
         $title = 'Title ' . uniqid();
@@ -360,16 +342,17 @@ class ModelTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @dataProvider provide_test_readonly_properties
-     *
-     * @param string $property Property name.
      */
-    public function test_readonly_properties($property)
+    public function test_readonly_properties(string $property): void
     {
-        $this->expectException(\ICanBoogie\PropertyNotWritable::class);
+        $this->expectException(PropertyNotWritable::class);
         $this->model->$property = null;
     }
 
-    public function provide_test_readonly_properties()
+    /**
+     * @return array[]
+     */
+    public function provide_test_readonly_properties(): array
     {
         $properties = 'id|activerecord_class|exists|count|all|one';
         return array_map(function ($v) {
@@ -377,17 +360,17 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         }, explode('|', $properties));
     }
 
-    public function test_get_exists()
+    public function test_get_exists(): void
     {
         $this->assertTrue($this->model->exists);
     }
 
-    public function test_get_count()
+    public function test_get_count(): void
     {
         $this->assertEquals($this->model_records_count, $this->model->count);
     }
 
-    public function test_get_all()
+    public function test_get_all(): void
     {
         $all = $this->model->all;
         $this->assertIsArray($all);
@@ -395,7 +378,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertContainsOnlyInstancesOf(ActiveRecord::class, $all);
     }
 
-    public function test_get_one()
+    public function test_get_one(): void
     {
         $one = $this->model->one;
         $this->assertInstanceOf(ActiveRecord::class, $one);
@@ -404,15 +387,17 @@ class ModelTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider provide_test_initiate_query
      *
-     * @param $method
-     * @param $args
+     * @param string[] $args
      */
-    public function test_initiate_query($method, $args)
+    public function test_initiate_query(string $method, array $args): void
     {
         $this->assertInstanceOf(Query::class, call_user_func_array([ $this->model, $method ], $args));
     }
 
-    public function provide_test_initiate_query()
+    /**
+     * @return array[]
+     */
+    public function provide_test_initiate_query(): array
     {
         return [
 
@@ -427,7 +412,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    public function testInvalidConnection()
+    public function testInvalidConnection(): void
     {
         $models = $this
             ->getMockBuilder(ModelCollection::class)
@@ -439,20 +424,17 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         /* @var ModelCollection $models */
 
         new Model($models, [
-
             Model::NAME => 'tests',
             Model::CONNECTION => 'invalid_connection',
-            Model::SCHEMA => [
-
-                'id' => 'serial',
-                'name' => 'varchar',
-                'date' => 'timestamp'
-
-            ]
+            Model::SCHEMA => new Schema([
+                'id' => SchemaColumn::serial(primary: true),
+                'name' => SchemaColumn::varchar(),
+                'date' => SchemaColumn::timestamp(),
+            ])
         ]);
     }
 
-    public function test_has_scope()
+    public function test_has_scope(): void
     {
         $model = $this->models['articles'];
 
@@ -460,7 +442,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($model->has_scope(uniqid()));
     }
 
-    public function test_scope_as_property()
+    public function test_scope_as_property(): void
     {
         $a = $this->model;
         $q = $a->ordered;
@@ -471,7 +453,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('Lady Gaga', $record->title);
     }
 
-    public function test_scope_as_method()
+    public function test_scope_as_method(): void
     {
         $a = $this->model;
         $q = $a->ordered(1);
@@ -482,13 +464,13 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('Madonna', $record->title);
     }
 
-    public function test_scope_not_defined()
+    public function test_scope_not_defined(): void
     {
         $this->expectException(\ICanBoogie\ActiveRecord\ScopeNotDefined::class);
         $this->model->scope('undefined' . uniqid());
     }
 
-    public function test_scope_not_defined_from_query()
+    public function test_scope_not_defined_from_query(): void
     {
         $this->expectException(\ICanBoogie\ActiveRecord\ScopeNotDefined::class);
         $this->model->ordered->undefined_scope();
@@ -501,7 +483,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
     /**
      * `exists()` must return `true` when a record or all the records of a subset exist.
      */
-    public function test_exists_true()
+    public function test_exists_true(): void
     {
         $m = $this->counts_model;
         $this->assertTrue($m->exists(1));
@@ -512,7 +494,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
     /**
      * `exists()` must return `false` when a record or all the records of a subset don't exist.
      */
-    public function test_exists_false()
+    public function test_exists_false(): void
     {
         $m = $this->counts_model;
         $u = rand(999, 9999);
@@ -525,7 +507,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
     /**
      * `exists()` must return an array when some records of a subset don't exist.
      */
-    public function test_exists_mixed()
+    public function test_exists_mixed(): void
     {
         $m = $this->counts_model;
         $u = rand(999, 9999);
@@ -535,49 +517,40 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($a, $m->exists([ 1, $u, 3 ]));
     }
 
-    public function test_exists_condition()
+    public function test_exists_condition(): void
     {
         $this->assertTrue($this->counts_model->filter_by_name('one')->exists);
         $this->assertFalse($this->counts_model->filter_by_name('one ' . uniqid())->exists);
     }
 
-    public function test_belongs_to()
+    public function test_belongs_to(): void
     {
         $models = new ModelCollection($this->connections, [
 
             'drivers' => [
-
                 Model::ACTIVERECORD_CLASS => Driver::class,
-                Model::SCHEMA => [
-
-                    'driver_id' => 'serial',
-                    'name' => 'varchar'
-
-                ]
+                Model::SCHEMA => new Schema([
+                    'driver_id' => SchemaColumn::serial(primary: true),
+                    'name' => SchemaColumn::varchar(),
+                ])
             ],
 
             'brands' => [
-
                 Model::ACTIVERECORD_CLASS => Brand::class,
-                Model::SCHEMA => [
-
-                    'brand_id' => 'serial',
-                    'name' => 'varchar'
-
-                ]
+                Model::SCHEMA => new Schema([
+                    'brand_id' => SchemaColumn::serial(primary: true),
+                    'name' => SchemaColumn::varchar(),
+                ])
             ],
 
             'cars' => [
-
                 Model::ACTIVERECORD_CLASS => Car::class,
-                Model::SCHEMA => [
-
-                    'car_id' => 'serial',
-                    'driver_id' => 'foreign',
-                    'brand_id' => 'foreign',
-                    'name' => 'varchar'
-
-                ]
+                Model::SCHEMA => new Schema([
+                    'car_id' => SchemaColumn::serial(primary: true),
+                    'driver_id' => SchemaColumn::foreign(),
+                    'brand_id' => SchemaColumn::foreign(),
+                    'name' => SchemaColumn::varchar()
+                ])
             ]
         ]);
 
@@ -630,7 +603,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($driver->driver_id, $car->driver_id);
     }
 
-    public function test_cache_should_be_revoked_on_save()
+    public function test_cache_should_be_revoked_on_save(): void
     {
         $name1 = uniqid();
         $name2 = uniqid();
@@ -646,19 +619,21 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertNotSame($record, $record_now);
     }
 
-
     /**
      * @dataProvider provide_test_querying
      *
      * @param callable $callback
      * @param string $expected
      */
-    public function test_querying($callback, $expected)
+    public function test_querying($callback, $expected): void
     {
         $this->assertSame($expected, (string) $callback($this->model));
     }
 
-    public function provide_test_querying()
+    /**
+     * @return array[]
+     */
+    public function provide_test_querying(): array
     {
         $p = $this->prefix;
         $l = Query::LIMIT_MAX;
@@ -753,15 +728,11 @@ EOT
         $model_id = 't' . uniqid();
 
         $models = new ModelCollection($this->connections, [
-
             $model_id => [
-
-                Model::SCHEMA => [
-
-                    'id' => 'serial',
-                    'name' => 'varchar'
-
-                ]
+                Model::SCHEMA => new Schema([
+                    'id' => SchemaColumn::serial(primary: true),
+                    'name' => SchemaColumn::varchar(),
+                ])
             ]
         ]);
 
@@ -802,17 +773,15 @@ EOT
         $model[1];
     }
 
-    public function test_custom_query()
+    public function test_custom_query(): void
     {
         $model = new Model($this->models, [
-
             Model::CONNECTION => $this->connections['primary'],
             Model::NAME => uniqid(),
-            Model::SCHEMA => [
-                'id' => 'serial',
-            ],
+            Model::SCHEMA => new Schema([
+                'id' => SchemaColumn::serial(primary: true),
+            ]),
             Model::QUERY_CLASS => CustomQuery::class,
-
         ]);
 
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));

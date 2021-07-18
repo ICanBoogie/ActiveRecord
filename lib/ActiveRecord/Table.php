@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Prototyped;
 
+use function array_merge;
 use function ICanBoogie\singularize;
 use function var_dump;
 
@@ -21,7 +22,6 @@ use function var_dump;
  *
  * @property-read Connection $connection Connection used by the table.
  * @property-read Schema $schema The schema of the table.
- * @property-read array $schema_options The options used to create the {@link Schema} instance.
  * @property-read Schema $extended_schema The extended schema of the table.
  * @property-read string $name Name of the table, which might include a prefix.
  * @property-read string $unprefixed_name Unprefixed name of the table.
@@ -126,26 +126,12 @@ class Table extends Prototyped
 
     /**
      * Schema for the table.
-     *
-     * @var Schema
      */
-    protected $schema;
+    protected Schema $schema;
 
     protected function get_schema(): Schema
     {
         return $this->schema;
-    }
-
-    /**
-     * Schema options provided using {@link SCHEMA} during construct.
-     *
-     * @var array
-     */
-    protected $schema_options;
-
-    protected function get_schema_options(): array
-    {
-        return $this->schema_options;
     }
 
     /**
@@ -220,25 +206,25 @@ class Table extends Prototyped
     protected function lazy_get_extended_schema(): Schema
     {
         $table = $this;
-        $options = [];
+        $columns = [];
 
         while ($table) {
-            $options[] = $table->schema_options;
+            $columns[] = $table->schema->columns;
 
             $table = $table->parent;
         }
 
-        $options = array_reverse($options);
-        $options = array_merge(...array_values($options));
+        $columns = array_reverse($columns);
+        $columns = array_merge(...array_values($columns));
 
-        return new Schema($options);
+        return new Schema($columns);
     }
 
     /**
      * Initializes the following properties: {@link $alias}, {@link $connection},
      * {@link implements}, {@link $unprefixed_name}, {@link $schema} and {@link $parent}.
      *
-     * @param array $attributes
+     * @param array<string, mixed> $attributes
      *
      * @throws \InvalidArgumentException if the {@link CONNECTION} attribute is empty.
      */
@@ -263,11 +249,7 @@ class Table extends Prototyped
         $this->assert_implements_is_valid();
 
         $this->name = $this->connection->table_name_prefix . $this->unprefixed_name;
-        $this->schema = new Schema($this->schema_options);
-
-        if ($this->schema->primary) {
-            $this->primary = $this->schema->primary;
-        }
+        $this->primary = $this->schema->primary;
     }
 
     /**
@@ -310,7 +292,9 @@ class Table extends Prototyped
                     $this->unprefixed_name = $value;
                     break;
                 case self::SCHEMA:
-                    $this->schema_options = $value;
+                    assert($value instanceof Schema);
+
+                    $this->schema = $value;
                     break;
                 case self::EXTENDING:
                     $this->parent = $value;
@@ -334,7 +318,7 @@ class Table extends Prototyped
      */
     private function assert_has_schema()
     {
-        if (empty($this->schema_options)) {
+        if (empty($this->schema)) {
             throw new \InvalidArgumentException("The `SCHEMA` attribute is empty.");
         }
     }
@@ -431,10 +415,11 @@ class Table extends Prototyped
         $primary = $parent->primary;
         $primary_definition = $parent->schema[$primary];
         $primary_definition->auto_increment = false;
-        $this->schema_options = [ $primary => $primary_definition ] + $this->schema_options;
+        $this->schema = clone $this->schema;
+        $this->schema[$primary] = $primary_definition;
 
         if ($parent->implements) {
-            $this->implements = \array_merge($parent->implements, $this->implements);
+            $this->implements = array_merge($parent->implements, $this->implements);
         }
     }
 
@@ -454,6 +439,7 @@ class Table extends Prototyped
     public function install(): void
     {
         $this->connection->create_table($this->unprefixed_name, $this->schema);
+        $this->connection->create_indexes($this->unprefixed_name, $this->schema);
     }
 
     /**
@@ -578,7 +564,7 @@ class Table extends Prototyped
         $schema = $extended ? $this->extended_schema : $this->schema;
         $driver = $this->connection->driver;
 
-        foreach ($schema->filter($values) as $identifier => $value) {
+        foreach ($schema->filter_values($values) as $identifier => $value) {
             $quoted_identifier = $driver->quote_identifier($identifier);
 
             $filtered[] = $driver->cast_value($value);
@@ -768,7 +754,7 @@ class Table extends Prototyped
 
                 $query .= ' ON DUPLICATE KEY UPDATE ' . \implode(', ', $update_holders);
 
-                $values = \array_merge($values, $update_values);
+                $values = array_merge($values, $update_values);
             }
         } else {
             if ($driver_name == 'sqlite') {

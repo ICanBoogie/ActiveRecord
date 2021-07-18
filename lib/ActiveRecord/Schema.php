@@ -11,24 +11,34 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ArrayAccess;
+use ArrayIterator;
 use ICanBoogie\Accessor\AccessorTrait;
-use ICanBoogie\OffsetNotDefined;
 use IteratorAggregate;
+use LogicException;
+
+use function array_intersect_key;
+use function array_keys;
+use function count;
+use function implode;
+use function is_string;
+use function reset;
 
 /**
  * Representation of a database table schema.
  *
- * @property-read SchemaColumn[] $columns The columns of the schema.
- * @property-read array $indexes The indexes of the schema.
+ * @property-read array<string, SchemaColumn> $columns The columns of the schema.
+ * @property-read SchemaIndex[] $indexes The indexes of the schema.
  * @property-read array $unique_indexes The unique indexes of the schema.
- * @property-read array|string|null $primary The primary key of the schema. A multi-dimensional
+ * @property-read string[]|string|null $primary The primary key of the schema. A multi-dimensional
  * primary key is returned as an array.
  *
+ * @implements ArrayAccess<string, SchemaColumn>
  * @implements IteratorAggregate<string, SchemaColumn>
  */
-class Schema implements \ArrayAccess, IteratorAggregate
+class Schema implements ArrayAccess, IteratorAggregate
 {
-    /*
+    /**
      * @uses get_columns
      * @uses get_primary
      * @uses get_indexes
@@ -39,7 +49,7 @@ class Schema implements \ArrayAccess, IteratorAggregate
     /**
      * @var array<string, SchemaColumn>
      */
-    private $columns = [];
+    private array $columns = [];
 
     /**
      * @return array<string, SchemaColumn>
@@ -49,7 +59,23 @@ class Schema implements \ArrayAccess, IteratorAggregate
         return $this->columns;
     }
 
-    private function get_primary()
+    /**
+     * @var SchemaIndex[]
+     */
+    private array $indexes = [];
+
+    /**
+     * @return SchemaIndex[]
+     */
+    private function get_indexes(): array
+    {
+        return $this->indexes;
+    }
+
+    /**
+     * @return string|string[]|null
+     */
+    private function get_primary(): string|array|null
     {
         $primary = [];
 
@@ -61,138 +87,123 @@ class Schema implements \ArrayAccess, IteratorAggregate
             $primary[] = $column_id;
         }
 
-        switch (\count($primary)) {
-            case 0:
-                return null;
-            case 1:
-                return \reset($primary);
-            default:
-                return $primary;
-        }
-    }
-
-    private function get_indexes(): array
-    {
-        return $this->collect_indexes_by_type('indexed');
-    }
-
-    private function get_unique_indexes(): array
-    {
-        return $this->collect_indexes_by_type('unique');
+        return match (count($primary)) {
+            0 => null,
+            1 => reset($primary),
+            default => $primary,
+        };
     }
 
     /**
-     * @param array<string, array> $options
+     * @param array<string, SchemaColumn> $columns
      */
-    public function __construct(array $options)
+    public function __construct(array $columns = [])
     {
-        foreach ($options as $column_id => $column_options) {
-            $this[$column_id] = $column_options;
+        foreach ($columns as $column_id => $column) {
+            $this[$column_id] = $column;
         }
+    }
+
+    private function set_column(string $column_id, SchemaColumn $column): void
+    {
+        $this->columns[$column_id] = $column;
+    }
+
+    /**
+     * @var array<int, string[]>
+     */
+    private array $unique_indexes = [];
+
+    /**
+     * Create an index on one of multiple columns.
+     *
+     * @param array<string> $columns Identifiers of the columns making the unique index.
+     *
+     * @return $this
+     */
+    public function index(
+        array|string $columns,
+        bool $unique = false,
+        ?string $name = null
+    ): self {
+        if (is_string($columns)) {
+            $columns = [ $columns ];
+        }
+
+        foreach ($columns as $column_id) {
+            if (!isset($this->columns[$column_id])) {
+                $defined = implode(', ', array_keys($this->columns));
+
+                throw new LogicException(
+                    "Unable to create UNIQUE constraint, column '$column_id' is not defined."
+                    . " Defined columns are: $defined."
+                );
+            }
+        }
+
+        $this->indexes[] = new SchemaIndex($columns, unique: $unique, name: $name);
+
+        return $this;
     }
 
     /**
      * Checks if a column exists.
      *
-     * @param string $column_id Column identifier.
-     *
-     * @return bool
+     * @param string $offset A column identifier.
      */
-    public function offsetExists($column_id)
+    public function offsetExists($offset): bool
     {
-        return isset($this->columns[$column_id]);
+        return isset($this->columns[$offset]);
     }
 
     /**
      * Returns a column.
      *
-     * @param string $column_id
-     *
-     * @return SchemaColumn
-     *
-     * @throws OffsetNotDefined if the column is not defined.
+     * @param string $offset A column identifier.
      */
-    public function offsetGet($column_id)
+    public function offsetGet($offset): SchemaColumn
     {
-        if (!$this->offsetExists($column_id)) {
-            throw new OffsetNotDefined([ $column_id, $this ]);
-        }
-
-        return $this->columns[$column_id];
+        return $this->columns[$offset];
     }
 
     /**
      * Adds a column to the schema.
      *
-     * @param string $column_id
-     * @param string|array|SchemaColumn $column_options
+     * @param string $offset A column identifier.
+     * @param SchemaColumn $value
      */
-    public function offsetSet($column_id, $column_options)
+    public function offsetSet($offset, $value): void
     {
-        if (\is_string($column_options)) {
-            $column_options = [ $column_options ];
-        }
-
-        if (!$column_options instanceof SchemaColumn) {
-            $column_options = new SchemaColumn($column_options);
-        }
-
-        $this->columns[$column_id] = $column_options;
+        $this->set_column($offset, $value);
     }
 
     /**
      * Removes a column from the schema.
      *
-     * @param string $column_id
+     * @param string $offset A column identifier.
      */
-    public function offsetUnset($column_id)
+    public function offsetUnset($offset): void
     {
-        unset($this->columns[$column_id]);
+        unset($this->columns[$offset]);
     }
 
     /**
-     * Returns columns iterator.
-     *
-     * @return \ArrayIterator
+     * @return iterable<string, SchemaColumn>
      */
-    public function getIterator()
+    public function getIterator(): iterable
     {
-        return new \ArrayIterator($this->columns);
+        return new ArrayIterator($this->columns);
     }
 
     /**
-     * Collect index name by type.
+     * Discards key/value pairs where _key_ is not a column identifier.
      *
-     * @param string $type One of [ "indexed, "unique" ].
+     * @param array<string, mixed> $values
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    private function collect_indexes_by_type(string $type): array
+    public function filter_values(array $values): array
     {
-        $indexes = [];
-
-        foreach ($this->columns as $column_id => $column) {
-            $name = $column->$type;
-
-            if (!$name) {
-                continue;
-            }
-
-            $indexes[$name === true ? $column_id : $name][] = $column_id;
-        }
-
-        return $indexes;
-    }
-
-    /**
-     * Filters values according to the schema columns.
-     *
-     * @param array $values
-     *
-     * @return array
-     */
-    public function filter(array $values): array
-    {
-        return \array_intersect_key($values, $this->columns);
+        return array_intersect_key($values, $this->columns);
     }
 }

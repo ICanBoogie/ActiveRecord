@@ -15,6 +15,7 @@ use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelProvider;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaColumn;
 use ICanBoogie\ActiveRecordTest\Sample;
 use ICanBoogie\ActiveRecordTest\ValidateCase;
 use InvalidArgumentException;
@@ -145,12 +146,12 @@ class ActiveRecordTest extends TestCase
             ->method('get_extended_schema')
             ->willReturn(new Schema([
 
-                $primary => 'serial',
-                'reversed' => 'varchar',
-                'date' => 'datetime',
-                'do_not_allow_null' => [ 'varchar' ],
-                'allow_null' => [ 'varchar', 'null' => true ],
-                'allow_null_with_value' => [ 'varchar', 'null' => true ],
+                $primary => SchemaColumn::serial(primary: true),
+                'reversed' => SchemaColumn::varchar(),
+                'date' => SchemaColumn::datetime(),
+                'do_not_allow_null' => SchemaColumn::varchar(),
+                'allow_null' => SchemaColumn::varchar(null: true),
+                'allow_null_with_value' => SchemaColumn::varchar(null: true),
 
             ]));
         $model
