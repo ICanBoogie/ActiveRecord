@@ -230,6 +230,8 @@ class Table extends Prototyped
      */
     public function __construct(array $attributes)
     {
+        UnsetAttribute::ThrowIf($attributes, self::CONNECTION);
+
         unset($this->update_join);
         unset($this->select_join);
 

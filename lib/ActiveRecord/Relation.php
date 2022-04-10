@@ -141,7 +141,7 @@ abstract class Relation
     {
         $activerecord_class = $model->activerecord_class;
 
-        if (!$activerecord_class || $activerecord_class === ActiveRecord::class) {
+        if ($activerecord_class === ActiveRecord::class) {
             throw new ActiveRecordClassNotValid(
                 $activerecord_class,
                 "The Active Record class cannot be 'ICanBoogie\ActiveRecord' for a relationship."

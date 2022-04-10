@@ -11,26 +11,16 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\PropertyNotWritable;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class TableTest extends TestCase
 {
-    /**
-     * @var Connection
-     */
-    private static $connection;
-
-    /**
-     * @var Table
-     */
-    private static $animals;
-
+    private static Connection $connection;
+    private static Table $animals;
     private static Schema $animals_schema;
-
-    /**
-     * @var Table
-     */
-    private static $dogs;
+    private static Table $dogs;
 
     public static function setUpBeforeClass(): void
     {
@@ -55,6 +45,7 @@ final class TableTest extends TestCase
         ]);
 
         self::$dogs = new Table([
+            Table::CONNECTION => self::$connection,
             Table::EXTENDING => self::$animals,
             Table::NAME => 'dogs',
             Table::SCHEMA => new Schema([
@@ -66,9 +57,9 @@ final class TableTest extends TestCase
         self::$dogs->install();
     }
 
-    public function test_invalid_table_name()
+    public function test_invalid_table_name(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         new Table([
 
             Table::NAME => 'invalid-name',
@@ -84,13 +75,16 @@ final class TableTest extends TestCase
     /**
      * @dataProvider provide_test_readonly_properties
      */
-    public function test_readonly_properties(string $property)
+    public function test_readonly_properties(string $property): void
     {
-        $this->expectException(\ICanBoogie\PropertyNotWritable::class);
+        $this->expectException(PropertyNotWritable::class);
         self::$animals->$property = null;
     }
 
-    public function provide_test_readonly_properties()
+    /**
+     * @return array<int, mixed>
+     */
+    public function provide_test_readonly_properties(): array
     {
         $properties = 'connection name unprefixed_name primary alias parent schema';
 
@@ -99,53 +93,53 @@ final class TableTest extends TestCase
         }, explode(' ', $properties));
     }
 
-    public function test_get_connection()
+    public function test_get_connection(): void
     {
         $this->assertEquals(self::$connection, self::$animals->connection);
     }
 
-    public function test_get_name()
+    public function test_get_name(): void
     {
         $this->assertEquals('prefix_animals', self::$animals->name);
     }
 
-    public function test_get_unprefixed_name()
+    public function test_get_unprefixed_name(): void
     {
         $this->assertEquals('animals', self::$animals->unprefixed_name);
     }
 
-    public function test_get_primary()
+    public function test_get_primary(): void
     {
         $this->assertEquals('id', self::$animals->primary);
     }
 
-    public function test_get_inherited_primary()
+    public function test_get_inherited_primary(): void
     {
         $this->assertEquals('id', self::$dogs->primary);
     }
 
-    public function test_get_alias()
+    public function test_get_alias(): void
     {
         $this->assertEquals('animal', self::$animals->alias);
         $this->assertEquals('dog', self::$dogs->alias);
     }
 
-    public function test_get_schema()
+    public function test_get_schema(): void
     {
         $this->assertInstanceOf(Schema::class, self::$animals->schema);
     }
 
-    public function test_get_schema_options()
+    public function test_get_schema_options(): void
     {
         $this->assertEquals(self::$animals_schema, self::$animals->schema);
     }
 
-    public function test_get_parent()
+    public function test_get_parent(): void
     {
         $this->assertEquals(self::$animals, self::$dogs->parent);
     }
 
-    public function test_get_update_join()
+    public function test_get_update_join(): void
     {
         $table = self::$dogs;
         $method = new \ReflectionMethod(Table::class, 'lazy_get_update_join');
@@ -154,7 +148,7 @@ final class TableTest extends TestCase
         $this->assertSame(" INNER JOIN `prefix_animals` `animal` USING(`id`)", $method->invoke($table));
     }
 
-    public function test_get_select_join()
+    public function test_get_select_join(): void
     {
         $table = self::$dogs;
         $method = new \ReflectionMethod(Table::class, 'lazy_get_select_join');
@@ -163,7 +157,7 @@ final class TableTest extends TestCase
         $this->assertSame("`dog` INNER JOIN `prefix_animals` `animal` USING(`id`)", $method->invoke($table));
     }
 
-    public function test_extended_schema()
+    public function test_extended_schema(): void
     {
         $schema = self::$dogs->extended_schema;
 

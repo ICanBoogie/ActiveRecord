@@ -11,9 +11,11 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class RelationNotDefinedTest extends \PHPUnit\Framework\TestCase
+use PHPUnit\Framework\TestCase;
+
+class RelationNotDefinedTest extends TestCase
 {
-    public function test_exception()
+    public function test_exception(): void
     {
         $relation_name = uniqid();
         $collection = $this

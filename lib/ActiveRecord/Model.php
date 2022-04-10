@@ -16,6 +16,8 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\Prototype\MethodNotDefined;
 
+use function get_class;
+
 /**
  * Base class for activerecord models.
  *
@@ -75,12 +77,12 @@ class Model extends Table implements ArrayAccess
      *
      * @var class-string
      */
-    private $activerecord_class;
+    private string $activerecord_class;
 
     /**
      * @return class-string
      */
-    protected function get_activerecord_class()
+    protected function get_activerecord_class(): string
     {
         return $this->activerecord_class;
     }
@@ -88,14 +90,14 @@ class Model extends Table implements ArrayAccess
     /**
      * @var string
      */
-    private $query_class;
+    private string $query_class;
 
     /**
      * Attributes of the model.
      *
      * @var array[string]mixed
      */
-    private $attributes;
+    private array $attributes;
 
     /**
      * Returns the identifier of the model.
@@ -110,27 +112,18 @@ class Model extends Table implements ArrayAccess
      *
      * The parent model and the {@link parent} may be different if the model does not have a
      * schema but inherits it from its parent.
-     *
-     * @var Model
      */
-    private $parent_model;
+    private ?Model $parent_model;
 
-    /**
-     * Return the parent mode.
-     *
-     * @return Model
-     */
-    protected function get_parent_model()
+    protected function get_parent_model(): ?Model
     {
         return $this->parent_model;
     }
 
     /**
      * The relations of this model to other models.
-     *
-     * @var RelationCollection
      */
-    private $relations;
+    private RelationCollection $relations;
 
     protected function get_relations(): RelationCollection
     {
@@ -141,10 +134,8 @@ class Model extends Table implements ArrayAccess
      * Returns the records cache.
      *
      * **Note:** The method needs to be implemented through prototype bindings.
-     *
-     * @return ActiveRecordCache
      */
-    protected function lazy_get_activerecord_cache()
+    protected function lazy_get_activerecord_cache(): ActiveRecordCache
     {
         return parent::lazy_get_activerecord_cache();
     }
@@ -162,7 +153,7 @@ class Model extends Table implements ArrayAccess
      * {@link $activerecord_class} property.
      *
      * @param ModelCollection $models
-     * @param array $attributes Attributes used to construct the model.
+     * @param array<string, mixed> $attributes Attributes used to construct the model.
      */
     public function __construct(ModelCollection $models, array $attributes)
     {
@@ -178,34 +169,39 @@ class Model extends Table implements ArrayAccess
         $this->resolve_relations();
     }
 
-    // @codeCoverageIgnoreStart
-    public function __debugInfo()
-    {
-        return [
-
-            'id' => $this->id,
-            'name' => "$this->name ($this->unprefixed_name)",
-            'parent' => $this->parent ? $this->parent->id . " of " . \get_class($this->parent) : null,
-            'parent_model' => $this->parent_model
-                ? $this->parent_model->id . " of " . \get_class($this->parent_model)
-                : null,
-            'relations' => $this->relations
-
-        ];
-    }
-    // @codeCoverageIgnoreEnd
+//    // @codeCoverageIgnoreStart
+//    /**
+//     * @return array<string, mixed>
+//     */
+//    public function __debugInfo(): array
+//    {
+//        return [
+//
+//            'id' => $this->id,
+//            'name' => "$this->name ($this->unprefixed_name)",
+//            'parent' => $this->parent ? $this->parent->id . " of " . get_class($this->parent) : null,
+//            'parent_model' => $this->parent_model
+//                ? $this->parent_model->id . " of " . get_class($this->parent_model)
+//                : null,
+//            'relations' => $this->relations
+//
+//        ];
+//    }
+//    // @codeCoverageIgnoreEnd
 
     /**
      * Resolves constructor attributes.
      *
      * The method may initialize the {@link $parent_model} property.
      *
-     * @param array $attributes
+     * @param array<string, mixed> $attributes
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    private function resolve_attributes(array $attributes)
+    private function resolve_attributes(array $attributes): array
     {
+        UnsetAttribute::ThrowIf($attributes, self::NAME);
+
         $attributes += [
 
             self::ACTIVERECORD_CLASS => null,
@@ -217,9 +213,7 @@ class Model extends Table implements ArrayAccess
 
         ];
 
-        if (!$attributes[self::ID]) {
-            $attributes[self::ID] = $attributes[self::NAME];
-        }
+        $attributes[self::ID] ??= $attributes[self::NAME];
 
         $this->parent_model = $extends = $attributes[self::EXTENDING];
 
@@ -236,6 +230,9 @@ class Model extends Table implements ArrayAccess
         return $attributes;
     }
 
+    /**
+     * @return class-string
+     */
     private function resolve_activerecord_class(): string
     {
         $activerecord_class = $this->attributes[self::ACTIVERECORD_CLASS];

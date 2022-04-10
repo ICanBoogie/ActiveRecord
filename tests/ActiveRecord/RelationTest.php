@@ -12,10 +12,12 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
-class RelationTest extends \PHPUnit\Framework\TestCase
+final class RelationTest extends TestCase
 {
-    private $model;
+    private MockObject|Model $model;
 
     protected function setUp(): void
     {
@@ -27,7 +29,7 @@ class RelationTest extends \PHPUnit\Framework\TestCase
         $model = $this
             ->getMockBuilder(Model::class)
             ->disableOriginalConstructor()
-            ->setMethods([ 'get_activerecord_class', 'get_models' ])
+            ->onlyMethods([ 'get_activerecord_class', 'get_models' ])
             ->getMock();
         $model
             ->expects($this->any())
@@ -42,7 +44,7 @@ class RelationTest extends \PHPUnit\Framework\TestCase
         $models = $this
             ->getMockBuilder(ModelCollection::class)
             ->disableOriginalConstructor()
-            ->setMethods([ 'offsetGet' ])
+            ->onlyMethods([ 'offsetGet' ])
             ->getMock();
 
         $models
@@ -58,23 +60,38 @@ class RelationTest extends \PHPUnit\Framework\TestCase
         $this->model = $model;
     }
 
-    public function test_should_throw_exception_when_default_activerecord_class()
+    public function test_should_throw_exception_when_default_activerecord_class(): void
     {
-        $this->expectException(\ICanBoogie\ActiveRecord\ActiveRecordClassNotValid::class);
-        $model = $this
-            ->getMockBuilder(Model::class)
+        $models = $this
+            ->getMockBuilder(ModelCollection::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
 
-        $related = 'comments';
+        $connection = $this
+            ->getMockBuilder(Connection::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
-        $this
-            ->getMockBuilder(Relation::class)
-            ->setConstructorArgs([ $model, $related ])
-            ->getMockForAbstractClass();
+        $articles = new Model($models, [
+            Model::CONNECTION => $connection,
+            Model::NAME => 'testing',
+            Model::SCHEMA => new Schema([
+                'id'=> SchemaColumn::serial()
+            ])
+        ]);
+
+        $this->expectException(ActiveRecordClassNotValid::class);
+
+        new class($articles, 'comments', []) extends Relation
+        {
+            public function __invoke(ActiveRecord $record): mixed
+            {
+                return null;
+            }
+        };
     }
 
-    public function test_get_parent()
+    public function test_get_parent(): void
     {
         $related = 'comments';
 

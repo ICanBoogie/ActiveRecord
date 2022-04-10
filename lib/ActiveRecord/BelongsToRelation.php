@@ -22,10 +22,9 @@ use function ICanBoogie\singularize;
 class BelongsToRelation extends Relation
 {
     /**
-     * @param Model|string $related
      * @param array<string, mixed> $options
      */
-    public function __construct(Model $parent, $related, array $options = [])
+    public function __construct(Model $parent, Model|string $related, array $options = [])
     {
         if (empty($options['local_key']) || empty($options['foreign_key'])) {
             if (!$related instanceof Model) {
