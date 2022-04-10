@@ -12,7 +12,6 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
-
 use LogicException;
 
 use function array_filter;
@@ -37,7 +36,7 @@ use function strtoupper;
 class SchemaColumn
 {
     /**
-     * @uses is_serial
+     * @uses get_is_serial
      * @uses get_formatted_type_attributes
      * @uses get_formatted_auto_increment
      * @uses get_formatted_collate
@@ -59,8 +58,10 @@ class SchemaColumn
     public const TYPE_TEXT = 'TEXT';
     public const TYPE_VARCHAR = 'VARCHAR';
 
-    public const SIZE_BIG = 'BIG';
+    public const SIZE_TINY = 'TINY';
     public const SIZE_SMALL = 'SMALL';
+    public const SIZE_MEDIUM = 'MEDIUM';
+    public const SIZE_BIG = 'BIG';
 
     public const NOW = 'NOW';
     public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
@@ -69,8 +70,20 @@ class SchemaColumn
      * https://dev.mysql.com/doc/refman/8.0/en/numeric-types.html
      */
 
+    public static function boolean(
+        bool $null = false,
+        bool $unique = false,
+    ): self {
+        return new self(
+            type: self::TYPE_INT,
+            size: 1,
+            null: $null,
+            unique: $unique,
+        );
+    }
+
     public static function int(
-        ?string $size = null,
+        int|string|null $size = null,
         bool $unsigned = false,
         bool $null = false,
         bool $unique = false,
@@ -207,6 +220,56 @@ class SchemaColumn
         );
     }
 
+    public static function blob(
+        string|null $size = null,
+        bool $null = false,
+        bool $unique = false,
+        bool $primary = false,
+        ?string $comment = null,
+        ?string $collate = null,
+    ): self {
+        $size = match ($size) {
+            self::SIZE_SMALL => null,
+            self::SIZE_BIG => 'LONG',
+            default => $size,
+        };
+
+        return new self(
+            type: self::TYPE_BLOB,
+            size: $size,
+            null: $null,
+            unique: $unique,
+            primary: $primary,
+            comment: $comment,
+            collate: $collate,
+        );
+    }
+
+    public static function text(
+        string|null $size = null,
+        bool $null = false,
+        bool $unique = false,
+        bool $primary = false,
+        ?string $comment = null,
+        ?string $collate = null,
+    ): self {
+        $size = match ($size) {
+            self::SIZE_SMALL => null,
+            self::SIZE_BIG => 'LONG',
+            default => $size,
+        };
+
+        return new self(
+            type: self::TYPE_TEXT,
+            size: $size,
+            null: $null,
+            unique: $unique,
+            primary: $primary,
+            comment: $comment,
+            collate: $collate,
+        );
+    }
+
     public function __construct(
         public string $type,
         public string|int|null $size = null,
@@ -231,6 +294,17 @@ class SchemaColumn
         $size = $this->size;
 
         if (is_numeric($size)) {
+            if ($type === self::TYPE_INT) {
+                return match ($size) {
+                    1 => self::SIZE_TINY . self::TYPE_INT,
+                    2 => self::SIZE_SMALL . self::TYPE_INT,
+                    3 => self::SIZE_MEDIUM . self::TYPE_INT,
+                    4 => self::TYPE_INT,
+                    8 => self::SIZE_BIG . self::TYPE_INT,
+                    default => "$type($size)",
+                };
+            }
+
             return "$type($size)";
         }
 

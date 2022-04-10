@@ -30,22 +30,54 @@ final class SchemaColumnTest extends TestCase
     {
         return [
 
+            /* BOOLEAN */
+
             [
-                SchemaColumn::int(size: 'tiny'),
+                SchemaColumn::boolean(),
+                "TINYINT NOT NULL"
+            ],
+
+            /* INT */
+
+            [
+                SchemaColumn::int(size: 1),
                 "TINYINT NOT NULL"
             ],
             [
-                SchemaColumn::int(size: 'small'),
+                SchemaColumn::int(size: 2),
                 "SMALLINT NOT NULL"
             ],
             [
-                SchemaColumn::int(size: 'big'),
+                SchemaColumn::int(size: 3),
+                "MEDIUMINT NOT NULL"
+            ],
+            [
+                SchemaColumn::int(size: 4),
+                "INT NOT NULL"
+            ],
+            [
+                SchemaColumn::int(size: 6),
+                "INT(6) NOT NULL"
+            ],
+            [
+                SchemaColumn::int(size: 8),
                 "BIGINT NOT NULL"
             ],
             [
-                SchemaColumn::int(size: 'big', unsigned: true, null: true),
+                SchemaColumn::int(size: SchemaColumn::SIZE_SMALL),
+                "SMALLINT NOT NULL"
+            ],
+            [
+                SchemaColumn::int(size: SchemaColumn::SIZE_BIG),
+                "BIGINT NOT NULL"
+            ],
+            [
+                SchemaColumn::int(size: SchemaColumn::SIZE_BIG, unsigned: true, null: true),
                 "BIGINT UNSIGNED NULL"
             ],
+
+            /* VARCHAR */
+
             [
                 SchemaColumn::varchar(),
                 "VARCHAR(255) NOT NULL"
@@ -58,14 +90,54 @@ final class SchemaColumnTest extends TestCase
                 SchemaColumn::varchar(unique: true, collate: 'ascii_general_ci'),
                 "VARCHAR(255) NOT NULL UNIQUE COLLATE ascii_general_ci"
             ],
+
+            /* BLOB */
+
+            [
+                SchemaColumn::blob(size: SchemaColumn::SIZE_TINY),
+                "TINYBLOB NOT NULL"
+            ],
+            [
+                SchemaColumn::blob(size: SchemaColumn::SIZE_SMALL),
+                "BLOB NOT NULL"
+            ],
+            [
+                SchemaColumn::blob(size: SchemaColumn::SIZE_MEDIUM),
+                "MEDIUMBLOB NOT NULL"
+            ],
+            [
+                SchemaColumn::blob(size: SchemaColumn::SIZE_BIG),
+                "LONGBLOB NOT NULL"
+            ],
+
+            /* TEXT */
+
+            [
+                SchemaColumn::text(size: SchemaColumn::SIZE_TINY),
+                "TINYTEXT NOT NULL"
+            ],
+            [
+                SchemaColumn::text(size: SchemaColumn::SIZE_SMALL),
+                "TEXT NOT NULL"
+            ],
+            [
+                SchemaColumn::text(size: SchemaColumn::SIZE_MEDIUM),
+                "MEDIUMTEXT NOT NULL"
+            ],
+            [
+                SchemaColumn::text(size: SchemaColumn::SIZE_BIG),
+                "LONGTEXT NOT NULL"
+            ],
+
+            /* DATETIME */
+
             [
                 SchemaColumn::datetime(default: SchemaColumn::CURRENT_TIMESTAMP),
                 "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
             ],
-            [
-                SchemaColumn::int('big'),
-                "BIGINT NOT NULL"
-            ],
+
+            /* Custom: serial */
+
             [
                 SchemaColumn::serial(),
                 "BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE"
