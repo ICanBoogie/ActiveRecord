@@ -27,11 +27,11 @@
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"require": {
-		"php": ">=8.0",
+		"php": ">=8.1",
 		"ext-pdo": "*",
 		"icanboogie/datetime": "^1.2",
 		"icanboogie/inflector": "^2.0",
-		"icanboogie/prototype": "^5.0",
+		"icanboogie/prototype": "^6.0",
 		"icanboogie/validate": "^0.2"
 	},
 	"require-dev": {

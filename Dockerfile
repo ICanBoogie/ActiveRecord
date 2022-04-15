@@ -1,4 +1,4 @@
-FROM php:8.0-cli-buster
+FROM php:8.1-cli-buster
 
 RUN apt-get update && \
 	apt-get install -y autoconf pkg-config && \
@@ -29,5 +29,5 @@ RUN apt-get update && \
 #
 # Package specifics stages
 #
-RUN docker-php-ext-install pdo_mysql
 RUN composer global require squizlabs/php_codesniffer
+RUN docker-php-ext-install pdo_mysql
