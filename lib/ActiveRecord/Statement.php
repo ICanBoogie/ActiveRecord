@@ -23,8 +23,6 @@ use function microtime;
 /**
  * A database statement.
  *
- * @property-read Connection $connection Connection associated with the statement.
- * @property-read PDOStatement $pdo_statement The decorated PDO statement.
  * @property-read array $all An array with the matching records.
  * @property-read array $pairs An array of key/value pairs, where _key_ is the value of the first
  * column and _value_ the value of the second column.
@@ -34,8 +32,6 @@ use function microtime;
 final class Statement
 {
     /**
-     * @uses get_connection
-     * @uses get_pdo_statement
      * @uses get_once
      * @uses get_all
      * @uses get_rc
@@ -44,25 +40,12 @@ final class Statement
     use AccessorTrait;
 
     /**
-     * @param PDOStatement<mixed> $statement
+     * @param PDOStatement<mixed> $pdo_statement
      */
     public function __construct(
-        private PDOStatement $statement,
-        private Connection $connection
+        public readonly PDOStatement $pdo_statement,
+        public readonly Connection $connection
     ) {
-    }
-
-    private function get_connection(): Connection
-    {
-        return $this->connection;
-    }
-
-    /**
-     * @return PDOStatement<mixed>
-     */
-    private function get_pdo_statement(): PDOStatement
-    {
-        return $this->statement;
     }
 
     /**
@@ -93,7 +76,7 @@ final class Statement
      */
     public function __toString()
     {
-        return $this->statement->queryString;
+        return $this->pdo_statement->queryString;
     }
 
     /**
@@ -101,7 +84,7 @@ final class Statement
      *
      * The connection queries count is incremented.
      *
-     * @param array<mixed>|null $params
+     * @param mixed[]|null $params
      *
      * @throws StatementNotValid when the execution of the statement fails.
      */
@@ -115,10 +98,10 @@ final class Statement
             $this->connection->profiling[] = [
                 $start,
                 microtime(true),
-                $this->statement->queryString . ' ' . json_encode($params),
+                $this->pdo_statement->queryString . ' ' . json_encode($params),
             ];
 
-            return $this->statement->execute($params);
+            return $this->pdo_statement->execute($params);
         } catch (PDOException $e) {
             throw new StatementNotValid([ $this, $params ], 500, $e);
         }
@@ -133,7 +116,7 @@ final class Statement
      */
     public function mode(int $mode, string|object|null $className = null, ...$params): Statement
     {
-        if (!$this->statement->setFetchMode($mode, $className, $params)) {
+        if (!$this->pdo_statement->setFetchMode($mode, $className, $params)) {
             throw new UnableToSetFetchMode($mode);
         }
 
@@ -150,9 +133,9 @@ final class Statement
         int $cursor_orientation = PDO::FETCH_ORI_NEXT,
         int $cursor_offset = 0
     ): mixed {
-        $rc = $this->statement->fetch(...func_get_args());
+        $rc = $this->pdo_statement->fetch(...func_get_args());
 
-        $this->statement->closeCursor();
+        $this->pdo_statement->closeCursor();
 
         return $rc;
     }
@@ -174,9 +157,9 @@ final class Statement
      */
     protected function get_rc(): mixed
     {
-        $rc = $this->statement->fetchColumn();
+        $rc = $this->pdo_statement->fetchColumn();
 
-        $this->statement->closeCursor();
+        $this->pdo_statement->closeCursor();
 
         return $rc;
     }
@@ -190,7 +173,7 @@ final class Statement
      */
     public function all(...$mode): array
     {
-        return $this->statement->fetchAll(...$mode);
+        return $this->pdo_statement->fetchAll(...$mode);
     }
 
     /**
@@ -198,7 +181,7 @@ final class Statement
      */
     protected function get_all(): array
     {
-        return $this->statement->fetchAll();
+        return $this->pdo_statement->fetchAll();
     }
 
     /**
@@ -209,6 +192,6 @@ final class Statement
      */
     protected function get_pairs(): array
     {
-        return $this->statement->fetchAll(PDO::FETCH_KEY_PAIR);
+        return $this->pdo_statement->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 }

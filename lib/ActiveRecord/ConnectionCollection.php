@@ -16,6 +16,7 @@ use ArrayIterator;
 use ICanBoogie\Accessor\AccessorTrait;
 use IteratorAggregate;
 use PDOException;
+use Traversable;
 
 /**
  * Connection collection.
@@ -36,10 +37,13 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
     /**
      * Connections definitions.
      *
-     * @var array
+     * @var array<string, array>
      */
     private array $definitions;
 
+    /**
+     * @return array<string, array>
+     */
     private function get_definitions(): array
     {
         return $this->definitions;
@@ -50,8 +54,11 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
      *
      * @var Connection[]
      */
-    private $established = [];
+    private array $established = [];
 
+    /**
+     * @return Connection[]
+     */
     private function get_established(): array
     {
         return $this->established;
@@ -60,7 +67,7 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
     /**
      * Initializes the {@link $definitions} property.
      *
-     * @param array $definitions Connection definitions.
+     * @param array<string, array> $definitions Connection definitions.
      */
     public function __construct(array $definitions)
     {
@@ -72,56 +79,56 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
     /**
      * Checks if a connection definition exists.
      *
-     * @param string $id Connection identifier.
+     * @param string $offset Connection identifier.
      *
      * @return bool
      */
-    public function offsetExists($id)
+    public function offsetExists(mixed $offset): bool
     {
-        return isset($this->definitions[$id]);
+        return isset($this->definitions[$offset]);
     }
 
     /**
      * Sets the definition of a connection.
      *
-     * @param string $id Connection identifier.
-     * @param array|string $definition Connection definition.
+     * @param string $offset Connection identifier.
+     * @param array|string $value Connection definition.
      *
      * @throws ConnectionAlreadyEstablished in attempt to set the definition of an already
      * established connection.
      */
-    public function offsetSet($id, $definition)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
-        if (isset($this->established[$id])) {
-            throw new ConnectionAlreadyEstablished($id);
+        if (isset($this->established[$offset])) {
+            throw new ConnectionAlreadyEstablished($offset);
         }
 
-        if (is_string($definition)) {
-            $definition = [ 'dsn' => $definition ];
+        if (is_string($value)) {
+            $value = [ 'dsn' => $value ];
         }
 
-        if (empty($definition['dsn'])) {
+        if (empty($value['dsn'])) {
             throw new \InvalidArgumentException("<q>dsn</q> is empty or not defined.");
         }
 
-        $this->definitions[$id] = $definition;
+        $this->definitions[$offset] = $value;
     }
 
     /**
      * Removes a connection definition.
      *
-     * @param string $id Connection identifier.
+     * @param string $offset Connection identifier.
      *
      * @throws ConnectionAlreadyEstablished in attempt to unset the definition of an already
      * established connection.
      */
-    public function offsetUnset($id)
+    public function offsetUnset(mixed $offset): void
     {
-        if (isset($this->established[$id])) {
-            throw new ConnectionAlreadyEstablished($id);
+        if (isset($this->established[$offset])) {
+            throw new ConnectionAlreadyEstablished($offset);
         }
 
-        unset($this->definitions[$id]);
+        unset($this->definitions[$offset]);
     }
 
     /**
@@ -129,24 +136,24 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
      *
      * If the connection has not been established yet, it is created on the fly.
      *
-     * @param string $id Connection identifier.
+     * @param string $offset Connection identifier.
      *
      * @return Connection
      *
      * @throws ConnectionNotDefined when the connection requested is not defined.
      * @throws ConnectionNotEstablished when the connection failed.
      */
-    public function offsetGet($id)
+    public function offsetGet(mixed $offset): mixed
     {
-        if (isset($this->established[$id])) {
-            return $this->established[$id];
+        if (isset($this->established[$offset])) {
+            return $this->established[$offset];
         }
 
-        if (!$this->offsetExists($id)) {
-            throw new ConnectionNotDefined($id);
+        if (!$this->offsetExists($offset)) {
+            throw new ConnectionNotDefined($offset);
         }
 
-        $options = $this->definitions[$id] + [
+        $options = $this->definitions[$offset] + [
 
                 'dsn' => null,
                 'username' => 'root',
@@ -154,7 +161,7 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
 
             ];
 
-        $options['options'][ConnectionOptions::ID] = $id;
+        $options['options'][ConnectionOptions::ID] = $offset;
 
         #
         # we catch connection exceptions and rethrow them in order to avoid displaying sensible
@@ -162,7 +169,7 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
         #
 
         try {
-            return $this->established[$id] = new Connection(
+            return $this->established[$offset] = new Connection(
                 $options['dsn'],
                 $options['username'],
                 $options['password'],
@@ -170,7 +177,7 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
             );
         } catch (PDOException $e) {
             throw new ConnectionNotEstablished(
-                $id,
+                $offset,
                 "Connection not established: {$e->getMessage()}."
             );
         }
@@ -179,9 +186,9 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
     /**
      * Returns an iterator for established connections.
      *
-     * @return iterable<string, Connection>
+     * @return Traversable<string, Connection>
      */
-    public function getIterator(): iterable
+    public function getIterator(): Traversable
     {
         return new ArrayIterator($this->established);
     }

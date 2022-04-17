@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
 use ArrayIterator;
 use ICanBoogie\ActiveRecord;
 use IteratorAggregate;
+use Traversable;
 
 /**
  * Cache records during run time.
@@ -68,9 +69,9 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements Iter
     }
 
     /**
-     * @return iterable<int|string, ActiveRecord>
+     * @return Traversable<int|string, ActiveRecord>
      */
-    public function getIterator(): iterable
+    public function getIterator(): Traversable
     {
         return new ArrayIterator($this->records);
     }

@@ -16,8 +16,6 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\Prototype\MethodNotDefined;
 
-use function get_class;
-
 /**
  * Base class for activerecord models.
  *
@@ -75,12 +73,12 @@ class Model extends Table implements ArrayAccess
     /**
      * Active record instances class.
      *
-     * @var class-string
+     * @var class-string<ActiveRecord>
      */
     private string $activerecord_class;
 
     /**
-     * @return class-string
+     * @return class-string<ActiveRecord>
      */
     protected function get_activerecord_class(): string
     {
@@ -95,7 +93,7 @@ class Model extends Table implements ArrayAccess
     /**
      * Attributes of the model.
      *
-     * @var array[string]mixed
+     * @var array<string, mixed>
      */
     private array $attributes;
 
@@ -562,7 +560,7 @@ class Model extends Table implements ArrayAccess
      *
      * @throws OffsetNotWritable when one tries to write an offset.
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         throw new OffsetNotWritable([ $offset, $this ]);
     }
@@ -574,7 +572,7 @@ class Model extends Table implements ArrayAccess
      *
      * @return bool
      */
-    public function offsetExists($key)
+    public function offsetExists(mixed $key): bool
     {
         return $this->exists($key);
     }
@@ -584,7 +582,7 @@ class Model extends Table implements ArrayAccess
      *
      * @param int $key ActiveRecord identifier.
      */
-    public function offsetUnset($key)
+    public function offsetUnset(mixed $key): void
     {
         $this->delete($key);
     }
@@ -596,7 +594,7 @@ class Model extends Table implements ArrayAccess
      *
      * @return ActiveRecord
      */
-    public function offsetGet($key)
+    public function offsetGet(mixed $key): ActiveRecord
     {
         return $this->find($key);
     }
@@ -606,9 +604,7 @@ class Model extends Table implements ArrayAccess
      *
      * The class of the instance is defined by the {@link $activerecord_class} property.
      *
-     * @param array $properties Optional properties to instantiate the record with.
-     *
-     * @return ActiveRecord
+     * @param array<string, mixed> $properties Optional properties to instantiate the record with.
      */
     protected function new_record(array $properties = []): ActiveRecord
     {

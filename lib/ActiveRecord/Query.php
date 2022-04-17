@@ -16,6 +16,19 @@ use ICanBoogie\DateTime;
 use ICanBoogie\Prototype\MethodNotDefined;
 use ICanBoogie\PrototypeTrait;
 
+use IteratorAggregate;
+
+use ReflectionClass;
+
+use ReflectionMethod;
+
+use Traversable;
+
+use function get_class;
+
+use function is_string;
+use function substr;
+
 use const PHP_INT_MAX;
 
 /**
@@ -42,8 +55,12 @@ use const PHP_INT_MAX;
  * @property-read array $having_args The arguments to the `HAVING` clause.
  * @property-read array $args Returns the arguments to the query.
  * @property-read Query $prepared Return a prepared query.
+ *
+ * @template TRecord of ActiveRecord
+ *
+ * @implements IteratorAggregate<TRecord>
  */
-class Query implements \IteratorAggregate
+class Query implements IteratorAggregate
 {
     use PrototypeTrait {
         PrototypeTrait::__call as private __prototype_call;
@@ -228,7 +245,7 @@ class Query implements \IteratorAggregate
         }
 
         if (\strpos($method, 'filter_by_') === 0) {
-            return $this->dynamic_filter(\substr($method, 10), $arguments); // 10 is for: strlen('filter_by_')
+            return $this->dynamic_filter(substr($method, 10), $arguments); // 10 is for: strlen('filter_by_')
         }
 
         $scopes = $this->get_model_scope();
@@ -429,25 +446,25 @@ class Query implements \IteratorAggregate
      */
     private function get_model_scope()
     {
-        $class = \get_class($this->model);
+        $class = get_class($this->model);
 
         if (isset(self::$scopes_by_classes[$class])) {
             return self::$scopes_by_classes[$class];
         }
 
-        $reflexion = new \ReflectionClass($class);
-        $methods = $reflexion->getMethods(\ReflectionMethod::IS_PROTECTED);
+        $reflexion = new ReflectionClass($class);
+        $methods = $reflexion->getMethods(ReflectionMethod::IS_PROTECTED);
 
         $scopes = [];
 
         foreach ($methods as $method) {
             $name = $method->name;
 
-            if (\strpos($name, 'scope_') !== 0) {
+            if (!str_starts_with($name, 'scope_')) {
                 continue;
             }
 
-            $scopes[] = \substr($name, 6);
+            $scopes[] = substr($name, 6);
         }
 
         return self::$scopes_by_classes[$class] = $scopes;
@@ -513,8 +530,8 @@ class Query implements \IteratorAggregate
      */
     public function join($expression, $options = []): self
     {
-        if (\is_string($expression) && $expression[0] == ':') {
-            $expression = $this->model->models[\substr($expression, 1)];
+        if (is_string($expression) && $expression[0] == ':') {
+            $expression = $this->model->models[substr($expression, 1)];
         }
 
         if ($expression instanceof self) {
@@ -677,23 +694,23 @@ class Query implements \IteratorAggregate
                             $joined .= ',' . (\is_numeric($value) ? $value : $this->model->quote($value));
                         }
 
-                        $joined = \substr($joined, 1);
+                        $joined = substr($joined, 1);
                     } else {
                         $joined = (string) $arg;
                         $conditions_args = \array_merge($conditions_args, $arg->args);
                     }
 
-                    $c .= ' AND `' . ($column[0] == '!' ? \substr($column, 1) . '` NOT' : $column . '`')
+                    $c .= ' AND `' . ($column[0] == '!' ? substr($column, 1) . '` NOT' : $column . '`')
                         . ' IN(' . $joined . ')';
                 } else {
                     $conditions_args[] = $arg;
 
-                    $c .= ' AND `' . ($column[0] == '!' ? \substr($column, 1) . '` !' : $column . '` ')
+                    $c .= ' AND `' . ($column[0] == '!' ? substr($column, 1) . '` !' : $column . '` ')
                         . '= ?';
                 }
             }
 
-            $conditions = \substr($c, 5);
+            $conditions = substr($c, 5);
         } else {
             $conditions_args = [];
 
@@ -1284,8 +1301,10 @@ class Query implements \IteratorAggregate
 
     /**
      * Return an iterator for the query.
+     *
+     * @return Traversable<TRecord>
      */
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         return new \ArrayIterator($this->all());
     }

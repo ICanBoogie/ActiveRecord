@@ -14,6 +14,8 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\OffsetNotWritable;
 
+use function is_array;
+
 /**
  * Relation collection of a model.
  *
@@ -22,19 +24,6 @@ use ICanBoogie\OffsetNotWritable;
 class RelationCollection implements \ArrayAccess
 {
     use AccessorTrait;
-
-    /**
-     * Parent model.
-     *
-     * @var Model
-     * @uses get_model
-     */
-    private $model;
-
-    private function get_model(): Model
-    {
-        return $this->model;
-    }
 
     /**
      * Relations.
@@ -46,55 +35,51 @@ class RelationCollection implements \ArrayAccess
     /**
      * @param Model $model The parent model.
      */
-    public function __construct(Model $model)
-    {
-        $this->model = $model;
+    public function __construct(
+        public readonly Model $model
+    ) {
     }
 
     /**
      * Checks if a relation exists.
      *
-     * @param string $relation_name
-     *
-     * @return bool
+     * @param string $offset Relation name.
      */
-    public function offsetExists($relation_name)
+    public function offsetExists(mixed $offset): bool
     {
-        return isset($this->relations[$relation_name]);
+        return isset($this->relations[$offset]);
     }
 
     /**
      * Returns a relation.
      *
-     * @param string $relation_name
-     *
-     * @return Relation
+     * @param string $offset Relation name.
      *
      * @throws RelationNotDefined if the relation is not defined.
      */
-    public function offsetGet($relation_name)
+    public function offsetGet(mixed $offset): Relation
     {
-        if (!$this->offsetExists($relation_name)) {
-            throw new RelationNotDefined($relation_name, $this);
+        if (!$this->offsetExists($offset)) {
+            throw new RelationNotDefined($offset, $this);
         }
 
-        return $this->relations[$relation_name];
+        return $this->relations[$offset];
     }
 
     /**
      * @throws OffsetNotWritable because relations cannot be set.
      */
-    public function offsetSet($relation_name, $relation)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw new OffsetNotWritable([ $relation_name, $this ]);
+        throw new OffsetNotWritable([ $offset, $this ]);
     }
 
     /**
      * @throws OffsetNotWritable because relations cannot be unset.
      */
-    public function offsetUnset($relation_name)
+    public function offsetUnset(mixed $offset): void
     {
-        throw new OffsetNotWritable([ $relation_name, $this ]);
+        throw new OffsetNotWritable([ $offset, $this ]);
     }
 
     /**
@@ -118,17 +103,15 @@ class RelationCollection implements \ArrayAccess
      * </pre>
      *
      * @param string|array $belongs_to
-     *
-     * @return Model
      */
-    public function belongs_to($belongs_to)
+    public function belongs_to($belongs_to): Model
     {
         if (\func_num_args() > 1) {
             $belongs_to = \func_get_args();
         }
 
         foreach ((array) $belongs_to as $definition) {
-            if (!\is_array($definition)) {
+            if (!is_array($definition)) {
                 $definition = [ $definition ];
             }
 
@@ -151,7 +134,7 @@ class RelationCollection implements \ArrayAccess
      * $this->has_many([ [ 'comments', [ 'as' => 'comments' ] ], 'attachments' ]);
      * </pre>
      *
-     * @param Model|string $related The related model can be specified using its instance or its
+     * @param Model|string|array $related The related model can be specified using its instance or its
      * identifier.
      * @param array $options the following options are available:
      *
@@ -160,17 +143,15 @@ class RelationCollection implements \ArrayAccess
      * - `as`: The name of the magic property to add to the prototype. Default: a plural name
      * resolved from the foreign model's id.
      *
-     * @return Model
-     *
      * @see HasManyRelation
      */
-    public function has_many($related, array $options = [])
+    public function has_many($related, array $options = []): ?Model
     {
-        if (\is_array($related)) {
+        if (is_array($related)) {
             $relation_list = $related;
 
             foreach ($relation_list as $definition) {
-                list($related, $options) = ((array) $definition) + [ 1 => [] ];
+                [ $related, $options ] = ((array) $definition) + [ 1 => [] ];
 
                 $relation = new HasManyRelation($this->model, $related, $options);
 

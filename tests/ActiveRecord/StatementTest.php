@@ -12,8 +12,9 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ModelTest\Article;
+use PHPUnit\Framework\TestCase;
 
-class StatementTest extends \PHPUnit\Framework\TestCase
+class StatementTest extends TestCase
 {
     private static $connection;
 

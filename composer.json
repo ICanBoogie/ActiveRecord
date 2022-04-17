@@ -32,7 +32,7 @@
 		"icanboogie/datetime": "^6.0",
 		"icanboogie/inflector": "^2.0",
 		"icanboogie/prototype": "^6.0",
-		"icanboogie/validate": "^0.2"
+		"icanboogie/validate": "^6.0"
 	},
 	"require-dev": {
 		"ext-pdo_mysql": "*",

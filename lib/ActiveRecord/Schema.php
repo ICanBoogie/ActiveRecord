@@ -17,6 +17,8 @@ use ICanBoogie\Accessor\AccessorTrait;
 use IteratorAggregate;
 use LogicException;
 
+use Traversable;
+
 use function array_intersect_key;
 use function array_keys;
 use function count;
@@ -188,9 +190,9 @@ class Schema implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * @return iterable<string, SchemaColumn>
+     * @return Traversable<string, SchemaColumn>
      */
-    public function getIterator(): iterable
+    public function getIterator(): Traversable
     {
         return new ArrayIterator($this->columns);
     }
