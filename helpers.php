@@ -22,7 +22,7 @@ namespace ICanBoogie\ActiveRecord;
  */
 function get_model(string $id): Model
 {
-	return ModelProvider::provide($id);
+	return StaticModelProvider::provide($id);
 }
 
 /**

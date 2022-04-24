@@ -2343,12 +2343,12 @@ The following example demonstrates how to define a model provider:
 <?php
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\ModelProvider;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use function ICanBoogie\ActiveRecord\get_model;
 
 /* @var $models ActiveRecord\ModelCollection */
 
-ModelProvider::define(function($id) use($models) {
+StaticModelProvider::define(function($id) use($models) {
 
     return $models[$id];
 

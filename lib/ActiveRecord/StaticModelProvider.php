@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 /**
  * Provides a {@link Model} instance.
  */
-class ModelProvider
+class StaticModelProvider
 {
     /**
      * @var callable|null {@link Model} provider

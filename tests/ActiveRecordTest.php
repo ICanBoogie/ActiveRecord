@@ -12,7 +12,7 @@
 namespace ICanBoogie;
 
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelProvider;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaColumn;
@@ -45,7 +45,7 @@ class ActiveRecordTest extends TestCase
 
         self::$sample_model = $sample_model = $this->mockModel();
 
-        ModelProvider::define(function (string $model_id) use ($sample_model): ?Model {
+        StaticModelProvider::define(function (string $model_id) use ($sample_model): ?Model {
             if ($model_id === 'sample') {
                 return $sample_model;
             }
