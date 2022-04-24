@@ -24,13 +24,12 @@ use function sprintf;
 /**
  * Model collection.
  *
- * @property-read ConnectionCollection $connections
  * @property-read array<string, array> $definitions
  * @property-read array<string, Model> $instances
  *
  * @implements ArrayAccess<string, Model>
  */
-class ModelCollection implements ArrayAccess
+class ModelCollection implements ArrayAccess, ModelProvider
 {
     /**
      * @uses get_instances
@@ -70,11 +69,10 @@ class ModelCollection implements ArrayAccess
     }
 
     /**
-     * @param ConnectionCollection $connections
      * @param array<string, array> $definitions
      */
     public function __construct(
-        private ConnectionCollection $connections,
+        public readonly ConnectionProvider $connections,
         array $definitions = []
     ) {
         foreach ($definitions as $id => $definition) {
@@ -82,9 +80,9 @@ class ModelCollection implements ArrayAccess
         }
     }
 
-    private function get_connections(): ConnectionCollection
+    public function model_for_id(string $id): Model
     {
-        return $this->connections;
+        return $this[$id];
     }
 
     /**
@@ -241,7 +239,7 @@ class ModelCollection implements ArrayAccess
         $connection = &$attributes[Model::CONNECTION];
 
         if ($connection && !$connection instanceof Connection) {
-            $connection = $this->connections[$connection];
+            $connection = $this->connections->connection_for_id($connection);
         }
 
         $extending = &$attributes[Model::EXTENDING];

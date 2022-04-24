@@ -31,7 +31,7 @@ class ModelCollectionTest extends TestCase
         $definitions = [
 
             'articles' => [
-                Model::CLASSNAME => __CLASS__ . '\ArticlesModel',
+                Model::CLASSNAME => ArticlesModel::class,
                 Model::SCHEMA => new Schema([
                     'article_id' => SchemaColumn::serial(primary: true),
                     'title' => SchemaColumn::varchar(),
@@ -39,23 +39,30 @@ class ModelCollectionTest extends TestCase
             ],
 
             'comments' => [
-                Model::CLASSNAME => __CLASS__ . '\CommentsModel',
+                Model::CLASSNAME => CommentsModel::class,
                 Model::SCHEMA => new Schema([
                     'comment_id' => SchemaColumn::serial(primary: true),
                     'article_id' => SchemaColumn::foreign(),
-                    'body' => new SchemaColumn('text'),
+                    'body' => SchemaColumn::text(),
                 ])
             ],
 
             'other' => [
                 Model::SCHEMA => new Schema([
                     'id' => SchemaColumn::serial(primary: true),
-                    'value' => new SchemaColumn('integer'),
+                    'value' => SchemaColumn::int(),
                 ])
             ]
         ];
 
         $this->models = new ModelCollection($this->connections, $definitions);
+    }
+
+    public function test_model_for_id(): void
+    {
+        $actual = $this->models->model_for_id('articles');
+
+        $this->assertInstanceOf(ArticlesModel::class, $actual);
     }
 
     public function test_get_instances(): void

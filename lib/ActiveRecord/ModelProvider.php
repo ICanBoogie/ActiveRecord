@@ -12,16 +12,16 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Provides connections.
+ * Provides models.
  */
-interface ConnectionProvider
+interface ModelProvider
 {
     /**
-     * Provides a connection for a given identifier.
+     * Provides a model for a given identifier.
      *
-     * @param string $id Connection identifier
+     * @param string $id Model identifier
      *
-     * @throws ConnectionNotDefined if the connection is not defined.
+     * @throws ModelNotDefined if the model is not defined.
      */
-    public function connection_for_id(string $id): Connection;
+    public function model_for_id(string $id): Model;
 }

@@ -41,7 +41,7 @@ use ICanBoogie\Prototype\MethodNotDefined;
  * @method Model has_many($related, $options = []) Adds a _has_many_ relation.
  *
  * @property-read Model|null $parent Parent model.
- * @property-read ModelCollection $models
+ * @property-read ModelProvider $models
  * @property-read array $all Retrieve all the records from the model.
  * @property-read class-string $activerecord_class Class of the active records of the model.
  * @property-read int $count The number of records of the model.
@@ -63,9 +63,9 @@ class Model extends Table implements ArrayAccess
     public const ID = 'id';
     public const QUERY_CLASS = 'query_class';
 
-    private ModelCollection $models;
+    private ModelProvider $models;
 
-    protected function get_models(): ModelCollection
+    protected function get_models(): ModelProvider
     {
         return $this->models;
     }
@@ -150,10 +150,9 @@ class Model extends Table implements ArrayAccess
      * If {@link ACTIVERECORD_CLASS} is set, its value is saved in the
      * {@link $activerecord_class} property.
      *
-     * @param ModelCollection $models
      * @param array<string, mixed> $attributes Attributes used to construct the model.
      */
-    public function __construct(ModelCollection $models, array $attributes)
+    public function __construct(ModelProvider $models, array $attributes)
     {
         $this->models = $models;
         $this->attributes = $attributes = $this->resolve_attributes($attributes);

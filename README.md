@@ -2177,6 +2177,8 @@ connections) and instantiate them.
 #### Defining models
 
 Model definitions can be specified while creating the [ModelCollection][] instance.
+[ModelCollection][] implements [ModelProvider][], it is recommend to type against the interface and
+use the method `model_for_id()` to retrieve models from the collection.
 
 Note: You don't have to create the [Connection][] instances used by the models, you can use their
 identifier which will get resolved when the model is needed.
@@ -2210,6 +2212,8 @@ $models = new ModelCollection($connections, [
         Model::EXTENDING => 'nodes'
     ]
 ]);
+
+$model = $models->model_for_id('nodes');
 ```
 
 Model definitions can be modified or added after the [ModelCollection][] instance has been created.
@@ -2511,3 +2515,5 @@ test suite. Alternatively, run `make test-coverage` to run the test suite with t
 [icanboogie/bind-activerecord]: https://github.com/ICanBoogie/bind-activerecord
 [ICanBoogie]:                   https://icanboogie.org
 [PDO]:                          http://php.net/manual/en/book.pdo.php
+[ConnectionProvider]:           lib/ActiveRecord/ConnectionProvider.php
+[ModelProvider]:                lib/ActiveRecord/ModelProvider.php

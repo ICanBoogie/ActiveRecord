@@ -70,7 +70,7 @@ class StaticModelProvider
 
         if (!$provider) {
             throw new \LogicException(
-                "No provider is defined yet. Please define one with `ModelProvider::define(\$provider)`."
+                "No provider is defined yet. Please define one with `StaticModelProvider::define(\$provider)`."
             );
         }
 
