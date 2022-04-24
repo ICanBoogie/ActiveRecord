@@ -26,7 +26,7 @@ use Traversable;
  *
  * @implements IteratorAggregate<string, Connection>
  */
-class ConnectionCollection implements ArrayAccess, IteratorAggregate
+class ConnectionCollection implements ArrayAccess, IteratorAggregate, ConnectionProvider
 {
     /**
      * @uses get_definitions
@@ -74,6 +74,11 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate
         foreach ($definitions as $id => $definition) {
             $this[$id] = $definition;
         }
+    }
+
+    public function connection_for_id(string $id): Connection
+    {
+        return $this[$id];
     }
 
     /**

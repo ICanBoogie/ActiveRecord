@@ -11,9 +11,11 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class ConnectionCollectionTest extends \PHPUnit\Framework\TestCase
+use PHPUnit\Framework\TestCase;
+
+class ConnectionCollectionTest extends TestCase
 {
-    private $connections;
+    private ConnectionCollection $connections;
 
     protected function setUp(): void
     {
@@ -28,7 +30,15 @@ class ConnectionCollectionTest extends \PHPUnit\Framework\TestCase
         ]);
     }
 
-    public function test_should_get_definitions()
+    public function test_connection_for_id(): void
+    {
+        $actual = $this->connections->connection_for_id('one');
+
+        $this->assertInstanceOf(Connection::class, $actual);
+        $this->assertSame('one', $actual->id);
+    }
+
+    public function test_should_get_definitions(): void
     {
         $names = [];
 

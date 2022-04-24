@@ -1419,7 +1419,7 @@ $model->join(':contents', [ 'mode' => 'LEFT', 'as' => 'cnt' ]);
 ```
 
 > **Note:** If a model identifier is provided, the model collection associated with the
-query's model is used to obtain the model.
+> query's model is used to obtain the model.
 
 
 
@@ -2028,8 +2028,9 @@ The connections provider manages database connections.
 
 #### Defining connections
 
-Connection definitions can be specified while creating the [ConnectionCollection][]
-instance.
+Connection definitions can be specified while creating the [ConnectionCollection][] instance.
+[ConnectionCollection][] implements [ConnectionProvider][], it is recommended to type against the
+interface and use the method `connection_for_id()`.
 
 ```php
 <?php
@@ -2049,6 +2050,8 @@ $connections = new ConnectionCollection([
     ]
 
 ]);
+
+$connection = $connections->connection_for_id('one');
 ```
 
 Or after:
