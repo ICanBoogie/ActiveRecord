@@ -13,6 +13,8 @@ namespace ICanBoogie\ActiveRecord;
 
 use PHPUnit\Framework\TestCase;
 
+use Test\ICanBoogie\SetStateHelper;
+
 use function iterator_to_array;
 
 final class SchemaTest extends TestCase
@@ -27,6 +29,18 @@ final class SchemaTest extends TestCase
         $this->assertEquals($id, $schema['id']);
         unset($schema['id']);
         $this->assertFalse(isset($schema['id']));
+    }
+
+    public function test_export(): void
+    {
+        $schema = new Schema([
+            'id' => SchemaColumn::serial(primary: true),
+            'name' => SchemaColumn::varchar(32),
+        ]);
+
+        $actual = SetStateHelper::export_import($schema);
+
+        $this->assertEquals($schema, $actual);
     }
 
     public function test_iterator(): void

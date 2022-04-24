@@ -49,6 +49,14 @@ class Schema implements ArrayAccess, IteratorAggregate
     use AccessorTrait;
 
     /**
+     * @param array{ 'columns': array<string, SchemaColumn> } $an_array
+     */
+    public static function __set_state(array $an_array): self
+    {
+        return new self($an_array['columns']);
+    }
+
+    /**
      * @var array<string, SchemaColumn>
      */
     private array $columns = [];

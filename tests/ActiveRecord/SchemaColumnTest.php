@@ -12,11 +12,12 @@
 namespace ICanBoogie\ActiveRecord;
 
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\SetStateHelper;
 
 final class SchemaColumnTest extends TestCase
 {
     /**
-     * @dataProvider provide_test_to_string
+     * @dataProvider provide_columns
      */
     public function test_to_string(SchemaColumn $column, string $expected): void
     {
@@ -24,9 +25,16 @@ final class SchemaColumnTest extends TestCase
     }
 
     /**
-     * @return array[]
+     * @dataProvider provide_columns
      */
-    public function provide_test_to_string(): array
+    public function test_export(SchemaColumn $column): void
+    {
+        $actual = SetStateHelper::export_import($column);
+
+        $this->assertEquals($column, $actual);
+    }
+
+    public function provide_columns(): array // @phpstan-ignore-line
     {
         return [
 

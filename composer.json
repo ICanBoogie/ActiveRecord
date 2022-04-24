@@ -36,7 +36,7 @@
 	},
 	"require-dev": {
 		"ext-pdo_mysql": "*",
-		"phpstan/phpstan": "^0.12.92",
+		"phpstan/phpstan": "^1.5",
 		"phpunit/phpunit": "^9.5"
 	},
 	"suggest": {
@@ -53,7 +53,8 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"ICanBoogie\\": "tests"
+			"ICanBoogie\\": "tests",
+			"Test\\ICanBoogie\\": "tests"
 		}
 	}
 }
