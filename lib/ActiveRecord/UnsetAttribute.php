@@ -9,10 +9,9 @@ class UnsetAttribute extends InvalidArgumentException
     /**
      * @param array<string, mixed> $attributes
      */
-    static public function ThrowIf(array $attributes, string $attribute): void
+    public static function ThrowIf(array $attributes, string $attribute): void
     {
-        if (isset($attributes[$attribute]))
-        {
+        if (isset($attributes[$attribute])) {
             return;
         }
 

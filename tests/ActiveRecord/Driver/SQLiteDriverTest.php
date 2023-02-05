@@ -57,8 +57,7 @@ final class SQLiteDriverTest extends TestCase
             'created_at' => SchemaColumn::timestamp(default: SchemaColumn::CURRENT_TIMESTAMP),
         ]))
             ->index([ 'country', 'week', 'product' ], unique: true)
-            ->index('week', name: "my_week_index" )
-        ;
+            ->index('week', name: "my_week_index");
 
         $table_name = "menus";
 

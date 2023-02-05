@@ -30,6 +30,7 @@ use function sprintf;
  * @property-read string $model_id The identifier of the model managing the active record.
  * @property-read bool $is_new Whether the record is new or not.
  */
+#[\AllowDynamicProperties]
 class ActiveRecord extends Prototyped
 {
     public const SAVE_SKIP_VALIDATION = 'skip_validation';

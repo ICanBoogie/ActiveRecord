@@ -16,7 +16,6 @@ use ArrayIterator;
 use ICanBoogie\Accessor\AccessorTrait;
 use IteratorAggregate;
 use LogicException;
-
 use Traversable;
 
 use function array_intersect_key;

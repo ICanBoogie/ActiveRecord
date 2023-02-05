@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/packagist/v/ICanBoogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
 [![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
 [![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
-[![Packagist](https://img.shields.io/packagist/dt/icanboogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
+[![Downloads](https://img.shields.io/packagist/dt/icanboogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
 
 __Connections__, __models__ and __active records__ are the foundations of everything that concerns
 database access and management. They are used to establish database connections, manage tables and
@@ -2464,27 +2464,22 @@ The project is continuously tested by [GitHub actions](https://github.com/ICanBo
 
 
 
-## Documentation
+## Code of Conduct
 
-The package is documented as part of the [ICanBoogie][] framework
-[documentation](https://icanboogie.org/docs/). You can generate the documentation for the package and
-its dependencies with the `make doc` command. The documentation is generated in the `build/docs`
-directory. [ApiGen](http://apigen.org/) is required. The directory can later be cleaned with the
-`make clean` command.
+This project adheres to a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in
+this project and its community, you are expected to uphold this code.
 
 
 
-## Testing
+## Contributing
 
-Run `make test-container` to create and log into the test container, then run `make test` to run the
-test suite. Alternatively, run `make test-coverage` to run the test suite with test coverage. Open
-`build/coverage/index.html` to see the breakdown of the code coverage.
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 
 
 ## License
 
-**icanboogie/activerecord** is released under the [New BSD License](LICENSE).
+**icanboogie/activerecord** is released under the [BSD3-Clause](LICENSE).
 
 
 

@@ -64,10 +64,13 @@ final class SQLiteDriver extends BasicDriver
         $quoted_table_name = $this->quote_identifier($table_name);
         $maybeUnique = $index->unique ? 'UNIQUE ' : '';
         $index_name = $this->quote_identifier($index->name ?? implode('_', $index->columns));
-        $indexed_columns = implode(', ', array_map(
-            fn($column_id) => $this->quote_identifier($column_id),
-            $index->columns
-        ));
+        $indexed_columns = implode(
+            ', ',
+            array_map(
+                fn($column_id) => $this->quote_identifier($column_id),
+                $index->columns
+            )
+        );
 
         return <<<SQL
             CREATE {$maybeUnique}INDEX $index_name ON $quoted_table_name ($indexed_columns)
@@ -85,17 +88,20 @@ final class SQLiteDriver extends BasicDriver
             return "INTEGER NOT NULL";
         }
 
-        return implode(' ', array_filter([
+        return implode(
+            ' ',
+            array_filter([
 
-            $column->formatted_type,
-            $column->formatted_type_attributes,
-            $column->formatted_null,
-            $column->unique ? 'UNIQUE' : '',
-            $column->formatted_auto_increment,
-            $column->formatted_default,
-            $column->formatted_comment
+                $column->formatted_type,
+                $column->formatted_type_attributes,
+                $column->formatted_null,
+                $column->unique ? 'UNIQUE' : '',
+                $column->formatted_auto_increment,
+                $column->formatted_default,
+                $column->formatted_comment
 
-        ]));
+            ])
+        );
     }
 
     /**
@@ -110,9 +116,13 @@ final class SQLiteDriver extends BasicDriver
         }
 
         if (is_array($primary)) {
-            $quoted_primary_key = implode(', ', array_map(
-                fn(string $column_id) => $this->quote_identifier($column_id), $primary
-            ));
+            $quoted_primary_key = implode(
+                ', ',
+                array_map(
+                    fn(string $column_id) => $this->quote_identifier($column_id),
+                    $primary
+                )
+            );
         } else {
             $quoted_primary_key = $this->quote_identifier($primary);
         }

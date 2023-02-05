@@ -6,5 +6,4 @@ use ICanBoogie\ActiveRecord;
 
 class Dog extends ActiveRecord
 {
-
 }

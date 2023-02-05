@@ -52,10 +52,13 @@ final class MySQLDriver extends BasicDriver
         $quoted_table_name = $this->quote_identifier($table_name);
         $maybeUnique = $index->unique ? 'UNIQUE ' : '';
         $index_name = $this->quote_identifier($index->name ?? implode('_', $index->columns));
-        $indexed_columns = implode(', ', array_map(
-            fn($column_id) => $this->quote_identifier($column_id),
-            $index->columns
-        ));
+        $indexed_columns = implode(
+            ', ',
+            array_map(
+                fn($column_id) => $this->quote_identifier($column_id),
+                $index->columns
+            )
+        );
 
         return <<<SQL
             CREATE {$maybeUnique}INDEX $index_name ON $quoted_table_name ($indexed_columns)
@@ -67,7 +70,7 @@ final class MySQLDriver extends BasicDriver
      */
     public function render_column(SchemaColumn $column): string
     {
-        return (string) $column;
+        return (string)$column;
     }
 
     /**
@@ -102,9 +105,13 @@ final class MySQLDriver extends BasicDriver
         }
 
         if (is_array($primary)) {
-            $quoted_primary_key = implode(', ', array_map(
-                fn(string $column_id) => $this->quote_identifier($column_id), $primary
-            ));
+            $quoted_primary_key = implode(
+                ', ',
+                array_map(
+                    fn(string $column_id) => $this->quote_identifier($column_id),
+                    $primary
+                )
+            );
         } else {
             $quoted_primary_key = $this->quote_identifier($primary);
         }

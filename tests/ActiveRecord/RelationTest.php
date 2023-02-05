@@ -76,14 +76,13 @@ final class RelationTest extends TestCase
             Model::CONNECTION => $connection,
             Model::NAME => 'testing',
             Model::SCHEMA => new Schema([
-                'id'=> SchemaColumn::serial()
+                'id' => SchemaColumn::serial()
             ])
         ]);
 
         $this->expectException(ActiveRecordClassNotValid::class);
 
-        new class($articles, 'comments', []) extends Relation
-        {
+        new class ($articles, 'comments', []) extends Relation {
             public function __invoke(ActiveRecord $record): mixed
             {
                 return null;

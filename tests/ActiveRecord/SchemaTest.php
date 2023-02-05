@@ -12,7 +12,6 @@
 namespace ICanBoogie\ActiveRecord;
 
 use PHPUnit\Framework\TestCase;
-
 use Test\ICanBoogie\SetStateHelper;
 
 use function iterator_to_array;
@@ -45,10 +44,12 @@ final class SchemaTest extends TestCase
 
     public function test_iterator(): void
     {
-        $schema = new Schema($columns = [
-            'id' => SchemaColumn::serial(primary: true),
-            'name' => SchemaColumn::varchar(32),
-        ]);
+        $schema = new Schema(
+            $columns = [
+                'id' => SchemaColumn::serial(primary: true),
+                'name' => SchemaColumn::varchar(32),
+            ]
+        );
 
         $this->assertEquals($columns, $schema->columns);
         $this->assertEquals($columns, iterator_to_array($schema));
@@ -64,9 +65,6 @@ final class SchemaTest extends TestCase
         $this->assertSame($expected, (new Schema($columns))->primary);
     }
 
-    /**
-     * @return array[]
-     */
     public function provide_test_primary(): array
     {
         return [
@@ -138,7 +136,7 @@ final class SchemaTest extends TestCase
                     'product' => SchemaColumn::varchar(),
                 ]))
                     ->index([ 'country', 'week', 'product' ], unique: true)
-                    ->index('week', name: "my_week_index" ),
+                    ->index('week', name: "my_week_index"),
                 [
                     new SchemaIndex([ 'country', 'week', 'product' ], unique: true),
                     new SchemaIndex([ 'week' ], name: "my_week_index"),

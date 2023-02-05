@@ -29,6 +29,7 @@ use function var_dump;
  * @property-read string $alias The alias name of the table.
  * @property-read Table|null $parent The parent of the table.
  */
+#[\AllowDynamicProperties]
 class Table extends Prototyped
 {
     /**

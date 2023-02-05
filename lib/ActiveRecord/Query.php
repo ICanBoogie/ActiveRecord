@@ -15,17 +15,12 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\DateTime;
 use ICanBoogie\Prototype\MethodNotDefined;
 use ICanBoogie\PrototypeTrait;
-
 use IteratorAggregate;
-
 use ReflectionClass;
-
 use ReflectionMethod;
-
 use Traversable;
 
 use function get_class;
-
 use function is_string;
 use function substr;
 
@@ -36,7 +31,7 @@ use const PHP_INT_MAX;
  * methods of the {@link Model} class create a {@link Query} object that is returned for
  * further specification, such as filters or limits.
  *
- * @method Query and($conditions, $conditions_args = null, $_ = null) Alias to where().
+ * @method Query and ($conditions, $conditions_args = null, $_ = null) Alias to where().
  *
  * @property-read array $all An array with all the records matching the query.
  * @property-read mixed $one The first record matching the query.
@@ -696,7 +691,7 @@ class Query implements IteratorAggregate
 
                         $joined = substr($joined, 1);
                     } else {
-                        $joined = (string) $arg;
+                        $joined = (string)$arg;
                         $conditions_args = \array_merge($conditions_args, $arg->args);
                     }
 
@@ -877,7 +872,7 @@ class Query implements IteratorAggregate
      */
     public function offset($offset)
     {
-        $this->offset = (int) $offset;
+        $this->offset = (int)$offset;
 
         return $this;
     }
@@ -910,8 +905,8 @@ class Query implements IteratorAggregate
             $limit = \func_get_arg(1);
         }
 
-        $this->offset = (int) $offset;
-        $this->limit = (int) $limit;
+        $this->offset = (int)$offset;
+        $this->limit = (int)$limit;
 
         return $this;
     }
@@ -942,7 +937,7 @@ class Query implements IteratorAggregate
      */
     private function prepare(): Statement
     {
-        return $this->model->connection->prepare((string) $this);
+        return $this->model->connection->prepare((string)$this);
     }
 
     /**
@@ -1199,7 +1194,7 @@ class Query implements IteratorAggregate
             return $statement->pairs;
         }
 
-        return (int) $statement->rc;
+        return (int)$statement->rc;
     }
 
     /**

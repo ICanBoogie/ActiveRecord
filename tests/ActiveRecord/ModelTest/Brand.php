@@ -6,5 +6,4 @@ use ICanBoogie\ActiveRecord;
 
 class Brand extends ActiveRecord
 {
-
 }

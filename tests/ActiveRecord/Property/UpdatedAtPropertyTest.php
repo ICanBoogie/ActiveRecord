@@ -61,5 +61,4 @@ class A extends \ICanBoogie\Prototyped
 
 class B extends A
 {
-
 }

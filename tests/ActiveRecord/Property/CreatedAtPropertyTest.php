@@ -14,13 +14,14 @@ namespace ICanBoogie\ActiveRecord\Property;
 use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\A;
 use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\B;
+use PHPUnit\Framework\TestCase;
 
-class CreatedAtPropertyTest extends \PHPUnit\Framework\TestCase
+final class CreatedAtPropertyTest extends TestCase
 {
     /**
      * @dataProvider provide_test_property
      */
-    public function test_property($classname)
+    public function test_property($classname): void
     {
         /* @var $r A */
         $r = new $classname();
@@ -61,5 +62,4 @@ class A extends \ICanBoogie\Prototyped
 
 class B extends A
 {
-
 }

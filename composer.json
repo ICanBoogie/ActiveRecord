@@ -22,10 +22,11 @@
 		"source": "https://github.com/ICanBoogie/ActiveRecord"
 	},
 	"config": {
-		"sort-packages": true
+        "sort-packages": true
 	},
 	"minimum-stability": "dev",
 	"prefer-stable": true,
+	"prefer-dist": true,
 	"require": {
 		"php": ">=8.1",
 		"ext-pdo": "*",

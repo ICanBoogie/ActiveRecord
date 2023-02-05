@@ -54,6 +54,7 @@ use ICanBoogie\Prototype\MethodNotDefined;
  *
  * @implements ArrayAccess<int|string, ActiveRecord>
  */
+#[\AllowDynamicProperties]
 class Model extends Table implements ArrayAccess
 {
     public const ACTIVERECORD_CLASS = 'activerecord_class';
