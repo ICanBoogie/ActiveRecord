@@ -24,7 +24,7 @@ use ICanBoogie\Prototype\MethodNotDefined;
  * @method Query where($conditions, $conditions_args = null, $_ = null)
  *     The method is forwarded to {@link Query::where}.
  * @method Query group($group) The method is forwarded to Query::group().
- * @method Query order($order) The method is forwarded to Query::order().
+ * @method Query order(...$order) The method is forwarded to @link Query::order().
  * @method Query limit($limit, $offset = null) The method is forwarded to Query::limit().
  * @method Query offset($offset) The method is forwarded to Query::offset().
  * @method bool exists($key = null) The method is forwarded to Query::exists().

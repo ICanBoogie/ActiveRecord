@@ -67,7 +67,7 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
     /**
      * Initializes the {@link $definitions} property.
      *
-     * @param array<string, array> $definitions Connection definitions.
+     * @param array<string, string|array<ConnectionOptions::*, mixed>> $definitions Connection definitions.
      */
     public function __construct(array $definitions)
     {

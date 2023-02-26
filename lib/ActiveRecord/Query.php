@@ -22,6 +22,8 @@ use Traversable;
 
 use function get_class;
 use function is_string;
+use function preg_replace;
+use function preg_replace_callback;
 use function substr;
 
 use const PHP_INT_MAX;
@@ -357,15 +359,18 @@ class Query implements IteratorAggregate
 
     /**
      * Render the `ORDER` clause.
-     *
-     * @param array $order
-     *
-     * @return string
      */
     private function render_order(array $order): string
     {
         if (\count($order) == 1) {
-            return 'ORDER BY ' . $order[0];
+            $raw = $order[0];
+            $rendered = preg_replace(
+                '/-([a-zA-Z0-9_]+)/',
+                '$1 DESC',
+                $raw
+            );
+
+            return 'ORDER BY ' . $rendered;
         }
 
         $connection = $this->model->connection;
