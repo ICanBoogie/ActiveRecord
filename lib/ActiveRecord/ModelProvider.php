@@ -11,15 +11,20 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use IteratorAggregate;
+
 /**
  * Provides models.
+ *
+ * @extends IteratorAggregate<string, (callable(): Model)>
  */
-interface ModelProvider
+interface ModelProvider extends IteratorAggregate
 {
     /**
      * Provides a model for a given identifier.
      *
-     * @param string $id Model identifier
+     * @param string $id
+     *     A model identifier.
      *
      * @throws ModelNotDefined if the model is not defined.
      */

@@ -15,6 +15,7 @@ use ArrayAccess;
 use ICanBoogie\Accessor\AccessorTrait;
 use InvalidArgumentException;
 use Throwable;
+use Traversable;
 
 use function array_keys;
 use function get_debug_type;
@@ -77,6 +78,13 @@ class ModelCollection implements ArrayAccess, ModelProvider
     ) {
         foreach ($definitions as $id => $definition) {
             $this[$id] = $definition;
+        }
+    }
+
+    public function getIterator(): Traversable
+    {
+        foreach (array_keys($this->definitions) as $id) {
+            yield $id => fn() => $this->model_for_id($id);
         }
     }
 

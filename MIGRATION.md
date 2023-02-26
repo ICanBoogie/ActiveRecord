@@ -1,14 +1,14 @@
 # Migration
 
-## v5.x to v6.x
+## v5.x to v6.0
 
 ### New Requirements
 
-None
+- PHP 8.1+
 
 ### New features
 
-None
+- Added interface `ModelProvider`. Better use this one than depend on `ModelCollection`. `ModelCollection` implements `ModelProvider`.
 
 ### Backward Incompatible Changes
 

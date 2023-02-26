@@ -65,6 +65,21 @@ class ModelCollectionTest extends TestCase
         $this->assertInstanceOf(ArticlesModel::class, $actual);
     }
 
+    public function test_iterator(): void
+    {
+        $ids = [];
+
+        foreach ($this->models as $id => $get) {
+            $ids[] = $id;
+            $model = $get();
+
+            $this->assertInstanceOf(Model::class, $model);
+            $this->assertSame($model, $this->models->model_for_id($id));
+        }
+
+        $this->assertEquals([ 'articles', 'comments', 'other'], $ids);
+    }
+
     public function test_get_instances(): void
     {
         $models = $this->models;
