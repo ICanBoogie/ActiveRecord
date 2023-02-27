@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord\Validate\Reader;
 
+use Error;
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\PropertyNotDefined;
@@ -45,7 +46,7 @@ class RecordAdapter extends AbstractAdapter
     {
         try {
             return $this->source->$name;
-        } catch (PropertyNotDefined $e) {
+        } catch (PropertyNotDefined | Error $e) {
             return null;
         }
     }
