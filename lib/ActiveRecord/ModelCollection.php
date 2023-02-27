@@ -13,7 +13,9 @@ namespace ICanBoogie\ActiveRecord;
 
 use ArrayAccess;
 use ICanBoogie\Accessor\AccessorTrait;
+use ICanBoogie\ActiveRecord;
 use InvalidArgumentException;
+use RuntimeException;
 use Throwable;
 use Traversable;
 
@@ -30,7 +32,7 @@ use function sprintf;
  *
  * @implements ArrayAccess<string, Model>
  */
-class ModelCollection implements ArrayAccess, ModelProvider
+class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver
 {
     /**
      * @uses get_instances
@@ -70,7 +72,7 @@ class ModelCollection implements ArrayAccess, ModelProvider
     }
 
     /**
-     * @param array<string, array> $definitions
+     * @param array<string, array<Model::*, string>> $definitions
      */
     public function __construct(
         public readonly ConnectionProvider $connections,
@@ -90,7 +92,22 @@ class ModelCollection implements ArrayAccess, ModelProvider
 
     public function model_for_id(string $id): Model
     {
-        return $this[$id];
+        return $this->offsetGet($id);
+    }
+
+    public function model_for_activerecord(string|ActiveRecord $class_or_activerecord): Model
+    {
+        $class = $class_or_activerecord instanceof ActiveRecord
+            ? $class_or_activerecord::class
+            : $class_or_activerecord;
+
+        foreach ($this->definitions as $id => $definition) {
+            if ($class === $definition[Model::ACTIVERECORD_CLASS]) {
+                return $this->model_for_id($id);
+            }
+        }
+
+        throw new RuntimeException("Unable to find model for $class");
     }
 
     /**

@@ -1,21 +1,14 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ModelCollectionTest\ArticlesModel;
 use ICanBoogie\ActiveRecord\ModelCollectionTest\CommentsModel;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Article;
+use Test\ICanBoogie\Acme\Comment;
 
-class ModelCollectionTest extends TestCase
+final class ModelCollectionTest extends TestCase
 {
     private ConnectionCollection $connections;
     private ModelCollection $models;
@@ -32,6 +25,7 @@ class ModelCollectionTest extends TestCase
 
             'articles' => [
                 Model::CLASSNAME => ArticlesModel::class,
+                Model::ACTIVERECORD_CLASS => Article::class,
                 Model::SCHEMA => new Schema([
                     'article_id' => SchemaColumn::serial(primary: true),
                     'title' => SchemaColumn::varchar(),
@@ -40,6 +34,7 @@ class ModelCollectionTest extends TestCase
 
             'comments' => [
                 Model::CLASSNAME => CommentsModel::class,
+                Model::ACTIVERECORD_CLASS => Comment::class,
                 Model::SCHEMA => new Schema([
                     'comment_id' => SchemaColumn::serial(primary: true),
                     'article_id' => SchemaColumn::foreign(),
@@ -58,13 +53,6 @@ class ModelCollectionTest extends TestCase
         $this->models = new ModelCollection($this->connections, $definitions);
     }
 
-    public function test_model_for_id(): void
-    {
-        $actual = $this->models->model_for_id('articles');
-
-        $this->assertInstanceOf(ArticlesModel::class, $actual);
-    }
-
     public function test_iterator(): void
     {
         $ids = [];
@@ -78,6 +66,20 @@ class ModelCollectionTest extends TestCase
         }
 
         $this->assertEquals([ 'articles', 'comments', 'other'], $ids);
+    }
+
+    public function test_model_for_id(): void
+    {
+        $actual = $this->models->model_for_id('articles');
+
+        $this->assertInstanceOf(ArticlesModel::class, $actual);
+    }
+
+    public function test_model_for_activerecord(): void
+    {
+        $actual = $this->models->model_for_activerecord(Article::class);
+
+        $this->assertInstanceOf(ArticlesModel::class, $actual);
     }
 
     public function test_get_instances(): void

@@ -1,6 +1,6 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord\ModelTest;
+namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
 
@@ -10,6 +10,6 @@ use ICanBoogie\ActiveRecord;
  */
 class Car extends ActiveRecord
 {
-    public $driver_id;
-    public $brand_id;
+    public int $driver_id;
+    public int $brand_id;
 }

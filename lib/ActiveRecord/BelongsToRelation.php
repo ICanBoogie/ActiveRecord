@@ -47,7 +47,7 @@ class BelongsToRelation extends Relation
      */
     public function __invoke(ActiveRecord $record): ActiveRecord
     {
-        $key = $record->{$this->local_key};
+        $key = $record->{$this->local_key} ?? null;
 
         if (!$key) {
             throw new \LogicException("Unable to establish relation, primary key is empty.");

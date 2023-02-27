@@ -11,17 +11,18 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use Error;
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\ModelTest\Article;
-use ICanBoogie\ActiveRecord\ModelTest\ArticleModel;
-use ICanBoogie\ActiveRecord\ModelTest\Brand;
-use ICanBoogie\ActiveRecord\ModelTest\Car;
-use ICanBoogie\ActiveRecord\ModelTest\Comment;
-use ICanBoogie\ActiveRecord\ModelTest\CustomQuery;
-use ICanBoogie\ActiveRecord\ModelTest\Driver;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\PropertyNotWritable;
+use Test\ICanBoogie\Acme\Article;
+use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\Brand;
+use Test\ICanBoogie\Acme\Car;
+use Test\ICanBoogie\Acme\Comment;
+use Test\ICanBoogie\Acme\CustomQuery;
+use Test\ICanBoogie\Acme\Driver;
 
 class ModelTest extends \PHPUnit\Framework\TestCase
 {
@@ -597,8 +598,6 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(Driver::class, $car->driver);
         $this->assertInstanceOf(Brand::class, $car->brand);
 
-        $car->driver_id = null;
-        $this->assertNull($car->driver_id);
         $car->driver = $driver;
         $this->assertEquals($driver->driver_id, $car->driver_id);
     }

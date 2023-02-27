@@ -11,8 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\HasManyRelationTest\Article;
-use ICanBoogie\ActiveRecord\HasManyRelationTest\Comment;
+use Test\ICanBoogie\Acme\Article;
+use Test\ICanBoogie\Acme\Comment;
 use PHPUnit\Framework\TestCase;
 
 final class HasManyRelationTest extends TestCase
@@ -116,21 +116,4 @@ final class HasManyRelationTest extends TestCase
         $this->assertInstanceOf(Query::class, $article_comments);
         $this->assertSame($this->comments, $article_comments->model);
     }
-}
-
-namespace ICanBoogie\ActiveRecord\HasManyRelationTest;
-
-use ICanBoogie\ActiveRecord;
-
-class Comment extends ActiveRecord
-{
-    public $comment_id;
-    public $article_id;
-    public $body;
-}
-
-class Article extends ActiveRecord
-{
-    public $article_id;
-    public $title;
 }
