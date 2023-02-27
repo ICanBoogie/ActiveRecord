@@ -15,16 +15,25 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\ValidationErrors;
 use ICanBoogie\Validate\Validator\Email;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group validate
  * @small
  */
-class RecordNotValidTest extends \PHPUnit\Framework\TestCase
+final class RecordNotValidTest extends TestCase
 {
-    public function test_exception()
+    public function test_exception(): void
     {
-        $record = new ActiveRecord($this->getMockBuilder(Model::class)->disableOriginalConstructor()->getMock());
+        $model = $this->getMockBuilder(Model::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([ 'get_id'])
+            ->getMock();
+        $model->method('get_id')
+            ->willReturn('acme');
+
+        $record = new ActiveRecord();
+
         $errors = new ValidationErrors([
 
             'email' => [

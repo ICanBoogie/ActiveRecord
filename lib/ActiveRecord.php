@@ -14,6 +14,7 @@ namespace ICanBoogie;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\StaticModelResolver;
 use ICanBoogie\Validate\ValidationErrors;
 use LogicException;
 
@@ -36,21 +37,14 @@ class ActiveRecord extends Prototyped
     public const SAVE_SKIP_VALIDATION = 'skip_validation';
 
     /**
-     * The identifier of the model managing the record.
-     */
-    public const MODEL_ID = null;
-
-    /**
      * Model managing the active record.
-     *
-     * @var Model|null
      */
-    private $model;
+    private Model $model;
 
     protected function get_model(): Model
     {
         return $this->model
-            ?: $this->model = ActiveRecord\get_model($this->model_id);
+            ??= StaticModelResolver::model_for_activerecord($this);
     }
 
     /**
@@ -58,14 +52,13 @@ class ActiveRecord extends Prototyped
      *
      * Note: Due to a PHP bug (or feature), the visibility of the property MUST NOT be private.
      * https://bugs.php.net/bug.php?id=40412
-     *
-     * @var string|null
      */
-    protected $model_id;
+    protected string $model_id;
 
-    protected function get_model_id(): ?string
+    protected function get_model_id(): string
     {
-        return $this->model_id;
+        return $this->model_id
+            ??= $this->get_model()->id;
     }
 
     /**
@@ -79,25 +72,13 @@ class ActiveRecord extends Prototyped
      * @throws \InvalidArgumentException if $model is neither a model identifier nor a
      * {@link Model} instance.
      */
-    public function __construct($model = null)
+    public function __construct(string|Model $model = null)
     {
-        if (!$model) {
-            $model = static::MODEL_ID;
-        }
-
-        if (\is_string($model)) {
+        if ($model instanceof Model) {
+            $this->model = $model;
+            $this->model_id = $model->id;
+        } elseif (is_string($model)) {
             $this->model_id = $model;
-        } else {
-            if ($model instanceof Model) {
-                $this->model = $model;
-                $this->model_id = $model->id;
-            } else {
-                throw new \InvalidArgumentException(sprintf(
-                    "\$model must be an instance of '%s' or a model identifier. Given: %s.",
-                    Model::class,
-                    get_debug_type($model)
-                ));
-            }
         }
     }
 
@@ -244,7 +225,7 @@ class ActiveRecord extends Prototyped
 
     /**
      * Unless it's an acceptable value for a column, columns with `null` values are discarded.
-     * This way, we don't have to define every properties before saving our active record.
+     * This way, we don't have to define every property before saving our active record.
      *
      * @param array<string, mixed> $properties
      * @param Schema $schema The model's extended schema.
@@ -271,7 +252,7 @@ class ActiveRecord extends Prototyped
      */
     protected function update_primary_key($primary_key): void
     {
-        $model = $this->model;
+        $model = $this->get_model();
         $property = $model->primary;
 
         if (!$property) {
@@ -290,7 +271,7 @@ class ActiveRecord extends Prototyped
      */
     public function delete(): bool
     {
-        $model = $this->model;
+        $model = $this->get_model();
         $primary = $model->primary;
 
         if (!$primary) {

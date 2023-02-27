@@ -9,6 +9,8 @@
 ### New features
 
 - Added interface `ModelProvider`. Better use this one than depend on `ModelCollection`. `ModelCollection` implements `ModelProvider`.
+- Added interface `ModelResolver`.
+- Added `StaticModelResolver` which replaces `StaticModelProvider` in `ActiveRecord`.
 
 ### Backward Incompatible Changes
 
@@ -20,4 +22,4 @@ None
 
 ### Other Changes
 
-None
+- `ActiveRecord` uses `StaticModelResolver` to obtain its model.

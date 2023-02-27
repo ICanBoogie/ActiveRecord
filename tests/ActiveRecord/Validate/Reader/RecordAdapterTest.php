@@ -12,14 +12,16 @@
 namespace ICanBoogie\ActiveRecord\Validate\Reader;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Model;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group validate
  * @small
  */
-class RecordAdapterTest extends \PHPUnit\Framework\TestCase
+final class RecordAdapterTest extends TestCase
 {
-    public function test_adapter()
+    public function test_adapter(): void
     {
         $p = 'property' . uniqid();
         $v = uniqid();
@@ -34,14 +36,15 @@ class RecordAdapterTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($reader->read('p' . uniqid()));
     }
 
-    /**
-     * @return ActiveRecord\Model
-     */
-    private function mockModel()
+    private function mockModel(): Model
     {
-        return $this
-            ->getMockBuilder(ActiveRecord\Model::class)
+        $model = $this->getMockBuilder(Model::class)
             ->disableOriginalConstructor()
+            ->onlyMethods([ 'get_id'])
             ->getMock();
+        $model->method('get_id')
+            ->willReturn('acme');
+
+        return $model;
     }
 }
