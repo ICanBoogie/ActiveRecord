@@ -65,6 +65,9 @@ final class SchemaTest extends TestCase
         $this->assertSame($expected, (new Schema($columns))->primary);
     }
 
+    /**
+     * @return array<string, array{ array<string, SchemaColumn>, null|string|array<string> }>
+     */
     public function provide_test_primary(): array
     {
         return [

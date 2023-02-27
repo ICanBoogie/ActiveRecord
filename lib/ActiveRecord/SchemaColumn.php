@@ -144,6 +144,7 @@ class SchemaColumn
     }
 
     public static function foreign(
+        bool $null = false,
         bool $unique = false,
         bool $primary = false,
     ): self {
@@ -151,7 +152,7 @@ class SchemaColumn
             type: self::TYPE_INT,
             size: self::SIZE_BIG,
             unsigned: true,
-            null: false,
+            null: $null,
             unique: $primary ? false : $unique,
             primary: $primary,
         );

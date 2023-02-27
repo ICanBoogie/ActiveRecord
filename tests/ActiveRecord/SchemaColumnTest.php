@@ -144,7 +144,7 @@ final class SchemaColumnTest extends TestCase
                 "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
             ],
 
-            /* Custom: serial */
+            /* SERIAL */
 
             [
                 SchemaColumn::serial(),
@@ -154,6 +154,18 @@ final class SchemaColumnTest extends TestCase
                 SchemaColumn::serial(primary: true),
                 "BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY"
             ],
+
+            /* FOREIGN */
+
+            [
+                SchemaColumn::foreign(),
+                "BIGINT UNSIGNED NOT NULL"
+            ],
+            [
+                SchemaColumn::foreign(null: true),
+                "BIGINT UNSIGNED NULL"
+            ],
+
         ];
     }
 }
