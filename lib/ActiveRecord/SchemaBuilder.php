@@ -33,6 +33,35 @@ final class SchemaBuilder
         return $schema;
     }
 
+    public function add_column(
+        string $col_name,
+        string $type,
+        string|int|null $size = null,
+        bool $unsigned = false,
+        bool $null = false,
+        mixed $default = null,
+        bool $auto_increment = false,
+        bool $unique = false,
+        bool $primary = false,
+        ?string $comment = null,
+        ?string $collate = null,
+    ): self {
+        $this->columns[$col_name] = new SchemaColumn(
+            type: $type,
+            size: $size,
+            unsigned: $unsigned,
+            null: $null,
+            default: $default,
+            auto_increment: $auto_increment,
+            unique: $unique,
+            primary: $primary,
+            comment: $comment,
+            collate: $collate,
+        );
+
+        return $this;
+    }
+
     public function add_boolean(
         string $col_name,
         bool $null = false,
@@ -99,6 +128,19 @@ final class SchemaBuilder
             null: $null,
             unique: $unique,
             primary: $primary,
+        );
+
+        return $this;
+    }
+
+    public function add_date(
+        string $col_name,
+        bool $null = false,
+        ?string $default = null,
+    ): self {
+        $this->columns[$col_name] = SchemaColumn::date(
+            null: $null,
+            default: $default,
         );
 
         return $this;

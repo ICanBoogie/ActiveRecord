@@ -70,6 +70,7 @@ class SchemaColumn
     public const TYPE_BLOB = 'BLOB';
     public const TYPE_BOOLEAN = 'BOOLEAN';
     public const TYPE_CHAR = 'CHAR';
+    public const TYPE_DATE = 'DATE';
     public const TYPE_DATETIME = 'DATETIME';
     public const TYPE_FLOAT = 'FLOAT';
     public const TYPE_INT = 'INT';
@@ -164,6 +165,19 @@ class SchemaColumn
     /*
      * https://dev.mysql.com/doc/refman/8.0/en/datetime.html
      */
+
+    public static function date(
+        bool $null = false,
+        ?string $default = null,
+    ): self {
+        self::assert_datetime_default($default);
+
+        return new self(
+            type: self::TYPE_DATE,
+            null: $null,
+            default: $default,
+        );
+    }
 
     public static function datetime(
         bool $null = false,
