@@ -11,6 +11,7 @@
 - Added interface `ModelProvider`. Better use this one than depend on `ModelCollection`. `ModelCollection` implements `ModelProvider`.
 - Added interface `ModelResolver`.
 - Added `StaticModelResolver` which replaces `StaticModelProvider` in `ActiveRecord`.
+- Added `SchemaBuilder` to build schema using a fluent API.
 
 ### Backward Incompatible Changes
 
