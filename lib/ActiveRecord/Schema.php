@@ -48,11 +48,17 @@ class Schema implements ArrayAccess, IteratorAggregate
     use AccessorTrait;
 
     /**
-     * @param array{ 'columns': array<string, SchemaColumn> } $an_array
+     * @param array{
+     *     columns: array<string, SchemaColumn>,
+     *     indexes: array<SchemaIndex>,
+     *  } $an_array
      */
     public static function __set_state(array $an_array): self
     {
-        return new self($an_array['columns']);
+        $instance = new self($an_array['columns']);
+        $instance->indexes = $an_array['indexes'];
+
+        return $instance;
     }
 
     /**
@@ -117,11 +123,11 @@ class Schema implements ArrayAccess, IteratorAggregate
     {
         $this->columns[$column_id] = $column;
     }
-
-    /**
-     * @var array<int, string[]>
-     */
-    private array $unique_indexes = [];
+//
+//    /**
+//     * @var array<int, string[]>
+//     */
+//    private array $unique_indexes = [];
 
     /**
      * Create an index on one of multiple columns.

@@ -72,7 +72,7 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver
     }
 
     /**
-     * @param array<string, array<Model::*, string>> $definitions
+     * @param array<string, array<Model::*, mixed>> $definitions
      */
     public function __construct(
         public readonly ConnectionProvider $connections,

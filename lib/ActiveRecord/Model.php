@@ -15,6 +15,7 @@ use ArrayAccess;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\Prototype\MethodNotDefined;
+use LogicException;
 
 /**
  * Base class for activerecord models.
@@ -145,11 +146,7 @@ class Model extends Table implements ArrayAccess
      *
      * If {@link EXTENDING} is defined but the model has no schema ({@link SCHEMA} is empty),
      * the name of the model and the schema are inherited from the extended model and
-     * {@link EXTENDING} is set to the parent model object. If {@link ACTIVERECORD_CLASS} is
-     * empty, its value is set to the extended model's active record class.
-     *
-     * If {@link ACTIVERECORD_CLASS} is set, its value is saved in the
-     * {@link $activerecord_class} property.
+     * {@link EXTENDING} is set to the parent model object.
      *
      * @param array<string, mixed> $attributes Attributes used to construct the model.
      */
@@ -162,7 +159,8 @@ class Model extends Table implements ArrayAccess
 
         parent::__construct($attributes);
 
-        $this->activerecord_class = $this->resolve_activerecord_class();
+        $this->activerecord_class = $attributes[self::ACTIVERECORD_CLASS]
+            ?? throw new LogicException("Missing ActiveRecord class for model '$this->id'");
         $this->query_class = $this->resolve_query_class();
         $this->resolve_relations();
     }
@@ -226,20 +224,6 @@ class Model extends Table implements ArrayAccess
         }
 
         return $attributes;
-    }
-
-    /**
-     * @return class-string
-     */
-    private function resolve_activerecord_class(): string
-    {
-        $activerecord_class = $this->attributes[self::ACTIVERECORD_CLASS];
-
-        if (empty($activerecord_class)) {
-            return $this->parent ? $this->parent->activerecord_class : ActiveRecord::class;
-        }
-
-        return $activerecord_class;
     }
 
     /**

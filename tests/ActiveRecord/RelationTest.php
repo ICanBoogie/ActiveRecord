@@ -29,12 +29,17 @@ final class RelationTest extends TestCase
         $model = $this
             ->getMockBuilder(Model::class)
             ->disableOriginalConstructor()
-            ->onlyMethods([ 'get_activerecord_class', 'get_models' ])
+            ->onlyMethods([ 'get_activerecord_class', 'get_models', 'get_id', 'get_primary' ])
             ->getMock();
         $model
-            ->expects($this->any())
             ->method('get_activerecord_class')
             ->willReturn(get_class($activerecord));
+        $model
+            ->method('get_id')
+            ->willReturn('madonna');
+        $model
+            ->method('get_primary')
+            ->willReturn('primary_key');
 
         $comments = $this
             ->getMockBuilder(Model::class)
@@ -58,36 +63,6 @@ final class RelationTest extends TestCase
             ->willReturn($models);
 
         $this->model = $model;
-    }
-
-    public function test_should_throw_exception_when_default_activerecord_class(): void
-    {
-        $models = $this
-            ->getMockBuilder(ModelCollection::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $connection = $this
-            ->getMockBuilder(Connection::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $articles = new Model($models, [
-            Model::CONNECTION => $connection,
-            Model::NAME => 'testing',
-            Model::SCHEMA => new Schema([
-                'id' => SchemaColumn::serial()
-            ])
-        ]);
-
-        $this->expectException(ActiveRecordClassNotValid::class);
-
-        new class ($articles, 'comments', []) extends Relation {
-            public function __invoke(ActiveRecord $record): mixed
-            {
-                return null;
-            }
-        };
     }
 
     public function test_get_parent(): void

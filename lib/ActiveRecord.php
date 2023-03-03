@@ -32,7 +32,7 @@ use function sprintf;
  * @property-read bool $is_new Whether the record is new or not.
  */
 #[\AllowDynamicProperties]
-class ActiveRecord extends Prototyped
+abstract class ActiveRecord extends Prototyped
 {
     public const SAVE_SKIP_VALIDATION = 'skip_validation';
 
@@ -44,7 +44,7 @@ class ActiveRecord extends Prototyped
     protected function get_model(): Model
     {
         return $this->model
-            ??= StaticModelResolver::model_for_activerecord($this);
+            ??= StaticModelResolver::model_for_activerecord($this::class);
     }
 
     /**
@@ -53,7 +53,7 @@ class ActiveRecord extends Prototyped
      * Note: Due to a PHP bug (or feature), the visibility of the property MUST NOT be private.
      * https://bugs.php.net/bug.php?id=40412
      */
-    protected string $model_id;
+    private string $model_id;
 
     protected function get_model_id(): string
     {
@@ -62,23 +62,18 @@ class ActiveRecord extends Prototyped
     }
 
     /**
-     * Initializes the {@link $model} and {@link $model_id} properties.
-     *
-     * @param string|Model|null $model The model managing the active record. A {@link Model}
-     * instance can be specified as well as a model identifier. If a model identifier is
-     * specified, the model is resolved when the {@link $model} property is accessed. If `$model`
-     * is empty, the identifier of the model is read from the {@link MODEL_ID} class constant.
+     * @param ?Model $model The model managing the active record. A {@link Model}
+     * instance can be specified as well as a model identifier. If `$model` is empty, the model
+     * will be resolved with {@link StaticModelResolver} when required.
      *
      * @throws \InvalidArgumentException if $model is neither a model identifier nor a
      * {@link Model} instance.
      */
-    public function __construct(string|Model $model = null)
+    public function __construct(Model $model = null)
     {
-        if ($model instanceof Model) {
+        if ($model) {
             $this->model = $model;
             $this->model_id = $model->id;
-        } elseif (is_string($model)) {
-            $this->model_id = $model;
         }
     }
 
@@ -93,6 +88,7 @@ class ActiveRecord extends Prototyped
         $properties = parent::__sleep();
 
         unset($properties['model']);
+        unset($properties['model_id']);
 
         foreach (\array_keys($properties) as $property) {
             if ($this->$property instanceof self) {

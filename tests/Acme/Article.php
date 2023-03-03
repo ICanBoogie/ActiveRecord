@@ -2,10 +2,11 @@
 
 namespace Test\ICanBoogie\Acme;
 
-use ICanBoogie\ActiveRecord;
+use ICanBoogie\Acme\Node;
 
-class Article extends ActiveRecord
+class Article extends Node
 {
-    public int $article_id;
-    public string $title;
+    public string $body;
+    public string $date;
+    public ?int $rating;
 }

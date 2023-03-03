@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord;
+use ICanBoogie\Acme\Subscriber;
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\ValidationErrors;
 use ICanBoogie\Validate\Validator\Email;
@@ -32,7 +32,7 @@ final class RecordNotValidTest extends TestCase
         $model->method('get_id')
             ->willReturn('acme');
 
-        $record = new ActiveRecord();
+        $record = new Subscriber();
 
         $errors = new ValidationErrors([
 

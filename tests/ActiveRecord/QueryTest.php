@@ -11,142 +11,143 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\QueryTest\Dog;
+use ICanBoogie\Acme\Subscriber;
+use ICanBoogie\Acme\Update;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Article;
+use Test\ICanBoogie\Fixtures;
+
+use function gmdate;
+use function rand;
+use function time;
+use function uniqid;
 
 final class QueryTest extends TestCase
 {
-    private static int $n = 10;
-    private static ModelCollection $models;
-    private static Model $animals;
-    private static Model $dogs;
+    private const N = 10;
+    private ModelCollection $models;
+    private Model $nodes;
+    private Model $articles;
 
     /**
      * @var array<int, array<string, mixed>>
      */
-    private static array $source;
+    private array $source;
 
-    public static function setUpBeforeClass(): void
+    protected function setUp(): void
     {
-        $connections = new ConnectionCollection([
+        parent::setUp();
 
-            'primary' => 'sqlite::memory:'
+        $models = new ModelCollection(
+            Fixtures::connections_with_primary(),
+            Fixtures::model_definitions([ 'nodes', 'articles' ]) + [
 
-        ]);
+                'subscribers' => [
+                    Model::ACTIVERECORD_CLASS => Subscriber::class,
+                    Model::SCHEMA => new Schema([
+                        'subscriber_id' => SchemaColumn::serial(primary: true),
+                        'email' => SchemaColumn::varchar(),
+                    ])
+                ],
 
-        $models = new ModelCollection($connections, [
+                'updates' => [
+                    Model::ACTIVERECORD_CLASS => Update::class,
+                    Model::SCHEMA => new Schema([
+                        'update_id' => SchemaColumn::serial(primary: true),
+                        'subscriber_id' => SchemaColumn::foreign(),
+                        'updated_at' => SchemaColumn::datetime(),
+                        'update_hash' => SchemaColumn::char(size: 40)
+                    ])
+                ],
 
-            'animals' => [
-                Model::SCHEMA => new Schema([
-                    'id' => SchemaColumn::serial(primary: true),
-                    'name' => SchemaColumn::varchar(),
-                    'date' => SchemaColumn::timestamp(),
-                    'legs' => SchemaColumn::int(),
-                ])
-            ],
-
-            'dogs' => [
-                Model::ACTIVERECORD_CLASS => Dog::class,
-                Model::EXTENDING => 'animals',
-                Model::SCHEMA => new Schema([
-                    'bark_volume' => SchemaColumn::float(),
-                ])
-            ],
-
-            'subscribers' => [
-                Model::SCHEMA => new Schema([
-                    'subscriber_id' => SchemaColumn::serial(primary: true),
-                    'email' => SchemaColumn::varchar(),
-                ])
-            ],
-
-            'updates' => [
-                Model::SCHEMA => new Schema([
-                    'update_id' => SchemaColumn::serial(primary: true),
-                    'subscriber_id' => SchemaColumn::foreign(),
-                    'updated_at' => SchemaColumn::datetime(),
-                    'update_hash' => SchemaColumn::char(size: 40)
-                ])
-            ],
-
-        ]);
+            ]
+        );
 
         $models->install();
 
-        self::$models = $models;
-        self::$animals = $models['animals'];
-        self::$dogs = $models['dogs'];
+        $this->models = $models;
+        $this->nodes = $models['nodes'];
+        $this->articles = $models['articles'];
 
-        for ($i = 0; $i < self::$n; $i++) {
+        for ($i = 0; $i < self::N; $i++) {
             $properties = [
 
-                'name' => uniqid('', true),
+                'title' => uniqid('', true),
+                'body' => uniqid('', true),
                 'date' => gmdate('Y-m-d H:i:s', time() + 60 * rand(1, 3600)),
-                'legs' => rand(2, 16),
-                'bark_volume' => rand(100, 1000) / 100
+                'rating' => rand(0, 5),
+
             ];
 
-            $key = self::$dogs->save($properties);
-
-            self::$source[$key] = $properties;
+            $key = $this->articles->save($properties);
+            $this->source[$key] = $properties;
         }
     }
 
     public function test_one(): void
     {
-        $this->assertInstanceOf(Dog::class, self::$dogs->one);
+        $this->assertInstanceOf(Article::class, $this->articles->one);
     }
 
     public function test_all(): void
     {
-        $all = self::$dogs->all;
+        $all = $this->articles->all;
 
         $this->assertIsArray($all);
-        $this->assertCount(self::$n, $all);
+        $this->assertCount(self::N, $all);
     }
 
     public function test_order(): void
     {
-        $actual = self::$animals->order('name ASC, legs DESC');
+        $actual = $this->articles->order('title ASC, rating DESC');
 
-        $this->assertEquals("SELECT * FROM `animals` `animal` ORDER BY name ASC, legs DESC", (string) $actual);
+        $this->assertEquals(
+            "SELECT * FROM `articles` `article` INNER JOIN `nodes` `node` USING(`nid`) ORDER BY title ASC, rating DESC",
+            (string)$actual
+        );
     }
 
     public function test_order_expand_minus(): void
     {
-        $actual = self::$animals->order('name ASC, -legs');
+        $actual = $this->articles->order('title ASC, -rating');
 
-        $this->assertEquals("SELECT * FROM `animals` `animal` ORDER BY name ASC, legs DESC", (string) $actual);
+        $this->assertEquals(
+            "SELECT * FROM `articles` `article` INNER JOIN `nodes` `node` USING(`nid`) ORDER BY title ASC, rating DESC",
+            (string)$actual
+        );
 
-        $actual = self::$dogs->order('-bark_volume');
+        $actual = $this->articles->order('title ASC, -rating_underscored');
 
-        $this->assertEquals("SELECT * FROM `dogs` `dog` INNER JOIN `animals` `animal` USING(`id`) ORDER BY bark_volume DESC", (string) $actual);
+        $this->assertEquals(
+            "SELECT * FROM `articles` `article` INNER JOIN `nodes` `node` USING(`nid`) ORDER BY title ASC, rating_underscored DESC",
+            (string)$actual
+        );
     }
 
     public function test_order_by_field(): void
     {
-        $m = self::$animals;
+        $m = $this->nodes;
 
-        $q = $m->order('id', [ 1, 2, 3 ]);
-        $this->assertEquals("SELECT * FROM `animals` `animal` ORDER BY FIELD(id, '1', '2', '3')", (string) $q);
+        $q = $m->order('nid', [ 1, 2, 3 ]);
+        $this->assertEquals("SELECT * FROM `nodes` `node` ORDER BY FIELD(nid, '1', '2', '3')", (string)$q);
 
-        $q = $m->order('id', 1, 2, 3);
-        $this->assertEquals("SELECT * FROM `animals` `animal` ORDER BY FIELD(id, '1', '2', '3')", (string) $q);
+        $q = $m->order('nid', 1, 2, 3);
+        $this->assertEquals("SELECT * FROM `nodes` `node` ORDER BY FIELD(nid, '1', '2', '3')", (string)$q);
     }
 
     public function test_conditions(): void
     {
-        $query = new Query(self::$animals);
+        $query = new Query($this->articles);
 
-        $query->where([ 'name' => 'madonna' ])
-            ->filter_by_legs(2)
+        $query->where([ 'title' => 'madonna' ])
+            ->filter_by_rating(2)
             ->and('YEAR(date) = ?', 1958);
 
         $this->assertSame([
 
-            "(`name` = ?)",
-            "(`legs` = ?)",
+            "(`title` = ?)",
+            "(`rating` = ?)",
             "(YEAR(date) = ?)"
 
         ], $query->conditions);
@@ -162,7 +163,7 @@ final class QueryTest extends TestCase
 
     public function test_join_with_query(): void
     {
-        $models = self::$models;
+        $models = $this->models;
         $updates = $models['updates'];
         $subscribers = $models['subscribers'];
 
@@ -180,13 +181,13 @@ final class QueryTest extends TestCase
         );
         $this->assertEquals(
             "SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` ORDER BY updated_at DESC) `update` USING(`subscriber_id`) GROUP BY `subscriber`.subscriber_id",
-            (string) $subscriber_query
+            (string)$subscriber_query
         );
     }
 
     public function test_join_with_query_with_args(): void
     {
-        $models = self::$models;
+        $models = $this->models;
         $updates = $models['updates'];
         $subscribers = $models['subscribers'];
         $now = DateTime::now();
@@ -201,7 +202,10 @@ final class QueryTest extends TestCase
             ->filter_by_email('person@example.com')
             ->group("`{alias}`.subscriber_id");
 
-        $this->assertEquals("SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` WHERE (updated_at < ?) ORDER BY updated_at DESC) `update` USING(`subscriber_id`) WHERE (`email` = ?) GROUP BY `subscriber`.subscriber_id", (string) $subscriber_query);
+        $this->assertEquals(
+            "SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` WHERE (updated_at < ?) ORDER BY updated_at DESC) `update` USING(`subscriber_id`) WHERE (`email` = ?) GROUP BY `subscriber`.subscriber_id",
+            (string)$subscriber_query
+        );
         $this->assertSame([ $now->utc->as_db ], $subscriber_query->joints_args);
         $this->assertSame([ 'person@example.com' ], $subscriber_query->conditions_args);
         $this->assertSame([ $now->utc->as_db, 'person@example.com' ], $subscriber_query->args);
@@ -209,23 +213,23 @@ final class QueryTest extends TestCase
 
     public function test_join_with_model(): void
     {
-        $models = self::$models;
+        $models = $this->models;
         $updates = $models['updates'];
         $subscribers = $models['subscribers'];
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `subscriber` USING(`subscriber_id`)",
-            (string) $updates->select('update_id, email')->join($subscribers)
+            (string)$updates->select('update_id, email')->join($subscribers)
         );
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `sub` USING(`subscriber_id`)",
-            (string) $updates->select('update_id, email')->join($subscribers, [ 'as' => 'sub' ])
+            (string)$updates->select('update_id, email')->join($subscribers, [ 'as' => 'sub' ])
         );
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` LEFT JOIN `subscribers` AS `sub` USING(`subscriber_id`)",
-            (string) $updates->select('update_id, email')->join($subscribers, [ 'as' => 'sub', 'mode' => 'LEFT' ])
+            (string)$updates->select('update_id, email')->join($subscribers, [ 'as' => 'sub', 'mode' => 'LEFT' ])
         );
     }
 }

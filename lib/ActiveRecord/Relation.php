@@ -14,34 +14,23 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototype;
+use RuntimeException;
 
 use function array_pop;
 use function explode;
+use function is_string;
 
 /**
  * Representation of a relation.
  *
- * @property-read Model $parent The parent model of the relation.
  * @property-read Model $related The related model of the relation.
- * @property-read string $as The name of the relation.
- * @property-read string $local_key The local key.
- * @property-read string $foreign_key The foreign key.
  */
 abstract class Relation
 {
     /**
-     * @uses get_parent
      * @uses get_related
-     * @uses get_as
-     * @uses get_local_key
-     * @uses get_foreign_key
      */
     use AccessorTrait;
-
-    private function get_parent(): Model
-    {
-        return $this->parent;
-    }
 
     private function get_related(): Model
     {
@@ -51,62 +40,55 @@ abstract class Relation
             return $related;
         }
 
-        return $this->related = $this->parent->models[$related];
+        return $this->related = $this->parent->models->model_for_id($related);
     }
 
     /**
      * The name of the relation.
      */
-    private string $as;
-
-    private function get_as(): string
-    {
-        return $this->as;
-    }
+    public readonly string $as;
 
     /**
      * Local key. Default: The parent model's primary key.
-     *
-     * @var string
      */
-    private $local_key;
-
-    private function get_local_key(): string
-    {
-        return $this->local_key;
-    }
+    public readonly string $local_key;
 
     /**
      * Foreign key. Default: The parent model's primary key.
-     *
-     * @var string
      */
-    private $foreign_key;
-
-    private function get_foreign_key(): string
-    {
-        return $this->foreign_key;
-    }
+    public readonly string $foreign_key;
 
     /**
-     * @param Model $parent The parent model of the relation.
-     * @param Model|string $related The related model of the relation. Can be specified using its
-     * instance or its identifier.
-     * @param array<string, mixed> $options the following options are available:
+     * @param Model $parent
+     *     The parent model of the relation.
+     * @param Model|string $related
+     *     The related model of the relation. Can be specified using its instance or its identifier.
+     * @param array{
+     *     as?: string,
+     *     local_key?: string,
+     *     foreign_key?: string,
+     * } $options
      *
-     * - `as`: The name of the magic property to add to the prototype. Default: a plural name
+     *     Where:
+     *     - `as`: The name of the magic property to add to the prototype. Default: a plural name
      * resolved from the foreign model's id.
-     * - `local_key`: The name of the local key. Default: The parent model's primary key.
-     * - `foreign_key`: The name of the foreign key. Default: The parent model's primary key.
+     *     - `local_key`: The name of the local key. Default: The parent model's primary key.
+     *     - `foreign_key`: The name of the foreign key. Default: The parent model's primary key.
      */
     public function __construct(
-        private Model $parent,
+        public readonly Model $parent,
         private Model|string $related,
         array $options = []
     ) {
+        assert(is_string($parent->primary));
+
         $this->as = $options['as'] ?? $this->resolve_property_name($related);
-        $this->local_key = $options['local_key'] ?? $parent->primary;
-        $this->foreign_key = $options['foreign_key'] ?? $parent->primary;
+        $this->local_key = $options['local_key']
+            ?? $parent->primary
+            ?? throw new RuntimeException("Unable to determine 'local_key' from parent '$parent->id', primary key is null");
+        $this->foreign_key = $options['foreign_key']
+            ?? $parent->primary
+            ?? throw new RuntimeException("Unable to determine 'foreign_key' from parent '$parent->id', primary key is null");
 
         $activerecord_class = $this->resolve_activerecord_class($parent);
         $prototype = Prototype::from($activerecord_class);
@@ -173,6 +155,6 @@ abstract class Relation
             return $related;
         }
 
-        return $this->related = $this->parent->models[$related];
+        return $this->related = $this->parent->models->model_for_id($related);
     }
 }

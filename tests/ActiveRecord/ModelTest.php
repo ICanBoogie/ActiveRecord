@@ -11,11 +11,13 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use Error;
+use ICanBoogie\Acme\Count;
+use ICanBoogie\Acme\Node;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\PropertyNotWritable;
+use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Brand;
@@ -24,7 +26,7 @@ use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\CustomQuery;
 use Test\ICanBoogie\Acme\Driver;
 
-class ModelTest extends \PHPUnit\Framework\TestCase
+final class ModelTest extends TestCase
 {
     private $prefix = 'myprefix';
 
@@ -80,21 +82,18 @@ class ModelTest extends \PHPUnit\Framework\TestCase
                     'nid' => SchemaColumn::serial(primary: true),
                     'title' => SchemaColumn::varchar(),
                 ]),
-            ],
-
-            'contents' => [
-                Model::EXTENDING => 'nodes',
-                Model::SCHEMA => new Schema([
-                    'body' => new SchemaColumn('text'),
-                    'date' => new SchemaColumn('datetime'),
-                ])
+                Model::ACTIVERECORD_CLASS => Node::class,
             ],
 
             'articles' => [
+                Model::EXTENDING => 'nodes',
                 Model::ACTIVERECORD_CLASS => Article::class,
                 Model::CLASSNAME => ArticleModel::class,
                 Model::HAS_MANY => 'comments',
-                Model::EXTENDING => 'contents'
+                Model::SCHEMA => new Schema([
+                    'body' => new SchemaColumn('text'),
+                    'date' => new SchemaColumn('datetime'),
+                ]),
             ],
 
             'comments' => [
@@ -112,7 +111,8 @@ class ModelTest extends \PHPUnit\Framework\TestCase
                     'id' => SchemaColumn::serial(primary: true),
                     'name' => SchemaColumn::varchar(),
                     'date' => new SchemaColumn('datetime'),
-                ])
+                ]),
+                Model::ACTIVERECORD_CLASS => Count::class,
             ],
 
         ]);
@@ -139,6 +139,33 @@ class ModelTest extends \PHPUnit\Framework\TestCase
         $this->counts_records_count = count($names);
     }
 
+    /**
+     * @dataProvider provide_get_model
+     *
+     * @param class-string $class
+     */
+    public function test_get_model(string $id, string $class): void
+    {
+        $actual = $this->models->model_for_id($id);
+
+        $this->assertInstanceOf($class, $actual);
+    }
+
+    /**
+     * @return array<array{ string, class-string }>
+     */
+    public static function provide_get_model(): array
+    {
+        return [
+
+            [ 'nodes', Model::class ],
+            [ 'articles', Model::class ],
+            [ 'comments', Model::class ],
+            [ 'counts', Model::class ],
+
+        ];
+    }
+
     public function test_call_undefined_method(): void
     {
         $this->expectException(\ICanBoogie\Prototype\MethodNotDefined::class);
@@ -161,15 +188,13 @@ class ModelTest extends \PHPUnit\Framework\TestCase
     public function test_get_parent(): void
     {
         $models = $this->models;
-        $this->assertSame($models['nodes'], $models['contents']->parent);
         $this->assertSame($models['nodes'], $models['articles']->parent);
     }
 
     public function test_get_parent_model(): void
     {
         $models = $this->models;
-        $this->assertSame($models['nodes'], $models['contents']->parent_model);
-        $this->assertSame($models['contents'], $models['articles']->parent_model);
+        $this->assertSame($models['nodes'], $models['articles']->parent_model);
     }
 
     public function test_should_default_id_from_name(): void
@@ -184,15 +209,14 @@ class ModelTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        /* @var $models ModelCollection */
-
         $model = new Model($models, [
 
             Model::CONNECTION => $connection,
             Model::NAME => 'nodes',
             Model::SCHEMA => new Schema([
                 'id' => SchemaColumn::serial(primary: true),
-            ])
+            ]),
+            Model::ACTIVERECORD_CLASS => Node::class,
         ]);
 
         $this->assertEquals('nodes', $model->id);
@@ -644,7 +668,7 @@ class ModelTest extends \PHPUnit\Framework\TestCase
                     return $m->select('nid, UPPER(name)');
                 },
                 <<<EOT
-SELECT nid, UPPER(name) FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`)
+SELECT nid, UPPER(name) FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`)
 EOT
             ],
 
@@ -653,7 +677,7 @@ EOT
                     return $m->join('INNER JOIN other USING(nid)');
                 },
                 <<<EOT
-SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) INNER JOIN other USING(nid)
+SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) INNER JOIN other USING(nid)
 EOT
             ],
 
@@ -662,7 +686,7 @@ EOT
                     return $m->where([ 'nid' => 1, 'name' => 'madonna' ]);
                 },
                 <<<EOT
-SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) WHERE (`nid` = ? AND `name` = ?)
+SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) WHERE (`nid` = ? AND `name` = ?)
 EOT
             ],
 
@@ -671,7 +695,7 @@ EOT
                     return $m->group('name');
                 },
                 <<<EOT
-SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) GROUP BY name
+SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) GROUP BY name
 EOT
             ],
 
@@ -680,7 +704,7 @@ EOT
                     return $m->order('nid');
                 },
                 <<<EOT
-SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) ORDER BY nid
+SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) ORDER BY nid
 EOT
             ],
 
@@ -689,7 +713,7 @@ EOT
                     return $m->order('nid', 1, 2, 3);
                 },
                 <<<EOT
-SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) ORDER BY FIELD(nid, '1', '2', '3')
+SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) ORDER BY FIELD(nid, '1', '2', '3')
 EOT
             ],
 
@@ -698,7 +722,7 @@ EOT
                     return $m->limit(5);
                 },
                 <<<EOT
-SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5
+SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5
 EOT
             ],
 
@@ -707,7 +731,7 @@ EOT
                     return $m->limit(5, 10);
                 },
                 <<<EOT
-SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5, 10
+SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5, 10
 EOT
             ],
 
@@ -716,13 +740,13 @@ EOT
                     return $m->offset(5);
                 },
                 <<<EOT
-SELECT * FROM `{$p}_contents` `content` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5, $l
+SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5, $l
 EOT
             ]
         ];
     }
 
-    public function test_activerecord_cache()
+    public function test_activerecord_cache(): void
     {
         $model_id = 't' . uniqid();
 
@@ -731,7 +755,8 @@ EOT
                 Model::SCHEMA => new Schema([
                     'id' => SchemaColumn::serial(primary: true),
                     'name' => SchemaColumn::varchar(),
-                ])
+                ]),
+                Model::ACTIVERECORD_CLASS => Node::class,
             ]
         ]);
 
@@ -780,6 +805,7 @@ EOT
             Model::SCHEMA => new Schema([
                 'id' => SchemaColumn::serial(primary: true),
             ]),
+            Model::ACTIVERECORD_CLASS => Node::class,
             Model::QUERY_CLASS => CustomQuery::class,
         ]);
 
@@ -788,14 +814,14 @@ EOT
         $this->assertNotSame($query1, $query2);
     }
 
-    public function test_query()
+    public function test_query(): void
     {
         $model = $this->model;
 
         $this->assertInstanceOf(Query::class, $query1 = $model->query());
         $this->assertInstanceOf(Query::class, $query2 = $model->query("1 = 1"));
         $this->assertSame(
-            'SELECT * FROM `myprefix_contents` `content`' .
+            'SELECT * FROM `myprefix_articles` `article`' .
             ' INNER JOIN `myprefix_nodes` `node` USING(`nid`) WHERE (1 = 1)',
             (string) $query2
         );

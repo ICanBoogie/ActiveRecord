@@ -48,20 +48,23 @@ class SchemaColumn
      */
     use AccessorTrait;
 
-    public static function __set_state(array $an_array): self // @phpstan-ignore-line
+    /**
+     * @param array{
+     *     type: string,
+     *     size: string|int|null,
+     *     unsigned: bool,
+     *     null: bool,
+     *     default: mixed,
+     *     auto_increment: bool,
+     *     unique: bool,
+     *     primary: bool,
+     *     comment: ?string,
+     *     collate: ?string
+     * } $an_array
+     */
+    public static function __set_state(array $an_array): self
     {
-        return new self(
-            $an_array['type'],
-            $an_array['size'],
-            $an_array['unsigned'],
-            $an_array['null'],
-            $an_array['default'],
-            $an_array['auto_increment'],
-            $an_array['unique'],
-            $an_array['primary'],
-            $an_array['comment'],
-            $an_array['collate'],
-        );
+        return new self(...$an_array);
     }
 
     public const TYPE_BLOB = 'BLOB';

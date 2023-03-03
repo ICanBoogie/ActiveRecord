@@ -11,7 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
 use LogicException;
 use Throwable;
@@ -24,26 +23,14 @@ use Throwable;
 class RecordNotFound extends LogicException implements Exception
 {
     /**
-     * @uses get_records
-     */
-    use AccessorTrait;
-
-    /**
-     * @return ActiveRecord[]
-     */
-    private function get_records(): array
-    {
-        return $this->records;
-    }
-
-    /**
-     * @param ActiveRecord[] $records
+     * @param array<int, ActiveRecord|false> $records
+     *     Where _key_ is a primary key and _value_ an ActiveRecord or `false`.
      */
     public function __construct(
         string $message,
-        private array $records = [],
+        public readonly array $records = [],
         Throwable $previous = null
     ) {
-        parent::__construct($message, 0, $previous);
+        parent::__construct($message, previous: $previous);
     }
 }

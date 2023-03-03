@@ -6,4 +6,6 @@ use ICanBoogie\ActiveRecord;
 
 class Driver extends ActiveRecord
 {
+    public int $driver_id;
+    public string $name;
 }

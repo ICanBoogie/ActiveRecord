@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Comment;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Fixtures;
 
 final class HasManyRelationTest extends TestCase
 {
@@ -22,37 +23,10 @@ final class HasManyRelationTest extends TestCase
 
     protected function setUp(): void
     {
-        $connections = new ConnectionCollection([
-
-            'primary' => 'sqlite::memory:'
-
-        ]);
-
-        $models = new ModelCollection($connections, [
-
-            'comments' => [
-                Model::ACTIVERECORD_CLASS => Comment::class,
-                Model::ID => 'comments',
-                Model::NAME => 'comments',
-                Model::SCHEMA => new Schema([
-                    'comment_id' => SchemaColumn::serial(primary: true),
-                    'article_id' => SchemaColumn::foreign(),
-                    'body' => new SchemaColumn('text'),
-                ])
-            ],
-
-            'articles' => [
-
-                Model::ACTIVERECORD_CLASS => Article::class,
-                Model::HAS_MANY => 'comments',
-                Model::ID => 'articles',
-                Model::NAME => 'articles',
-                Model::SCHEMA => new Schema([
-                    'article_id' => SchemaColumn::serial(primary: true),
-                    'title' => SchemaColumn::varchar(),
-                ])
-            ]
-        ]);
+        $models = new ModelCollection(
+            Fixtures::connections_with_primary(),
+            Fixtures::model_definitions([ 'nodes', 'articles', 'comments' ]),
+        );
 
         $models->install();
         $this->articles = $articles = $models['articles'];
@@ -60,7 +34,8 @@ final class HasManyRelationTest extends TestCase
         for ($i = 1; $i < 4; $i++) {
             $articles->save([
 
-                'title' => "Article $i"
+                'title' => "Article $i",
+                'body' => "Madonna",
 
             ]);
         }
@@ -70,14 +45,14 @@ final class HasManyRelationTest extends TestCase
         for ($i = 1; $i < 13; $i++) {
             $comments->save([
 
-                'article_id' => ($i - 1) % 3,
+                'nid' => ($i - 1) % 3,
                 'body' => "Comment $i"
 
             ]);
         }
     }
 
-    public function test_getters(): void
+    public function test_relations(): void
     {
         $relations = $this->articles->relations;
         $this->assertInstanceOf(RelationCollection::class, $relations);

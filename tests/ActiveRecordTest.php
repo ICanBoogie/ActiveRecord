@@ -12,13 +12,13 @@
 namespace ICanBoogie;
 
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\StaticModelProvider;
+use ICanBoogie\ActiveRecord\ModelResolver;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaColumn;
+use ICanBoogie\ActiveRecord\StaticModelResolver;
 use ICanBoogie\ActiveRecordTest\Sample;
 use ICanBoogie\ActiveRecordTest\ValidateCase;
-use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 
@@ -26,99 +26,80 @@ use function mt_rand;
 use function serialize;
 use function strrev;
 use function uniqid;
-use function unserialize;
 
 /**
  * @group record
  */
-class ActiveRecordTest extends TestCase
+final class ActiveRecordTest extends TestCase
 {
     use ConnectionHelper;
 
-    private static $sample_model;
+    private Model $model;
 
     protected function setUp(): void
     {
-        if (self::$sample_model) {
-            return;
-        }
+        $this->model = $this
+        ->getMockBuilder(Model::class)
+        ->disableOriginalConstructor()
+        ->onlyMethods([ 'get_id' ])
+        ->getMock();
 
-        self::$sample_model = $sample_model = $this->mockModel();
-
-        StaticModelProvider::define(function (string $model_id) use ($sample_model): ?Model {
-            if ($model_id === 'sample') {
-                return $sample_model;
-            }
-
-            return null;
-        });
+        $this->model->method('get_id')->willReturn('sample');
     }
 
-    public function test_should_resolve_model_id_from_const()
+    public function test_should_use_provided_model(): void
     {
+        $record = new Sample($this->model);
+        $this->assertSame($this->model, $record->model);
+    }
+
+    public function test_model_is_resolved_with_resolver(): void
+    {
+        $resolver = $this->createMock(ModelResolver::class);
+        $resolver->method('model_for_activerecord')
+            ->with(Sample::class)
+            ->willReturn($this->model);
+
+        StaticModelResolver::define(fn() => $resolver);
+
         $record = new Sample();
-        $this->assertSame($record->model_id, Sample::MODEL_ID);
+
+        $this->assertSame($this->model, $record->model);
+        $this->assertSame($this->model->id, $record->model_id);
     }
 
-    public function test_should_resolve_model_from_const()
+    public function test_sleep_should_remove_model(): void
     {
-        $record = new Sample();
-        $this->assertSame(self::$sample_model, $record->model);
-    }
-
-    public function test_should_use_provided_model()
-    {
-        $model = $this->mockModel();
-        $record = new Sample($model);
-        $this->assertSame($model, $record->model);
-    }
-
-    public function test_should_throw_exception_on_invalid_model()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        new Sample(123);
-    }
-
-    public function test_sleep_should_remove_model()
-    {
-        $model = $this->mockModel();
-        $record = new Sample($model);
+        $record = new Sample($this->model);
         $array = $record->__sleep();
 
         $this->assertArrayNotHasKey('model', $array);
     }
 
-    public function test_sleep_should_remove_any_instance_of_self()
+    public function test_sleep_should_remove_any_instance_of_self(): void
     {
-        $model = $this->mockModel();
         $property = 'p' . uniqid();
-        $record = new Sample($model);
-        $record->$property = new Sample($model);
+        $record = new Sample($this->model);
+        $record->$property = new Sample($this->model);
 
         $array = $record->__sleep();
 
         $this->assertArrayNotHasKey($property, $array);
     }
 
-    public function test_serialize_should_preserve_model_id()
+    public function test_serialize_should_remove_model_info(): void
     {
-        $record = new ActiveRecord(self::$sample_model);
+        $record = new Sample($this->model);
         $serialized_record = serialize($record);
-        $unserialized_record = unserialize($serialized_record);
 
-        $this->assertEquals($record->model_id, $unserialized_record->model_id);
-
-        $record = new Sample(self::$sample_model);
-        $serialized_record = serialize($record);
-        $unserialized_record = unserialize($serialized_record);
-        $this->assertEquals($record->model_id, $unserialized_record->model_id);
+        $this->assertStringNotContainsString('"model"', $serialized_record);
+        $this->assertStringNotContainsString('"model_id"', $serialized_record);
     }
 
-    public function test_debug_info_should_exclude_model()
+    public function test_debug_info_should_exclude_model(): void
     {
-        $model = $this->mockModel();
         $property = 'p' . uniqid();
-        $record = new Sample($model);
+        $record = new Sample($this->model);
         $record->$property = uniqid();
 
         $array = $record->__debugInfo();
@@ -126,7 +107,7 @@ class ActiveRecordTest extends TestCase
         $this->assertArrayHasKey($property, $array);
     }
 
-    public function test_save()
+    public function test_save(): void
     {
         $id = mt_rand(10000, 100000);
         $reverse = uniqid();
@@ -175,33 +156,19 @@ class ActiveRecordTest extends TestCase
         $this->assertSame($id, $record->save());
     }
 
-    public function test_delete_missing_primary()
+    public function test_delete_missing_primary(): void
     {
-        $model = $this->mockModel();
-        $record = new ActiveRecord($model);
+        $record = new Sample($this->model);
         $this->expectException(LogicException::class);
         $record->delete();
-    }
-
-    private function mockModel(): Model
-    {
-        return $this
-            ->getMockBuilder(Model::class)
-            ->disableOriginalConstructor()
-            ->getMock();
     }
 
     /**
      * @group validate
      */
-    public function test_validate()
+    public function test_validate(): void
     {
-        $model = $this
-            ->getMockBuilder(Model::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $record = new ValidateCase($model);
+        $record = new ValidateCase($this->model);
 
         try {
             $record->save();

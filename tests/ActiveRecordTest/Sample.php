@@ -9,10 +9,8 @@ use ICanBoogie\ActiveRecord;
  *
  * @property-read int|null $id
  */
-class Sample extends ActiveRecord
+final class Sample extends ActiveRecord
 {
-    public const MODEL_ID = 'sample';
-
     /**
      * @var int|null
      */

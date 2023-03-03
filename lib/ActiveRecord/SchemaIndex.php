@@ -11,8 +11,22 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-class SchemaIndex
+final class SchemaIndex
 {
+    /**
+     * @param array{
+     *     columns: array<string>,
+     *     unique: bool,
+     *     name: ?string
+     * } $an_array
+     *
+     * @return object
+     */
+    public static function __set_state(array $an_array): object
+    {
+        return new self(...$an_array);
+    }
+
     /**
      * @param string[] $columns
      */

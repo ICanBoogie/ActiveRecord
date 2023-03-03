@@ -14,10 +14,11 @@ namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Article;
 
-class RunTimeActiveRecordCacheTest extends TestCase
+final class RunTimeActiveRecordCacheTest extends TestCase
 {
-    public function test_cache()
+    public function test_cache(): void
     {
         $primary = 'id';
         $key = 123;
@@ -34,7 +35,7 @@ class RunTimeActiveRecordCacheTest extends TestCase
             ->method('get_primary')
             ->willReturn($primary);
 
-        $record = new ActiveRecord($model);
+        $record = new Article($model);
         $record->$primary = $key;
 
         $this->assertSame($primary, $model->primary);

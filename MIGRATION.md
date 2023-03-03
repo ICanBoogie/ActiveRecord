@@ -14,7 +14,7 @@
 
 ### Backward Incompatible Changes
 
-None
+- `ActiveRecord` is now abstract and requires extension.
 
 ### Deprecated Features
 

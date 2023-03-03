@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord\Validate\Reader;
 
-use ICanBoogie\ActiveRecord;
+use ICanBoogie\Acme\Node;
 use ICanBoogie\ActiveRecord\Model;
 use PHPUnit\Framework\TestCase;
 
@@ -26,7 +26,7 @@ final class RecordAdapterTest extends TestCase
         $p = 'property' . uniqid();
         $v = uniqid();
 
-        $record = new ActiveRecord($this->mockModel());
+        $record = new Node($this->mockModel());
         $record->$p = $v;
 
         $reader = new RecordAdapter($record);

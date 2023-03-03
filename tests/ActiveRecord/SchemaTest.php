@@ -32,10 +32,10 @@ final class SchemaTest extends TestCase
 
     public function test_export(): void
     {
-        $schema = new Schema([
+        $schema = (new Schema([
             'id' => SchemaColumn::serial(primary: true),
             'name' => SchemaColumn::varchar(32),
-        ]);
+        ]))->index([ 'id', 'name' ]);
 
         $actual = SetStateHelper::export_import($schema);
 

@@ -2,11 +2,14 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\ModelCollectionTest\ArticlesModel;
-use ICanBoogie\ActiveRecord\ModelCollectionTest\CommentsModel;
+use ICanBoogie\Acme\CommentModel;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\Comment;
+use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\Brand;
+use Test\ICanBoogie\Fixtures;
+
+use function array_keys;
 
 final class ModelCollectionTest extends TestCase
 {
@@ -15,42 +18,18 @@ final class ModelCollectionTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->connections = new ConnectionCollection([
+        $this->connections = Fixtures::connections_with_primary();
+        $this->models = new ModelCollection(
+            $this->connections,
+            Fixtures::model_definitions([ 'nodes', 'articles', 'comments' ]),
+        );
+    }
 
-            'primary' => 'sqlite::memory:'
-
-        ]);
-
-        $definitions = [
-
-            'articles' => [
-                Model::CLASSNAME => ArticlesModel::class,
-                Model::ACTIVERECORD_CLASS => Article::class,
-                Model::SCHEMA => new Schema([
-                    'article_id' => SchemaColumn::serial(primary: true),
-                    'title' => SchemaColumn::varchar(),
-                ])
-            ],
-
-            'comments' => [
-                Model::CLASSNAME => CommentsModel::class,
-                Model::ACTIVERECORD_CLASS => Comment::class,
-                Model::SCHEMA => new Schema([
-                    'comment_id' => SchemaColumn::serial(primary: true),
-                    'article_id' => SchemaColumn::foreign(),
-                    'body' => SchemaColumn::text(),
-                ])
-            ],
-
-            'other' => [
-                Model::SCHEMA => new Schema([
-                    'id' => SchemaColumn::serial(primary: true),
-                    'value' => SchemaColumn::int(),
-                ])
-            ]
-        ];
-
-        $this->models = new ModelCollection($this->connections, $definitions);
+    public function test_get_definitions(): void
+    {
+        $models = $this->models;
+        $this->assertIsArray($models->definitions);
+        $this->assertEquals([ 'nodes', 'articles', 'comments' ], array_keys($models->definitions));
     }
 
     public function test_iterator(): void
@@ -65,21 +44,21 @@ final class ModelCollectionTest extends TestCase
             $this->assertSame($model, $this->models->model_for_id($id));
         }
 
-        $this->assertEquals([ 'articles', 'comments', 'other'], $ids);
+        $this->assertEquals([ 'nodes', 'articles', 'comments'], $ids);
     }
 
     public function test_model_for_id(): void
     {
         $actual = $this->models->model_for_id('articles');
 
-        $this->assertInstanceOf(ArticlesModel::class, $actual);
+        $this->assertInstanceOf(ArticleModel::class, $actual);
     }
 
     public function test_model_for_activerecord(): void
     {
         $actual = $this->models->model_for_activerecord(Article::class);
 
-        $this->assertInstanceOf(ArticlesModel::class, $actual);
+        $this->assertInstanceOf(ArticleModel::class, $actual);
     }
 
     public function test_get_instances(): void
@@ -87,21 +66,15 @@ final class ModelCollectionTest extends TestCase
         $models = $this->models;
         $this->assertIsArray($models->definitions);
         $this->assertEquals([], $models->instances);
-        $this->assertInstanceOf(Model::class, $models['articles']);
-        $this->assertInstanceOf(Model::class, $models['comments']);
+        $this->assertInstanceOf(Model::class, $models['nodes']);
+        $this->assertInstanceOf(ArticleModel::class, $models['articles']);
+        $this->assertInstanceOf(CommentModel::class, $models['comments']);
 
         foreach ($models->instances as $model) {
             $this->assertInstanceOf(Model::class, $model);
         }
 
-        $this->assertEquals([ 'articles', 'comments' ], array_keys($models->instances));
-    }
-
-    public function test_get_definitions(): void
-    {
-        $models = $this->models;
-        $this->assertIsArray($models->definitions);
-        $this->assertEquals([ 'articles', 'comments', 'other' ], array_keys($models->definitions));
+        $this->assertEquals([ 'nodes', 'articles', 'comments' ], array_keys($models->instances));
     }
 
     public function test_get_connections(): void
@@ -119,21 +92,23 @@ final class ModelCollectionTest extends TestCase
     public function test_offset_set(): void
     {
         $models = $this->models;
-        $models['one'] = [
+        $models['brands'] = [
+            Model::ACTIVERECORD_CLASS => Brand::class,
             Model::SCHEMA => new Schema([
-                'id' => SchemaColumn::serial(primary: true),
+                'brand_id' => SchemaColumn::serial(primary: true),
+                'name' => SchemaColumn::varchar(),
             ])
         ];
 
-        $this->assertTrue(isset($models['one']));
-        $this->assertInstanceOf(Model::class, $models['one']);
+        $this->assertTrue(isset($models['brands']));
+        $this->assertInstanceOf(Model::class, $models['brands']);
 
         try {
-            $models['one'] = [];
+            $models['brands'] = [];
 
             $this->fail("Expected ModelAlreadyInstantiated");
         } catch (ModelAlreadyInstantiated $e) {
-            $this->assertEquals('one', $e->id);
+            $this->assertEquals('brands', $e->id);
         }
     }
 
@@ -145,7 +120,7 @@ final class ModelCollectionTest extends TestCase
 
     public function test_offset_get_undefined(): void
     {
-        $this->expectException(\ICanBoogie\ActiveRecord\ModelNotDefined::class);
+        $this->expectException(ModelNotDefined::class);
         $this->models[uniqid()];
     }
 
@@ -169,9 +144,9 @@ final class ModelCollectionTest extends TestCase
     {
         $this->assertSame([
 
+            "nodes" => false,
             "articles" => false,
             "comments" => false,
-            "other" => false
 
         ], $this->models->is_installed());
 
@@ -179,9 +154,9 @@ final class ModelCollectionTest extends TestCase
 
         $this->assertSame([
 
+            "nodes" => true,
             "articles" => true,
             "comments" => true,
-            "other" => true
 
         ], $this->models->is_installed());
 
@@ -191,14 +166,13 @@ final class ModelCollectionTest extends TestCase
     public function test_uninstall(): void
     {
         $this->models->install();
-
         $this->models->uninstall();
 
         $this->assertSame([
 
+            "nodes" => false,
             "articles" => false,
             "comments" => false,
-            "other" => false
 
         ], $this->models->is_installed());
 
@@ -207,20 +181,8 @@ final class ModelCollectionTest extends TestCase
 
     public function test_class_name(): void
     {
-        $this->assertInstanceOf(ArticlesModel::class, $this->models['articles']);
-        $this->assertInstanceOf(CommentsModel::class, $this->models['comments']);
-        $this->assertInstanceOf(Model::class, $this->models['other']);
+        $this->assertInstanceOf(Model::class, $this->models['nodes']);
+        $this->assertInstanceOf(ArticleModel::class, $this->models['articles']);
+        $this->assertInstanceOf(CommentModel::class, $this->models['comments']);
     }
-}
-
-namespace ICanBoogie\ActiveRecord\ModelCollectionTest;
-
-use ICanBoogie\ActiveRecord\Model;
-
-class ArticlesModel extends Model
-{
-}
-
-class CommentsModel extends Model
-{
 }

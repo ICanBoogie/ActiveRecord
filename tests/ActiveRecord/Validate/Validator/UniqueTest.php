@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord\Validate\Validator;
 
+use ICanBoogie\Acme\Node;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\Validate\Context;
@@ -21,9 +22,9 @@ use PHPUnit\Framework\TestCase;
  * @group validate
  * @medium
  */
-class UniqueTest extends TestCase
+final class UniqueTest extends TestCase
 {
-    public function test_normalize_options()
+    public function test_normalize_options(): void
     {
         $column = uniqid();
         $validator = new Unique();
@@ -36,7 +37,7 @@ class UniqueTest extends TestCase
     /**
      * @dataProvider provide_test_validate
      */
-    public function test_validate(?string $column, bool $should_use_primary)
+    public function test_validate(?string $column, bool $should_use_primary): void
     {
         $attribute = 'attribute' . uniqid();
         $value = 'value' . uniqid();
@@ -128,7 +129,7 @@ class UniqueTest extends TestCase
             ->with($key ? [ $column => $value, "!$primary" => $key ] : [ $column => $value ])
             ->willReturn($query);
 
-        $record = new ActiveRecord($model);
+        $record = new Node($model);
         $record->$primary = $key;
 
         return new RecordAdapter($record);

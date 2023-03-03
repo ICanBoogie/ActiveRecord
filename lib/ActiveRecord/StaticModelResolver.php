@@ -59,6 +59,9 @@ final class StaticModelResolver
         self::$proxy = null;
     }
 
+    /**
+     * @param class-string<ActiveRecord>|ActiveRecord $class_or_activerecord
+     */
     public static function model_for_activerecord(string|ActiveRecord $class_or_activerecord): Model
     {
         $proxy = self::$proxy
