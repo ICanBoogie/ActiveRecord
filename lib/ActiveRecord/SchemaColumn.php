@@ -290,19 +290,52 @@ class SchemaColumn
         );
     }
 
+    public readonly string $type;
+
     public function __construct(
-        public string $type,
-        public string|int|null $size = null,
-        public bool $unsigned = false,
-        public bool $null = false,
-        public mixed $default = null,
-        public bool $auto_increment = false,
-        public bool $unique = false,
-        public bool $primary = false,
-        public ?string $comment = null,
-        public ?string $collate = null,
+        string $type,
+        public readonly string|int|null $size = null,
+        public readonly bool $unsigned = false,
+        public readonly bool $null = false,
+        public readonly mixed $default = null,
+        public readonly bool $auto_increment = false,
+        public readonly bool $unique = false,
+        public readonly bool $primary = false,
+        public readonly ?string $comment = null,
+        public readonly ?string $collate = null,
     ) {
         $this->type = strtoupper($type);
+    }
+
+    /**
+     * @param array{
+     *     type?: string,
+     *     size?: string|int|null,
+     *     unsigned?: bool,
+     *     null?: bool,
+     *     default?: mixed,
+     *     unique?: bool,
+     *     primary?: bool,
+     *     comment?: ?string,
+     *     collate?: ?string
+     * } $properties
+     */
+    public function with(array $properties): self
+    {
+        $properties += [
+            'type' => $this->type,
+            'size' => $this->size,
+            'unsigned' => $this->unsigned,
+            'null' => $this->null,
+            'default' => $this->default,
+            'auto_increment' => $this->auto_increment,
+            'unique' => $this->unique,
+            'primary' => $this->primary,
+            'comment' => $this->comment,
+            'collate' => $this->collate,
+        ];
+
+        return new self(...$properties);
     }
 
     /**
@@ -371,12 +404,15 @@ class SchemaColumn
      */
     protected function get_formatted_key(): string
     {
-        return implode(' ', array_filter([
+        return implode(
+            ' ',
+            array_filter([
 
-            $this->unique ? 'UNIQUE' : '',
-            $this->primary ? 'PRIMARY KEY' : '',
+                $this->unique ? 'UNIQUE' : '',
+                $this->primary ? 'PRIMARY KEY' : '',
 
-        ]));
+            ])
+        );
     }
 
     /**
@@ -419,16 +455,19 @@ class SchemaColumn
      */
     public function render(): string
     {
-        return implode(' ', array_filter([
-            $this->get_formatted_type(),
-            $this->get_formatted_type_attributes(),
-            $this->get_formatted_null(),
-            $this->get_formatted_default(),
-            $this->get_formatted_auto_increment(),
-            $this->get_formatted_key(),
-            $this->get_formatted_comment(),
-            $this->get_formatted_collate(),
-        ]));
+        return implode(
+            ' ',
+            array_filter([
+                $this->get_formatted_type(),
+                $this->get_formatted_type_attributes(),
+                $this->get_formatted_null(),
+                $this->get_formatted_default(),
+                $this->get_formatted_auto_increment(),
+                $this->get_formatted_key(),
+                $this->get_formatted_comment(),
+                $this->get_formatted_collate(),
+            ])
+        );
     }
 
     public function __toString(): string

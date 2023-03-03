@@ -416,10 +416,8 @@ class Table extends Prototyped
     {
         $this->connection = $parent->connection;
         $primary = $parent->primary;
-        $primary_definition = $parent->schema[$primary];
-        $primary_definition->auto_increment = false;
         $this->schema = clone $this->schema;
-        $this->schema[$primary] = $primary_definition;
+        $this->schema[$primary] = $parent->schema[$primary]->with([ 'auto_increment' => false ]);
 
         if ($parent->implements) {
             $this->implements = array_merge($parent->implements, $this->implements);
