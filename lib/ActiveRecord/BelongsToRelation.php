@@ -14,6 +14,8 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototype;
 
+use LogicException;
+
 use function ICanBoogie\singularize;
 
 /**
@@ -24,11 +26,11 @@ class BelongsToRelation extends Relation
     /**
      * @param array<string, mixed> $options
      */
-    public function __construct(Model $parent, Model|string $related, array $options = [])
+    public function __construct(Model $owner, Model|string $related, array $options = [])
     {
         if (empty($options['local_key']) || empty($options['foreign_key'])) {
             if (!$related instanceof Model) {
-                $related = $parent->models[$related];
+                $related = $owner->models->model_for_id($related);
             }
 
             $options += [
@@ -39,7 +41,7 @@ class BelongsToRelation extends Relation
             ];
         }
 
-        parent::__construct($parent, $related, $options);
+        parent::__construct($owner, $related, $options);
     }
 
     /**
@@ -50,7 +52,7 @@ class BelongsToRelation extends Relation
         $key = $record->{$this->local_key} ?? null;
 
         if (!$key) {
-            throw new \LogicException("Unable to establish relation, primary key is empty.");
+            throw new LogicException("Unable to establish relation, primary key is empty.");
         }
 
         return $this->resolve_related()[$key];

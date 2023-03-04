@@ -3,10 +3,14 @@
 namespace Test\ICanBoogie;
 
 use ICanBoogie\Acme\CommentModel;
+use ICanBoogie\Acme\HasMany\Appointment;
+use ICanBoogie\Acme\HasMany\Patient;
+use ICanBoogie\Acme\HasMany\Physician;
 use ICanBoogie\Acme\Node;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\SchemaColumn;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
@@ -92,6 +96,46 @@ final class Fixtures
                     'driver_id' => SchemaColumn::foreign(),
                     'brand_id' => SchemaColumn::foreign(),
                 ])
+            ],
+
+            // Has many through
+
+            'physicians' => [
+                Model::ACTIVERECORD_CLASS => Physician::class,
+                Model::SCHEMA => (new SchemaBuilder())
+                    ->add_serial('ph_id', primary: true)
+                    ->add_varchar('name')
+                    ->build(),
+                Model::HAS_MANY => [
+                    [ 'appointments', [ 'local_key' => 'ph_id', 'foreign_key' => 'physician_id' ] ],
+                    [ 'patients', [ 'foreign_key' => 'pa_id', 'through' => 'appointments' ] ],
+                ]
+            ],
+
+            'appointments' => [
+                Model::ACTIVERECORD_CLASS => Appointment::class,
+                Model::SCHEMA => (new SchemaBuilder())
+                    ->add_serial('ap_id', primary: true)
+                    ->add_foreign('physician_id')
+                    ->add_foreign('patient_id')
+                    ->add_date('appointment_date')
+                    ->build(),
+                Model::BELONGS_TO => [
+                    [ 'physicians', [ 'local_key' => 'physician_id', 'foreign_key' => 'ph_id' ] ],
+                    [ 'patients', [ 'local_key' => 'patient_id', 'foreign_key' => 'pa_id' ] ],
+                ]
+            ],
+
+            'patients' => [
+                Model::ACTIVERECORD_CLASS => Patient::class,
+                Model::SCHEMA => (new SchemaBuilder())
+                    ->add_serial('pa_id', primary: true)
+                    ->add_varchar('name')
+                    ->build(),
+                Model::HAS_MANY => [
+                    [ 'appointments', [ 'local_key' => 'pa_id', 'foreign_key' => 'patient_id' ] ],
+                    [ 'physicians', [ 'local_key' => 'pa_id', 'foreign_key' => 'patient_id', 'through' => 'appointments' ] ],
+                ]
             ],
 
         ];

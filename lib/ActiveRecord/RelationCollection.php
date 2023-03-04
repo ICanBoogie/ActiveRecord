@@ -110,16 +110,16 @@ class RelationCollection implements \ArrayAccess
             $belongs_to = \func_get_args();
         }
 
-        foreach ((array) $belongs_to as $definition) {
+        foreach ((array)$belongs_to as $definition) {
             if (!is_array($definition)) {
                 $definition = [ $definition ];
             }
 
-            list($related, $options) = ((array) $definition) + [ 1 => [] ];
+            [ $related, $options ] = ((array)$definition) + [ 1 => [] ];
 
             $relation = new BelongsToRelation($this->model, $related, $options);
 
-            $this->relations[$relation->as] = $relation;
+            $this->relations[$related] = $relation;
         }
 
         return $this->model;
@@ -151,7 +151,7 @@ class RelationCollection implements \ArrayAccess
             $relation_list = $related;
 
             foreach ($relation_list as $definition) {
-                [ $related, $options ] = ((array) $definition) + [ 1 => [] ];
+                [ $related, $options ] = ((array)$definition) + [ 1 => [] ];
 
                 $relation = new HasManyRelation($this->model, $related, $options);
 

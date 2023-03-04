@@ -60,7 +60,7 @@ final class HasManyRelationTest extends TestCase
         $relation = $relations['comments'];
         $this->assertInstanceOf(HasManyRelation::class, $relation);
         $this->assertSame('comments', $relation->as);
-        $this->assertSame($this->articles, $relation->parent);
+        $this->assertSame($this->articles, $relation->owner);
         $this->assertSame($this->comments, $relation->related);
         $this->assertSame($this->articles->primary, $relation->local_key);
         $this->assertSame($this->articles->primary, $relation->foreign_key);

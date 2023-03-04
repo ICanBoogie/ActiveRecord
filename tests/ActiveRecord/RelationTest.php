@@ -76,7 +76,7 @@ final class RelationTest extends TestCase
 
         /* @var $relation Relation */
 
-        $this->assertSame($this->model, $relation->parent);
+        $this->assertSame($this->model, $relation->owner);
         $related = $relation->related;
         $this->assertInstanceOf(Model::class, $related);
         $this->assertSame($related, $relation->related);

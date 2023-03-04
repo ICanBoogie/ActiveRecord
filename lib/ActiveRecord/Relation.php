@@ -34,13 +34,7 @@ abstract class Relation
 
     private function get_related(): Model
     {
-        $related = $this->related;
-
-        if ($related instanceof Model) {
-            return $related;
-        }
-
-        return $this->related = $this->parent->models->model_for_id($related);
+        return $this->resolve_related();
     }
 
     /**
@@ -59,7 +53,7 @@ abstract class Relation
     public readonly string $foreign_key;
 
     /**
-     * @param Model $parent
+     * @param Model $owner
      *     The parent model of the relation.
      * @param Model|string $related
      *     The related model of the relation. Can be specified using its instance or its identifier.
@@ -76,21 +70,19 @@ abstract class Relation
      *     - `foreign_key`: The name of the foreign key. Default: The parent model's primary key.
      */
     public function __construct(
-        public readonly Model $parent,
-        private Model|string $related,
+        public readonly Model $owner,
+        private readonly Model|string $related,
         array $options = []
     ) {
-        assert(is_string($parent->primary));
-
         $this->as = $options['as'] ?? $this->resolve_property_name($related);
         $this->local_key = $options['local_key']
-            ?? $parent->primary
-            ?? throw new RuntimeException("Unable to determine 'local_key' from parent '$parent->id', primary key is null");
+            ?? $owner->primary
+            ?? throw new RuntimeException("Unable to determine 'local_key' from parent '$owner->id', primary key is null");
         $this->foreign_key = $options['foreign_key']
-            ?? $parent->primary
-            ?? throw new RuntimeException("Unable to determine 'foreign_key' from parent '$parent->id', primary key is null");
+            ?? $owner->primary
+            ?? throw new RuntimeException("Unable to determine 'foreign_key' from parent '$owner->id', primary key is null");
 
-        $activerecord_class = $this->resolve_activerecord_class($parent);
+        $activerecord_class = $this->resolve_activerecord_class($owner);
         $prototype = Prototype::from($activerecord_class);
 
         $this->alter_prototype($prototype, $this->as);
@@ -149,12 +141,15 @@ abstract class Relation
      */
     protected function resolve_related(): Model
     {
-        $related = $this->related;
+        return $this->ensure_model($this->related);
+    }
 
-        if ($related instanceof Model) {
-            return $related;
+    protected function ensure_model(Model|string $model_or_id): Model
+    {
+        if ($model_or_id instanceof Model) {
+            return $model_or_id;
         }
 
-        return $this->related = $this->parent->models->model_for_id($related);
+        return $this->owner->models->model_for_id($model_or_id);
     }
 }
