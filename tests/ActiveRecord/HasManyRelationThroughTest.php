@@ -11,21 +11,60 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\Acme\HasMany\Appointment;
 use ICanBoogie\Acme\HasMany\Patient;
 use ICanBoogie\Acme\HasMany\Physician;
+use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use PHPUnit\Framework\TestCase;
-use Test\ICanBoogie\Fixtures;
 
 use function assert;
 
 final class HasManyRelationThroughTest extends TestCase
 {
     private Model $physicians;
+
     protected function setUp(): void
     {
+        $config = (new ConfigBuilder())
+            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
+            ->add_model(
+                id: 'physicians',
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_serial('ph_id', primary: true)
+                    ->add_varchar('name'),
+                activerecord_class: Physician::class,
+                association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_many('appointments', foreign_key: 'physician_id')
+                    ->has_many('patients', through: 'appointments'),
+            )
+            ->add_model(
+                id: 'appointments',
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_serial('ap_id', primary: true)
+                    ->add_foreign('physician_id')
+                    ->add_foreign('patient_id')
+                    ->add_date('appointment_date'),
+                activerecord_class: Appointment::class,
+                association_builder: fn(AssociationBuilder $a) => $a
+                    ->belongs_to('physicians', local_key: 'physician_id' )
+                    ->belongs_to('patients', local_key: 'patient_id' ),
+            )
+            ->add_model(
+                id: 'patients',
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_serial('pa_id', primary: true)
+                    ->add_varchar('name'),
+                activerecord_class: Patient::class,
+                association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_many('appointments', foreign_key: 'patient_id')
+                    ->has_many('physicians', foreign_key: 'patient_id', through: 'appointments'),
+            )->build();
+
+        $connections = new ConnectionCollection($config->connections);
+
         $models = new ModelCollection(
-            Fixtures::connections_with_primary(),
-            Fixtures::model_definitions([ 'physicians', 'appointments', 'patients' ]),
+            $connections,
+            $config->models
         );
 
         /*
@@ -66,7 +105,7 @@ final class HasManyRelationThroughTest extends TestCase
 
         $this->assertEquals(
             "SELECT * FROM `appointments` `appointment` WHERE (`physician_id` = ?)",
-            (string) $query
+            (string)$query
         );
 
         $this->assertEquals(
@@ -84,7 +123,7 @@ final class HasManyRelationThroughTest extends TestCase
 
         $this->assertEquals(
             "SELECT * FROM `appointments` `appointment` WHERE (`patient_id` = ?)",
-            (string) $query
+            (string)$query
         );
 
         $this->assertEquals(
@@ -102,7 +141,7 @@ final class HasManyRelationThroughTest extends TestCase
 
         $this->assertEquals(
             "SELECT `patient`.* FROM `patients` `patient` INNER JOIN `appointments` ON `appointments`.patient_id = `patient`.pa_id INNER JOIN `physicians` `physician` ON `appointments`.physician_id = `physician`.ph_id WHERE (`physician`.ph_id = ?)",
-            (string) $query
+            (string)$query
         );
 
         $this->assertEquals(
@@ -122,7 +161,7 @@ final class HasManyRelationThroughTest extends TestCase
 
         $this->assertEquals(
             "SELECT `physician`.* FROM `physicians` `physician` INNER JOIN `appointments` ON `appointments`.physician_id = `physician`.ph_id INNER JOIN `patients` `patient` ON `appointments`.patient_id = `patient`.pa_id WHERE (`patient`.pa_id = ?)",
-            (string) $query
+            (string)$query
         );
 
         $this->assertEquals(

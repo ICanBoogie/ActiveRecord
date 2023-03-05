@@ -13,6 +13,7 @@
 - Added `StaticModelResolver` which replaces `StaticModelProvider` in `ActiveRecord`.
 - Added `SchemaBuilder` to build schema using a fluent API.
 - Added `through` option for `has_may` relationship.
+- Added a config builder.
 
 ### Backward Incompatible Changes
 
