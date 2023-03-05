@@ -587,7 +587,8 @@ final class ModelTest extends TestCase
         $brands = $models['brands'];
         $cars = $models['cars'];
 
-        $cars->belongs_to($drivers, $brands);
+        $cars->belongs_to($drivers);
+        $cars->belongs_to($brands);
 
         /* @var $car Car */
         $car = $cars->new([ 'name' => '4two' ]);

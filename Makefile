@@ -18,7 +18,7 @@ vendor:
 test-dependencies: vendor
 
 .PHONY: test
-test: test-dependencies
+test: test-dependencies test-cleanup
 	@$(PHPUNIT) $(ARGS)
 
 .PHONY: test-coverage
@@ -30,6 +30,10 @@ test-coverage: test-dependencies
 test-coveralls: test-dependencies
 	@mkdir -p build/logs
 	@XDEBUG_MODE=coverage $(PHPUNIT) --coverage-clover build/logs/clover.xml
+
+.PHONY: test-cleanup
+test-cleanup:
+	rm -rf tests/sandbox/*
 
 .PHONY: test-container
 test-container: test-container-81

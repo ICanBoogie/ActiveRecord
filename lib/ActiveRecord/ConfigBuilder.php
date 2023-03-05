@@ -17,13 +17,18 @@ use ICanBoogie\ActiveRecord\Config\Association;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\Config\BelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\HasManyAssociation;
+use ICanBoogie\ActiveRecord\Config\InvalidConfig;
+use ICanBoogie\ActiveRecord\Config\ModelConfig;
 use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientBelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
+use ICanBoogie\ActiveRecord\Config\TransientModelConfig;
 use InvalidArgumentException;
 use LogicException;
 
 use function array_filter;
+use function array_map;
+use function is_string;
 use function preg_match;
 
 final class ConfigBuilder
@@ -46,9 +51,9 @@ final class ConfigBuilder
     private array $connections = [];
 
     /**
-     * @var array<string, array<Model::*, mixed>>
+     * @var array<string, TransientModelConfig>
      */
-    private array $models = [];
+    private array $transient_models = [];
 
     /**
      * @var array<string, TransientAssociation>
@@ -58,36 +63,30 @@ final class ConfigBuilder
 
     public function build(): Config
     {
+        $this->validate_models();
+
         $associations = $this->build_associations();
+        $models = $this->build_models($associations);
+        $models = array_map(fn(ModelConfig $c) => $c->to_array(), $models);
 
-        foreach ($associations as $model_id => $association) {
-            $this->models[$model_id][Model::BELONGS_TO] = array_map(
-                fn(BelongsToAssociation $a) => [
-                    $a->model_id,
-                    [
-                        'local_key' => $a->local_key,
-                        'foreign_key' => $a->foreign_key,
-                        'as' => $a->as,
-                    ]
-                ],
-                $association->belongs_to
-            );
+        return new Config($this->connections, $models);
+    }
 
-            $this->models[$model_id][Model::HAS_MANY] = array_map(
-                fn(HasManyAssociation $a) => [
-                    $a->model_id,
-                    [
-                        'local_key' => $a->local_key,
-                        'foreign_key' => $a->foreign_key,
-                        'as' => $a->as,
-                        'through' => $a->through,
-                    ]
-                ],
-                $association->has_many
-            );
+    private function validate_models(): void
+    {
+        foreach ($this->transient_models as $id => $config) {
+            if (empty($this->connections[$config->connection])) {
+                throw new InvalidConfig("Model '$id' uses connection '$config->connection', but it is not configured.");
+            }
+
+            if ($config->extends && empty($this->transient_models[$config->extends])) {
+                throw new InvalidConfig("Model '$id' extends '$config->extends', but it is not configured.");
+            }
+
+            if ($config->implements && empty($this->transient_models[$config->implements])) {
+                throw new InvalidConfig("Model '$id' implements '$config->implements', but it is not configured.");
+            }
         }
-
-        return new Config($this->connections, $this->models);
     }
 
     /**
@@ -117,11 +116,49 @@ final class ConfigBuilder
         return $associations;
     }
 
+    /**
+     * Builds model configuration from model transient configurations and association configurations.
+     *
+     * @param array<string, Association> $associations
+     *     Where _key_ is a model identifier.
+     *
+     * @return array<string, ModelConfig>
+     *     Where _key_ is a model identifier.
+     */
+    private function build_models(array $associations): array
+    {
+        $models = [];
+
+        foreach ($this->transient_models as $id => $transient) {
+            $models[$id] = new ModelConfig(
+                id: $id,
+                connection: $transient->connection,
+                schema: $transient->schema,
+                activerecord_class: $transient->activerecord_class,
+                name: $transient->name,
+                alias: $transient->alias,
+                extends: $transient->extends,
+                implements: $transient->implements,
+                model_class: $transient->model_class ?? Model::class,
+                query_class: $transient->query_class ?? Query::class,
+                association: $associations[$id],
+            );
+        }
+
+        return $models;
+    }
+
     private function resolve_belongs_to(string $owner, TransientBelongsToAssociation $association): BelongsToAssociation
     {
-        $local_key = $association->local_key ?? throw new LogicException("Don't know how to resolve local key on $owner for association belongs_to($association->model_id)");
-        $foreign_key = $association->foreign_key ?? $this->models[$association->model_id][Model::SCHEMA]->primary;
+        $local_key = $association->local_key ?? throw new LogicException(
+            "Don't know how to resolve local key on $owner for association belongs_to($association->model_id)"
+        );
+        $foreign_key = $association->foreign_key ?? $this->transient_models[$association->model_id]->schema->primary;
         $as = $association->as ?? $association->model_id;
+
+        if (!is_string($foreign_key)) {
+            throw new InvalidConfig("Unable to create 'belongs to' association, primary key of model '$association->model_id' is not a string.");
+        }
 
         return new BelongsToAssociation(
             $association->model_id,
@@ -133,9 +170,17 @@ final class ConfigBuilder
 
     private function resolve_has_many(string $owner, TransientHasManyAssociation $association): HasManyAssociation
     {
-        $local_key = $association->local_key ?? $this->models[$owner][Model::SCHEMA]->primary;
-        $foreign_key = $association->foreign_key ?? $this->models[$association->model_id][Model::SCHEMA]->primary; // TODO: improve to infer key from 'belong_to'
+        $local_key = $association->local_key ?? $this->transient_models[$owner]->schema->primary;
+        $foreign_key = $association->foreign_key ?? $this->transient_models[$association->model_id]->schema->primary; // TODO: improve to infer key from 'belong_to'
         $as = $association->as ?? $association->model_id;
+
+        if (!is_string($local_key)) {
+            throw new InvalidConfig("Unable to create 'has many' association, primary key of model '$owner' is not a string.");
+        }
+
+        if (!is_string($foreign_key)) {
+            throw new InvalidConfig("Unable to create 'has many' association, primary key of model '$association->model_id' is not a string.");
+        }
 
         return new HasManyAssociation(
             $association->model_id,
@@ -191,7 +236,7 @@ final class ConfigBuilder
         string $id,
         Closure $schema_builder,
         string $activerecord_class,
-        string $connection = 'primary',
+        string $connection = Config::DEFAULT_CONNECTION_ID,
         string|null $name = null,
         string|null $alias = null,
         string|null $extends = null,
@@ -214,18 +259,18 @@ final class ConfigBuilder
             $this->association[$id] = $inner_association_builder->build();
         }
 
-        $this->models[$id] = self::filter_non_null([ // @phpstan-ignore-line
-            Table::SCHEMA => $schema,
-            Table::CONNECTION => $connection,
-            Table::NAME => $name,
-            Table::ALIAS => $alias,
-            Table::EXTENDING => $extends,
-            Table::IMPLEMENTING => $implements,
-            Model::ID => $id,
-            Model::ACTIVERECORD_CLASS => $activerecord_class,
-            Model::CLASSNAME => $model_class,
-            Model::QUERY_CLASS => $query_class,
-        ]);
+        $this->transient_models[$id] = new TransientModelConfig(
+            id: $id,
+            schema: $schema,
+            activerecord_class: $activerecord_class,
+            connection: $connection,
+            name: $name,
+            alias: $alias,
+            extends: $extends,
+            implements: $implements,
+            model_class: $model_class,
+            query_class: $query_class,
+        );
 
         return $this;
     }

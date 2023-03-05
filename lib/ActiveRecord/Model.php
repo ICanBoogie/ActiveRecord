@@ -38,7 +38,6 @@ use LogicException;
  * @method ActiveRecord one() The method is forwarded to Query::one().
  * @method ActiveRecord new(array $properties = []) Instantiate a new record.
  *
- * @method Model belongs_to(...$args) Adds a _belongs_to_ relation.
  * @method Model has_many($related, $options = []) Adds a _has_many_ relation.
  *
  * @property-read Model|null $parent Parent model.
@@ -246,7 +245,7 @@ class Model extends Table implements ArrayAccess
         $belongs_to = $attributes[self::BELONGS_TO];
 
         if ($belongs_to) {
-            $this->belongs_to($belongs_to);
+            $this->relations->belongs_to($belongs_to);
         }
 
         # has_many
@@ -256,6 +255,20 @@ class Model extends Table implements ArrayAccess
         if ($has_many) {
             $this->has_many($has_many);
         }
+    }
+
+    public function belongs_to(
+        Model|string $model,
+        string|null $local_key = null,
+        string|null $foreign_key = null,
+        string|null $as = null,
+    ): self
+    {
+        $model_id = $model instanceof Model ? $model->id : $model;
+
+        $this->relations->belongs_to($model_id, [ 'local_key' => $local_key, 'foreign_key' => $foreign_key, 'as' => $as ]);
+
+        return $this;
     }
 
     /**
