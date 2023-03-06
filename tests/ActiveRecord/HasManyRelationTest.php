@@ -11,8 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\Comment;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Fixtures;
 
@@ -23,10 +21,7 @@ final class HasManyRelationTest extends TestCase
 
     protected function setUp(): void
     {
-        $models = new ModelCollection(
-            Fixtures::connections_with_primary(),
-            Fixtures::model_definitions([ 'nodes', 'articles', 'comments' ]),
-        );
+        [ , $models ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
 
         $models->install();
         $this->articles = $articles = $models['articles'];
@@ -45,8 +40,8 @@ final class HasManyRelationTest extends TestCase
         for ($i = 1; $i < 13; $i++) {
             $comments->save([
 
-                'nid' => ($i - 1) % 3,
-                'body' => "Comment $i"
+                'nid' => ($i % 3) ?: 3,
+                'body' => "Comment $i",
 
             ]);
         }
@@ -62,8 +57,8 @@ final class HasManyRelationTest extends TestCase
         $this->assertSame('comments', $relation->as);
         $this->assertSame($this->articles, $relation->owner);
         $this->assertSame($this->comments, $relation->related);
-        $this->assertSame($this->articles->primary, $relation->local_key);
-        $this->assertSame($this->articles->primary, $relation->foreign_key);
+        $this->assertSame('nid', $relation->local_key);
+        $this->assertSame('nid', $relation->foreign_key);
     }
 
     public function test_undefined_relation(): void
@@ -79,6 +74,17 @@ final class HasManyRelationTest extends TestCase
 
         $this->assertInstanceOf(Query::class, $article_comments);
         $this->assertSame($this->comments, $article_comments->model);
+    }
+
+    public function test_comments(): void
+    {
+        $comments = $this->articles[1]->comments->all();
+
+        $this->assertCount(4, $comments);
+        $this->assertEquals("Comment 1", $comments[0]->body);
+        $this->assertEquals("Comment 4", $comments[1]->body);
+        $this->assertEquals("Comment 7", $comments[2]->body);
+        $this->assertEquals("Comment 10", $comments[3]->body);
     }
 
     public function test_getter_as(): void

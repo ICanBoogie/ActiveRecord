@@ -11,112 +11,41 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Acme\Count;
 use ICanBoogie\Acme\Node;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\PropertyNotWritable;
+use ICanBoogie\Prototype\MethodNotDefined;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\ArticleModel;
-use Test\ICanBoogie\Acme\Brand;
-use Test\ICanBoogie\Acme\Car;
-use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\CustomQuery;
-use Test\ICanBoogie\Acme\Driver;
+use Test\ICanBoogie\Fixtures;
 
 final class ModelTest extends TestCase
 {
-    private $prefix = 'myprefix';
+    private const PREFIX = 'myprefix';
 
-    /**
-     * @var ConnectionCollection
-     */
-    private $connections;
-
-    /**
-     * @var ModelCollection
-     */
-    private $models;
-
-    /**
-     * @var Model
-     */
-    private $model;
-
-    /**
-     * @var int
-     */
-    private $model_records_count;
-
-    /**
-     * @var Model
-     */
-    private $counts_model;
-
-    /**
-     * @var int
-     */
-    private $counts_records_count;
+    private ConnectionCollection $connections;
+    private ModelCollection $models;
+    private Model $model;
+    private int $model_records_count;
+    private Model $counts_model;
 
     protected function setUp(): void
     {
-        $connections = new ConnectionCollection([
+        $config = (new ConfigBuilder())
+            ->add_connection(
+                id: Config::DEFAULT_CONNECTION_ID,
+                dsn: 'sqlite::memory:',
+                table_name_prefix: self::PREFIX
+            );
 
-            'primary' => [
-                'dsn' => 'sqlite::memory:',
-                'options' => [
+        [ $this->connections, $this->models ] = Fixtures::connections_and_models(
+            Fixtures::with_models($config, [ 'nodes', 'articles', 'comments', 'counts' ])->build()
+        );
 
-                    ConnectionOptions::TABLE_NAME_PREFIX => $this->prefix
-
-                ]
-            ]
-
-        ]);
-
-        $models = new ModelCollection($connections, [
-
-            'nodes' => [
-                Model::SCHEMA => new Schema([
-                    'nid' => SchemaColumn::serial(primary: true),
-                    'title' => SchemaColumn::varchar(),
-                ]),
-                Model::ACTIVERECORD_CLASS => Node::class,
-            ],
-
-            'articles' => [
-                Model::EXTENDING => 'nodes',
-                Model::ACTIVERECORD_CLASS => Article::class,
-                Model::CLASSNAME => ArticleModel::class,
-                Model::HAS_MANY => 'comments',
-                Model::SCHEMA => new Schema([
-                    'body' => new SchemaColumn('text'),
-                    'date' => new SchemaColumn('datetime'),
-                ]),
-            ],
-
-            'comments' => [
-                Model::ACTIVERECORD_CLASS => Comment::class,
-                Model::BELONGS_TO => 'articles',
-                Model::SCHEMA => new Schema([
-                    'comment_id' => SchemaColumn::serial(primary: true),
-                    'nid' => SchemaColumn::foreign(),
-                    'body' => new SchemaColumn('text'),
-                ])
-            ],
-
-            'counts' => [
-                Model::SCHEMA => new Schema([
-                    'id' => SchemaColumn::serial(primary: true),
-                    'name' => SchemaColumn::varchar(),
-                    'date' => new SchemaColumn('datetime'),
-                ]),
-                Model::ACTIVERECORD_CLASS => Count::class,
-            ],
-
-        ]);
-
+        $models = $this->models;
         $models->install();
 
         $nodes = $models['articles'];
@@ -131,12 +60,9 @@ final class ModelTest extends TestCase
             $counts->save([ 'name' => $name, 'date' => DateTime::now() ]);
         }
 
-        $this->connections = $connections;
-        $this->models = $models;
         $this->model = $nodes;
         $this->model_records_count = 3;
         $this->counts_model = $counts;
-        $this->counts_records_count = count($names);
     }
 
     /**
@@ -168,20 +94,19 @@ final class ModelTest extends TestCase
 
     public function test_call_undefined_method(): void
     {
-        $this->expectException(\ICanBoogie\Prototype\MethodNotDefined::class);
+        $this->expectException(MethodNotDefined::class);
         $this->models['nodes']->undefined_method();
     }
 
     public function test_should_instantiate_model(): void
     {
-        /* @var $model Model */
         $models = $this->models;
         $model = $models['nodes'];
 
         $this->assertSame($models, $model->models);
         $this->assertSame($this->connections['primary'], $model->connection);
         $this->assertSame('nodes', $model->id);
-        $this->assertSame($this->prefix . '_' . 'nodes', $model->name);
+        $this->assertSame(self::PREFIX . '_' . 'nodes', $model->name);
         $this->assertSame('nodes', $model->unprefixed_name);
     }
 
@@ -189,12 +114,6 @@ final class ModelTest extends TestCase
     {
         $models = $this->models;
         $this->assertSame($models['nodes'], $models['articles']->parent);
-    }
-
-    public function test_get_parent_model(): void
-    {
-        $models = $this->models;
-        $this->assertSame($models['nodes'], $models['articles']->parent_model);
     }
 
     public function test_should_default_id_from_name(): void
@@ -247,7 +166,7 @@ final class ModelTest extends TestCase
             $records = $e->records;
             $message = $e->getMessage();
 
-            $this->assertStringContainsString((string) $id, $message);
+            $this->assertStringContainsString((string)$id, $message);
 
             $this->assertInstanceOf(ActiveRecord::class, $records[1]);
             $this->assertInstanceOf(ActiveRecord::class, $records[2]);
@@ -270,9 +189,9 @@ final class ModelTest extends TestCase
             $records = $e->records;
             $message = $e->getMessage();
 
-            $this->assertStringContainsString((string) $id1, $message);
-            $this->assertStringContainsString((string) $id2, $message);
-            $this->assertStringContainsString((string) $id2, $message);
+            $this->assertStringContainsString((string)$id1, $message);
+            $this->assertStringContainsString((string)$id2, $message);
+            $this->assertStringContainsString((string)$id2, $message);
 
             $this->assertNull($records[$id1]);
             $this->assertNull($records[$id2]);
@@ -347,9 +266,10 @@ final class ModelTest extends TestCase
         $this->assertFalse(isset($model[$id]));
 
         try {
+            /** @phpstan-ignore-next-line */
             $model[$id] = null;
             $this->fail("Expected OffsetNotWritable");
-        } catch (OffsetNotWritable $e) {
+        } catch (OffsetNotWritable) {
         }
     }
 
@@ -374,13 +294,13 @@ final class ModelTest extends TestCase
     }
 
     /**
-     * @return array[]
+     * @return array<array{ string }>
      */
     public function provide_test_readonly_properties(): array
     {
         $properties = 'id|activerecord_class|exists|count|all|one';
         return array_map(function ($v) {
-            return (array) $v;
+            return (array)$v;
         }, explode('|', $properties));
     }
 
@@ -415,7 +335,7 @@ final class ModelTest extends TestCase
      */
     public function test_initiate_query(string $method, array $args): void
     {
-        $this->assertInstanceOf(Query::class, call_user_func_array([ $this->model, $method ], $args));
+        $this->assertInstanceOf(Query::class, $this->model->$method(...$args));
     }
 
     /**
@@ -468,13 +388,13 @@ final class ModelTest extends TestCase
 
     public function test_scope_not_defined(): void
     {
-        $this->expectException(\ICanBoogie\ActiveRecord\ScopeNotDefined::class);
+        $this->expectException(ScopeNotDefined::class);
         $this->model->scope('undefined' . uniqid());
     }
 
     public function test_scope_not_defined_from_query(): void
     {
-        $this->expectException(\ICanBoogie\ActiveRecord\ScopeNotDefined::class);
+        $this->expectException(ScopeNotDefined::class);
         $this->model->ordered->undefined_scope();
     }
 
@@ -525,87 +445,6 @@ final class ModelTest extends TestCase
         $this->assertFalse($this->counts_model->filter_by_name('one ' . uniqid())->exists);
     }
 
-    public function test_belongs_to(): void
-    {
-        $this->markTestSkipped("to be updated after Config is complete");
-
-        $models = new ModelCollection($this->connections, [
-
-            'drivers' => [
-                Model::ACTIVERECORD_CLASS => Driver::class,
-                Model::SCHEMA => new Schema([
-                    'driver_id' => SchemaColumn::serial(primary: true),
-                    'name' => SchemaColumn::varchar(),
-                ])
-            ],
-
-            'brands' => [
-                Model::ACTIVERECORD_CLASS => Brand::class,
-                Model::SCHEMA => new Schema([
-                    'brand_id' => SchemaColumn::serial(primary: true),
-                    'name' => SchemaColumn::varchar(),
-                ])
-            ],
-
-            'cars' => [
-                Model::ACTIVERECORD_CLASS => Car::class,
-                Model::SCHEMA => new Schema([
-                    'car_id' => SchemaColumn::serial(primary: true),
-                    'driver_id' => SchemaColumn::foreign(),
-                    'brand_id' => SchemaColumn::foreign(),
-                    'name' => SchemaColumn::varchar()
-                ])
-            ]
-        ]);
-
-        $models->install();
-
-        $drivers = $models['drivers'];
-        $brands = $models['brands'];
-        $cars = $models['cars'];
-
-        $cars->belongs_to($drivers);
-        $cars->belongs_to($brands);
-
-        /* @var $car Car */
-        $car = $cars->new([ 'name' => '4two' ]);
-        $this->assertInstanceOf(Car::class, $car);
-
-        try {
-            $car->driver;
-        } catch (\LogicException $e) {
-            $this->assertStringStartsWith("Unable to establish relation", $e->getMessage());
-        }
-
-        try {
-            $car->brand;
-        } catch (\LogicException $e) {
-            $this->assertStringStartsWith("Unable to establish relation", $e->getMessage());
-        }
-
-        # driver
-
-        $driver = $drivers->new([ 'name' => 'Madonna' ]);
-        $this->assertInstanceOf(Driver::class, $driver);
-        $driver_id = $driver->save();
-
-        # brand
-
-        $brand = $brands->new([ 'name' => 'Smart' ]);
-        $this->assertInstanceOf(Brand::class, $brand);
-        $brand_id = $brand->save();
-
-        $car->driver_id = $driver_id;
-        $car->brand_id = $brand_id;
-        $car->save();
-
-        $this->assertInstanceOf(Driver::class, $car->driver);
-        $this->assertInstanceOf(Brand::class, $car->brand);
-
-        $car->driver = $driver;
-        $this->assertEquals($driver->driver_id, $car->driver_id);
-    }
-
     public function test_cache_should_be_revoked_on_save(): void
     {
         $name1 = uniqid();
@@ -630,7 +469,7 @@ final class ModelTest extends TestCase
      */
     public function test_querying($callback, $expected): void
     {
-        $this->assertSame($expected, (string) $callback($this->model));
+        $this->assertSame($expected, (string)$callback($this->model));
     }
 
     /**
@@ -638,7 +477,7 @@ final class ModelTest extends TestCase
      */
     public function provide_test_querying(): array
     {
-        $p = $this->prefix;
+        $p = self::PREFIX;
         $l = Query::LIMIT_MAX;
 
         return [
@@ -802,7 +641,7 @@ EOT
         $this->assertSame(
             'SELECT * FROM `myprefix_articles` `article`' .
             ' INNER JOIN `myprefix_nodes` `node` USING(`nid`) WHERE (1 = 1)',
-            (string) $query2
+            (string)$query2
         );
     }
 }

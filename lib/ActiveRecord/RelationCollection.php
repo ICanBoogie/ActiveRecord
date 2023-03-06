@@ -15,6 +15,7 @@ use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\OffsetNotWritable;
 
 use function is_array;
+use function var_dump;
 
 /**
  * Relation collection of a model.
@@ -115,7 +116,7 @@ class RelationCollection implements \ArrayAccess
                 $definition = [ $definition ];
             }
 
-            [ $related, $options ] = ((array)$definition) + [ 1 => [] ];
+            [ $related, $options ] = $definition + [ 1 => [] ];
 
             $relation = new BelongsToRelation($this->model, $related, $options);
 

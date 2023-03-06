@@ -3,15 +3,12 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
+use PHPUnit\Framework\TestCase;
 
-class ConnectionTest extends \PHPUnit\Framework\TestCase
+final class ConnectionTest extends TestCase
 {
-    private $id;
-
-    /**
-     * @var Connection
-     */
-    private $connection;
+    private string $id;
+    private Connection $connection;
 
     protected function setUp(): void
     {

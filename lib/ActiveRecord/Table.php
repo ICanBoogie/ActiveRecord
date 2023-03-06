@@ -12,12 +12,14 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Prototyped;
-use InvalidArgumentException;
+use LogicException;
 
+use function array_fill;
 use function array_merge;
-use function get_debug_type;
+use function count;
 use function ICanBoogie\singularize;
-use function is_string;
+use function implode;
+use function is_numeric;
 use function var_dump;
 
 /**
@@ -191,8 +193,6 @@ class Table extends Prototyped
 
     /**
      * Returns the extended schema.
-     *
-     * @return Schema
      */
     protected function lazy_get_extended_schema(): Schema
     {
@@ -379,10 +379,6 @@ class Table extends Prototyped
      */
     private function construct_with_parent(Table $parent): void
     {
-        $primary = $parent->primary;
-        $this->schema = clone $this->schema;
-        $this->schema[$primary] = $parent->schema[$primary]->with([ 'auto_increment' => false ]);
-
         if ($parent->implements) {
             $this->implements = array_merge($parent->implements, $this->implements);
         }
@@ -451,7 +447,7 @@ class Table extends Prototyped
     public function resolve_statement(string $statement): string
     {
         $primary = $this->primary;
-        $primary = \is_array($primary) ? '__multicolumn_primary__' . \implode('_', $primary) : $primary;
+        $primary = \is_array($primary) ? '__multicolumn_primary__' . implode('_', $primary) : $primary;
 
         return \strtr($statement, [
 
@@ -580,11 +576,12 @@ class Table extends Prototyped
         $parent_id = 0;
 
         if ($this->parent) {
-            $parent_id = $this->parent->save_callback($values, $id, $options);
+            $parent_id = $this->parent->save_callback($values, null, $options)
+                ?: throw new \Exception("Parent save failed: {$this->parent->name} returning {$parent_id}.");
 
-            if (!$parent_id) {
-                throw new \Exception("Parent save failed: {$this->parent->name} returning {$parent_id}.");
-            }
+            assert(is_numeric($parent_id));
+
+            $values[$this->primary] = $parent_id;
         }
 
         $driver_name = $this->connection->driver_name;
@@ -596,51 +593,38 @@ class Table extends Prototyped
         if ($holders) {
             // faire attention à l'id, si l'on revient du parent qui a inséré, on doit insérer aussi, avec son id
 
-            if ($id) {
-                $filtered[] = $id;
+            if ($driver_name === 'mysql') {
+//                if ($parent_id && empty($holders[$this->primary])) {
+//                    $filtered[] = $parent_id;
+//                    $holders[] = '`{primary}` = ?';
+//                }
 
-                $statement = 'UPDATE `{self}` SET ' . \implode(', ', $holders) . ' WHERE `{primary}` = ?';
+                $statement = 'INSERT INTO `{self}` SET ' . implode(', ', $holders);
                 $statement = $this->prepare($statement);
 
                 $rc = $statement->execute($filtered);
-            } else {
-                if ($driver_name == 'mysql') {
-                    if ($parent_id && empty($holders[$this->primary])) {
-                        $filtered[] = $parent_id;
-                        $holders[] = '`{primary}` = ?';
-                    }
+            } elseif ($driver_name === 'sqlite') {
+                $rc = $this->insert($values, $options);
+            } else throw new LogicException("Don't know what to do with $driver_name");
+        } elseif ($parent_id) {
+            #
+            # a new entry has been created, but we don't have any other fields then the primary key
+            #
 
-                    $statement = 'INSERT INTO `{self}` SET ' . \implode(', ', $holders);
-                    $statement = $this->prepare($statement);
-
-                    $rc = $statement->execute($filtered);
-                } else {
-                    if ($driver_name == 'sqlite') {
-                        $rc = $this->insert($values, $options);
-                    }
-                }
+            if (empty($identifiers[$this->primary])) {
+                $identifiers[] = '`{primary}`';
+                $filtered[] = $parent_id;
             }
+
+            $identifiers = implode(', ', $identifiers);
+            $placeholders = implode(', ', array_fill(0, count($filtered), '?'));
+
+            $statement = "INSERT INTO `{self}` ($identifiers) VALUES ($placeholders)";
+            $statement = $this->prepare($statement);
+
+            $rc = $statement->execute($filtered);
         } else {
-            if ($parent_id && !$id) {
-                #
-                # a new entry has been created, but we don't have any other fields then the primary key
-                #
-
-                if (empty($identifiers[$this->primary])) {
-                    $identifiers[] = '`{primary}`';
-                    $filtered[] = $parent_id;
-                }
-
-                $identifiers = \implode(', ', $identifiers);
-                $placeholders = \implode(', ', \array_fill(0, \count($filtered), '?'));
-
-                $statement = "INSERT INTO `{self}` ($identifiers) VALUES ($placeholders)";
-                $statement = $this->prepare($statement);
-
-                $rc = $statement->execute($filtered);
-            } else {
-                $rc = true;
-            }
+            $rc = true;
         }
 
         if ($parent_id) {
@@ -651,11 +635,7 @@ class Table extends Prototyped
             return false;
         }
 
-        if (!$id) {
-            $id = $this->connection->pdo->lastInsertId();
-        }
-
-        return $id;
+        return $this->connection->pdo->lastInsertId();
     }
 
     /**
@@ -688,7 +668,7 @@ class Table extends Prototyped
                 $query .= ' IGNORE ';
             }
 
-            $query .= ' INTO `{self}` SET ' . \implode(', ', $holders);
+            $query .= ' INTO `{self}` SET ' . implode(', ', $holders);
 
             if ($on_duplicate) {
                 if ($on_duplicate === true) {
@@ -717,17 +697,17 @@ class Table extends Prototyped
                     list($update_values, $update_holders) = $this->filter_values($on_duplicate);
                 }
 
-                $query .= ' ON DUPLICATE KEY UPDATE ' . \implode(', ', $update_holders);
+                $query .= ' ON DUPLICATE KEY UPDATE ' . implode(', ', $update_holders);
 
                 $values = array_merge($values, $update_values);
             }
         } else {
             if ($driver_name == 'sqlite') {
-                $holders = \array_fill(0, \count($identifiers), '?');
+                $holders = array_fill(0, count($identifiers), '?');
 
                 $query = 'INSERT' . ($on_duplicate ? ' OR REPLACE' : '')
-                    . ' INTO `{self}` (' . \implode(', ', $identifiers) . ')'
-                    . ' VALUES (' . \implode(', ', $holders) . ')';
+                    . ' INTO `{self}` (' . implode(', ', $identifiers) . ')'
+                    . ' VALUES (' . implode(', ', $holders) . ')';
             } else {
                 throw new \LogicException("Unsupported drive: $driver_name.");
             }
@@ -761,7 +741,7 @@ class Table extends Prototyped
                 list($table_values, $holders) = $table->filter_values($values);
 
                 if ($holders) {
-                    $query = 'UPDATE `{self}` SET ' . \implode(', ', $holders) . ' WHERE `{primary}` = ?';
+                    $query = 'UPDATE `{self}` SET ' . implode(', ', $holders) . ' WHERE `{primary}` = ?';
                     $table_values[] = $key;
 
                     $rc = $table->execute($query, $table_values);
@@ -807,7 +787,7 @@ class Table extends Prototyped
                 $parts[] = '`' . $identifier . '` = ?';
             }
 
-            $where .= \implode(' and ', $parts);
+            $where .= implode(' and ', $parts);
         } else {
             $where .= '`{primary}` = ?';
         }

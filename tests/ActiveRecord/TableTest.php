@@ -47,6 +47,7 @@ final class TableTest extends TestCase
             Table::EXTENDING => self::$animals,
             Table::NAME => 'dogs',
             Table::SCHEMA => new Schema([
+                'id' => SchemaColumn::foreign(primary: true),
                 'bark_volume' => SchemaColumn::float(),
             ])
         ]);

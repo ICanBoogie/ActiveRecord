@@ -11,8 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Acme\Subscriber;
-use ICanBoogie\Acme\Update;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
@@ -30,39 +28,11 @@ final class QueryTest extends TestCase
     private Model $nodes;
     private Model $articles;
 
-    /**
-     * @var array<int, array<string, mixed>>
-     */
-    private array $source;
-
     protected function setUp(): void
     {
         parent::setUp();
 
-        $models = new ModelCollection(
-            Fixtures::connections_with_primary(),
-            Fixtures::model_definitions([ 'nodes', 'articles' ]) + [
-
-                'subscribers' => [
-                    Model::ACTIVERECORD_CLASS => Subscriber::class,
-                    Model::SCHEMA => new Schema([
-                        'subscriber_id' => SchemaColumn::serial(primary: true),
-                        'email' => SchemaColumn::varchar(),
-                    ])
-                ],
-
-                'updates' => [
-                    Model::ACTIVERECORD_CLASS => Update::class,
-                    Model::SCHEMA => new Schema([
-                        'update_id' => SchemaColumn::serial(primary: true),
-                        'subscriber_id' => SchemaColumn::foreign(),
-                        'updated_at' => SchemaColumn::datetime(),
-                        'update_hash' => SchemaColumn::char(size: 40)
-                    ])
-                ],
-
-            ]
-        );
+        [ , $models ] = Fixtures::only_models([ 'nodes', 'articles', 'subscribers', 'updates' ]);
 
         $models->install();
 
@@ -81,7 +51,6 @@ final class QueryTest extends TestCase
             ];
 
             $key = $this->articles->save($properties);
-            $this->source[$key] = $properties;
         }
     }
 

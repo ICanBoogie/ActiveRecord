@@ -48,7 +48,6 @@ use LogicException;
  * @property-read string $id The identifier of the model.
  * @property-read ActiveRecord $one Retrieve the first record from the mode.
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
- * @property-read Model $parent_model The parent model.
  * @property-read RelationCollection $relations The relations of this model to other models.
  *
  * @implements ArrayAccess<int|string, ActiveRecord>
@@ -96,19 +95,6 @@ class Model extends Table implements ArrayAccess
     protected function get_id(): string
     {
         return $this->attributes[self::ID];
-    }
-
-    /**
-     * The parent model of the model.
-     *
-     * The parent model and the {@link parent} may be different if the model does not have a
-     * schema but inherits it from its parent.
-     */
-    private ?Model $parent_model;
-
-    protected function get_parent_model(): ?Model
-    {
-        return $this->parent_model;
     }
 
     /**
@@ -204,18 +190,6 @@ class Model extends Table implements ArrayAccess
 
         $attributes[self::ID] ??= $attributes[self::NAME];
 
-        $this->parent_model = $extends = $attributes[self::EXTENDING];
-
-        if ($extends && !$attributes[self::SCHEMA]) {
-            $attributes[self::NAME] = $extends->unprefixed_name;
-            $attributes[self::SCHEMA] = $extends->schema;
-            $attributes[self::EXTENDING] = $extends->parent;
-
-            if (!$attributes[self::ACTIVERECORD_CLASS]) {
-                $attributes[self::ACTIVERECORD_CLASS] = $extends->activerecord_class;
-            }
-        }
-
         return $attributes;
     }
 
@@ -252,15 +226,22 @@ class Model extends Table implements ArrayAccess
     }
 
     public function belongs_to(
-        Model|string $model,
+        Model|string $model_or_id,
         string|null $local_key = null,
         string|null $foreign_key = null,
         string|null $as = null,
     ): self
     {
-        $model_id = $model instanceof Model ? $model->id : $model;
+        $related = $model_or_id  instanceof Model
+            ? $model_or_id
+            : $this->models->model_for_id($model_or_id);
 
-        $this->relations->belongs_to($model_id, [ 'local_key' => $local_key, 'foreign_key' => $foreign_key, 'as' => $as ]);
+        $local_key ??= $this->schema->primary;
+        $foreign_key ??= $related->primary;
+
+        $this->relations->belongs_to([
+            [ $related->id, [ 'local_key' => $local_key, 'foreign_key' => $foreign_key, 'as' => $as ] ],
+        ]);
 
         return $this;
     }

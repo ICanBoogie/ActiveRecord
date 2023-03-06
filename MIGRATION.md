@@ -27,3 +27,4 @@ None
 ### Other Changes
 
 - `ActiveRecord` uses `StaticModelResolver` to obtain its model.
+- For models extending other models, the primary key is now inherited during config building instead of resolved during `Table` constructor.

@@ -18,11 +18,7 @@ final class ModelCollectionTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->connections = Fixtures::connections_with_primary();
-        $this->models = new ModelCollection(
-            $this->connections,
-            Fixtures::model_definitions([ 'nodes', 'articles', 'comments' ]),
-        );
+        [ $this->connections, $this->models ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
     }
 
     public function test_get_definitions(): void

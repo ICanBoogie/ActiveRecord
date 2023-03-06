@@ -19,6 +19,8 @@ use ICanBoogie\Validate\ValidationErrors;
 use LogicException;
 
 use function get_debug_type;
+use function is_null;
+use function is_numeric;
 use function sprintf;
 
 /**
@@ -187,6 +189,10 @@ abstract class ActiveRecord extends Prototyped
         }
 
         $rc = $model->save($properties, $key);
+
+        if (is_numeric($rc)) {
+            $rc = (int) $rc;
+        }
 
         if ($key === null && $rc) {
             $this->update_primary_key($rc);

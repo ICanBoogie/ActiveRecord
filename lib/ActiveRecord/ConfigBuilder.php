@@ -28,6 +28,7 @@ use LogicException;
 
 use function array_filter;
 use function array_map;
+use function get_debug_type;
 use function is_string;
 use function preg_match;
 
@@ -94,6 +95,22 @@ final class ConfigBuilder
      */
     private function build_associations(): array
     {
+        foreach ($this->transient_models as $id => $model) {
+            if ($model->extends) {
+                $parent_schema = $this->transient_models[$model->extends]->schema;
+                $primary = $parent_schema->primary;
+
+                if (!is_string($primary)) {
+                    throw new InvalidConfig(
+                        "Model '$id' cannot extend '$model->extends',"
+                        . " the primary key is not a string, given: " . get_debug_type($primary)
+                    );
+                }
+
+                $model->schema[$primary] = $parent_schema[$primary]->with([ 'auto_increment' => false ]);
+            }
+        }
+
         $associations = [];
 
         foreach ($this->association as $model_id => $association) {
@@ -141,7 +158,7 @@ final class ConfigBuilder
                 implements: $transient->implements,
                 model_class: $transient->model_class ?? Model::class,
                 query_class: $transient->query_class ?? Query::class,
-                association: $associations[$id],
+                association: $associations[$id] ?? null,
             );
         }
 
@@ -157,7 +174,9 @@ final class ConfigBuilder
         $as = $association->as ?? $association->model_id;
 
         if (!is_string($foreign_key)) {
-            throw new InvalidConfig("Unable to create 'belongs to' association, primary key of model '$association->model_id' is not a string.");
+            throw new InvalidConfig(
+                "Unable to create 'belongs to' association, primary key of model '$association->model_id' is not a string."
+            );
         }
 
         return new BelongsToAssociation(
@@ -170,16 +189,29 @@ final class ConfigBuilder
 
     private function resolve_has_many(string $owner, TransientHasManyAssociation $association): HasManyAssociation
     {
-        $local_key = $association->local_key ?? $this->transient_models[$owner]->schema->primary;
-        $foreign_key = $association->foreign_key ?? $this->transient_models[$association->model_id]->schema->primary; // TODO: improve to infer key from 'belong_to'
+        $local_key = $association->local_key
+            ?? $this->transient_models[$owner]->schema->primary;
+        $foreign_key = $association->foreign_key;
         $as = $association->as ?? $association->model_id;
 
+        if ($association->through) {
+            $foreign_key ??= $this->transient_models[$association->model_id]->schema->primary;
+        }
+
+        $foreign_key or throw new InvalidConfig(
+            "Don't know how to resolve foreign key on $owner for association has_many($association->model_id)"
+        );
+
         if (!is_string($local_key)) {
-            throw new InvalidConfig("Unable to create 'has many' association, primary key of model '$owner' is not a string.");
+            throw new InvalidConfig(
+                "Unable to create 'has many' association, primary key of model '$owner' is not a string."
+            );
         }
 
         if (!is_string($foreign_key)) {
-            throw new InvalidConfig("Unable to create 'has many' association, primary key of model '$association->model_id' is not a string.");
+            throw new InvalidConfig(
+                "Unable to create 'has many' association, primary key of model '$association->model_id' is not a string."
+            );
         }
 
         return new HasManyAssociation(

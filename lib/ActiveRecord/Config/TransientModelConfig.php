@@ -14,7 +14,7 @@ final class TransientModelConfig
 {
     public function __construct(
         public readonly string $id,
-        public readonly Schema $schema,
+        public Schema $schema,
         public readonly string $activerecord_class,
         public readonly string $connection = Config::DEFAULT_CONNECTION_ID,
         public readonly ?string $name = null,

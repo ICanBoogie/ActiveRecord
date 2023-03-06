@@ -10,6 +10,8 @@ use ICanBoogie\ActiveRecord;
  */
 class Car extends ActiveRecord
 {
+    public int $car_id;
     public int $driver_id;
     public int $brand_id;
+    public string $name;
 }
