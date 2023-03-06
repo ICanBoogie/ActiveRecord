@@ -12,15 +12,17 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Prototyped;
+use InvalidArgumentException;
 
 use function array_merge;
+use function get_debug_type;
 use function ICanBoogie\singularize;
+use function is_string;
 use function var_dump;
 
 /**
  * A representation of a database table.
  *
- * @property-read Connection $connection Connection used by the table.
  * @property-read Schema $schema The schema of the table.
  * @property-read Schema $extended_schema The extended schema of the table.
  * @property-read string $name Name of the table, which might include a prefix.
@@ -57,18 +59,6 @@ class Table extends Prototyped
      * Schema of the table.
      */
     public const SCHEMA = 'schema';
-
-    /**
-     * A database connection.
-     *
-     * @var Connection
-     */
-    protected $connection;
-
-    protected function get_connection(): Connection
-    {
-        return $this->connection;
-    }
 
     /**
      * Name of the table, including the prefix defined by the model's connection.
@@ -222,17 +212,12 @@ class Table extends Prototyped
     }
 
     /**
-     * Initializes the following properties: {@link $alias}, {@link $connection},
-     * {@link implements}, {@link $unprefixed_name}, {@link $schema} and {@link $parent}.
-     *
-     * @param array<string, mixed> $attributes
-     *
-     * @throws \InvalidArgumentException if the {@link CONNECTION} attribute is empty.
+     * @param array<self::*, mixed> $attributes
      */
-    public function __construct(array $attributes)
-    {
-        UnsetAttribute::ThrowIf($attributes, self::CONNECTION);
-
+    public function __construct(
+        public readonly Connection $connection,
+        array $attributes
+    ) {
         unset($this->update_join);
         unset($this->select_join);
 
@@ -248,7 +233,6 @@ class Table extends Prototyped
             $this->construct_with_parent($parent);
         }
 
-        $this->assert_has_connection();
         $this->assert_implements_is_valid();
 
         $this->name = $this->connection->table_name_prefix . $this->unprefixed_name;
@@ -285,9 +269,6 @@ class Table extends Prototyped
                 case self::ALIAS:
                     $this->alias = $value;
                     break;
-                case self::CONNECTION:
-                    $this->connection = $value;
-                    break;
                 case self::IMPLEMENTING:
                     $this->implements = $value;
                     break;
@@ -323,22 +304,6 @@ class Table extends Prototyped
     {
         if (empty($this->schema)) {
             throw new \InvalidArgumentException("The `SCHEMA` attribute is empty.");
-        }
-    }
-
-    /**
-     * Asserts that the table has a valid connection.
-     */
-    private function assert_has_connection()
-    {
-        $connection = $this->connection;
-
-        if (!$connection instanceof Connection) {
-            throw new \InvalidArgumentException(
-                '`CONNECTION` must be an instance of Connection, given: '
-                . (is_object($connection) ? 'instance of ' . get_class($connection) : gettype($connection))
-                . '.'
-            );
         }
     }
 
@@ -414,7 +379,6 @@ class Table extends Prototyped
      */
     private function construct_with_parent(Table $parent): void
     {
-        $this->connection = $parent->connection;
         $primary = $parent->primary;
         $this->schema = clone $this->schema;
         $this->schema[$primary] = $parent->schema[$primary]->with([ 'auto_increment' => false ]);
@@ -849,7 +813,7 @@ class Table extends Prototyped
         }
 
         $statement = $this->prepare('DELETE FROM `{self}` ' . $where);
-        $statement((array) $key);
+        $statement((array)$key);
 
         return !!$statement->pdo_statement->rowCount();
     }

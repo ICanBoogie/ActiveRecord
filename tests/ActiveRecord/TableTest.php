@@ -34,9 +34,8 @@ final class TableTest extends TestCase
             ]
         );
 
-        self::$animals = new Table([
+        self::$animals = new Table(self::$connection, [
             Table::NAME => 'animals',
-            Table::CONNECTION => self::$connection,
             Table::SCHEMA => self::$animals_schema = new Schema([
                 'id' => SchemaColumn::serial(primary: true),
                 'name' => SchemaColumn::varchar(),
@@ -44,8 +43,7 @@ final class TableTest extends TestCase
             ])
         ]);
 
-        self::$dogs = new Table([
-            Table::CONNECTION => self::$connection,
+        self::$dogs = new Table(self::$connection, [
             Table::EXTENDING => self::$animals,
             Table::NAME => 'dogs',
             Table::SCHEMA => new Schema([
@@ -60,10 +58,9 @@ final class TableTest extends TestCase
     public function test_invalid_table_name(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        new Table([
+        new Table(self::$connection, [
 
             Table::NAME => 'invalid-name',
-            Table::CONNECTION => self::$connection
 
         ]);
     }
@@ -86,7 +83,7 @@ final class TableTest extends TestCase
      */
     public function provide_test_readonly_properties(): array
     {
-        $properties = 'connection name unprefixed_name primary alias parent schema';
+        $properties = 'name unprefixed_name primary alias parent schema';
 
         return array_map(function ($v) {
             return (array) $v;
@@ -166,9 +163,7 @@ final class TableTest extends TestCase
 
     public function test_resolve_statement__multi_column_primary_key(): void
     {
-        $table = new Table([
-
-            Table::CONNECTION => self::$connection,
+        $table = new Table(self::$connection, [
             Table::NAME => 'testing',
             Table::SCHEMA => new Schema([
                 'p1' => new SchemaColumn(type: 'int', size: 'big', primary: true),

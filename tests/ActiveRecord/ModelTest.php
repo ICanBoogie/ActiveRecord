@@ -209,9 +209,8 @@ final class ModelTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $model = new Model($models, [
+        $model = new Model($connection, $models, [
 
-            Model::CONNECTION => $connection,
             Model::NAME => 'nodes',
             Model::SCHEMA => new Schema([
                 'id' => SchemaColumn::serial(primary: true),
@@ -420,7 +419,7 @@ final class ModelTest extends TestCase
     }
 
     /**
-     * @return array[]
+     * @return array<array{ string, array{ string } }>
      */
     public function provide_test_initiate_query(): array
     {
@@ -435,28 +434,6 @@ final class ModelTest extends TestCase
             [ 'offset', [ '12' ] ]
 
         ];
-    }
-
-    public function testInvalidConnection(): void
-    {
-        $models = $this
-            ->getMockBuilder(ModelCollection::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->expectException(\InvalidArgumentException::class);
-
-        /* @var ModelCollection $models */
-
-        new Model($models, [
-            Model::NAME => 'tests',
-            Model::CONNECTION => 'invalid_connection',
-            Model::SCHEMA => new Schema([
-                'id' => SchemaColumn::serial(primary: true),
-                'name' => SchemaColumn::varchar(),
-                'date' => SchemaColumn::timestamp(),
-            ])
-        ]);
     }
 
     public function test_has_scope(): void
@@ -802,8 +779,7 @@ EOT
 
     public function test_custom_query(): void
     {
-        $model = new Model($this->models, [
-            Model::CONNECTION => $this->connections['primary'],
+        $model = new Model($this->connections['primary'], $this->models, [
             Model::NAME => uniqid(),
             Model::SCHEMA => new Schema([
                 'id' => SchemaColumn::serial(primary: true),

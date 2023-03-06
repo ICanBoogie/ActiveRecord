@@ -36,7 +36,7 @@ final class ModelCollectionTest extends TestCase
     {
         $ids = [];
 
-        foreach ($this->models as $id => $get) {
+        foreach ($this->models->model_iterator() as $id => $get) {
             $ids[] = $id;
             $model = $get();
 

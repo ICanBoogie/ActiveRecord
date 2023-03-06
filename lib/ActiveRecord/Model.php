@@ -41,7 +41,6 @@ use LogicException;
  * @method Model has_many($related, $options = []) Adds a _has_many_ relation.
  *
  * @property-read Model|null $parent Parent model.
- * @property-read ModelProvider $models
  * @property-read array $all Retrieve all the records from the model.
  * @property-read class-string $activerecord_class Class of the active records of the model.
  * @property-read int $count The number of records of the model.
@@ -63,13 +62,6 @@ class Model extends Table implements ArrayAccess
     public const HAS_MANY = 'has_many';
     public const ID = 'id';
     public const QUERY_CLASS = 'query_class';
-
-    private ModelProvider $models;
-
-    protected function get_models(): ModelProvider
-    {
-        return $this->models;
-    }
 
     /**
      * Active record instances class.
@@ -147,16 +139,18 @@ class Model extends Table implements ArrayAccess
      * the name of the model and the schema are inherited from the extended model and
      * {@link EXTENDING} is set to the parent model object.
      *
-     * @param array<string, mixed> $attributes Attributes used to construct the model.
+     * @param array<self::*, mixed> $attributes Attributes used to construct the model.
      */
-    public function __construct(ModelProvider $models, array $attributes)
-    {
-        $this->models = $models;
+    public function __construct(
+        Connection $connection,
+        public readonly ModelProvider $models,
+        array $attributes
+    ) {
         $this->attributes = $attributes = $this->resolve_attributes($attributes);
         $this->parent = $attributes[self::EXTENDING];
         $this->relations = new RelationCollection($this);
 
-        parent::__construct($attributes);
+        parent::__construct($connection, $attributes);
 
         $this->activerecord_class = $attributes[self::ACTIVERECORD_CLASS]
             ?? throw new LogicException("Missing ActiveRecord class for model '$this->id'");

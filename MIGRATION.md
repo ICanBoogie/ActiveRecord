@@ -18,6 +18,7 @@
 ### Backward Incompatible Changes
 
 - `ActiveRecord` is now abstract and requires extension.
+- `Table` requires a `Connection` instance in its constructor, the `CONNECTION` attribute is no longer replaced by a `Connection` instance.
 
 ### Deprecated Features
 

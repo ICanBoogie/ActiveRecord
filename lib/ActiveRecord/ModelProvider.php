@@ -11,14 +11,10 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use IteratorAggregate;
-
 /**
  * Provides models.
- *
- * @extends IteratorAggregate<string, (callable(): Model)>
  */
-interface ModelProvider extends IteratorAggregate
+interface ModelProvider
 {
     /**
      * Provides a model for a given identifier.

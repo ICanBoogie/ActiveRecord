@@ -17,7 +17,6 @@ use ICanBoogie\ActiveRecord;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
-use Traversable;
 
 use function array_keys;
 use function get_debug_type;
@@ -32,7 +31,7 @@ use function sprintf;
  *
  * @implements ArrayAccess<string, Model>
  */
-class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver
+class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, ModelIterator
 {
     /**
      * @uses get_instances
@@ -83,7 +82,7 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver
         }
     }
 
-    public function getIterator(): Traversable
+    public function model_iterator(): iterable
     {
         foreach (array_keys($this->definitions) as $id) {
             yield $id => fn() => $this->model_for_id($id);
@@ -244,8 +243,7 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver
     /**
      * Resolves model attributes.
      *
-     * The methods replaces {@link Model::CONNECTION} and {@link Model::EXTENDING} identifier
-     * with instances.
+     * The method replaces {@link Model::EXTENDING} identifier with an instance.
      *
      * @param array<string, mixed> $attributes
      *
@@ -260,12 +258,6 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver
             Model::EXTENDING => null
 
         ];
-
-        $connection = &$attributes[Model::CONNECTION];
-
-        if ($connection && !$connection instanceof Connection) {
-            $connection = $this->connections->connection_for_id($connection);
-        }
 
         $extending = &$attributes[Model::EXTENDING];
 
@@ -283,8 +275,13 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver
      */
     private function instantiate_model(array $attributes): Model
     {
+        /** @var class-string<Model> $class */
         $class = $attributes[Model::CLASSNAME];
 
-        return new $class($this, $attributes);
+        return new $class(
+            $this->connections->connection_for_id($attributes[Table::CONNECTION]),
+            $this,
+            $attributes
+        );
     }
 }
