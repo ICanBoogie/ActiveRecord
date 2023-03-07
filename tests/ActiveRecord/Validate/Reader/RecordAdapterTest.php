@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord\Validate\Reader;
 use ICanBoogie\Acme\Node;
 use ICanBoogie\ActiveRecord\Model;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Fixtures;
 
 /**
  * @group validate
@@ -23,10 +24,12 @@ final class RecordAdapterTest extends TestCase
 {
     public function test_adapter(): void
     {
+        [ , $models ] = Fixtures::only_models([ 'nodes' ]);
+
         $p = 'property' . uniqid();
         $v = uniqid();
 
-        $record = new Node($this->mockModel());
+        $record = new Node($models->model_for_id('nodes'));
         $record->$p = $v;
 
         $reader = new RecordAdapter($record);
@@ -34,17 +37,5 @@ final class RecordAdapterTest extends TestCase
         $this->assertSame($record, $reader->record);
         $this->assertSame($v, $record->$p);
         $this->assertNull($reader->read('p' . uniqid()));
-    }
-
-    private function mockModel(): Model
-    {
-        $model = $this->getMockBuilder(Model::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods([ 'get_id'])
-            ->getMock();
-        $model->method('get_id')
-            ->willReturn('acme');
-
-        return $model;
     }
 }

@@ -11,11 +11,22 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use AllowDynamicProperties;
 use ArrayAccess;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\Prototype\MethodNotDefined;
 use LogicException;
+
+use function array_combine;
+use function array_fill;
+use function array_keys;
+use function count;
+use function func_get_args;
+use function implode;
+use function is_array;
+use function is_callable;
+use function method_exists;
 
 /**
  * Base class for activerecord models.
@@ -42,17 +53,17 @@ use LogicException;
  *
  * @property-read Model|null $parent Parent model.
  * @property-read array $all Retrieve all the records from the model.
- * @property-read class-string $activerecord_class Class of the active records of the model.
  * @property-read int $count The number of records of the model.
  * @property-read bool $exists Whether the SQL table associated with the model exists.
- * @property-read string $id The identifier of the model.
  * @property-read ActiveRecord $one Retrieve the first record from the mode.
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
- * @property-read RelationCollection $relations The relations of this model to other models.
  *
- * @implements ArrayAccess<int|string, ActiveRecord>
+ * @template TKey of int|string
+ * @template TValue of ActiveRecord
+ *
+ * @implements ArrayAccess<TKey, TValue>
  */
-#[\AllowDynamicProperties]
+#[AllowDynamicProperties]
 class Model extends Table implements ArrayAccess
 {
     public const ACTIVERECORD_CLASS = 'activerecord_class';
@@ -65,47 +76,31 @@ class Model extends Table implements ArrayAccess
     /**
      * Active record instances class.
      *
-     * @var class-string<ActiveRecord>
+     * @var class-string<TValue>
      */
-    private string $activerecord_class;
+    public readonly string $activerecord_class;
 
     /**
-     * @return class-string<ActiveRecord>
+     * @var class-string<Query<TValue>>
      */
-    protected function get_activerecord_class(): string
-    {
-        return $this->activerecord_class;
-    }
-
-    /**
-     * @var string
-     */
-    private string $query_class;
+    private readonly string $query_class;
 
     /**
      * Attributes of the model.
      *
-     * @var array<string, mixed>
+     * @var array<self::*, mixed>
      */
-    private array $attributes;
+    private readonly array $attributes;
 
     /**
-     * Returns the identifier of the model.
+     * The identifier of the model.
      */
-    protected function get_id(): string
-    {
-        return $this->attributes[self::ID];
-    }
+    public readonly string $id;
 
     /**
      * The relations of this model to other models.
      */
-    private RelationCollection $relations;
-
-    protected function get_relations(): RelationCollection
-    {
-        return $this->relations;
-    }
+    public readonly RelationCollection $relations;
 
     /**
      * Returns the records cache.
@@ -114,6 +109,7 @@ class Model extends Table implements ArrayAccess
      */
     protected function lazy_get_activerecord_cache(): ActiveRecordCache
     {
+        /** @phpstan-ignore-next-line */
         return parent::lazy_get_activerecord_cache();
     }
 
@@ -133,14 +129,22 @@ class Model extends Table implements ArrayAccess
         array $attributes
     ) {
         $this->attributes = $attributes = $this->resolve_attributes($attributes);
-        $this->parent = $attributes[self::EXTENDING];
+        $this->id = $this->attributes[self::ID];
         $this->relations = new RelationCollection($this);
 
-        parent::__construct($connection, $attributes);
+        $parent = null;
+
+        if ($attributes[self::EXTENDING]) {
+            $parent = $models->model_for_id($attributes[self::EXTENDING]);
+        }
+
+        parent::__construct($connection, $attributes, $parent);
 
         $this->activerecord_class = $attributes[self::ACTIVERECORD_CLASS]
             ?? throw new LogicException("Missing ActiveRecord class for model '$this->id'");
-        $this->query_class = $this->resolve_query_class();
+        $this->query_class = $attributes[self::QUERY_CLASS]
+            ?? Query::class;
+
         $this->resolve_relations();
     }
 
@@ -194,14 +198,6 @@ class Model extends Table implements ArrayAccess
     }
 
     /**
-     * @return string
-     */
-    private function resolve_query_class(): string
-    {
-        return $this->attributes[self::QUERY_CLASS] ?? Query::class;
-    }
-
-    /**
      * Resolves relations with other models.
      */
     private function resolve_relations(): void
@@ -225,14 +221,19 @@ class Model extends Table implements ArrayAccess
         }
     }
 
+    /**
+     * @param self<TKey, TValue>|string $model_or_id
+     *
+     * @return self<TKey, TValue>
+     */
     public function belongs_to(
-        Model|string $model_or_id,
+        self|string $model_or_id,
         string|null $local_key = null,
         string|null $foreign_key = null,
         string|null $as = null,
     ): self
     {
-        $related = $model_or_id  instanceof Model
+        $related = $model_or_id  instanceof self
             ? $model_or_id
             : $this->models->model_for_id($model_or_id);
 
@@ -257,17 +258,15 @@ class Model extends Table implements ArrayAccess
             return $this->new_record(...$arguments);
         }
 
-        $query_class = $this->resolve_query_class();
-
         if (
-            \method_exists($query_class, $method)
-            || \strpos($method, 'filter_by_') === 0
-            || \method_exists($this, 'scope_' . $method)
+            method_exists($this->query_class, $method)
+            || str_starts_with($method, 'filter_by_')
+            || method_exists($this, 'scope_' . $method)
         ) {
             return $this->query()->$method(...$arguments);
         }
 
-        if (\is_callable([ $this->relations, $method ])) {
+        if (is_callable([ $this->relations, $method ])) {
             return $this->relations->$method(...$arguments);
         }
 
@@ -276,14 +275,12 @@ class Model extends Table implements ArrayAccess
 
     /**
      * Overrides the method to handle scopes.
-     *
-     * @inheritdoc
      */
     public function __get($property)
     {
         $method = 'scope_' . $property;
 
-        if (\method_exists($this, $method)) {
+        if (method_exists($this, $method)) {
             return $this->$method($this->query());
         }
 
@@ -295,24 +292,24 @@ class Model extends Table implements ArrayAccess
      *
      * @param mixed $key A key, multiple keys, or an array of keys.
      *
-     * @return ActiveRecord|ActiveRecord[] A record or a set of records.
+     * @return TValue|TValue[] A record or a set of records.
      * @throws RecordNotFound when the record, or one or more records of the records
      * set, could not be found.
      *
      */
-    public function find($key)
+    public function find(mixed $key)
     {
-        $args = \func_get_args();
-        $n = \count($args);
+        $args = func_get_args();
+        $n = count($args);
 
         if (!$n) {
             throw new \BadMethodCallException("Expected at least one argument.");
         }
 
-        if (\count($args) == 1) {
+        if (count($args) == 1) {
             $key = $args[0];
 
-            if (!\is_array($key)) {
+            if (!is_array($key)) {
                 return $this->find_one($key);
             }
 
@@ -325,9 +322,9 @@ class Model extends Table implements ArrayAccess
     /**
      * Finds one records.
      *
-     * @param string|int $key
+     * @param TKey $key
      *
-     * @return ActiveRecord
+     * @return TValue
      */
     private function find_one($key): ActiveRecord
     {
@@ -354,13 +351,13 @@ class Model extends Table implements ArrayAccess
     /**
      * Finds many records.
      *
-     * @param array $keys
+     * @param array<TKey> $keys
      *
-     * @return ActiveRecord[]
+     * @return TValue[]
      */
     private function find_many(array $keys): array
     {
-        $records = \array_combine($keys, \array_fill(0, \count($keys), null));
+        $records = array_combine($keys, array_fill(0, count($keys), null));
         $missing = $records;
 
         foreach ($records as $key => $dummy) {
@@ -376,7 +373,7 @@ class Model extends Table implements ArrayAccess
 
         if ($missing) {
             $primary = $this->primary;
-            $query_records = $this->where([ $primary => \array_keys($missing) ])->all;
+            $query_records = $this->where([ $primary => array_keys($missing) ])->all;
 
             foreach ($query_records as $record) {
                 $key = $record->$primary;
@@ -388,14 +385,14 @@ class Model extends Table implements ArrayAccess
         }
 
         if ($missing) {
-            if (\count($missing) > 1) {
+            if (count($missing) > 1) {
                 throw new RecordNotFound(
-                    "Records " . \implode(', ', \array_keys($missing)) . " do not exists in model <q>{$this->id}</q>.",
+                    "Records " . implode(', ', array_keys($missing)) . " do not exists in model <q>{$this->id}</q>.",
                     $records
                 );
             }
 
-            $key = \array_keys($missing);
+            $key = array_keys($missing);
             $key = \array_shift($key);
 
             throw new RecordNotFound(
@@ -410,11 +407,10 @@ class Model extends Table implements ArrayAccess
     /**
      * @param mixed ...$conditions_and_args
      *
-     * @return Query
+     * @return Query<TValue>
      */
     public function query(...$conditions_and_args): Query
     {
-        /* @var Query $query */
         $class = $this->query_class;
         $query = new $class($this);
 
@@ -454,8 +450,6 @@ class Model extends Table implements ArrayAccess
 
     /**
      * Checks that the SQL table associated with the model exists.
-     *
-     * @return bool
      */
     protected function get_exists(): bool
     {
@@ -464,8 +458,6 @@ class Model extends Table implements ArrayAccess
 
     /**
      * Returns the number of records of the model.
-     *
-     * @return int
      */
     protected function get_count(): int
     {
@@ -475,7 +467,7 @@ class Model extends Table implements ArrayAccess
     /**
      * Returns all the records of the model.
      *
-     * @return ActiveRecord[]
+     * @return TValue[]
      */
     protected function get_all(): array
     {
@@ -485,7 +477,7 @@ class Model extends Table implements ArrayAccess
     /**
      * Returns the first record of the model.
      *
-     * @return ActiveRecord
+     * @return TValue
      */
     protected function get_one(): ActiveRecord
     {
@@ -504,7 +496,7 @@ class Model extends Table implements ArrayAccess
      */
     public function has_scope(string $name): bool
     {
-        return \method_exists($this, 'scope_' . $name);
+        return method_exists($this, 'scope_' . $name);
     }
 
     /**
@@ -514,7 +506,7 @@ class Model extends Table implements ArrayAccess
      * @param array $scope_args Arguments to forward to the scope method. The first argument must
      * be a {@link Query} instance.
      *
-     * @return Query
+     * @return Query<TValue>
      * @throws ScopeNotDefined when the specified scope is not defined.
      *
      */
@@ -564,7 +556,7 @@ class Model extends Table implements ArrayAccess
      *
      * @param int $key ActiveRecord identifier.
      *
-     * @return ActiveRecord
+     * @return TValue
      */
     public function offsetGet(mixed $key): ActiveRecord
     {
@@ -577,6 +569,8 @@ class Model extends Table implements ArrayAccess
      * The class of the instance is defined by the {@link $activerecord_class} property.
      *
      * @param array<string, mixed> $properties Optional properties to instantiate the record with.
+     *
+     * @retrun TValue
      */
     protected function new_record(array $properties = []): ActiveRecord
     {

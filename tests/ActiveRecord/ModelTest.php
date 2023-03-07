@@ -298,10 +298,10 @@ final class ModelTest extends TestCase
      */
     public function provide_test_readonly_properties(): array
     {
-        $properties = 'id|activerecord_class|exists|count|all|one';
+        $properties = 'exists count all one';
         return array_map(function ($v) {
             return (array)$v;
-        }, explode('|', $properties));
+        }, explode(' ', $properties));
     }
 
     public function test_get_exists(): void

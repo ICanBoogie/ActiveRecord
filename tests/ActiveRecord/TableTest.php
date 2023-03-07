@@ -11,9 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\PropertyNotWritable;
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 
 final class TableTest extends TestCase
 {
@@ -44,52 +43,20 @@ final class TableTest extends TestCase
         ]);
 
         self::$dogs = new Table(self::$connection, [
-            Table::EXTENDING => self::$animals,
             Table::NAME => 'dogs',
             Table::SCHEMA => new Schema([
                 'id' => SchemaColumn::foreign(primary: true),
                 'bark_volume' => SchemaColumn::float(),
             ])
-        ]);
+        ], self::$animals);
 
         self::$animals->install();
         self::$dogs->install();
     }
 
-    public function test_invalid_table_name(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        new Table(self::$connection, [
-
-            Table::NAME => 'invalid-name',
-
-        ]);
-    }
-
     /*
      * getters and setters
      */
-
-    /**
-     * @dataProvider provide_test_readonly_properties
-     */
-    public function test_readonly_properties(string $property): void
-    {
-        $this->expectException(PropertyNotWritable::class);
-        self::$animals->$property = null;
-    }
-
-    /**
-     * @return array<int, mixed>
-     */
-    public function provide_test_readonly_properties(): array
-    {
-        $properties = 'name unprefixed_name primary alias parent schema';
-
-        return array_map(function ($v) {
-            return (array) $v;
-        }, explode(' ', $properties));
-    }
 
     public function test_get_connection(): void
     {
@@ -140,7 +107,7 @@ final class TableTest extends TestCase
     public function test_get_update_join(): void
     {
         $table = self::$dogs;
-        $method = new \ReflectionMethod(Table::class, 'lazy_get_update_join');
+        $method = new ReflectionMethod(Table::class, 'lazy_get_update_join');
         $method->setAccessible(true);
 
         $this->assertSame(" INNER JOIN `prefix_animals` `animal` USING(`id`)", $method->invoke($table));
@@ -149,7 +116,7 @@ final class TableTest extends TestCase
     public function test_get_select_join(): void
     {
         $table = self::$dogs;
-        $method = new \ReflectionMethod(Table::class, 'lazy_get_select_join');
+        $method = new ReflectionMethod(Table::class, 'lazy_get_select_join');
         $method->setAccessible(true);
 
         $this->assertSame("`dog` INNER JOIN `prefix_animals` `animal` USING(`id`)", $method->invoke($table));

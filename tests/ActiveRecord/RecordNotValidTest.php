@@ -25,13 +25,6 @@ final class RecordNotValidTest extends TestCase
 {
     public function test_exception(): void
     {
-        $model = $this->getMockBuilder(Model::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods([ 'get_id'])
-            ->getMock();
-        $model->method('get_id')
-            ->willReturn('acme');
-
         $record = new Subscriber();
 
         $errors = new ValidationErrors([

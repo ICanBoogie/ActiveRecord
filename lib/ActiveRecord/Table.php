@@ -12,26 +12,26 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Prototyped;
+use InvalidArgumentException;
 use LogicException;
+
+use Throwable;
 
 use function array_fill;
 use function array_merge;
 use function count;
 use function ICanBoogie\singularize;
 use function implode;
+use function is_array;
 use function is_numeric;
-use function var_dump;
+use function strrpos;
+use function strtr;
+use function substr;
 
 /**
  * A representation of a database table.
  *
- * @property-read Schema $schema The schema of the table.
  * @property-read Schema $extended_schema The extended schema of the table.
- * @property-read string $name Name of the table, which might include a prefix.
- * @property-read string $unprefixed_name Unprefixed name of the table.
- * @property-read string|array|null $primary Primary key of the table, or `null` if there is none.
- * @property-read string $alias The alias name of the table.
- * @property-read Table|null $parent The parent of the table.
  */
 #[\AllowDynamicProperties]
 class Table extends Prototyped
@@ -63,82 +63,36 @@ class Table extends Prototyped
     public const SCHEMA = 'schema';
 
     /**
-     * Name of the table, including the prefix defined by the model's connection.
-     *
-     * @var string
+     * The parent is used when the table is in a hierarchy, which is the case if the table
+     * extends another table.
      */
-    protected $name;
-
-    protected function get_name(): string
-    {
-        return $this->name;
-    }
+    public readonly ?self $parent;
 
     /**
-     * The unprefixed name of the table.
-     *
-     * @return string
+     * Name of the table, without the prefix defined by the connection.
      */
-    protected $unprefixed_name;
-
-    protected function get_unprefixed_name(): string
-    {
-        if ($this->unprefixed_name === null) {
-            var_dump($this);
-        }
-
-        return $this->unprefixed_name;
-    }
+    public readonly string $unprefixed_name;
 
     /**
-     * Primary key of the table, retrieved from the schema defined using the {@link SCHEMA} attribute.
-     *
-     * @var array|null|string
+     * Name of the table, including the prefix defined by the connection.
      */
-    protected $primary;
-
-    protected function get_primary()
-    {
-        return $this->primary;
-    }
+    public readonly string $name;
 
     /**
      * Alias for the table's name, which can be defined using the {@link ALIAS} attribute
      * or automatically created.
      *
      * The "{primary}" placeholder used in queries is replaced by the properties value.
-     *
-     * @var string
      */
-    protected $alias;
-
-    protected function get_alias(): string
-    {
-        return $this->alias;
-    }
+    public readonly string $alias;
+    public readonly Schema $schema;
 
     /**
-     * Schema for the table.
-     */
-    protected Schema $schema;
-
-    protected function get_schema(): Schema
-    {
-        return $this->schema;
-    }
-
-    /**
-     * The parent is used when the table is in a hierarchy, which is the case if the table
-     * extends another table.
+     * Primary key of the table, retrieved from the schema defined using the {@link SCHEMA} attribute.
      *
-     * @var Table|null
+     * @var string[]|string|null
      */
-    protected $parent;
-
-    protected function get_parent(): ?Table
-    {
-        return $this->parent;
-    }
+    public readonly array|string|null $primary;
 
     protected $implements = [];
 
@@ -216,27 +170,30 @@ class Table extends Prototyped
      */
     public function __construct(
         public readonly Connection $connection,
-        array $attributes
+        array $attributes,
+        self $parent = null
     ) {
+        $this->parent = $parent;
+        $this->unprefixed_name = $attributes[self::NAME]
+            ?? throw new LogicException("The NAME attribute is required");
+        $this->name = $connection->table_name_prefix . $this->unprefixed_name;
+        $this->alias = $attributes[self::ALIAS]
+            ?? $this->make_alias($this->unprefixed_name);
+        $this->schema = $attributes[self::SCHEMA]
+            ?? throw new LogicException("The SCHEMA attribute is required");
+        $this->primary = $this->schema->primary;
+        $this->implements = $attributes[self::IMPLEMENTING]
+            ?? null;
+
         unset($this->update_join);
         unset($this->select_join);
 
-        $this->map_construct_attributes($attributes);
-        $this->assert_has_unprefixed_name();
-        $this->assert_has_schema();
-        $this->assert_parent_is_valid();
-        $this->ensure_has_alias();
-
-        $parent = $this->parent;
-
-        if ($parent) {
-            $this->construct_with_parent($parent);
-        }
-
         $this->assert_implements_is_valid();
 
-        $this->name = $this->connection->table_name_prefix . $this->unprefixed_name;
-        $this->primary = $this->schema->primary;
+        if ($parent && $parent->implements) {
+            $this->implements = array_merge($parent->implements, $this->implements);
+        }
+
     }
 
     /**
@@ -258,75 +215,9 @@ class Table extends Prototyped
     }
 
     /**
-     * Maps construct attributes.
-     *
-     * @param array $attributes
-     */
-    private function map_construct_attributes(array $attributes): void
-    {
-        foreach ($attributes as $attribute => $value) {
-            switch ($attribute) {
-                case self::ALIAS:
-                    $this->alias = $value;
-                    break;
-                case self::IMPLEMENTING:
-                    $this->implements = $value;
-                    break;
-                case self::NAME:
-                    $this->unprefixed_name = $value;
-                    break;
-                case self::SCHEMA:
-                    assert($value instanceof Schema);
-
-                    $this->schema = $value;
-                    break;
-                case self::EXTENDING:
-                    $this->parent = $value;
-                    break;
-            }
-        }
-    }
-
-    /**
-     * Asserts that the table has a name.
-     */
-    private function assert_has_unprefixed_name()
-    {
-        if (empty($this->unprefixed_name)) {
-            throw new \InvalidArgumentException("The `NAME` attribute is empty.");
-        }
-    }
-
-    /**
-     * Asserts that the table has a schema.
-     */
-    private function assert_has_schema()
-    {
-        if (empty($this->schema)) {
-            throw new \InvalidArgumentException("The `SCHEMA` attribute is empty.");
-        }
-    }
-
-    /**
-     * Asserts the parent is valid, if one is specified.
-     */
-    private function assert_parent_is_valid()
-    {
-        $parent = $this->parent;
-
-        if (!$parent) {
-            return;
-        }
-
-        if (!$parent instanceof self) {
-            throw new \InvalidArgumentException("`EXTENDING` must be an instance of Table.");
-        }
-    }
-
-    /**
      * Asserts the implements definition is valid.
      */
-    private function assert_implements_is_valid()
+    private function assert_implements_is_valid(): void
     {
         $implements = $this->implements;
 
@@ -335,53 +226,35 @@ class Table extends Prototyped
         }
 
         if (!is_array($implements)) {
-            throw new \InvalidArgumentException("`IMPLEMENTING` must be an array.");
+            throw new InvalidArgumentException("`IMPLEMENTING` must be an array.");
         }
 
         foreach ($implements as $implement) {
             if (!is_array($implement)) {
-                throw new \InvalidArgumentException("`IMPLEMENTING` must be an array.");
+                throw new InvalidArgumentException("`IMPLEMENTING` must be an array.");
             }
 
             $table = $implement['table'];
 
             if (!$table instanceof Table) {
-                throw new \InvalidArgumentException("Implements table must be an instance of Table.");
+                throw new InvalidArgumentException("Implements table must be an instance of Table.");
             }
         }
     }
 
     /**
-     * Ensures the table has an alias, make one otherwise.
+     * Makes an alias out of an unprefixed table name.
      */
-    private function ensure_has_alias(): void
+    private function make_alias(string $unprefixed_name): string
     {
-        if ($this->alias) {
-            return;
-        }
-
-        $alias = $this->unprefixed_name;
-        $pos = \strrpos($alias, '_');
+        $alias = $unprefixed_name;
+        $pos = strrpos($alias, '_');
 
         if ($pos !== false) {
-            $alias = \substr($alias, $pos + 1);
+            $alias = substr($alias, $pos + 1);
         }
 
-        $this->alias = singularize($alias);
-    }
-
-    /**
-     * Construct table with specified parent.
-     *
-     * From its parent, a table inherits its primary key, schema options, and implements.
-     *
-     * @param Table $parent
-     */
-    private function construct_with_parent(Table $parent): void
-    {
-        if ($parent->implements) {
-            $this->implements = array_merge($parent->implements, $this->implements);
-        }
+        return singularize($alias);
     }
 
     /*
@@ -395,7 +268,7 @@ class Table extends Prototyped
     /**
      * Creates table.
      *
-     * @throws \Throwable if install fails.
+     * @throws Throwable if install fails.
      */
     public function install(): void
     {
@@ -406,7 +279,7 @@ class Table extends Prototyped
     /**
      * Drops table.
      *
-     * @throws \Throwable if uninstall fails.
+     * @throws Throwable if uninstall fails.
      */
     public function uninstall(): void
     {
@@ -441,15 +314,13 @@ class Table extends Prototyped
      * It's not very helpful, but we still have to decide what to do with this.
      *
      * @param string $statement The statement to resolve.
-     *
-     * @return string
      */
     public function resolve_statement(string $statement): string
     {
         $primary = $this->primary;
-        $primary = \is_array($primary) ? '__multicolumn_primary__' . implode('_', $primary) : $primary;
+        $primary = is_array($primary) ? '__multicolumn_primary__' . implode('_', $primary) : $primary;
 
-        return \strtr($statement, [
+        return strtr($statement, [
 
             '{alias}' => $this->alias,
             '{prefix}' => $this->connection->table_name_prefix,
@@ -466,10 +337,7 @@ class Table extends Prototyped
      * The statement is resolved by the {@link resolve_statement()} method before the call is
      * forwarded.
      *
-     * @param string $query
-     * @param array $options
-     *
-     * @return Statement
+     * @param array<string, mixed> $options
      */
     public function prepare(string $query, array $options = []): Statement
     {
@@ -545,7 +413,7 @@ class Table extends Prototyped
      *
      * @return mixed
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function save(array $values, $id = null, array $options = [])
     {
@@ -682,7 +550,7 @@ class Table extends Prototyped
 
                     $primary = $this->primary;
 
-                    if (\is_array($primary)) {
+                    if (is_array($primary)) {
                         $flip = \array_flip($primary);
 
                         $update_holders = \array_diff_key($update_holders, $flip);
@@ -780,7 +648,7 @@ class Table extends Prototyped
 
         $where = 'where ';
 
-        if (\is_array($this->primary)) {
+        if (is_array($this->primary)) {
             $parts = [];
 
             foreach ($this->primary as $identifier) {

@@ -11,29 +11,19 @@
 
 namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
 
-use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Model;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
+use Test\ICanBoogie\Fixtures;
 
 final class RunTimeActiveRecordCacheTest extends TestCase
 {
     public function test_cache(): void
     {
-        $primary = 'id';
-        $key = 123;
+        [ , $models ] = Fixtures::only_models([ 'nodes', 'articles' ]);
 
-        $model = $this
-            ->getMockBuilder(Model::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods([ 'get_id', 'get_primary' ])
-            ->getMock();
-        $model
-            ->method('get_id')
-            ->willReturn('madonna');
-        $model
-            ->method('get_primary')
-            ->willReturn($primary);
+        $model = $models->model_for_id('articles');
+        $primary = $model->primary;
+        $key = 123;
 
         $record = new Article($model);
         $record->$primary = $key;

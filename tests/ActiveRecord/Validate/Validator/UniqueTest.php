@@ -12,11 +12,10 @@
 namespace ICanBoogie\ActiveRecord\Validate\Validator;
 
 use ICanBoogie\Acme\Node;
-use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\Validate\Context;
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Fixtures;
 
 /**
  * @group validate
@@ -34,104 +33,31 @@ final class UniqueTest extends TestCase
         $this->assertSame($column, $options[Unique::OPTION_COLUMN]);
     }
 
-    /**
-     * @dataProvider provide_test_validate
-     */
-    public function test_validate(?string $column, bool $should_use_primary): void
+    public function test_unique(): void
     {
-        $attribute = 'attribute' . uniqid();
-        $value = 'value' . uniqid();
-        $primary = 'primary' . uniqid();
-        $key = $should_use_primary ? 'key' . uniqid() : null;
-        $context = $this->makeContext($attribute, $value, $column ?: $attribute, $primary, $key);
-        $context->validator_params = [ Unique::OPTION_COLUMN => $column ];
+        [ , $models ] = Fixtures::only_models([ 'nodes' ]);
 
-        $validator = new Unique();
-        $validator->validate($value, $context);
-    }
-
-    public function provide_test_validate(): array
-    {
-        return [
-
-            [ null, false ],
-            [ 'email', false ],
-            [ null, true ],
-            [ 'email', true ],
-
-        ];
-    }
-
-    public function test_validate_with_invalid_reader()
-    {
-        $context = new Context();
-        $context->attribute = uniqid();
-        $context->reader = new class () {
-        };
-
-        $validator = new Unique();
-        $this->expectException(InvalidArgumentException::class);
-        $validator->validate(uniqid(), $context);
-    }
-
-    private function makeContext(
-        string $attribute,
-        string $value,
-        string $column,
-        string $primary,
-        string $key = null
-    ): Context {
-        $context = new Context();
-        $context->reader = $this->mockReader($value, $column, $primary, $key);
-        $context->attribute = $attribute;
-
-        return $context;
-    }
-
-    private function mockReader(
-        string $value,
-        string $column,
-        string $primary,
-        string $key = null
-    ): RecordAdapter {
-        $expected = true;
-
-        $model = $this
-            ->getMockBuilder(ActiveRecord\Model::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $query = $this
-            ->getMockBuilder(ActiveRecord\Query::class)
-            ->setConstructorArgs([ $model ])
-            ->onlyMethods([ 'get_exists' ])
-            ->getMock();
-        $query
-            ->expects($this->once())
-            ->method('get_exists')
-            ->willReturn($expected);
-
-        $model = $this
-            ->getMockBuilder(ActiveRecord\Model::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods([ 'get_id', 'get_primary' ])
-            ->addMethods([ 'where' ])
-            ->getMock();
-        $model
-            ->method('get_id')
-            ->willReturn("madonna");
-        $model
-            ->method('get_primary')
-            ->willReturn($primary);
-        $model
-            ->expects($this->once())
-            ->method('where')
-            ->with($key ? [ $column => $value, "!$primary" => $key ] : [ $column => $value ])
-            ->willReturn($query);
+        $models->install();
+        $model = $models['nodes'];
 
         $record = new Node($model);
-        $record->$primary = $key;
+        $record->title = $title = 'A title';
+        $record->save();
 
-        return new RecordAdapter($record);
+        $context = new Context();
+        $context->reader = new RecordAdapter($record);
+        $context->validator_params = [ Unique::OPTION_COLUMN => 'title' ];
+
+        $validator = new Unique();
+        $actual = $validator->validate($title, $context);
+        $this->assertTrue($actual);
+
+        $record = new Node($model);
+        $record->title = $title;
+
+        $context->reader = new RecordAdapter($record);
+
+        $actual = $validator->validate($title, $context);
+        $this->assertFalse($actual);
     }
 }

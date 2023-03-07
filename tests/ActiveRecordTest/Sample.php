@@ -38,10 +38,10 @@ final class Sample extends ActiveRecord
     }
 
     /**
-     * @param int $id
+     * @param int|array|string $primary_key
      */
-    protected function update_primary_key($id): void
+    protected function update_primary_key(int|array|string $primary_key): void
     {
-        $this->id = $id;
+        $this->id = $primary_key;
     }
 }

@@ -251,21 +251,13 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
      */
     private function resolve_model_attributes(array $attributes): array
     {
-        $attributes += [
+        return $attributes + [
 
             Model::CLASSNAME => Model::class,
             Model::CONNECTION => 'primary',
             Model::EXTENDING => null
 
         ];
-
-        $extending = &$attributes[Model::EXTENDING];
-
-        if ($extending && !$extending instanceof Model) {
-            $extending = $this[$extending];
-        }
-
-        return $attributes;
     }
 
     /**

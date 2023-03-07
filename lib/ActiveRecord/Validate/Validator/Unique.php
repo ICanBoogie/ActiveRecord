@@ -15,6 +15,7 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\Validate\Context;
 use ICanBoogie\Validate\Validator\ValidatorAbstract;
+use RuntimeException;
 
 /**
  * Validates that a value is unique in a table's column.
@@ -34,7 +35,8 @@ class Unique extends ValidatorAbstract
      */
     public function validate($value, Context $context)
     {
-        $column = $context->option(self::OPTION_COLUMN, $context->attribute);
+        $column = $context->option(self::OPTION_COLUMN, $context->attribute)
+            ?? throw new RuntimeException("Unable to resolve column from context option OPTION_COLUMN");
         $record = $this->resolve_record($context);
         $model = $record->model;
         $where = [ $column => $value ];
@@ -43,6 +45,8 @@ class Unique extends ValidatorAbstract
         if (!empty($record->$primary)) {
             $where['!' . $primary] = $record->$primary;
         }
+
+        $a = $model->where($where)->all;
 
         return !$model->where($where)->exists;
     }

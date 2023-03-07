@@ -18,10 +18,7 @@ use ICanBoogie\ActiveRecord\StaticModelResolver;
 use ICanBoogie\Validate\ValidationErrors;
 use LogicException;
 
-use function get_debug_type;
-use function is_null;
 use function is_numeric;
-use function sprintf;
 
 /**
  * Active Record facilitates the creation and use of business objects whose data require persistent
@@ -109,7 +106,7 @@ abstract class ActiveRecord extends Prototyped
      */
     public function __debugInfo()
     {
-        $array = (array) $this;
+        $array = (array)$this;
 
         unset($array["\0" . __CLASS__ . "\0model"]);
 
@@ -191,7 +188,7 @@ abstract class ActiveRecord extends Prototyped
         $rc = $model->save($properties, $key);
 
         if (is_numeric($rc)) {
-            $rc = (int) $rc;
+            $rc = (int)$rc;
         }
 
         if ($key === null && $rc) {
@@ -250,16 +247,13 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Updates primary key.
      *
-     * @param array|string|int $primary_key
+     * @param int|string[]|string $primary_key
      */
-    protected function update_primary_key($primary_key): void
+    protected function update_primary_key(int|array|string $primary_key): void
     {
         $model = $this->get_model();
-        $property = $model->primary;
-
-        if (!$property) {
-            throw new LogicException("Unable to update primary key, model `$model->id` doesn't define one.");
-        }
+        $property = $model->primary
+            ?? throw new LogicException("Unable to update primary key, model `$model->id` doesn't define one.");
 
         $this->$property = $primary_key;
     }
@@ -274,12 +268,11 @@ abstract class ActiveRecord extends Prototyped
     public function delete(): bool
     {
         $model = $this->get_model();
-        $primary = $model->primary;
+        $primary = $model->primary
+            ?? throw new LogicException("Unable to delete record, model `$model->id` doesn't have a primary key");
+        $key = $this->$primary
+            ?? throw new LogicException("Unable to delete record, the primary key is not defined");
 
-        if (!$primary) {
-            throw new LogicException("Unable to delete record, model `$model->id` doesn't have a primary key.");
-        }
-
-        return $model->delete($this->$primary);
+        return $model->delete($key);
     }
 }
