@@ -19,6 +19,7 @@
 
 - `ActiveRecord` is now abstract and requires extension.
 - `Table` requires a `Connection` instance in its constructor, the `CONNECTION` attribute is no longer replaced by a `Connection` instance.
+- Replaced attributes arrays to initialize tables and models with objects.
 
 ### Deprecated Features
 

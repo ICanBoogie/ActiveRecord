@@ -40,7 +40,7 @@ final class ModelCollectionTest extends TestCase
             $this->assertSame($model, $this->models->model_for_id($id));
         }
 
-        $this->assertEquals([ 'nodes', 'articles', 'comments'], $ids);
+        $this->assertEquals([ 'nodes', 'articles', 'comments' ], $ids);
     }
 
     public function test_model_for_id(): void
@@ -88,19 +88,22 @@ final class ModelCollectionTest extends TestCase
     public function test_offset_set(): void
     {
         $models = $this->models;
-        $models['brands'] = [
-            Model::ACTIVERECORD_CLASS => Brand::class,
-            Model::SCHEMA => new Schema([
+        $models['brands'] = $config = new ModelAttributes(
+            id: 'brands',
+            connection: Config::DEFAULT_CONNECTION_ID,
+            schema: new Schema([
                 'brand_id' => SchemaColumn::serial(primary: true),
                 'name' => SchemaColumn::varchar(),
-            ])
-        ];
+            ]),
+            activerecord_class: Brand::class,
+            name: 'brands',
+        );
 
         $this->assertTrue(isset($models['brands']));
         $this->assertInstanceOf(Model::class, $models['brands']);
 
         try {
-            $models['brands'] = [];
+            $models['brands'] = $config;
 
             $this->fail("Expected ModelAlreadyInstantiated");
         } catch (ModelAlreadyInstantiated $e) {

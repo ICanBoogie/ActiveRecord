@@ -58,7 +58,7 @@ use function method_exists;
  * @property-read ActiveRecord $one Retrieve the first record from the mode.
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
  *
- * @template TKey of int|string
+ * @template TKey of int|string|string[]
  * @template TValue of ActiveRecord
  *
  * @implements ArrayAccess<TKey, TValue>
@@ -66,13 +66,6 @@ use function method_exists;
 #[AllowDynamicProperties]
 class Model extends Table implements ArrayAccess
 {
-    public const ACTIVERECORD_CLASS = 'activerecord_class';
-    public const BELONGS_TO = 'belongs_to';
-    public const CLASSNAME = 'class';
-    public const HAS_MANY = 'has_many';
-    public const ID = 'id';
-    public const QUERY_CLASS = 'query_class';
-
     /**
      * Active record instances class.
      *
@@ -85,12 +78,7 @@ class Model extends Table implements ArrayAccess
      */
     private readonly string $query_class;
 
-    /**
-     * Attributes of the model.
-     *
-     * @var array<self::*, mixed>
-     */
-    private readonly array $attributes;
+    private readonly ModelAttributes $attributes;
 
     /**
      * The identifier of the model.
@@ -113,36 +101,26 @@ class Model extends Table implements ArrayAccess
         return parent::lazy_get_activerecord_cache();
     }
 
-    /**
-     * Override the constructor to provide support for the {@link ACTIVERECORD_CLASS} tag and
-     * extended support for the {@link EXTENDING} tag.
-     *
-     * If {@link EXTENDING} is defined but the model has no schema ({@link SCHEMA} is empty),
-     * the name of the model and the schema are inherited from the extended model and
-     * {@link EXTENDING} is set to the parent model object.
-     *
-     * @param array<self::*, mixed> $attributes Attributes used to construct the model.
-     */
     public function __construct(
         Connection $connection,
         public readonly ModelProvider $models,
-        array $attributes
+        ModelAttributes $attributes
     ) {
-        $this->attributes = $attributes = $this->resolve_attributes($attributes);
-        $this->id = $this->attributes[self::ID];
+        $this->attributes = $attributes;
+        $this->id = $attributes->id;
         $this->relations = new RelationCollection($this);
 
         $parent = null;
 
-        if ($attributes[self::EXTENDING]) {
-            $parent = $models->model_for_id($attributes[self::EXTENDING]);
+        if ($attributes->extends) {
+            $parent = $models->model_for_id($attributes->extends);
         }
 
         parent::__construct($connection, $attributes, $parent);
 
-        $this->activerecord_class = $attributes[self::ACTIVERECORD_CLASS]
+        $this->activerecord_class = $attributes->activerecord_class
             ?? throw new LogicException("Missing ActiveRecord class for model '$this->id'");
-        $this->query_class = $attributes[self::QUERY_CLASS]
+        $this->query_class = $attributes->query_class
             ?? Query::class;
 
         $this->resolve_relations();
@@ -169,55 +147,46 @@ class Model extends Table implements ArrayAccess
 //    // @codeCoverageIgnoreEnd
 
     /**
-     * Resolves constructor attributes.
-     *
-     * The method may initialize the {@link $parent_model} property.
-     *
-     * @param array<string, mixed> $attributes
-     *
-     * @return array<string, mixed>
-     */
-    private function resolve_attributes(array $attributes): array
-    {
-        UnsetAttribute::ThrowIf($attributes, self::NAME);
-
-        $attributes += [
-
-            self::ACTIVERECORD_CLASS => null,
-            self::BELONGS_TO => null,
-            self::EXTENDING => null,
-            self::HAS_MANY => null,
-            self::ID => null,
-            self::SCHEMA => null
-
-        ];
-
-        $attributes[self::ID] ??= $attributes[self::NAME];
-
-        return $attributes;
-    }
-
-    /**
      * Resolves relations with other models.
      */
     private function resolve_relations(): void
     {
-        $attributes = $this->attributes;
+        $association = $this->attributes->association;
+
+        if (!$association) {
+            return;
+        }
 
         # belongs_to
 
-        $belongs_to = $attributes[self::BELONGS_TO];
+        $belongs_to = $association->belongs_to;
 
         if ($belongs_to) {
-            $this->relations->belongs_to($belongs_to);
+            foreach ($belongs_to as $r) {
+                $this->belongs_to(
+                    model_or_id: $r->model_id,
+                    local_key: $r->local_key,
+                    foreign_key: $r->foreign_key,
+                    as: $r->as
+                );
+            }
         }
 
         # has_many
 
-        $has_many = $attributes[self::HAS_MANY];
+        $has_many = $association->has_many;
 
         if ($has_many) {
-            $this->has_many($has_many);
+            foreach ($has_many as $r) {
+                $this->relations->has_many([
+                    [ $r->model_id, [
+                        'local_key' => $r->local_key,
+                        'foreign_key' => $r->foreign_key,
+                        'as' => $r->as,
+                        'through' => $r->through,
+                    ] ]
+                ]);
+            }
         }
     }
 
@@ -231,9 +200,8 @@ class Model extends Table implements ArrayAccess
         string|null $local_key = null,
         string|null $foreign_key = null,
         string|null $as = null,
-    ): self
-    {
-        $related = $model_or_id  instanceof self
+    ): self {
+        $related = $model_or_id instanceof self
             ? $model_or_id
             : $this->models->model_for_id($model_or_id);
 

@@ -12,7 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
-use ICanBoogie\ActiveRecord\ConnectionOptions as Options;
+use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
 use PDO;
 use PDOException;
 use Throwable;
@@ -22,26 +22,10 @@ use function strtr;
 
 /**
  * A connection to a database.
- *
- * @property-read PDO $pdo
- * @property-read string $charset The character set used to communicate with the database. Defaults
- *     to "utf8".
- * @property-read string $collate The collation of the character set. Defaults to
- *     "utf8_general_ci".
- * @property-read string $driver_name Name of the PDO driver.
- * @property-read string|null $id Identifier of the database connection.
- * @property-read string $table_name_prefix The prefix to prepend to every table name.
  */
 class Connection
 {
     /**
-     * @uses get_pdo
-     * @uses get_id
-     * @uses get_table_name_prefix
-     * @uses get_charset
-     * @uses get_collate
-     * @uses get_timezone
-     * @uses get_driver_name
      * @uses lazy_get_driver
      */
     use AccessorTrait;
@@ -53,20 +37,7 @@ class Connection
 
     ];
 
-    private function get_pdo(): PDO
-    {
-        return $this->pdo;
-    }
-
-    /**
-     * Connection identifier.
-     */
-    private ?string $id;
-
-    private function get_id(): ?string
-    {
-        return $this->id;
-    }
+    public readonly string $id;
 
     /**
      * Prefix to prepend to every table name.
@@ -75,52 +46,27 @@ class Connection
      * This is a convenient way of creating a namespace for tables in a shared database.
      * By default, the prefix is the empty string, that is there is not prefix.
      */
-    private string $table_name_prefix = Options::DEFAULT_TABLE_NAME_PREFIX;
-
-    private function get_table_name_prefix(): string
-    {
-        return $this->table_name_prefix;
-    }
+    public readonly string $table_name_prefix;
 
     /**
      * Charset for the connection. Also used to specify the charset while creating tables.
      */
-    private string $charset = Options::DEFAULT_CHARSET;
-
-    private function get_charset(): string
-    {
-        return $this->charset;
-    }
+    public readonly string $charset;
 
     /**
      * Used to specify the collate while creating tables.
      */
-    private string $collate = Options::DEFAULT_COLLATE;
-
-    private function get_collate(): string
-    {
-        return $this->collate;
-    }
+    public readonly string $collate;
 
     /**
      * Timezone of the connection.
      */
-    private string $timezone = Options::DEFAULT_TIMEZONE;
-
-    private function get_timezone(): string
-    {
-        return $this->timezone;
-    }
+    public readonly string $timezone;
 
     /**
      * Driver name for the connection.
      */
-    private string $driver_name;
-
-    private function get_driver_name(): string
-    {
-        return $this->driver_name;
-    }
+    public readonly string $driver_name;
 
     private Driver $driver;
 
@@ -133,6 +79,7 @@ class Connection
      * The number of database queries and executions, used for statistics purpose.
      */
     public int $queries_count = 0;
+    public readonly PDO $pdo;
 
     /**
      * The number of micro seconds spent per request.
@@ -140,8 +87,6 @@ class Connection
      * @var array[]
      */
     public array $profiling = [];
-
-    private PDO $pdo;
 
     /**
      * Establish a connection to a database.
@@ -151,22 +96,28 @@ class Connection
      *
      * @link http://www.php.net/manual/en/pdo.construct.php
      * @link http://dev.mysql.com/doc/refman/5.5/en/time-zone-support.html
-     *
-     * @param array<string, mixed> $options
      */
-    public function __construct(
-        string $dsn,
-        string $username = null,
-        string $password = null,
-        array $options = []
-    ) {
-        unset($this->driver);
+    public function __construct(ConnectionAttributes $attributes)
+    {
+        unset($this->driver); // to trigger lazy loading
 
+        $this->id = $attributes->id;
+        $dsn = $attributes->dsn;
+
+        $this->table_name_prefix = $attributes->table_name_prefix
+            ? $attributes->table_name_prefix . '_'
+            : '';
+
+        [ $this->charset, $this->collate ] = extract_charset_and_collate(
+            $attributes->charset_and_collate ?? $attributes::DEFAULT_CHARSET_AND_COLLATE
+        );
+
+        $this->timezone = $attributes->time_zone;
         $this->driver_name = $this->resolve_driver_name($dsn);
-        $this->apply_options($options);
-        $this->before_connection($options);
 
-        $this->pdo = new PDO($dsn, $username, $password, $options);
+        $options = $this->make_options();
+
+        $this->pdo = new PDO($dsn, $attributes->username, $attributes->password, $options);
 
         $this->after_connection();
     }
@@ -191,10 +142,13 @@ class Connection
      * Resolves driver class.
      *
      * @throws DriverNotDefined
+     *
+     * @return class-string<Driver>
      */
     private function resolve_driver_class(string $driver_name): string
     {
-        return self::DRIVERS_MAPPING[$driver_name] ?? throw new DriverNotDefined($driver_name);
+        return self::DRIVERS_MAPPING[$driver_name]
+            ?? throw new DriverNotDefined($driver_name);
     }
 
     /**
@@ -212,48 +166,22 @@ class Connection
     }
 
     /**
-     * Applies options to the instance.
-     *
-     * @param array<string, mixed> $options
-     */
-    private function apply_options(array $options): void
-    {
-        $options = Options::normalize($options);
-
-        $this->id = $options[Options::ID];
-        $this->table_name_prefix = $options[Options::TABLE_NAME_PREFIX];
-
-        if ($this->table_name_prefix) {
-            $this->table_name_prefix .= '_';
-        }
-
-        [ $this->charset, $this->collate ] = extract_charset_and_collate(
-            $options[Options::CHARSET_AND_COLLATE]
-        );
-
-        $this->timezone = $options[Options::TIMEZONE];
-    }
-
-    /**
      * Called before the connection.
      *
      * May alter the options according to the driver.
      *
-     * @param array<string, mixed> $options
+     * @return array<PDO::*, mixed>
      */
-    private function before_connection(array &$options): void
+    private function make_options(): array
     {
         if ($this->driver_name != 'mysql') {
-            return;
+            return [];
         }
 
         $init_command = 'SET NAMES ' . $this->charset;
+        $init_command .= ', time_zone = "' . $this->timezone . '"';
 
-        if ($this->timezone) {
-            $init_command .= ', time_zone = "' . $this->timezone . '"';
-        }
-
-        $options += [
+        return [
 
             PDO::MYSQL_ATTR_INIT_COMMAND => $init_command,
 
@@ -359,7 +287,7 @@ class Connection
     /**
      * Alias for the `beginTransaction()` method.
      *
-     * @see \PDO::beginTransaction()
+     * @see PDO::beginTransaction
      */
     public function begin(): bool
     {

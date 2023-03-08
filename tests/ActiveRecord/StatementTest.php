@@ -11,16 +11,16 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\ModelTest\Article;
+use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
 use PHPUnit\Framework\TestCase;
 
-class StatementTest extends TestCase
+final class StatementTest extends TestCase
 {
     private static $connection;
 
     public static function setupBeforeClass(): void
     {
-        self::$connection = $connection = new Connection('sqlite::memory:');
+        self::$connection = $connection = new Connection(new ConnectionAttributes('id', 'sqlite::memory:'));
 
         $connection('CREATE TABLE test (a INTEGER PRIMARY KEY ASC, b INTEGER, c VARCHAR(20))');
         $connection('INSERT INTO test (b,c) VALUES(1, "one")');
@@ -33,7 +33,7 @@ class StatementTest extends TestCase
         $this->markTestSkipped();
     }
 
-    public function test_get_statement()
+    public function test_get_statement(): void
     {
         $connection = self::$connection;
         $statement = $connection('SELECT * FROM test');
@@ -50,7 +50,7 @@ class StatementTest extends TestCase
      * which are applied later when the preparation is successful.
      *
      */
-    public function test_invalid_prepared_statement()
+    public function test_invalid_prepared_statement(): void
     {
         $connection = self::$connection;
         $statement = 'SELECT undefined_column FROM test WHERE b = ?';
@@ -81,7 +81,7 @@ class StatementTest extends TestCase
      * Query statements are always prepared, so if the query fails during its execution a
      * StatementNotValid expection is thrown with the Statement instance and its arguments.
      */
-    public function test_invalid_query()
+    public function test_invalid_query(): void
     {
         $connection = self::$connection;
         $statement = 'INSERT INTO test (a,b,c) VALUES(1,?,?)';
@@ -116,7 +116,7 @@ class StatementTest extends TestCase
      * Exec statements are not prepared, if the execution fails a StatementNotValid
      * expection is thrown with the only the statement string.
      */
-    public function test_invalid_exec()
+    public function test_invalid_exec(): void
     {
         $connection = self::$connection;
         $statement = 'DELETE FROM undefined_table';
@@ -144,7 +144,7 @@ class StatementTest extends TestCase
     /**
      * @requires PHP 5.6.0
      */
-    public function test_invoke_should_thow_exception_when_execute_returns_false()
+    public function test_invoke_should_thow_exception_when_execute_returns_false(): void
     {
         $arg = uniqid();
 
@@ -179,7 +179,7 @@ class StatementTest extends TestCase
      *
      * @param $arguments
      */
-    public function test_mode($arguments)
+    public function test_mode($arguments): void
     {
         $statement = $this
             ->getMockBuilder(Statement::class)

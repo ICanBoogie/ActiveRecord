@@ -30,7 +30,7 @@ function get_model(string $id): Model
  *
  * @param string $charset_and_collate
  *
- * @return array
+ * @return array{ string, string }
  */
 function extract_charset_and_collate(string $charset_and_collate): array
 {

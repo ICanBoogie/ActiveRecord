@@ -14,16 +14,21 @@ namespace ICanBoogie\ActiveRecord;
 use ArrayAccess;
 use ArrayIterator;
 use ICanBoogie\Accessor\AccessorTrait;
+use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use InvalidArgumentException;
 use IteratorAggregate;
 use PDOException;
 use Traversable;
 
+use function get_debug_type;
+
 /**
  * Connection collection.
  *
- * @property-read array $definitions Connection definitions.
+ * @property-read array<string, ConnectionAttributes> $definitions Connection definitions.
  * @property-read Connection[] $established Established connections.
  *
+ * @implements ArrayAccess<string, Connection>
  * @implements IteratorAggregate<string, Connection>
  */
 class ConnectionCollection implements ArrayAccess, IteratorAggregate, ConnectionProvider
@@ -37,27 +42,28 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
     /**
      * Connections definitions.
      *
-     * @var array<string, array>
+     * @var array<string, ConnectionAttributes>
      */
-    private array $definitions;
+    private array $attributes;
 
     /**
      * @return array<string, array>
      */
     private function get_definitions(): array
     {
-        return $this->definitions;
+        return $this->attributes;
     }
 
     /**
      * Established connections.
      *
-     * @var Connection[]
+     * @var array<string, Connection>
+     *     Where _key_ is a connection identifier.
      */
     private array $established = [];
 
     /**
-     * @return Connection[]
+     * @return array<string, Connection>
      */
     private function get_established(): array
     {
@@ -65,13 +71,12 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
     }
 
     /**
-     * Initializes the {@link $definitions} property.
-     *
-     * @param array<string, string|array<ConnectionOptions::*, mixed>> $definitions Connection definitions.
+     * @param array<string, ConnectionAttributes> $attributes_by_id
+     *     Where _key_ is a connection identifier.
      */
-    public function __construct(array $definitions)
+    public function __construct(array $attributes_by_id)
     {
-        foreach ($definitions as $id => $definition) {
+        foreach ($attributes_by_id as $id => $definition) {
             $this[$id] = $definition;
         }
     }
@@ -85,19 +90,17 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
      * Checks if a connection definition exists.
      *
      * @param string $offset Connection identifier.
-     *
-     * @return bool
      */
     public function offsetExists(mixed $offset): bool
     {
-        return isset($this->definitions[$offset]);
+        return isset($this->attributes[$offset]);
     }
 
     /**
      * Sets the definition of a connection.
      *
      * @param string $offset Connection identifier.
-     * @param array|string $value Connection definition.
+     * @param mixed $value Connection definition.
      *
      * @throws ConnectionAlreadyEstablished in attempt to set the definition of an already
      * established connection.
@@ -108,15 +111,13 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
             throw new ConnectionAlreadyEstablished($offset);
         }
 
-        if (is_string($value)) {
-            $value = [ 'dsn' => $value ];
+        if (!$value instanceof ConnectionAttributes) {
+            $expected = ConnectionAttributes::class;
+            $actual = get_debug_type($value);
+            throw new InvalidArgumentException("Expected '$expected' got '$actual'");
         }
 
-        if (empty($value['dsn'])) {
-            throw new \InvalidArgumentException("<q>dsn</q> is empty or not defined.");
-        }
-
-        $this->definitions[$offset] = $value;
+        $this->attributes[$offset] = $value;
     }
 
     /**
@@ -133,7 +134,7 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
             throw new ConnectionAlreadyEstablished($offset);
         }
 
-        unset($this->definitions[$offset]);
+        unset($this->attributes[$offset]);
     }
 
     /**
@@ -150,23 +151,15 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
      */
     public function offsetGet(mixed $offset): mixed
     {
-        if (isset($this->established[$offset])) {
-            return $this->established[$offset];
+        return $this->established[$offset] ??=
+            $this->make_connection($offset);
+    }
+
+    private function make_connection(string $id): Connection
+    {
+        if (!$this->offsetExists($id)) {
+            throw new ConnectionNotDefined($id);
         }
-
-        if (!$this->offsetExists($offset)) {
-            throw new ConnectionNotDefined($offset);
-        }
-
-        $options = $this->definitions[$offset] + [
-
-                'dsn' => null,
-                'username' => 'root',
-                'password' => null
-
-            ];
-
-        $options['options'][ConnectionOptions::ID] = $offset;
 
         #
         # we catch connection exceptions and rethrow them in order to avoid displaying sensible
@@ -174,15 +167,10 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
         #
 
         try {
-            return $this->established[$offset] = new Connection(
-                $options['dsn'],
-                $options['username'],
-                $options['password'],
-                $options['options']
-            );
+            return $this->established[$id] = new Connection($this->attributes[$id]);
         } catch (PDOException $e) {
             throw new ConnectionNotEstablished(
-                $offset,
+                $id,
                 "Connection not established: {$e->getMessage()}."
             );
         }

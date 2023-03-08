@@ -2,7 +2,10 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config;
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\Schema;
 
 /**
@@ -12,6 +15,11 @@ use ICanBoogie\ActiveRecord\Schema;
  */
 final class TransientModelConfig
 {
+    /**
+     * @param class-string<ActiveRecord> $activerecord_class
+     * @param class-string<Model<int|string, ActiveRecord>>|null $model_class
+     * @param class-string<Query<ActiveRecord>>|null $query_class
+     */
     public function __construct(
         public readonly string $id,
         public Schema $schema,

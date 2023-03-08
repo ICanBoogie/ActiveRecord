@@ -11,66 +11,29 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Acme\HasMany\Appointment;
 use ICanBoogie\Acme\HasMany\Patient;
 use ICanBoogie\Acme\HasMany\Physician;
-use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Fixtures;
 
 use function assert;
 
 final class HasManyRelationThroughTest extends TestCase
 {
+    /**
+     * @var Model<int, Physician>
+     */
     private Model $physicians;
 
     protected function setUp(): void
     {
-        $config = (new ConfigBuilder())
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
-            ->add_model(
-                id: 'physicians',
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('ph_id', primary: true)
-                    ->add_varchar('name'),
-                activerecord_class: Physician::class,
-                association_builder: fn(AssociationBuilder $association) => $association
-                    ->has_many('appointments', foreign_key: 'physician_id')
-                    ->has_many('patients', through: 'appointments'),
-            )
-            ->add_model(
-                id: 'appointments',
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('ap_id', primary: true)
-                    ->add_foreign('physician_id')
-                    ->add_foreign('patient_id')
-                    ->add_date('appointment_date'),
-                activerecord_class: Appointment::class,
-                association_builder: fn(AssociationBuilder $a) => $a
-                    ->belongs_to('physicians', local_key: 'physician_id' )
-                    ->belongs_to('patients', local_key: 'patient_id' ),
-            )
-            ->add_model(
-                id: 'patients',
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('pa_id', primary: true)
-                    ->add_varchar('name'),
-                activerecord_class: Patient::class,
-                association_builder: fn(AssociationBuilder $association) => $association
-                    ->has_many('appointments', foreign_key: 'patient_id')
-                    ->has_many('physicians', foreign_key: 'patient_id', through: 'appointments'),
-            )->build();
-
-        $connections = new ConnectionCollection($config->connections);
-
-        $models = new ModelCollection(
-            $connections,
-            $config->models
-        );
+        [ , $models ] = Fixtures::only_models([ 'physicians', 'appointments', 'patients' ]);
 
         /*
          * NOTE: Relation and the prototype method are only setup when a model is loaded.
          */
 
+        /** @phpstan-ignore-next-line*/
         $this->physicians = $models->model_for_id('physicians');
         $models->model_for_id('patients');
     }

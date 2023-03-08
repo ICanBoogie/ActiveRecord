@@ -14,14 +14,12 @@ namespace ICanBoogie\ActiveRecord;
 use ArrayAccess;
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
-use InvalidArgumentException;
+use LogicException;
 use RuntimeException;
 use Throwable;
 
 use function array_keys;
 use function get_debug_type;
-use function is_array;
-use function sprintf;
 
 /**
  * Model collection.
@@ -58,12 +56,12 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     /**
      * Models definitions.
      *
-     * @var array<string, array>
+     * @var array<string, ModelAttributes>
      */
     private array $definitions = [];
 
     /**
-     * @return array<string, array>
+     * @return array<string, ModelAttributes>
      */
     private function get_definitions(): array
     {
@@ -71,7 +69,8 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     }
 
     /**
-     * @param array<string, array<Model::*, mixed>> $definitions
+     * @param array<string, ModelAttributes> $definitions
+     *     Where _key_ is a model identifier.
      */
     public function __construct(
         public readonly ConnectionProvider $connections,
@@ -89,6 +88,9 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
         }
     }
 
+    /**
+     * @return Model<int|string, ActiveRecord>
+     */
     public function model_for_id(string $id): Model
     {
         return $this->offsetGet($id);
@@ -101,7 +103,7 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
             : $class_or_activerecord;
 
         foreach ($this->definitions as $id => $definition) {
-            if ($class === $definition[Model::ACTIVERECORD_CLASS]) {
+            if ($class === $definition->activerecord_class) {
                 return $this->model_for_id($id);
             }
         }
@@ -122,9 +124,6 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     /**
      * Sets the definition of a model.
      *
-     * The {@link Model::ID} and {@link Model::NAME} are set to the provided id if they are not
-     * defined.
-     *
      * @param string $offset A Model identifier.
      * @param array<string, mixed>|mixed $value A Model definition.
      *
@@ -132,20 +131,15 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
      */
     public function offsetSet($offset, $value): void
     {
-        if (!is_array($value)) {
-            throw new InvalidArgumentException(sprintf("Expected array, got %s.", get_debug_type($value)));
+        if (!$value instanceof ModelAttributes) {
+            throw new LogicException("Expected ModelConfig instance, given: " . get_debug_type($value));
         }
 
         if (isset($this->instances[$offset])) {
             throw new ModelAlreadyInstantiated($offset);
         }
 
-        $this->definitions[$offset] = $value + [
-
-                Model::ID => $offset,
-                Model::NAME => $offset
-
-            ];
+        $this->definitions[$offset] = $value;
     }
 
     /**
@@ -166,8 +160,7 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
         }
 
         return $this->instances[$offset] = $this
-            ->instantiate_model($this
-                ->resolve_model_attributes($this->definitions[$offset]));
+            ->instantiate_model($this->definitions[$offset]);
     }
 
     /**
@@ -241,37 +234,16 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     }
 
     /**
-     * Resolves model attributes.
-     *
-     * The method replaces {@link Model::EXTENDING} identifier with an instance.
-     *
-     * @param array<string, mixed> $attributes
-     *
-     * @return array<string, mixed>
-     */
-    private function resolve_model_attributes(array $attributes): array
-    {
-        return $attributes + [
-
-            Model::CLASSNAME => Model::class,
-            Model::CONNECTION => 'primary',
-            Model::EXTENDING => null
-
-        ];
-    }
-
-    /**
      * Instantiate a model with the specified attributes.
      *
-     * @param array<string, mixed> $attributes
+     * @param ModelAttributes $attributes
      */
-    private function instantiate_model(array $attributes): Model
+    private function instantiate_model(ModelAttributes $attributes): Model
     {
-        /** @var class-string<Model> $class */
-        $class = $attributes[Model::CLASSNAME];
+        $class = $attributes->model_class;
 
         return new $class(
-            $this->connections->connection_for_id($attributes[Table::CONNECTION]),
+            $this->connections->connection_for_id($attributes->connection),
             $this,
             $attributes
         );

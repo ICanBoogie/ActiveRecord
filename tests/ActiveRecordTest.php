@@ -34,8 +34,6 @@ use function uniqid;
  */
 final class ActiveRecordTest extends TestCase
 {
-    use ConnectionHelper;
-
     private Model $model;
 
     protected function setUp(): void

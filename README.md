@@ -75,11 +75,8 @@ Prototype::configure([
 
     Model::class => [
 
-        'lazy_get_activerecord_cache' => function(Model $model) {
-
-            return new RuntimeActiveRecordCache($model);
-
-        }
+        'lazy_get_activerecord_cache' => fn(Model $model) =>
+            new RuntimeActiveRecordCache($model),
 
     ]
 
@@ -119,7 +116,7 @@ collate of the connection or its timezone.
 
 ### Defining the prefix of the database tables
 
-The `ConnectionOptions::TABLE_NAME_PREFIX` option specifies the prefix for all the tables name
+`ConnectionAttributes::$table_name_prefix` specifies the prefix for all the tables name
 of the connection. Thus, if the `icybee` prefix is defined the `nodes` table is
 renamed as `icybee_nodes`.
 
@@ -139,9 +136,8 @@ $statement = $connection('SELECT * FROM `{table_name_prefix}nodes` LIMIT 10');
 
 ### Defining the charset and collate to use
 
-The `ConnectionOptions::CHARSET_AND_COLLATE` option specify the charset and the collate
-of the connection in a single string e.g. "utf8/general_ci" for the "utf8" charset and the
-"utf8_general_ci" collate.
+`ConnectionAttributes::$charset_and_collate` specifies the charset and collate of the connection
+in a single string e.g. "utf8/general_ci" for the "utf8" charset and the "utf8_general_ci" collate.
 
 The `{charset}` and `{collate}` placeholders are replaced in queries:
 
@@ -158,7 +154,7 @@ $connection('ALTER TABLE nodes CHARACTER SET "{charset}" COLLATE "{collate}"');
 
 ### Specifying a time zone
 
-The `ConnectionOptions::TIMEZONE` option specifies the time zone of the connection.
+`ConnectionAttributes::$time_zone` specifies the time zone of the connection.
 
 
 
@@ -175,9 +171,7 @@ class, and usually implement a specific business logic.
 
 namespace App\Modules\Nodes;
 
-use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord;use ICanBoogie\ActiveRecord\ConnectionCollection;use ICanBoogie\ActiveRecord\Model;use ICanBoogie\ActiveRecord\ModelCollection;use ICanBoogie\ActiveRecord\ModelAttributes;
 
 class NodeModel extends Model
 {
@@ -193,20 +187,19 @@ class Node extends ActiveRecord
     // …
 }
 
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+/* @var $connections ConnectionCollection */
 
 $models = new ModelCollection($connections, [
 
-    'nodes' => [
-
-        Model::ACTIVERECORD_CLASS => Node::class,
-        Model::SCHEMA => [
-
+    'nodes' => new ModelAttributes(
+        id: 'nodes',
+        connection: ActiveRecord\Config::DEFAULT_CONNECTION_ID,
+        schema:, new Schema([
             'id' => 'serial',
             'title' => [ 'varchar', 80 ],
             'number' => [ 'integer', 'unsigned' => true ]
-
-        ]
+        ]),
+        activerecord_class: Node::class,
     ]
 ]);
 

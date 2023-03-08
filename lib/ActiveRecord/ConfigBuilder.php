@@ -16,9 +16,9 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\Association;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\Config\BelongsToAssociation;
+use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
 use ICanBoogie\ActiveRecord\Config\HasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\InvalidConfig;
-use ICanBoogie\ActiveRecord\Config\ModelConfig;
 use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientBelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
@@ -26,7 +26,6 @@ use ICanBoogie\ActiveRecord\Config\TransientModelConfig;
 use InvalidArgumentException;
 use LogicException;
 
-use function array_filter;
 use function array_map;
 use function get_debug_type;
 use function is_string;
@@ -37,17 +36,7 @@ final class ConfigBuilder
     private const REGEXP_TIMEZONE = '/^[-+]\d{2}:\d{2}$/';
 
     /**
-     * @param array<int|string, mixed> $array
-     *
-     * @return array<int|string, mixed>
-     */
-    private static function filter_non_null(array $array): array
-    {
-        return array_filter($array, fn(mixed $v): bool => $v !== null);
-    }
-
-    /**
-     * @var array<string, array<ConnectionOptions::*, mixed>>
+     * @var array<string, ConnectionAttributes>
      */
     private array $connections = [];
 
@@ -68,7 +57,6 @@ final class ConfigBuilder
 
         $associations = $this->build_associations();
         $models = $this->build_models($associations);
-        $models = array_map(fn(ModelConfig $c) => $c->to_array(), $models);
 
         return new Config($this->connections, $models);
     }
@@ -139,7 +127,7 @@ final class ConfigBuilder
      * @param array<string, Association> $associations
      *     Where _key_ is a model identifier.
      *
-     * @return array<string, ModelConfig>
+     * @return array<string, ModelAttributes>
      *     Where _key_ is a model identifier.
      */
     private function build_models(array $associations): array
@@ -147,7 +135,7 @@ final class ConfigBuilder
         $models = [];
 
         foreach ($this->transient_models as $id => $transient) {
-            $models[$id] = new ModelConfig(
+            $models[$id] = new ModelAttributes(
                 id: $id,
                 connection: $transient->connection,
                 schema: $transient->schema,
@@ -232,22 +220,20 @@ final class ConfigBuilder
         string|null $username = null,
         string|null $password = null,
         string|null $table_name_prefix = null,
-        string $charset_and_collate = ConnectionOptions::DEFAULT_CHARSET_AND_COLLATE,
-        string $time_zone = ConnectionOptions::DEFAULT_TIMEZONE,
+        string $charset_and_collate = ConnectionAttributes::DEFAULT_CHARSET_AND_COLLATE,
+        string $time_zone = ConnectionAttributes::DEFAULT_TIMEZONE,
     ): self {
         $this->assert_time_zone($time_zone);
 
-        $this->connections[$id] = self::filter_non_null([ // @phpstan-ignore-line
-            'dsn' => $dsn,
-            'username' => $username,
-            'password' => $password,
-            'options' => self::filter_non_null([
-                ConnectionOptions::ID => $id,
-                ConnectionOptions::TABLE_NAME_PREFIX => $table_name_prefix,
-                ConnectionOptions::CHARSET_AND_COLLATE => $charset_and_collate,
-                ConnectionOptions::TIMEZONE => $time_zone,
-            ])
-        ]);
+        $this->connections[$id] = new ConnectionAttributes(
+            id: $id,
+            dsn: $dsn,
+            username: $username,
+            password: $password,
+            table_name_prefix: $table_name_prefix,
+            charset_and_collate: $charset_and_collate,
+            time_zone: $time_zone
+        );
 
         return $this;
     }
@@ -263,6 +249,9 @@ final class ConfigBuilder
 
     /**
      * @param (Closure(SchemaBuilder $schema): SchemaBuilder) $schema_builder
+     * @param class-string<ActiveRecord> $activerecord_class
+     * @param class-string<Model<int|string, ActiveRecord>>|null $model_class
+     * @param class-string<Query<ActiveRecord>>|null $query_class
      */
     public function add_model(
         string $id,

@@ -21,7 +21,7 @@ final class SchemaColumnTest extends TestCase
      */
     public function test_to_string(SchemaColumn $column, string $expected): void
     {
-        $this->assertEquals($expected, (string) $column);
+        $this->assertEquals($expected, (string)$column);
     }
 
     /**
@@ -173,24 +173,23 @@ final class SchemaColumnTest extends TestCase
     {
         $column = new SchemaColumn('int');
         $new_column = $column->with([
-
             'type' => 'varchar',
             'size' => 255,
             'null' => true,
             'unique' => true,
             'comment' => 'Madonna',
-
         ]);
 
         $this->assertNotSame($column, $new_column);
-        $this->assertEquals(new SchemaColumn(
-
-            type: 'varchar',
-            size: 255,
-            null: true,
-            unique: true,
-            comment: 'Madonna',
-
-        ), $new_column);
+        $this->assertEquals(
+            new SchemaColumn(
+                type: 'varchar',
+                size: 255,
+                null: true,
+                unique: true,
+                comment: 'Madonna',
+            ),
+            $new_column
+        );
     }
 }

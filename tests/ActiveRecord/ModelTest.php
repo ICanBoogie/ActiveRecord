@@ -22,6 +22,8 @@ use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\CustomQuery;
 use Test\ICanBoogie\Fixtures;
 
+use function uniqid;
+
 final class ModelTest extends TestCase
 {
     private const PREFIX = 'myprefix';
@@ -118,24 +120,18 @@ final class ModelTest extends TestCase
 
     public function test_should_default_id_from_name(): void
     {
-        $models = $this
-            ->getMockBuilder(ModelCollection::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        [ $connections, $models ] = Fixtures::only_models([]);
 
-        $connection = $this
-            ->getMockBuilder(Connection::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $connection = $connections->connection_for_id(Config::DEFAULT_CONNECTION_ID);
 
-        $model = new Model($connection, $models, [
-
-            Model::NAME => 'nodes',
-            Model::SCHEMA => new Schema([
+        $model = new Model($connection, $models, new ModelAttributes(
+            'nodes',
+            connection: 'primary',
+            schema: new Schema([
                 'id' => SchemaColumn::serial(primary: true),
             ]),
-            Model::ACTIVERECORD_CLASS => Node::class,
-        ]);
+            activerecord_class: Node::class
+        ));
 
         $this->assertEquals('nodes', $model->id);
     }
@@ -570,13 +566,15 @@ EOT
         $model_id = 't' . uniqid();
 
         $models = new ModelCollection($this->connections, [
-            $model_id => [
-                Model::SCHEMA => new Schema([
+            $model_id => new ModelAttributes(
+                id: $model_id,
+                connection: Config::DEFAULT_CONNECTION_ID,
+                schema: new Schema([
                     'id' => SchemaColumn::serial(primary: true),
                     'name' => SchemaColumn::varchar(),
                 ]),
-                Model::ACTIVERECORD_CLASS => Node::class,
-            ]
+                activerecord_class: Node::class,
+            )
         ]);
 
         $models->install();
@@ -618,14 +616,15 @@ EOT
 
     public function test_custom_query(): void
     {
-        $model = new Model($this->connections['primary'], $this->models, [
-            Model::NAME => uniqid(),
-            Model::SCHEMA => new Schema([
+        $model = new Model($this->connections['primary'], $this->models, new ModelAttributes(
+            id: uniqid(),
+            connection: Config::DEFAULT_CONNECTION_ID,
+            schema: new Schema([
                 'id' => SchemaColumn::serial(primary: true),
             ]),
-            Model::ACTIVERECORD_CLASS => Node::class,
-            Model::QUERY_CLASS => CustomQuery::class,
-        ]);
+            activerecord_class: Node::class,
+            query_class: CustomQuery::class,
+        ));
 
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));
         $this->assertInstanceOf(CustomQuery::class, $query2 = $model->query());

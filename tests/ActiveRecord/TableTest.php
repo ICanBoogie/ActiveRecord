@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
@@ -23,32 +24,37 @@ final class TableTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        self::$connection = new Connection(
-            'sqlite::memory:',
-            null,
-            null,
-            [
-
-                ConnectionOptions::TABLE_NAME_PREFIX => 'prefix'
-            ]
+        self::$connection = $connection = new Connection(
+            new ConnectionAttributes(
+                id: '',
+                dsn: 'sqlite::memory:',
+                table_name_prefix: 'prefix'
+            )
         );
 
-        self::$animals = new Table(self::$connection, [
-            Table::NAME => 'animals',
-            Table::SCHEMA => self::$animals_schema = new Schema([
-                'id' => SchemaColumn::serial(primary: true),
-                'name' => SchemaColumn::varchar(),
-                'date' => SchemaColumn::timestamp(),
-            ])
-        ]);
+        self::$animals = new Table(
+            $connection,
+            new TableAttributes(
+                name: 'animals',
+                schema: self::$animals_schema = new Schema([
+                    'id' => SchemaColumn::serial(primary: true),
+                    'name' => SchemaColumn::varchar(),
+                    'date' => SchemaColumn::timestamp(),
+                ])
+            )
+        );
 
-        self::$dogs = new Table(self::$connection, [
-            Table::NAME => 'dogs',
-            Table::SCHEMA => new Schema([
-                'id' => SchemaColumn::foreign(primary: true),
-                'bark_volume' => SchemaColumn::float(),
-            ])
-        ], self::$animals);
+        self::$dogs = new Table(
+            $connection,
+            new TableAttributes(
+                name: 'dogs',
+                schema: new Schema([
+                    'id' => SchemaColumn::foreign(primary: true),
+                    'bark_volume' => SchemaColumn::float(),
+                ])
+            ),
+            self::$animals
+        );
 
         self::$animals->install();
         self::$dogs->install();
@@ -131,14 +137,17 @@ final class TableTest extends TestCase
 
     public function test_resolve_statement__multi_column_primary_key(): void
     {
-        $table = new Table(self::$connection, [
-            Table::NAME => 'testing',
-            Table::SCHEMA => new Schema([
-                'p1' => new SchemaColumn(type: 'int', size: 'big', primary: true),
-                'p2' => new SchemaColumn(type: 'int', size: 'big', primary: true),
-                'f1' => SchemaColumn::varchar(),
-            ])
-        ]);
+        $table = new Table(
+            self::$connection,
+            new TableAttributes(
+                name: 'testing',
+                schema: new Schema([
+                    'p1' => new SchemaColumn(type: 'int', size: 'big', primary: true),
+                    'p2' => new SchemaColumn(type: 'int', size: 'big', primary: true),
+                    'f1' => SchemaColumn::varchar(),
+                ])
+            )
+        );
 
         $statement = 'SELECT FROM {self} WHERE {primary} = 1';
 

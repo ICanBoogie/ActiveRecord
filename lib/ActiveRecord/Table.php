@@ -14,11 +14,15 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototyped;
 use InvalidArgumentException;
 use LogicException;
-
 use Throwable;
 
+use function array_combine;
+use function array_diff_key;
 use function array_fill;
+use function array_flip;
+use function array_keys;
 use function array_merge;
+use function array_values;
 use function count;
 use function ICanBoogie\singularize;
 use function implode;
@@ -165,24 +169,21 @@ class Table extends Prototyped
         return new Schema($columns);
     }
 
-    /**
-     * @param array<self::*, mixed> $attributes
-     */
     public function __construct(
         public readonly Connection $connection,
-        array $attributes,
+        TableAttributes $attributes,
         self $parent = null
     ) {
         $this->parent = $parent;
-        $this->unprefixed_name = $attributes[self::NAME]
+        $this->unprefixed_name = $attributes->name
             ?? throw new LogicException("The NAME attribute is required");
         $this->name = $connection->table_name_prefix . $this->unprefixed_name;
-        $this->alias = $attributes[self::ALIAS]
+        $this->alias = $attributes->alias
             ?? $this->make_alias($this->unprefixed_name);
-        $this->schema = $attributes[self::SCHEMA]
+        $this->schema = $attributes->schema
             ?? throw new LogicException("The SCHEMA attribute is required");
         $this->primary = $this->schema->primary;
-        $this->implements = $attributes[self::IMPLEMENTING]
+        $this->implements = $attributes->implements
             ?? null;
 
         unset($this->update_join);
@@ -193,7 +194,6 @@ class Table extends Prototyped
         if ($parent && $parent->implements) {
             $this->implements = array_merge($parent->implements, $this->implements);
         }
-
     }
 
     /**
@@ -473,7 +473,9 @@ class Table extends Prototyped
                 $rc = $statement->execute($filtered);
             } elseif ($driver_name === 'sqlite') {
                 $rc = $this->insert($values, $options);
-            } else throw new LogicException("Don't know what to do with $driver_name");
+            } else {
+                throw new LogicException("Don't know what to do with $driver_name");
+            }
         } elseif ($parent_id) {
             #
             # a new entry has been created, but we don't have any other fields then the primary key
@@ -527,7 +529,7 @@ class Table extends Prototyped
 
         $driver_name = $this->connection->driver_name;
 
-        $on_duplicate = isset($options['on duplicate']) ? $options['on duplicate'] : null;
+        $on_duplicate = $options['on duplicate'] ?? null;
 
         if ($driver_name == 'mysql') {
             $query = 'INSERT';
@@ -545,40 +547,38 @@ class Table extends Prototyped
                     # removing the primary key and its corresponding value
                     #
 
-                    $update_values = \array_combine(\array_keys($holders), $values);
+                    $update_values = array_combine(array_keys($holders), $values);
                     $update_holders = $holders;
 
                     $primary = $this->primary;
 
                     if (is_array($primary)) {
-                        $flip = \array_flip($primary);
+                        $flip = array_flip($primary);
 
-                        $update_holders = \array_diff_key($update_holders, $flip);
-                        $update_values = \array_diff_key($update_values, $flip);
+                        $update_holders = array_diff_key($update_holders, $flip);
+                        $update_values = array_diff_key($update_values, $flip);
                     } else {
                         unset($update_holders[$primary]);
                         unset($update_values[$primary]);
                     }
 
-                    $update_values = \array_values($update_values);
+                    $update_values = array_values($update_values);
                 } else {
-                    list($update_values, $update_holders) = $this->filter_values($on_duplicate);
+                    [ $update_values, $update_holders ] = $this->filter_values($on_duplicate);
                 }
 
                 $query .= ' ON DUPLICATE KEY UPDATE ' . implode(', ', $update_holders);
 
                 $values = array_merge($values, $update_values);
             }
-        } else {
-            if ($driver_name == 'sqlite') {
-                $holders = array_fill(0, count($identifiers), '?');
+        } elseif ($driver_name == 'sqlite') {
+            $holders = array_fill(0, count($identifiers), '?');
 
-                $query = 'INSERT' . ($on_duplicate ? ' OR REPLACE' : '')
-                    . ' INTO `{self}` (' . implode(', ', $identifiers) . ')'
-                    . ' VALUES (' . implode(', ', $holders) . ')';
-            } else {
-                throw new \LogicException("Unsupported drive: $driver_name.");
-            }
+            $query = 'INSERT' . ($on_duplicate ? ' OR REPLACE' : '')
+                . ' INTO `{self}` (' . implode(', ', $identifiers) . ')'
+                . ' VALUES (' . implode(', ', $holders) . ')';
+        } else {
+            throw new LogicException("Unsupported drive: $driver_name.");
         }
 
         return $this->execute($query, $values);
@@ -606,7 +606,7 @@ class Table extends Prototyped
             $rc = true;
 
             while ($table) {
-                list($table_values, $holders) = $table->filter_values($values);
+                [ $table_values, $holders ] = $table->filter_values($values);
 
                 if ($holders) {
                     $query = 'UPDATE `{self}` SET ' . implode(', ', $holders) . ' WHERE `{primary}` = ?';
@@ -625,7 +625,7 @@ class Table extends Prototyped
             return $rc;
         }
 
-        list($values, $holders) = $this->filter_values($values, true);
+        [ $values, $holders ] = $this->filter_values($values, true);
 
         $query = "UPDATE `{self}` $this->update_join  SET " . implode(', ', $holders) . ' WHERE `{primary}` = ?';
         $values[] = $key;

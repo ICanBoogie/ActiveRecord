@@ -13,7 +13,6 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototype;
-
 use LogicException;
 
 use function ICanBoogie\singularize;

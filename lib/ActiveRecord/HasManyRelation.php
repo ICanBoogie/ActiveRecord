@@ -12,7 +12,6 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
-
 use PDO;
 
 use function ICanBoogie\pluralize;

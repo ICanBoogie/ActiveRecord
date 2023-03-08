@@ -2,15 +2,24 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
-use ICanBoogie\ActiveRecord\Model;
-
-use function array_map;
-
 /**
  * @internal
  */
 final class Association
 {
+    /**
+     * @param array{
+     *     belongs_to: array<BelongsToAssociation>,
+     *     has_many: array<HasManyAssociation>,
+     * } $an_array
+     *
+     * @return static
+     */
+    public static function __set_state(array $an_array): self
+    {
+        return new self(...$an_array);
+    }
+
     /**
      * @param array<BelongsToAssociation> $belongs_to
      * @param array<HasManyAssociation> $has_many
@@ -19,44 +28,5 @@ final class Association
         public readonly array $belongs_to,
         public readonly array $has_many,
     ) {
-    }
-
-    /**
-     * @return array{
-     *     belongs_to: array<string, mixed>,
-     *     has_many: array<string, mixed>,
-     * }
-     */
-    public function to_array(): array
-    {
-        /** @phpstan-ignore-next-line */
-        return [
-
-            Model::BELONGS_TO => count($this->belongs_to) === 0 ? null : array_map(
-                fn(BelongsToAssociation $a) => [
-                    $a->model_id,
-                    [
-                        'local_key' => $a->local_key,
-                        'foreign_key' => $a->foreign_key,
-                        'as' => $a->as,
-                    ]
-                ],
-                $this->belongs_to
-            ),
-
-            Model::HAS_MANY => count($this->has_many) === 0 ? null : array_map(
-                fn(HasManyAssociation $a) => [
-                    $a->model_id,
-                    [
-                        'local_key' => $a->local_key,
-                        'foreign_key' => $a->foreign_key,
-                        'as' => $a->as,
-                        'through' => $a->through,
-                    ]
-                ],
-                $this->has_many
-            ),
-
-        ];
     }
 }
