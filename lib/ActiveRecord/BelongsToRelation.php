@@ -15,34 +15,15 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototype;
 use LogicException;
 
+use function array_pop;
+use function explode;
 use function ICanBoogie\singularize;
 
 /**
- * Representation of the one-to-one relation.
+ * Representation of a belongs_to relation.
  */
 class BelongsToRelation extends Relation
 {
-    /**
-     * @param array<string, mixed> $options
-     */
-    public function __construct(Model $owner, Model|string $related, array $options = [])
-    {
-        if (empty($options['local_key']) || empty($options['foreign_key'])) {
-            if (!$related instanceof Model) {
-                $related = $owner->models->model_for_id($related);
-            }
-
-            $options += [
-
-                'local_key' => $related->primary,
-                'foreign_key' => $related->primary
-
-            ];
-        }
-
-        parent::__construct($owner, $related, $options);
-    }
-
     /**
      * @inheritdoc
      */
@@ -74,8 +55,11 @@ class BelongsToRelation extends Relation
     /**
      * @inheritdoc
      */
-    protected function resolve_property_name(Model|string $related): string
+    protected function resolve_property_name(string $related): string
     {
-        return singularize(parent::resolve_property_name($related));
+        $parts = explode('.', $related);
+        $part = array_pop($parts);
+
+        return singularize($part);
     }
 }

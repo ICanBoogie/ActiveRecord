@@ -17,27 +17,30 @@ use PDO;
 use function ICanBoogie\pluralize;
 
 /**
- * Representation of the one-to-many or many-to-many relation.
+ * Representation of a has_many relation.
  */
 class HasManyRelation extends Relation
 {
-    public readonly ?string $through;
-
     /**
-     * @param Model $owner
-     * @param Model|string $related
-     * @param array{
-     *     as?: string,
-     *     local_key?: string,
-     *     foreign_key?: string,
-     *     through?: string,
-     * } $options
+     * @inheritdoc
+     *
+     * @param string|null $through If the association is made indirectly, this is the name of that model.
      */
-    public function __construct(Model $owner, Model|string $related, array $options = [])
-    {
-        $this->through = $options['through'] ?? null;
-
-        parent::__construct($owner, $related, $options);
+    public function __construct(
+        Model $owner,
+        string $related,
+        string $local_key,
+        string $foreign_key,
+        string $as,
+        public readonly ?string $through = null,
+    ) {
+        parent::__construct(
+            owner: $owner,
+            related: $related,
+            local_key: $local_key,
+            foreign_key: $foreign_key,
+            as: $as,
+        );
     }
 
     /**
@@ -70,8 +73,8 @@ class HasManyRelation extends Relation
         $related = $this->resolve_related();
         $through = $this->ensure_model($through_id);
         $r = $through->relations;
-        $r1 = $r[$this->owner->id];
-        $r2 = $r[$related->id];
+        $r1 = $r->find(fn(Relation $r) => $r->related === $this->owner->id);
+        $r2 = $r->find(fn(Relation $r) => $r->related === $related->id);
         $r2_model = $this->ensure_model($r2->related);
 
         $q = $related->select("`{alias}`.*");
@@ -85,7 +88,7 @@ class HasManyRelation extends Relation
         return $q;
     }
 
-    protected function resolve_property_name(Model|string $related): string
+    protected function resolve_property_name(string $related): string
     {
         return pluralize(parent::resolve_property_name($related));
     }

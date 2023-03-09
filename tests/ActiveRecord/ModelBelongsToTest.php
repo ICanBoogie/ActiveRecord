@@ -21,10 +21,20 @@ final class ModelBelongsToTest extends TestCase
 
         $drivers = $models['drivers'];
         $brands = $models['brands'];
-        $cars = $models['cars'];
+        $cars = $models->model_for_id('cars');
 
-        $cars->belongs_to($drivers);
-        $cars->belongs_to($brands);
+        $cars->belongs_to(
+            related: 'drivers',
+            local_key: 'driver_id',
+            foreign_key: 'driver_id',
+            as: 'driver',
+        );
+        $cars->belongs_to(
+            related: 'brands',
+            local_key: 'brand_id',
+            foreign_key: 'brand_id',
+            as: 'brand',
+        );
 
         /* @var $car Car */
         $car = $cars->new([ 'name' => '4two' ]);

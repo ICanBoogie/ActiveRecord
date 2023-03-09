@@ -11,30 +11,27 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
+use ArrayAccess;
+use Closure;
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
-
-use function is_array;
-use function var_dump;
 
 /**
  * Relation collection of a model.
  *
- * @property-read Model $model The parent model.
+ * @implements ArrayAccess<string, Relation>
  */
-class RelationCollection implements \ArrayAccess
+class RelationCollection implements ArrayAccess
 {
-    use AccessorTrait;
-
     /**
      * Relations.
      *
-     * @var Relation[]
+     * @var array<string, Relation>
      */
-    private $relations;
+    private array $relations;
 
     /**
-     * @param Model $model The parent model.
+     * @param Model<int|string|string[], ActiveRecord> $model The parent model.
      */
     public function __construct(
         public readonly Model $model
@@ -60,11 +57,8 @@ class RelationCollection implements \ArrayAccess
      */
     public function offsetGet(mixed $offset): Relation
     {
-        if (!$this->offsetExists($offset)) {
-            throw new RelationNotDefined($offset, $this);
-        }
-
-        return $this->relations[$offset];
+        return $this->relations[$offset]
+            ?? throw new RelationNotDefined($offset, $this);
     }
 
     /**
@@ -84,88 +78,58 @@ class RelationCollection implements \ArrayAccess
     }
 
     /**
-     * Add a _belongs to_ relation.
-     *
-     * <pre>
-     * $cars->belongs_to([ $drivers, $brands ]);
-     * # or
-     * $cars->belongs_to([ 'drivers', 'brands' ]);
-     * # or
-     * $cars->belongs_to($drivers, $brands);
-     * # or
-     * $cars->belongs_to($drivers)->belongs_to($brands);
-     * # or
-     * $cars->belongs_to([
-     *
-     *     [ $drivers, [ 'local_key' => 'card_id', 'foreign_key' => 'driver_id' ] ]
-     *     [ $brands, [ 'local_key' => 'brand_id', 'foreign_key' => 'brand_id' ] ]
-     *
-     * ]);
-     * </pre>
-     *
-     * @param string|array $belongs_to
+     * Adds a {@link BelongsToRelation} relation.
      */
-    public function belongs_to($belongs_to): Model
+    public function belongs_to(
+        string $related,
+        string $local_key,
+        string $foreign_key,
+        string $as,
+    ): void
     {
-        if (\func_num_args() > 1) {
-            $belongs_to = \func_get_args();
-        }
-
-        foreach ((array)$belongs_to as $definition) {
-            if (!is_array($definition)) {
-                $definition = [ $definition ];
-            }
-
-            [ $related, $options ] = $definition + [ 1 => [] ];
-
-            $relation = new BelongsToRelation($this->model, $related, $options);
-
-            $this->relations[$related] = $relation;
-        }
-
-        return $this->model;
+        $this->relations[$as] = new BelongsToRelation(
+            owner: $this->model,
+            related: $related,
+            local_key: $local_key,
+            foreign_key: $foreign_key,
+            as: $as,
+        );
     }
 
     /**
-     * Add a one-to-many relation.
-     *
-     * <pre>
-     * $this->has_many('comments');
-     * $this->has_many([ 'comments', 'attachments' ]);
-     * $this->has_many([ [ 'comments', [ 'as' => 'comments' ] ], 'attachments' ]);
-     * </pre>
-     *
-     * @param Model|string|array $related The related model can be specified using its instance or its
-     * identifier.
-     * @param array $options the following options are available:
-     *
-     * - `local_key`: The name of the local key. Default: The parent model's primary key.
-     * - `foreign_key`: The name of the foreign key. Default: The parent model's primary key.
-     * - `as`: The name of the magic property to add to the prototype. Default: a plural name
-     * resolved from the foreign model's id.
-     *
-     * @see HasManyRelation
+     * Adds a {@link HasManyRelation} relation.
      */
-    public function has_many($related, array $options = []): ?Model
+    public function has_many(
+        string $related,
+        string $local_key,
+        string $foreign_key,
+        string $as,
+        ?string $through = null,
+    ): void
     {
-        if (is_array($related)) {
-            $relation_list = $related;
+        $this->relations[$as] = new HasManyRelation(
+            owner: $this->model,
+            related: $related,
+            local_key: $local_key,
+            foreign_key: $foreign_key,
+            as: $as,
+            through: $through,
+        );
+    }
 
-            foreach ($relation_list as $definition) {
-                [ $related, $options ] = ((array)$definition) + [ 1 => [] ];
-
-                $relation = new HasManyRelation($this->model, $related, $options);
-
-                $this->relations[$relation->as] = $relation;
+    /**
+     * @param (Closure(Relation, string $as): ?Relation) $predicate
+     *
+     * @return Relation|null
+     */
+    public function find(Closure $predicate): ?Relation
+    {
+        foreach ($this->relations as $as => $relation) {
+            if ($predicate($relation, $as)) {
+                return $relation;
             }
-
-            return null;
         }
 
-        $relation = new HasManyRelation($this->model, $related, $options);
-
-        $this->relations[$relation->as] = $relation;
-
-        return $this->model;
+        return null;
     }
 }

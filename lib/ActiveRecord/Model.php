@@ -31,6 +31,11 @@ use function method_exists;
 /**
  * Base class for activerecord models.
  *
+ * @template TKey of int|string|string[]
+ * @template TValue of ActiveRecord
+ *
+ * @implements ArrayAccess<TKey, TValue>
+ *
  * @method Query select($expression) The method is forwarded to Query::select().
  * @method Query join($expression) The method is forwarded to Query::join().
  * @method Query where($conditions, $conditions_args = null, $_ = null)
@@ -49,8 +54,6 @@ use function method_exists;
  * @method ActiveRecord one() The method is forwarded to Query::one().
  * @method ActiveRecord new(array $properties = []) Instantiate a new record.
  *
- * @method Model has_many($related, $options = []) Adds a _has_many_ relation.
- *
  * @property-read Model|null $parent Parent model.
  * @property-read array $all Retrieve all the records from the model.
  * @property-read int $count The number of records of the model.
@@ -58,10 +61,6 @@ use function method_exists;
  * @property-read ActiveRecord $one Retrieve the first record from the mode.
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
  *
- * @template TKey of int|string|string[]
- * @template TValue of ActiveRecord
- *
- * @implements ArrayAccess<TKey, TValue>
  */
 #[AllowDynamicProperties]
 class Model extends Table implements ArrayAccess
@@ -118,8 +117,10 @@ class Model extends Table implements ArrayAccess
 
         parent::__construct($connection, $attributes, $parent);
 
+        /** @phpstan-ignore-next-line */
         $this->activerecord_class = $attributes->activerecord_class
             ?? throw new LogicException("Missing ActiveRecord class for model '$this->id'");
+        /** @phpstan-ignore-next-line */
         $this->query_class = $attributes->query_class
             ?? Query::class;
 
@@ -164,10 +165,10 @@ class Model extends Table implements ArrayAccess
         if ($belongs_to) {
             foreach ($belongs_to as $r) {
                 $this->belongs_to(
-                    model_or_id: $r->model_id,
+                    related: $r->model_id,
                     local_key: $r->local_key,
                     foreign_key: $r->foreign_key,
-                    as: $r->as
+                    as: $r->as,
                 );
             }
         }
@@ -178,39 +179,51 @@ class Model extends Table implements ArrayAccess
 
         if ($has_many) {
             foreach ($has_many as $r) {
-                $this->relations->has_many([
-                    [ $r->model_id, [
-                        'local_key' => $r->local_key,
-                        'foreign_key' => $r->foreign_key,
-                        'as' => $r->as,
-                        'through' => $r->through,
-                    ] ]
-                ]);
+                $this->has_many(
+                    related: $r->model_id,
+                    foreign_key: $r->foreign_key,
+                    as: $r->as,
+                    through: $r->through,
+                );
             }
         }
     }
 
     /**
-     * @param self<TKey, TValue>|string $model_or_id
-     *
-     * @return self<TKey, TValue>
+     * @param string $related A module identifier.
      */
     public function belongs_to(
-        self|string $model_or_id,
-        string|null $local_key = null,
-        string|null $foreign_key = null,
-        string|null $as = null,
+        string $related,
+        string $local_key,
+        string $foreign_key,
+        string $as,
     ): self {
-        $related = $model_or_id instanceof self
-            ? $model_or_id
-            : $this->models->model_for_id($model_or_id);
+        $this->relations->belongs_to(
+            related: $related,
+            local_key: $local_key,
+            foreign_key: $foreign_key,
+            as: $as,
+        );
 
-        $local_key ??= $this->schema->primary;
-        $foreign_key ??= $related->primary;
+        return $this;
+    }
 
-        $this->relations->belongs_to([
-            [ $related->id, [ 'local_key' => $local_key, 'foreign_key' => $foreign_key, 'as' => $as ] ],
-        ]);
+    /**
+     * @param string $related A module identifier.
+     */
+    public function has_many(
+        string $related,
+        string $foreign_key,
+        string $as,
+        ?string $through = null,
+    ): self {
+        $this->relations->has_many(
+            related: $related,
+            local_key: $this->primary,
+            foreign_key: $foreign_key,
+            as: $as,
+            through: $through,
+        );
 
         return $this;
     }

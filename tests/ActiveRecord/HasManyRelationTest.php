@@ -56,7 +56,7 @@ final class HasManyRelationTest extends TestCase
         $this->assertInstanceOf(HasManyRelation::class, $relation);
         $this->assertSame('comments', $relation->as);
         $this->assertSame($this->articles, $relation->owner);
-        $this->assertSame($this->comments, $relation->related);
+        $this->assertSame('comments', $relation->related);
         $this->assertSame('nid', $relation->local_key);
         $this->assertSame('nid', $relation->foreign_key);
     }
@@ -90,7 +90,11 @@ final class HasManyRelationTest extends TestCase
     public function test_getter_as(): void
     {
         $articles = $this->articles;
-        $articles->has_many($this->comments, [ 'as' => 'article_comments' ]);
+        $articles->has_many(
+            related: 'comments',
+            foreign_key: 'nid',
+            as: 'article_comments'
+        );
         $article = $this->articles[1];
         $article_comments = $article->article_comments;
 

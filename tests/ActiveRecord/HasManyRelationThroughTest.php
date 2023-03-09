@@ -11,11 +11,13 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\Acme\HasMany\Appointment;
 use ICanBoogie\Acme\HasMany\Patient;
 use ICanBoogie\Acme\HasMany\Physician;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Fixtures;
 
+use function array_column;
 use function assert;
 
 final class HasManyRelationThroughTest extends TestCase
@@ -24,6 +26,16 @@ final class HasManyRelationThroughTest extends TestCase
      * @var Model<int, Physician>
      */
     private Model $physicians;
+
+    /**
+     * @var Model<int, Patient>
+     */
+    private Model $patients;
+
+    /**
+     * @var Model<int, Appointment>
+     */
+    private Model $appointments;
 
     protected function setUp(): void
     {
@@ -35,7 +47,10 @@ final class HasManyRelationThroughTest extends TestCase
 
         /** @phpstan-ignore-next-line*/
         $this->physicians = $models->model_for_id('physicians');
-        $models->model_for_id('patients');
+        /** @phpstan-ignore-next-line*/
+        $this->patients = $models->model_for_id('patients');
+        /** @phpstan-ignore-next-line*/
+        $this->appointments = $models->model_for_id('appointments');
     }
 
     public function test_through_is_set(): void
@@ -99,7 +114,6 @@ final class HasManyRelationThroughTest extends TestCase
     {
         $physician = new Physician();
         $physician->ph_id = 123;
-
         $query = $physician->patients;
 
         $this->assertEquals(
@@ -131,5 +145,37 @@ final class HasManyRelationThroughTest extends TestCase
             [ $patient->pa_id ],
             $query->args
         );
+    }
+
+    public function test_integration(): void
+    {
+        $this->physicians->install();
+        $this->patients->install();
+        $this->appointments->install();
+
+        $patient_1 = new Patient($this->patients);
+        $patient_1->name = "Patient 1";
+        $patient_1->save();
+        $patient_2 = new Patient($this->patients);
+        $patient_2->name = "Patient 2";
+        $patient_2->save();
+
+        $physician_1 = new Physician($this->physicians);
+        $physician_1->name = "Physician 1";
+        $physician_1->save();
+        $physician_2 = new Physician($this->physicians);
+        $physician_2->name = "Physician 2";
+        $physician_2->save();
+
+        $appointment = new Appointment($this->appointments);
+        $appointment->patient_id = $patient_1->pa_id;
+        $appointment->physician_id = $physician_1->ph_id;
+        $appointment->appointment_date = '2023-06-06';
+        $appointment->save();
+
+        $this->assertEquals([ "Physician 1" ], array_column($patient_1->physicians->all, 'name'));
+        $this->assertEquals([ "Patient 1" ], array_column($physician_1->patients->all, 'name'));
+        $this->assertEquals($physician_1, $appointment->physician);
+        $this->assertEquals($patient_1, $appointment->patient);
     }
 }

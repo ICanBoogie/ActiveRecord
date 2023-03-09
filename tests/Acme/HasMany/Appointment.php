@@ -4,6 +4,10 @@ namespace ICanBoogie\Acme\HasMany;
 
 use ICanBoogie\ActiveRecord;
 
+/**
+ * @property-read Physician $physician
+ * @property-read Patient $patient
+ */
 class Appointment extends ActiveRecord
 {
     public int $ap_id;

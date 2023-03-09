@@ -27,7 +27,10 @@ use InvalidArgumentException;
 use LogicException;
 
 use function array_map;
+use function array_pop;
+use function explode;
 use function get_debug_type;
+use function ICanBoogie\singularize;
 use function is_string;
 use function preg_match;
 
@@ -155,20 +158,21 @@ final class ConfigBuilder
 
     private function resolve_belongs_to(string $owner, TransientBelongsToAssociation $association): BelongsToAssociation
     {
+        $related = $association->model_id;
         $local_key = $association->local_key ?? throw new LogicException(
-            "Don't know how to resolve local key on $owner for association belongs_to($association->model_id)"
+            "Don't know how to resolve local key on $owner for association belongs_to($related)"
         );
-        $foreign_key = $association->foreign_key ?? $this->transient_models[$association->model_id]->schema->primary;
-        $as = $association->as ?? $association->model_id;
+        $foreign_key = $association->foreign_key ?? $this->transient_models[$related]->schema->primary;
+        $as = $association->as ?? singularize($related);
 
         if (!is_string($foreign_key)) {
             throw new InvalidConfig(
-                "Unable to create 'belongs to' association, primary key of model '$association->model_id' is not a string."
+                "Unable to create 'belongs to' association, primary key of model '$related' is not a string."
             );
         }
 
         return new BelongsToAssociation(
-            $association->model_id,
+            $related,
             $local_key,
             $foreign_key,
             $as,
