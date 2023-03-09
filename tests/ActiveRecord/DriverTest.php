@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Driver\MySQLDriver;
 use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
 use PHPUnit\Framework\TestCase;
@@ -32,7 +32,7 @@ final class DriverTest extends TestCase
         array $expected,
     ): void {
         $connection = new class (
-            new ConnectionAttributes('', 'sqlite::memory:'),
+            new ConnectionDefinition('', 'sqlite::memory:'),
             $this,
             $expected,
         ) extends Connection {
@@ -40,11 +40,11 @@ final class DriverTest extends TestCase
              * @param array<string> $expected
              */
             public function __construct(
-                ConnectionAttributes $attributes,
+                ConnectionDefinition $definition,
                 private readonly TestCase $test,
                 private readonly array $expected,
             ) {
-                parent::__construct($attributes);
+                parent::__construct($definition);
             }
 
             private int $i = 0;

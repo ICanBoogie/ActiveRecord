@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use PHPUnit\Framework\TestCase;
 
 use function uniqid;
@@ -23,8 +23,8 @@ final class ConnectionCollectionTest extends TestCase
     protected function setUp(): void
     {
         $this->connections = new ConnectionCollection([
-            'one' => new ConnectionAttributes(id: 'one', dsn: 'sqlite::memory:'),
-            'bad' => new ConnectionAttributes(id: 'bad', dsn: 'mysql:dbname=bad_database' . uniqid()),
+            'one' => new ConnectionDefinition(id: 'one', dsn: 'sqlite::memory:'),
+            'bad' => new ConnectionDefinition(id: 'bad', dsn: 'mysql:dbname=bad_database' . uniqid()),
         ]);
     }
 
@@ -71,7 +71,7 @@ final class ConnectionCollectionTest extends TestCase
 
     public function test_should_set_connection_while_it_is_not_established(): void
     {
-        $this->connections['two'] = new ConnectionAttributes('two', 'sqlite::memory:');
+        $this->connections['two'] = new ConnectionDefinition('two', 'sqlite::memory:');
 
         $this->assertInstanceOf(Connection::class, $this->connections['two']);
     }
@@ -87,7 +87,7 @@ final class ConnectionCollectionTest extends TestCase
 
     public function test_should_unset_connection_definition(): void
     {
-        $this->connections['two'] = new ConnectionAttributes('two', 'sqlite::memory:');
+        $this->connections['two'] = new ConnectionDefinition('two', 'sqlite::memory:');
 
         unset($this->connections['two']);
 
@@ -120,8 +120,8 @@ final class ConnectionCollectionTest extends TestCase
     {
         $connections = new ConnectionCollection([
 
-            'one' => new ConnectionAttributes('one', 'sqlite::memory:'),
-            'two' => new ConnectionAttributes('two', 'sqlite::memory:'),
+            'one' => new ConnectionDefinition('one', 'sqlite::memory:'),
+            'two' => new ConnectionDefinition('two', 'sqlite::memory:'),
 
         ]);
 

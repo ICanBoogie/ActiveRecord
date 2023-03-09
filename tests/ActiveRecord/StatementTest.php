@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use PHPUnit\Framework\TestCase;
 
 final class StatementTest extends TestCase
@@ -20,7 +20,7 @@ final class StatementTest extends TestCase
 
     public static function setupBeforeClass(): void
     {
-        self::$connection = $connection = new Connection(new ConnectionAttributes('id', 'sqlite::memory:'));
+        self::$connection = $connection = new Connection(new ConnectionDefinition('id', 'sqlite::memory:'));
 
         $connection('CREATE TABLE test (a INTEGER PRIMARY KEY ASC, b INTEGER, c VARCHAR(20))');
         $connection('INSERT INTO test (b,c) VALUES(1, "one")');

@@ -14,7 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ArrayAccess;
 use ArrayIterator;
 use ICanBoogie\Accessor\AccessorTrait;
-use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use InvalidArgumentException;
 use IteratorAggregate;
 use PDOException;
@@ -25,7 +25,7 @@ use function get_debug_type;
 /**
  * Connection collection.
  *
- * @property-read array<string, ConnectionAttributes> $definitions Connection definitions.
+ * @property-read array<string, ConnectionDefinition> $definitions Connection definitions.
  * @property-read Connection[] $established Established connections.
  *
  * @implements ArrayAccess<string, Connection>
@@ -42,7 +42,7 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
     /**
      * Connections definitions.
      *
-     * @var array<string, ConnectionAttributes>
+     * @var array<string, ConnectionDefinition>
      */
     private array $attributes;
 
@@ -71,7 +71,7 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
     }
 
     /**
-     * @param array<string, ConnectionAttributes> $attributes_by_id
+     * @param array<string, ConnectionDefinition> $attributes_by_id
      *     Where _key_ is a connection identifier.
      */
     public function __construct(array $attributes_by_id)
@@ -111,8 +111,8 @@ class ConnectionCollection implements ArrayAccess, IteratorAggregate, Connection
             throw new ConnectionAlreadyEstablished($offset);
         }
 
-        if (!$value instanceof ConnectionAttributes) {
-            $expected = ConnectionAttributes::class;
+        if (!$value instanceof ConnectionDefinition) {
+            $expected = ConnectionDefinition::class;
             $actual = get_debug_type($value);
             throw new InvalidArgumentException("Expected '$expected' got '$actual'");
         }

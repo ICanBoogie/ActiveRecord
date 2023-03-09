@@ -2,7 +2,7 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
-final class ConnectionAttributes
+final class ConnectionDefinition
 {
     public const DEFAULT_CHARSET_AND_COLLATE = "utf8/general_ci";
 

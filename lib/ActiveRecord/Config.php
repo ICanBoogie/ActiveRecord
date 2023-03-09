@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 
 final class Config
 {
@@ -19,7 +19,7 @@ final class Config
 
     /**
      * @param array{
-     *     connections: array<string, ConnectionAttributes>,
+     *     connections: array<string, ConnectionDefinition>,
      *     models: array<string, ModelDefinition>,
      * } $an_array
      */
@@ -29,7 +29,7 @@ final class Config
     }
 
     /**
-     * @param array<string, ConnectionAttributes> $connections
+     * @param array<string, ConnectionDefinition> $connections
      * @param array<string, ModelDefinition> $models
      */
     public function __construct(

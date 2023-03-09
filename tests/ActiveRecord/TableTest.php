@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
@@ -25,7 +25,7 @@ final class TableTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         self::$connection = $connection = new Connection(
-            new ConnectionAttributes(
+            new ConnectionDefinition(
                 id: '',
                 dsn: 'sqlite::memory:',
                 table_name_prefix: 'prefix'

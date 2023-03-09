@@ -16,7 +16,7 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\Association;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\Config\BelongsToAssociation;
-use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Config\HasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\InvalidConfig;
 use ICanBoogie\ActiveRecord\Config\TransientAssociation;
@@ -39,7 +39,7 @@ final class ConfigBuilder
     private const REGEXP_TIMEZONE = '/^[-+]\d{2}:\d{2}$/';
 
     /**
-     * @var array<string, ConnectionAttributes>
+     * @var array<string, ConnectionDefinition>
      */
     private array $connections = [];
 
@@ -224,12 +224,12 @@ final class ConfigBuilder
         string|null $username = null,
         string|null $password = null,
         string|null $table_name_prefix = null,
-        string $charset_and_collate = ConnectionAttributes::DEFAULT_CHARSET_AND_COLLATE,
-        string $time_zone = ConnectionAttributes::DEFAULT_TIMEZONE,
+        string $charset_and_collate = ConnectionDefinition::DEFAULT_CHARSET_AND_COLLATE,
+        string $time_zone = ConnectionDefinition::DEFAULT_TIMEZONE,
     ): self {
         $this->assert_time_zone($time_zone);
 
-        $this->connections[$id] = new ConnectionAttributes(
+        $this->connections[$id] = new ConnectionDefinition(
             id: $id,
             dsn: $dsn,
             username: $username,

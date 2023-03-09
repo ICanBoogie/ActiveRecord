@@ -12,7 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
-use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use PDO;
 use PDOException;
 use Throwable;
@@ -97,27 +97,27 @@ class Connection
      * @link http://www.php.net/manual/en/pdo.construct.php
      * @link http://dev.mysql.com/doc/refman/5.5/en/time-zone-support.html
      */
-    public function __construct(ConnectionAttributes $attributes)
+    public function __construct(ConnectionDefinition $definition)
     {
         unset($this->driver); // to trigger lazy loading
 
-        $this->id = $attributes->id;
-        $dsn = $attributes->dsn;
+        $this->id = $definition->id;
+        $dsn = $definition->dsn;
 
-        $this->table_name_prefix = $attributes->table_name_prefix
-            ? $attributes->table_name_prefix . '_'
+        $this->table_name_prefix = $definition->table_name_prefix
+            ? $definition->table_name_prefix . '_'
             : '';
 
         [ $this->charset, $this->collate ] = extract_charset_and_collate(
-            $attributes->charset_and_collate ?? $attributes::DEFAULT_CHARSET_AND_COLLATE
+            $definition->charset_and_collate ?? $definition::DEFAULT_CHARSET_AND_COLLATE
         );
 
-        $this->timezone = $attributes->time_zone;
+        $this->timezone = $definition->time_zone;
         $this->driver_name = $this->resolve_driver_name($dsn);
 
         $options = $this->make_options();
 
-        $this->pdo = new PDO($dsn, $attributes->username, $attributes->password, $options);
+        $this->pdo = new PDO($dsn, $definition->username, $definition->password, $options);
 
         $this->after_connection();
     }

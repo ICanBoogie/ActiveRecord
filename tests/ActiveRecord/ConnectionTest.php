@@ -2,7 +2,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Config\ConnectionAttributes;
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use PHPUnit\Framework\TestCase;
 
 final class ConnectionTest extends TestCase
@@ -15,7 +15,7 @@ final class ConnectionTest extends TestCase
         $this->id = 'db' . uniqid();
 
         $this->connection = new Connection(
-            new ConnectionAttributes(
+            new ConnectionDefinition(
                 id: $this->id,
                 dsn:'sqlite::memory:',
                 charset_and_collate: 'ascii/bin',
