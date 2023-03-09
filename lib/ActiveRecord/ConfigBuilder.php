@@ -156,12 +156,22 @@ final class ConfigBuilder
         return $models;
     }
 
+    private function try_key(string $key, string $on): ?string
+    {
+        $schema = $this->transient_models[$on]->schema;
+
+        return isset($schema[$key]) ? $key : null;
+    }
+
     private function resolve_belongs_to(string $owner, TransientBelongsToAssociation $association): BelongsToAssociation
     {
         $related = $association->model_id;
-        $local_key = $association->local_key ?? throw new LogicException(
-            "Don't know how to resolve local key on $owner for association belongs_to($related)"
+        $local_key = $association->local_key;
+        $local_key ??= $this->try_key($this->transient_models[$related]->schema->primary, $owner);
+        $local_key or throw new LogicException(
+            "Don't know how to resolve local key on '$owner' for association belongs_to($related)"
         );
+
         $foreign_key = $association->foreign_key ?? $this->transient_models[$related]->schema->primary;
         $as = $association->as ?? singularize($related);
 
@@ -181,17 +191,19 @@ final class ConfigBuilder
 
     private function resolve_has_many(string $owner, TransientHasManyAssociation $association): HasManyAssociation
     {
-        $local_key = $association->local_key
-            ?? $this->transient_models[$owner]->schema->primary;
+        $related = $association->model_id;
+        $local_key = $association->local_key ?? $this->transient_models[$owner]->schema->primary;
         $foreign_key = $association->foreign_key;
-        $as = $association->as ?? $association->model_id;
+        $as = $association->as ?? $related;
 
         if ($association->through) {
-            $foreign_key ??= $this->transient_models[$association->model_id]->schema->primary;
+            $foreign_key ??= $this->transient_models[$related]->schema->primary;
+        } else {
+            $foreign_key ??= $this->try_key($this->transient_models[$owner]->schema->primary, $related);
         }
 
         $foreign_key or throw new InvalidConfig(
-            "Don't know how to resolve foreign key on $owner for association has_many($association->model_id)"
+            "Don't know how to resolve foreign key on '$owner' for association has_many($related)"
         );
 
         if (!is_string($local_key)) {
@@ -202,12 +214,12 @@ final class ConfigBuilder
 
         if (!is_string($foreign_key)) {
             throw new InvalidConfig(
-                "Unable to create 'has many' association, primary key of model '$association->model_id' is not a string."
+                "Unable to create 'has many' association, primary key of model '$related' is not a string."
             );
         }
 
         return new HasManyAssociation(
-            $association->model_id,
+            $related,
             $local_key,
             $foreign_key,
             $as,
