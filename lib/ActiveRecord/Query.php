@@ -1193,7 +1193,7 @@ class Query implements IteratorAggregate
         }
 
         $query .= ' AS count ' . $this->render_from() . $this->render_main();
-        $statement = ($this->model)($query);
+        $statement = ($this->model)($query, $this->args);
 
         if ($method == 'COUNT' && $column) {
             return $statement->pairs;
