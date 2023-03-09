@@ -88,7 +88,7 @@ final class ModelCollectionTest extends TestCase
     public function test_offset_set(): void
     {
         $models = $this->models;
-        $models['brands'] = $config = new ModelAttributes(
+        $models['brands'] = $config = new ModelDefinition(
             id: 'brands',
             connection: Config::DEFAULT_CONNECTION_ID,
             schema: new Schema([

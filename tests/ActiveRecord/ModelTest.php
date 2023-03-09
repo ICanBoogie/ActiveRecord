@@ -124,7 +124,7 @@ final class ModelTest extends TestCase
 
         $connection = $connections->connection_for_id(Config::DEFAULT_CONNECTION_ID);
 
-        $model = new Model($connection, $models, new ModelAttributes(
+        $model = new Model($connection, $models, new ModelDefinition(
             'nodes',
             connection: 'primary',
             schema: new Schema([
@@ -566,7 +566,7 @@ EOT
         $model_id = 't' . uniqid();
 
         $models = new ModelCollection($this->connections, [
-            $model_id => new ModelAttributes(
+            $model_id => new ModelDefinition(
                 id: $model_id,
                 connection: Config::DEFAULT_CONNECTION_ID,
                 schema: new Schema([
@@ -616,7 +616,7 @@ EOT
 
     public function test_custom_query(): void
     {
-        $model = new Model($this->connections['primary'], $this->models, new ModelAttributes(
+        $model = new Model($this->connections['primary'], $this->models, new ModelDefinition(
             id: uniqid(),
             connection: Config::DEFAULT_CONNECTION_ID,
             schema: new Schema([

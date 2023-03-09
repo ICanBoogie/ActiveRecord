@@ -34,7 +34,7 @@ final class TableTest extends TestCase
 
         self::$animals = new Table(
             $connection,
-            new TableAttributes(
+            new TableDefinition(
                 name: 'animals',
                 schema: self::$animals_schema = new Schema([
                     'id' => SchemaColumn::serial(primary: true),
@@ -46,7 +46,7 @@ final class TableTest extends TestCase
 
         self::$dogs = new Table(
             $connection,
-            new TableAttributes(
+            new TableDefinition(
                 name: 'dogs',
                 schema: new Schema([
                     'id' => SchemaColumn::foreign(primary: true),
@@ -139,7 +139,7 @@ final class TableTest extends TestCase
     {
         $table = new Table(
             self::$connection,
-            new TableAttributes(
+            new TableDefinition(
                 name: 'testing',
                 schema: new Schema([
                     'p1' => new SchemaColumn(type: 'int', size: 'big', primary: true),

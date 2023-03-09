@@ -56,12 +56,12 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     /**
      * Models definitions.
      *
-     * @var array<string, ModelAttributes>
+     * @var array<string, ModelDefinition>
      */
     private array $definitions = [];
 
     /**
-     * @return array<string, ModelAttributes>
+     * @return array<string, ModelDefinition>
      */
     private function get_definitions(): array
     {
@@ -69,7 +69,7 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     }
 
     /**
-     * @param array<string, ModelAttributes> $definitions
+     * @param array<string, ModelDefinition> $definitions
      *     Where _key_ is a model identifier.
      */
     public function __construct(
@@ -131,7 +131,7 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
      */
     public function offsetSet($offset, $value): void
     {
-        if (!$value instanceof ModelAttributes) {
+        if (!$value instanceof ModelDefinition) {
             throw new LogicException("Expected ModelConfig instance, given: " . get_debug_type($value));
         }
 
@@ -236,9 +236,9 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     /**
      * Instantiate a model with the specified attributes.
      *
-     * @param ModelAttributes $attributes
+     * @param ModelDefinition $attributes
      */
-    private function instantiate_model(ModelAttributes $attributes): Model
+    private function instantiate_model(ModelDefinition $attributes): Model
     {
         $class = $attributes->model_class;
 

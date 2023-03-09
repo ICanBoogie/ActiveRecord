@@ -60,7 +60,6 @@ use function method_exists;
  * @property-read bool $exists Whether the SQL table associated with the model exists.
  * @property-read ActiveRecord $one Retrieve the first record from the mode.
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
- *
  */
 #[AllowDynamicProperties]
 class Model extends Table implements ArrayAccess
@@ -76,8 +75,6 @@ class Model extends Table implements ArrayAccess
      * @var class-string<Query<TValue>>
      */
     private readonly string $query_class;
-
-    private readonly ModelAttributes $attributes;
 
     /**
      * The identifier of the model.
@@ -103,25 +100,24 @@ class Model extends Table implements ArrayAccess
     public function __construct(
         Connection $connection,
         public readonly ModelProvider $models,
-        ModelAttributes $attributes
+        private readonly ModelDefinition $definition
     ) {
-        $this->attributes = $attributes;
-        $this->id = $attributes->id;
+        $this->id = $definition->id;
         $this->relations = new RelationCollection($this);
 
         $parent = null;
 
-        if ($attributes->extends) {
-            $parent = $models->model_for_id($attributes->extends);
+        if ($definition->extends) {
+            $parent = $models->model_for_id($definition->extends);
         }
 
-        parent::__construct($connection, $attributes, $parent);
+        parent::__construct($connection, $definition, $parent);
 
         /** @phpstan-ignore-next-line */
-        $this->activerecord_class = $attributes->activerecord_class
+        $this->activerecord_class = $definition->activerecord_class
             ?? throw new LogicException("Missing ActiveRecord class for model '$this->id'");
         /** @phpstan-ignore-next-line */
-        $this->query_class = $attributes->query_class
+        $this->query_class = $definition->query_class
             ?? Query::class;
 
         $this->resolve_relations();
@@ -152,7 +148,7 @@ class Model extends Table implements ArrayAccess
      */
     private function resolve_relations(): void
     {
-        $association = $this->attributes->association;
+        $association = $this->definition->association;
 
         if (!$association) {
             return;

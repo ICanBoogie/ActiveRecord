@@ -171,7 +171,7 @@ class, and usually implement a specific business logic.
 
 namespace App\Modules\Nodes;
 
-use ICanBoogie\ActiveRecord;use ICanBoogie\ActiveRecord\ConnectionCollection;use ICanBoogie\ActiveRecord\Model;use ICanBoogie\ActiveRecord\ModelCollection;use ICanBoogie\ActiveRecord\ModelAttributes;
+use ICanBoogie\ActiveRecord;use ICanBoogie\ActiveRecord\ConnectionCollection;use ICanBoogie\ActiveRecord\Model;use ICanBoogie\ActiveRecord\ModelCollection;use ICanBoogie\ActiveRecord\ModelDefinition;
 
 class NodeModel extends Model
 {
@@ -191,7 +191,7 @@ class Node extends ActiveRecord
 
 $models = new ModelCollection($connections, [
 
-    'nodes' => new ModelAttributes(
+    'nodes' => new ModelDefinition(
         id: 'nodes',
         connection: ActiveRecord\Config::DEFAULT_CONNECTION_ID,
         schema:, new Schema([

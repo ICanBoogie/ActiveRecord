@@ -22,7 +22,7 @@ use ICanBoogie\ActiveRecord\Config\InvalidConfig;
 use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientBelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
-use ICanBoogie\ActiveRecord\Config\TransientModelConfig;
+use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
 use InvalidArgumentException;
 use LogicException;
 
@@ -44,7 +44,7 @@ final class ConfigBuilder
     private array $connections = [];
 
     /**
-     * @var array<string, TransientModelConfig>
+     * @var array<string, TransientModelDefinition>
      */
     private array $transient_models = [];
 
@@ -130,7 +130,7 @@ final class ConfigBuilder
      * @param array<string, Association> $associations
      *     Where _key_ is a model identifier.
      *
-     * @return array<string, ModelAttributes>
+     * @return array<string, ModelDefinition>
      *     Where _key_ is a model identifier.
      */
     private function build_models(array $associations): array
@@ -138,7 +138,7 @@ final class ConfigBuilder
         $models = [];
 
         foreach ($this->transient_models as $id => $transient) {
-            $models[$id] = new ModelAttributes(
+            $models[$id] = new ModelDefinition(
                 id: $id,
                 connection: $transient->connection,
                 schema: $transient->schema,
@@ -284,7 +284,7 @@ final class ConfigBuilder
             $this->association[$id] = $inner_association_builder->build();
         }
 
-        $this->transient_models[$id] = new TransientModelConfig(
+        $this->transient_models[$id] = new TransientModelDefinition(
             id: $id,
             schema: $schema,
             activerecord_class: $activerecord_class,

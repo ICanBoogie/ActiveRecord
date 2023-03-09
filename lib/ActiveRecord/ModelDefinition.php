@@ -8,7 +8,7 @@ use ICanBoogie\ActiveRecord\Config\Association;
 /**
  * Model configuration, used during configuration.
  */
-final class ModelAttributes extends TableAttributes
+final class ModelDefinition extends TableDefinition
 {
     /**
      * @param array{

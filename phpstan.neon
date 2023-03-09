@@ -2,3 +2,5 @@ parameters:
   level: max
   paths:
     - lib
+  ignoreErrors:
+  - "#get_.*is unused#"

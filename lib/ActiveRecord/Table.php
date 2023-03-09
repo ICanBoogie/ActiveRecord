@@ -171,19 +171,19 @@ class Table extends Prototyped
 
     public function __construct(
         public readonly Connection $connection,
-        TableAttributes $attributes,
+        TableDefinition $definition,
         self $parent = null
     ) {
         $this->parent = $parent;
-        $this->unprefixed_name = $attributes->name
+        $this->unprefixed_name = $definition->name
             ?? throw new LogicException("The NAME attribute is required");
         $this->name = $connection->table_name_prefix . $this->unprefixed_name;
-        $this->alias = $attributes->alias
+        $this->alias = $definition->alias
             ?? $this->make_alias($this->unprefixed_name);
-        $this->schema = $attributes->schema
+        $this->schema = $definition->schema
             ?? throw new LogicException("The SCHEMA attribute is required");
         $this->primary = $this->schema->primary;
-        $this->implements = $attributes->implements
+        $this->implements = $definition->implements
             ?? null;
 
         unset($this->update_join);

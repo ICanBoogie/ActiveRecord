@@ -6,7 +6,7 @@ use function ICanBoogie\singularize;
 use function strrpos;
 use function substr;
 
-class TableAttributes
+class TableDefinition
 {
     public readonly string $alias;
 

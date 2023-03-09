@@ -13,7 +13,7 @@ use ICanBoogie\ActiveRecord\Schema;
  *
  * @internal
  */
-final class TransientModelConfig
+final class TransientModelDefinition
 {
     /**
      * @param class-string<ActiveRecord> $activerecord_class
