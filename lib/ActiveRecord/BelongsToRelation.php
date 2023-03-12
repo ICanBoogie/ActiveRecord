@@ -27,15 +27,20 @@ class BelongsToRelation extends Relation
     /**
      * @inheritdoc
      */
-    public function __invoke(ActiveRecord $record): ActiveRecord
+    public function __invoke(ActiveRecord $record): ?ActiveRecord
     {
-        $key = $record->{$this->local_key} ?? null;
+        $local_key = $this->local_key;
+        $id = $record->{$local_key} ?? null;
 
-        if (!$key) {
-            throw new LogicException("Unable to establish relation, primary key is empty.");
+        if (!$id) {
+            if ($this->owner->schema[$local_key]->null) {
+                return null;
+            }
+
+            throw new LogicException("Unable to establish relation, '$local_key' is empty.");
         }
 
-        return $this->resolve_related()[$key];
+        return $this->resolve_related()[$id];
     }
 
     /**
