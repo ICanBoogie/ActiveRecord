@@ -27,8 +27,6 @@ use InvalidArgumentException;
 use LogicException;
 
 use function array_map;
-use function array_pop;
-use function explode;
 use function get_debug_type;
 use function ICanBoogie\singularize;
 use function is_string;
@@ -147,7 +145,7 @@ final class ConfigBuilder
                 alias: $transient->alias,
                 extends: $transient->extends,
                 implements: $transient->implements,
-                model_class: $transient->model_class ?? Model::class,
+                model_class: $transient->model_class ?? Model::class, // @phpstan-ignore-line
                 query_class: $transient->query_class ?? Query::class,
                 association: $associations[$id] ?? null,
             );
@@ -165,24 +163,26 @@ final class ConfigBuilder
 
     private function resolve_belongs_to(string $owner, TransientBelongsToAssociation $association): BelongsToAssociation
     {
-        $related = $association->model_id;
-        $local_key = $association->local_key;
-        $local_key ??= $this->try_key($this->transient_models[$related]->schema->primary, $owner);
-        $local_key or throw new LogicException(
-            "Don't know how to resolve local key on '$owner' for association belongs_to($related)"
-        );
-
-        $foreign_key = $association->foreign_key ?? $this->transient_models[$related]->schema->primary;
-        $as = $association->as ?? singularize($related);
+        $associate = $association->associate;
+        $foreign_key = $this->transient_models[$associate]->schema->primary;
 
         if (!is_string($foreign_key)) {
             throw new InvalidConfig(
-                "Unable to create 'belongs to' association, primary key of model '$related' is not a string."
+                "Unable to create 'belongs to' association, primary key of model '$associate' is not a string."
             );
         }
 
+        $local_key = $association->local_key
+            ?? $this->try_key($foreign_key, $owner)
+            ?? throw new LogicException(
+                "Don't know how to resolve local key on '$owner' for association belongs_to($associate)"
+            );
+
+        $as = $association->as
+            ?? singularize($associate);
+
         return new BelongsToAssociation(
-            $related,
+            $associate,
             $local_key,
             $foreign_key,
             $as,

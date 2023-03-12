@@ -161,7 +161,7 @@ class Model extends Table implements ArrayAccess
         if ($belongs_to) {
             foreach ($belongs_to as $r) {
                 $this->belongs_to(
-                    related: $r->model_id,
+                    related: $r->associate,
                     local_key: $r->local_key,
                     foreign_key: $r->foreign_key,
                     as: $r->as,

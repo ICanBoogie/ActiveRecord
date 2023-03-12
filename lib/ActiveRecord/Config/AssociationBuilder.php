@@ -22,16 +22,20 @@ final class AssociationBuilder
         );
     }
 
+    /**
+     * When "A" has a reference to "B", we say "A" belongs to "B".
+     *
+     * @param string $associate
+     *     A model identifier.
+     */
     public function belongs_to(
-        string $model_id,
+        string $associate,
         string $local_key = null,
-        string $foreign_key = null,
         string $as = null,
     ): self {
         $this->belongs_to[] = new TransientBelongsToAssociation(
-            model_id: $model_id,
+            associate: $associate,
             local_key: $local_key,
-            foreign_key: $foreign_key,
             as: $as,
         );
 

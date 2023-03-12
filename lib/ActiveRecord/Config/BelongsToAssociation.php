@@ -11,7 +11,7 @@ final class BelongsToAssociation
 {
     /**
      * @param array{
-     *     model_id: string,
+     *     associate: string,
      *     local_key: string,
      *     foreign_key: string,
      *     as: string,
@@ -22,8 +22,12 @@ final class BelongsToAssociation
         return new self(...$an_array);
     }
 
+    /**
+     * @param string $associate
+     *     A model identifier.
+     */
     public function __construct(
-        public readonly string $model_id,
+        public readonly string $associate,
         public readonly string $local_key,
         public readonly string $foreign_key,
         public readonly string $as,
