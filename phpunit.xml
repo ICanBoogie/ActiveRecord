@@ -1,13 +1,21 @@
-<?xml version="1.0"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd" colors="true" bootstrap="./tests/bootstrap.php">
-  <coverage>
-    <include>
-      <directory suffix=".php">./lib</directory>
-    </include>
-  </coverage>
-  <testsuites>
-    <testsuite name="icanboogie/activerecord">
-      <directory>./tests</directory>
-    </testsuite>
-  </testsuites>
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         beStrictAboutCoverageMetadata="true"
+         beStrictAboutOutputDuringTests="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         colors="true">
+    <coverage>
+        <include>
+            <directory suffix=".php">lib</directory>
+        </include>
+    </coverage>
+    <testsuites>
+        <testsuite name="icanboogie/activerecord">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
 </phpunit>

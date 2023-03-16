@@ -290,15 +290,12 @@ final class StatementTest extends TestCase
         $this->assertSame($all, call_user_func_array([ $statement, 'all' ], $arguments));
     }
 
-    /**
-     * @requires PHP 5.6.0
-     */
-    public function provide_modes()
+    public static function provide_modes()
     {
-        $model = $this
-            ->getMockBuilder(Model::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+//        $model = $this
+//            ->getMockBuilder(Model::class)
+//            ->disableOriginalConstructor()
+//            ->getMock();
 
         return [
 
@@ -312,7 +309,7 @@ final class StatementTest extends TestCase
                 ]
             ],
             [ [ \PDO::FETCH_CLASS, Article::class ] ],
-            [ [ \PDO::FETCH_CLASS, Article::class, [ $model ] ] ]
+//            [ [ \PDO::FETCH_CLASS, Article::class, [ $model ] ] ]
 
         ];
     }

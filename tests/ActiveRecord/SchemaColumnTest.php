@@ -34,7 +34,7 @@ final class SchemaColumnTest extends TestCase
         $this->assertEquals($column, $actual);
     }
 
-    public function provide_columns(): array // @phpstan-ignore-line
+    public static function provide_columns(): array // @phpstan-ignore-line
     {
         return [
 

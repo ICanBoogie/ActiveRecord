@@ -292,7 +292,7 @@ final class ModelTest extends TestCase
     /**
      * @return array<array{ string }>
      */
-    public function provide_test_readonly_properties(): array
+    public static function provide_test_readonly_properties(): array
     {
         $properties = 'exists count all one';
         return array_map(function ($v) {
@@ -337,7 +337,7 @@ final class ModelTest extends TestCase
     /**
      * @return array<array{ string, array{ string } }>
      */
-    public function provide_test_initiate_query(): array
+    public static function provide_test_initiate_query(): array
     {
         return [
 
@@ -471,7 +471,7 @@ final class ModelTest extends TestCase
     /**
      * @return array[]
      */
-    public function provide_test_querying(): array
+    public static function provide_test_querying(): array
     {
         $p = self::PREFIX;
         $l = Query::LIMIT_MAX;

@@ -41,7 +41,7 @@ class UpdatedAtPropertyTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($r->updated_at->is_empty);
     }
 
-    public function provide_test_property()
+    public static function provide_test_property()
     {
         return [
 

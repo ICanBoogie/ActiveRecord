@@ -68,7 +68,7 @@ final class SchemaTest extends TestCase
     /**
      * @return array<string, array{ array<string, SchemaColumn>, null|string|array<string> }>
      */
-    public function provide_test_primary(): array
+    public static function provide_test_primary(): array
     {
         return [
 
@@ -111,7 +111,7 @@ final class SchemaTest extends TestCase
     /**
      * @return array[]
      */
-    public function provide_test_indexes(): array
+    public static function provide_test_indexes(): array
     {
         return [
 
@@ -168,7 +168,7 @@ final class SchemaTest extends TestCase
     /**
      * @return array[]
      */
-    public function provide_test_filter(): array
+    public static function provide_test_filter(): array
     {
         return [
 

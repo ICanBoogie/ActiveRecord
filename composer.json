@@ -37,8 +37,8 @@
 	},
 	"require-dev": {
 		"ext-pdo_mysql": "*",
-		"phpstan/phpstan": "^1.5",
-		"phpunit/phpunit": "^9.5"
+		"phpstan/phpstan": "^1.10",
+		"phpunit/phpunit": "^10.0"
 	},
 	"suggest": {
 		"icanboogie/bind-activerecord": "Binds icanboogie/artiverecord to ICanBoogie"

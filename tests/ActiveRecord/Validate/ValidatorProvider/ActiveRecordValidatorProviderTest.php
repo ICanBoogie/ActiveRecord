@@ -42,7 +42,7 @@ class ActiveRecordValidatorProviderTest extends \PHPUnit\Framework\TestCase
     /**
      * @return array
      */
-    public function provide_test_provider()
+    public static function provide_test_provider()
     {
         return [
 

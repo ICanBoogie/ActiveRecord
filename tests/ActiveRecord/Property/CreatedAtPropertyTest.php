@@ -42,7 +42,7 @@ final class CreatedAtPropertyTest extends TestCase
         $this->assertTrue($r->created_at->is_empty);
     }
 
-    public function provide_test_property()
+    public static function provide_test_property()
     {
         return [
 

@@ -23,7 +23,7 @@ class ExceptionTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(Exception::class, $exception);
     }
 
-    public function provide_test_implementing()
+    public static function provide_test_implementing()
     {
         return [
 
