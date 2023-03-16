@@ -1377,7 +1377,7 @@ $online_article_count = $models['articles']
 ->group('user_id');
 
 $users = $models['users']
-->join($online_article_count, [ 'on' => 'user_id', 'mode' => 'LEFT' ])
+->join(query: $online_article_count, on: 'user_id', mode: 'LEFT')
 ->order('online_article_count DESC');
 ```
 
@@ -1404,11 +1404,11 @@ The column character ":" is used to distinguish a model identifier from a raw fr
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 /* @var $contents_model \ICanBoogie\ActiveRecord\Model */
 
-$model->join($contents_model);
+$model->join(model: $contents_model);
 # or
-$model->join(':contents');
+$model->join(model_id: 'contents');
 
-$model->join(':contents', [ 'mode' => 'LEFT', 'as' => 'cnt' ]);
+$model->join(model_id: 'contents', mode: 'LEFT', as: 'cnt');
 ```
 
 > **Note:** If a model identifier is provided, the model collection associated with the
@@ -1428,7 +1428,7 @@ final SQL statement.
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->join('INNER JOIN `contents` USING(`nid`)');
+$model->join(expression: 'INNER JOIN `contents` USING(`nid`)');
 ```
 
 
@@ -1778,8 +1778,8 @@ to obtain only the online articles in a "music" category:
 /* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
 
 $taxonomy_query = $models['taxonomy.terms/nodes']
-->join(':taxonomy.vocabulary')
-->join(':taxonomy_vocabulary/scopes')
+->join(model_id: 'taxonomy.vocabulary')
+->join(model_id: 'taxonomy_vocabulary/scopes')
 ->where([
 
     'termslug' => "music",
@@ -1844,7 +1844,7 @@ example demonstrates how to delete nodes that lack content:
 /* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
 
 $models['nodes']
-->join(':contents', [ 'mode' => 'LEFT' ])
+->join(model_id: 'contents', mode: 'LEFT')
 ->where('content.nid IS NULL')
 ->delete();
 ```
@@ -1941,9 +1941,9 @@ Joins:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->join($subquery, [ 'on' => 'nid' ]);
-$model->join(':contents');
-$model->join('INNER JOIN contents USING(nid)');
+$model->join(query: $subquery, on: 'nid');
+$model->join(model_id: 'contents');
+$model->join(expression: 'INNER JOIN contents USING(nid)');
 ```
 
 Retrieving data:

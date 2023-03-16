@@ -489,7 +489,7 @@ EOT
 
             [
                 function (Model $m) {
-                    return $m->join('INNER JOIN other USING(nid)');
+                    return $m->join(expression: 'INNER JOIN other USING(nid)');
                 },
                 <<<EOT
 SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) INNER JOIN other USING(nid)

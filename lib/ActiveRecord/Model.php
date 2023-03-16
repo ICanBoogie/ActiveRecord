@@ -37,7 +37,6 @@ use function method_exists;
  * @implements ArrayAccess<TKey, TValue>
  *
  * @method Query select($expression) The method is forwarded to Query::select().
- * @method Query join($expression) The method is forwarded to Query::join().
  * @method Query where($conditions, $conditions_args = null, $_ = null)
  *     The method is forwarded to {@link Query::where}.
  * @method Query group($group) The method is forwarded to Query::group().
@@ -399,6 +398,29 @@ class Model extends Table implements ArrayAccess
     }
 
     /**
+     * @deprecated Use `$model->query()->join()` instead.
+     */
+    public function join(
+        string $expression = null,
+        Query $query = null,
+        string $model_id = null,
+        Model $model = null,
+        string $mode = 'INNER',
+        string $as = null,
+        string $on = null,
+    ): Query {
+        return $this->query()->join(
+            expression: $expression,
+            query: $query,
+            model_id: $model_id,
+            model: $model,
+            mode: $mode,
+            as: $as,
+            on: $on,
+        );
+    }
+
+        /**
      * Because records are cached, we need to remove the record from the cache when it is saved,
      * so that loading the record again returns the updated record, not the one in the cache.
      *

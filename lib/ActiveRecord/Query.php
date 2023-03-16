@@ -15,15 +15,20 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\DateTime;
 use ICanBoogie\Prototype\MethodNotDefined;
 use ICanBoogie\PrototypeTrait;
+use InvalidArgumentException;
 use IteratorAggregate;
+use LogicException;
 use ReflectionClass;
 use ReflectionMethod;
 use Traversable;
 
+use function array_merge;
 use function get_class;
+use function is_array;
 use function is_string;
 use function preg_replace;
 use function preg_replace_callback;
+use function reset;
 use function substr;
 
 use const PHP_INT_MAX;
@@ -155,7 +160,7 @@ class Query implements IteratorAggregate
      */
     private function get_args(): array
     {
-        return \array_merge($this->joints_args, $this->conditions_args, $this->having_args);
+        return array_merge($this->joints_args, $this->conditions_args, $this->having_args);
     }
 
     /**
@@ -376,7 +381,7 @@ class Query implements IteratorAggregate
         $connection = $this->model->connection;
 
         $field = \array_shift($order);
-        $field_values = \is_array($order[0]) ? $order[0] : $order;
+        $field_values = is_array($order[0]) ? $order[0] : $order;
         $field_values = \array_map(function ($v) use ($connection) {
             return $connection->pdo->quote($v);
         }, $field_values);
@@ -487,31 +492,28 @@ class Query implements IteratorAggregate
     /**
      * Add a `JOIN` clause.
      *
-     * @param string|Query $expression A join can be created from a model reference,
-     * another query, or a custom `JOIN` clause.
-     *
-     * - When `$expression` is a string starting with `:` it is considered as a model
-     * reference matching the pattern ":<model_id>" where `<model_id>` is the identifier of a model
-     * that can be retrieved using the model collection associated with the query's model.
-     *
-     * - When `$expression` is a {@link Query} instance, it is rendered as a string and used as a
-     * subquery of the `JOIN` clause. The `$options` parameter can be used to customize the
-     * output.
-     *
-     * - Otherwise `$expression` is considered as a raw `JOIN` clause.
-     *
-     * @param array $options Only used if `$expression` is a {@link Query} instance. The following
-     * options are available:
-     * - `mode`: Join mode. Default: "INNER"
-     * - `alias`: The alias of the subquery. Default: The query's model alias.
-     * - `on`: The column on which to joint is created. Default: The query's model primary key.
+     * @param ?string $expression
+     *     A raw `JOIN` clause.
+     * @param ?Query<ActiveRecord> $query
+     *     A {@link Query} instance, it is rendered as a string and used as a subquery of the `JOIN` clause.
+     *     The `$options` parameter can be used to customize the output.
+     * @param ?string $model_id
+     *     A model identifier.
+     * @param ?Model<int|string|string[], ActiveRecord> $model
+     *     A model.
+     * @param ?string $mode
+     *     Join mode. Default: "INNER"
+     * @param ?string $as
+     *     The alias of the subquery. Default: The query's model alias.
+     * @param ?string $on
+     *     The column on which to joint is created. Default: The query's model primary key.
      *
      * <pre>
      * <?php
      *
      * # using a model identifier
      *
-     * $query->join(':nodes');
+     * $query->join(model_id: 'nodes');
      *
      * # using a subquery
      *
@@ -519,34 +521,43 @@ class Query implements IteratorAggregate
      * ->select('updated_at, $subscriber_id, update_hash')
      * ->order('updated_at DESC')
      *
-     * $query->join($subquery, [ 'on' => 'subscriber_id' ]);
+     * $query->join(query: $subquery, on: 'subscriber_id');
      *
      * # using a raw clause
      *
-     * $query->join("INNER JOIN `articles` USING(`nid`)");
+     * $query->join(expression: "INNER JOIN `articles` USING(`nid`)");
      * </pre>
-     *
-     * @return $this
      */
-    public function join($expression, $options = []): self
-    {
-        if (is_string($expression) && $expression[0] == ':') {
-            $expression = $this->model->models[substr($expression, 1)];
-        }
-
-        if ($expression instanceof self) {
-            $this->join_with_query($expression, $options);
-
-            return $this;
-        }
-
-        if ($expression instanceof Model) {
-            $this->join_with_model($expression, $options);
+    public function join(
+        string $expression = null,
+        Query $query = null,
+        string $model_id = null,
+        Model $model = null,
+        string $mode = 'INNER',
+        string $as = null,
+        string $on = null,
+    ): self {
+        if ($expression) {
+            $this->joints[] = $expression;
 
             return $this;
         }
 
-        $this->joints[] = $expression;
+        if ($query) {
+            $this->join_with_query($query, mode: $mode, as: $as, on: $on);
+
+            return $this;
+        }
+
+        if ($model_id) {
+            $model = $this->model->models->model_for_id($model_id);
+        }
+
+        if (!$model) {
+            throw new LogicException("One of [ expression, query, model_id, model ] needs to be defined");
+        }
+
+        $this->join_with_model($model, mode: $mode, as: $as, on: $on);
 
         return $this;
     }
@@ -554,28 +565,28 @@ class Query implements IteratorAggregate
     /**
      * Join a subquery to the query.
      *
-     * @param Query $query
-     * @param array $options The following options are available:
-     * - `mode`: Join mode. Default: "INNER".
-     * - `as`: The alias of the subquery. Default: The query's model alias.
-     * - `on`: The column on which the joint is created. Default: The query's model primary key.
+     * @param Query<ActiveRecord> $query
+     * @param string $mode
+     *     Join mode. Default: "INNER".
+     * @param ?string $as
+     *     The alias of the subquery. Default: The query's model alias.
+     * @param ?string $on
+     *     The column on which the joint is created. Default: The query's model primary key.
      */
-    private function join_with_query(Query $query, array $options = []): void
+    private function join_with_query(
+        Query $query,
+        string $mode = 'INNER',
+        string $as = null,
+        string $on = null,
+    ): void
     {
-        $options += [
+        $as ??= $query->model->alias;
+        $on ??= $query->model->primary;
 
-            'mode' => 'INNER',
-            'as' => $query->model->alias,
-            'on' => $query->model->primary
+        if ($on) {
+            assert(is_string($on));
 
-        ];
-
-        $mode = $options['mode'];
-        $as = $options['as'];
-        $on = $options['on'];
-
-        if ($options['on']) {
-            $on = $this->render_join_on($options['on'], $as, $query);
+            $on = $this->render_join_on($on, $as, $query);
         }
 
         if ($on) {
@@ -583,54 +594,51 @@ class Query implements IteratorAggregate
         }
 
         $this->joints[] = "$mode JOIN($query) `$as`{$on}";
-        $this->joints_args = \array_merge($this->joints_args, $query->args);
+        $this->joints_args = array_merge($this->joints_args, $query->args);
     }
 
     /**
      * Join a model to the query.
      *
-     * @param Model $model
-     * @param array $options The following options are available:
-     * - `mode`: Join mode. Default: "INNER".
-     * - `alias`: The alias of the model. Default: The model's alias.
-     * - `on`: The column on which the joint is created, or an _ON_ expression. Default:
-     * The model's primary key. @todo
+     * @param Model<int|string|string[], ActiveRecord> $model
+     * @param string $mode
+     *     Join mode.
+     * @param ?string $as
+     *     The alias of the model. Default: The model's alias.
+     * @param ?string $on
+     *     The column on which the joint is created, or an _ON_ expression. Default: The model's primary key. @todo
      */
-    private function join_with_model(Model $model, array $options = []): void
-    {
-        $primary = $this->model->primary;
-        $model_schema = $model->extended_schema;
+    private function join_with_model(
+        Model $model,
+        string $mode = 'INNER',
+        string $as = null,
+        string $on = null,
+    ): void {
+        $as ??= $model->alias;
+        $on ??= (function () use ($model): string {
+            $primary = $this->model->primary;
+            $model_schema = $model->extended_schema;
 
-        if (\is_array($primary)) {
-            foreach ($primary as $column) {
-                if (isset($model_schema[$column])) {
-                    $primary = $column;
-
-                    break;
+            if (is_array($primary)) {
+                foreach ($primary as $column) {
+                    if (isset($model_schema[$column])) {
+                        return $column;
+                    }
                 }
-            }
-        } else {
-            if (empty($model_schema[$primary])) {
+            } elseif (empty($model_schema[$primary])) {
                 $primary = $model_schema->primary;
 
-                if (\is_array($primary)) {
-                    $primary = \reset($primary);
+                if (is_array($primary)) {
+                    $primary = reset($primary);
                 }
             }
-        }
 
-        $options += [
+            assert(is_string($primary));
 
-            'mode' => 'INNER',
-            'as' => $model->alias,
-            'on' => $primary
+            return $primary;
+        }) ();
 
-        ];
-
-        $mode = $options['mode'];
-        $as = $options['as'];
-
-        $this->joints[] = "$mode JOIN `$model->name` AS `$as` USING(`$primary`)";
+        $this->joints[] = "$mode JOIN `$model->name` AS `$as` USING(`$on`)";
     }
 
     /**
@@ -640,9 +648,7 @@ class Query implements IteratorAggregate
      *
      * @param string $column
      * @param string $as
-     * @param Query $query
-     *
-     * @return string
+     * @param Query<ActiveRecord> $query
      */
     private function render_join_on(string $column, string $as, Query $query): string
     {
@@ -661,7 +667,7 @@ class Query implements IteratorAggregate
         }
 
         if (!$target) {
-            throw new \InvalidArgumentException("Unable to resolve column `$column` from model {$this->model->id}");
+            throw new InvalidArgumentException("Unable to resolve column `$column` from model {$this->model->id}");
         }
 
         return "ON `$as`.`$column` = `{$target->alias}`.`$column`";
@@ -681,15 +687,15 @@ class Query implements IteratorAggregate
         $conditions = \array_shift($conditions_and_args);
         $args = $conditions_and_args;
 
-        if (\is_array($conditions)) {
+        if (is_array($conditions)) {
             $c = '';
             $conditions_args = [];
 
             foreach ($conditions as $column => $arg) {
-                if (\is_array($arg) || $arg instanceof self) {
+                if (is_array($arg) || $arg instanceof self) {
                     $joined = '';
 
-                    if (\is_array($arg)) {
+                    if (is_array($arg)) {
                         foreach ($arg as $value) {
                             $joined .= ',' . (\is_numeric($value) ? $value : $this->model->quote($value));
                         }
@@ -697,7 +703,7 @@ class Query implements IteratorAggregate
                         $joined = substr($joined, 1);
                     } else {
                         $joined = (string)$arg;
-                        $conditions_args = \array_merge($conditions_args, $arg->args);
+                        $conditions_args = array_merge($conditions_args, $arg->args);
                     }
 
                     $c .= ' AND `' . ($column[0] == '!' ? substr($column, 1) . '` NOT' : $column . '`')
@@ -715,7 +721,7 @@ class Query implements IteratorAggregate
             $conditions_args = [];
 
             if ($args) {
-                if (\is_array($args[0])) {
+                if (is_array($args[0])) {
                     $conditions_args = $args[0];
                 } else {
                     #
@@ -814,7 +820,7 @@ class Query implements IteratorAggregate
             $this->conditions[] = $conditions;
 
             if ($conditions_args) {
-                $this->conditions_args = \array_merge($this->conditions_args, $conditions_args);
+                $this->conditions_args = array_merge($this->conditions_args, $conditions_args);
             }
         }
 
@@ -1135,7 +1141,7 @@ class Query implements IteratorAggregate
             ->limit(0, 0)
             ->all(\PDO::FETCH_COLUMN);
 
-        if ($rc && \is_array($key)) {
+        if ($rc && is_array($key)) {
             $exists = \array_combine($key, \array_fill(0, \count($key), false));
 
             foreach ($rc as $key) {

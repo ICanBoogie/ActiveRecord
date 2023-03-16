@@ -130,6 +130,19 @@ final class QueryTest extends TestCase
         ], $query->conditions_args);
     }
 
+    public function test_join_with_expression(): void
+    {
+        $models = $this->models;
+        $updates = $models['updates'];
+
+        $query = $updates->query()->join(expression: "INNER JOIN madonna USING(madonna_id)");
+
+        $this->assertEquals(
+            [ "INNER JOIN madonna USING(madonna_id)" ],
+            $query->joints
+        );
+    }
+
     public function test_join_with_query(): void
     {
         $models = $this->models;
@@ -141,7 +154,7 @@ final class QueryTest extends TestCase
             ->order('updated_at DESC');
 
         $subscriber_query = $subscribers
-            ->join($update_query, [ 'on' => 'subscriber_id' ])
+            ->join(query: $update_query, on: 'subscriber_id')
             ->group("`{alias}`.subscriber_id");
 
         $this->assertEquals(
@@ -167,7 +180,7 @@ final class QueryTest extends TestCase
             ->order('updated_at DESC');
 
         $subscriber_query = $subscribers
-            ->join($update_query, [ 'on' => 'subscriber_id' ])
+            ->join(query: $update_query, on: 'subscriber_id')
             ->filter_by_email('person@example.com')
             ->group("`{alias}`.subscriber_id");
 
@@ -188,17 +201,17 @@ final class QueryTest extends TestCase
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `subscriber` USING(`subscriber_id`)",
-            (string)$updates->select('update_id, email')->join($subscribers)
+            (string)$updates->select('update_id, email')->join(model: $subscribers)
         );
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `sub` USING(`subscriber_id`)",
-            (string)$updates->select('update_id, email')->join($subscribers, [ 'as' => 'sub' ])
+            (string)$updates->select('update_id, email')->join(model: $subscribers, as: 'sub')
         );
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` LEFT JOIN `subscribers` AS `sub` USING(`subscriber_id`)",
-            (string)$updates->select('update_id, email')->join($subscribers, [ 'as' => 'sub', 'mode' => 'LEFT' ])
+            (string)$updates->select('update_id, email')->join(model: $subscribers, mode: 'LEFT', as: 'sub')
         );
     }
 }
