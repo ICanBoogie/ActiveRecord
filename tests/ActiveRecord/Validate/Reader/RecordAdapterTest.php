@@ -26,16 +26,15 @@ final class RecordAdapterTest extends TestCase
     {
         [ , $models ] = Fixtures::only_models([ 'nodes' ]);
 
-        $p = 'property' . uniqid();
         $v = uniqid();
 
         $record = new Node($models->model_for_id('nodes'));
-        $record->$p = $v;
+        $record->title = $v;
 
         $reader = new RecordAdapter($record);
 
         $this->assertSame($record, $reader->record);
-        $this->assertSame($v, $record->$p);
-        $this->assertNull($reader->read('p' . uniqid()));
+        $this->assertSame($v, $record->title);
+        $this->assertNull($reader->read('title' . uniqid()));
     }
 }

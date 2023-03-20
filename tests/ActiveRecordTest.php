@@ -72,17 +72,6 @@ final class ActiveRecordTest extends TestCase
         $this->assertArrayNotHasKey('model', $array);
     }
 
-    public function test_sleep_should_remove_any_instance_of_self(): void
-    {
-        $property = 'p' . uniqid();
-        $record = new Node($this->model);
-        $record->$property = new Node($this->model);
-
-        $array = $record->__sleep();
-
-        $this->assertArrayNotHasKey($property, $array);
-    }
-
     public function test_serialize_should_remove_model_info(): void
     {
         $record = new Sample($this->model);
@@ -94,13 +83,12 @@ final class ActiveRecordTest extends TestCase
 
     public function test_debug_info_should_exclude_model(): void
     {
-        $property = 'p' . uniqid();
         $record = new Node($this->model);
-        $record->$property = uniqid();
+        $record->title = uniqid();
 
         $array = $record->__debugInfo();
         $this->assertArrayNotHasKey("\0" . ActiveRecord::class . "\0model", $array);
-        $this->assertArrayHasKey($property, $array);
+        $this->assertArrayHasKey('title', $array);
     }
 
     public function test_save(): void

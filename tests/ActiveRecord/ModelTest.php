@@ -570,8 +570,8 @@ EOT
                 id: $model_id,
                 connection: Config::DEFAULT_CONNECTION_ID,
                 schema: new Schema([
-                    'id' => SchemaColumn::serial(primary: true),
-                    'name' => SchemaColumn::varchar(),
+                    'nid' => SchemaColumn::serial(primary: true),
+                    'title' => SchemaColumn::varchar(),
                 ]),
                 activerecord_class: Node::class,
             )
@@ -581,7 +581,7 @@ EOT
         $model = $models[$model_id];
 
         foreach ([ 'one', 'two', 'three', 'four' ] as $value) {
-            $model->save([ 'name' => $value ]);
+            $model->save([ 'title' => $value ]);
         }
 
         $activerecord_cache = $model->activerecord_cache;
