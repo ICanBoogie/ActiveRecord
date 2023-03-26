@@ -1,7 +1,8 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\ModelCollection;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Fixtures;

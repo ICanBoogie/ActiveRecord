@@ -1,8 +1,10 @@
 <?php
 
-namespace ICanBoogie\ActiveRecordTest;
+namespace Test\ICanBoogie\ActiveRecordTest;
 
 use ICanBoogie\ActiveRecord;
+
+use function is_int;
 
 /**
  * Sample active record test case.
@@ -11,17 +13,14 @@ use ICanBoogie\ActiveRecord;
  */
 final class Sample extends ActiveRecord
 {
-    /**
-     * @var int|null
-     */
-    private $id;
+    private int $id;
 
     protected function get_id(): ?int
     {
-        return $this->id;
+        return $this->id ?? null;
     }
 
-    public $reverse;
+    public string $reverse;
 
     /**
      * Reverses the value of the `reverse` property.
@@ -38,10 +37,12 @@ final class Sample extends ActiveRecord
     }
 
     /**
-     * @param int|array|string $primary_key
+     * @param int|string|string[] $primary_key
      */
     protected function update_primary_key(int|array|string $primary_key): void
     {
+        assert(is_int($primary_key));
+
         $this->id = $primary_key;
     }
 }

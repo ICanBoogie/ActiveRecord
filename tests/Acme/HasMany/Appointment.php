@@ -1,6 +1,6 @@
 <?php
 
-namespace ICanBoogie\Acme\HasMany;
+namespace Test\ICanBoogie\Acme\HasMany;
 
 use ICanBoogie\ActiveRecord;
 

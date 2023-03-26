@@ -1,6 +1,6 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord\QueryTest;
+namespace Test\ICanBoogie\ActiveRecord\QueryTest;
 
 use ICanBoogie\ActiveRecord;
 

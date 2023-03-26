@@ -9,14 +9,22 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
+use Exception;
+use ICanBoogie\ActiveRecord\Article;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
+use ICanBoogie\ActiveRecord\Connection;
+use ICanBoogie\ActiveRecord\Statement;
+use ICanBoogie\ActiveRecord\StatementInvocationFailed;
+use ICanBoogie\ActiveRecord\StatementNotValid;
+use PDO;
+use PDOException;
 use PHPUnit\Framework\TestCase;
 
 final class StatementTest extends TestCase
 {
-    private static $connection;
+    private static Connection $connection;
 
     public static function setupBeforeClass(): void
     {
@@ -59,12 +67,12 @@ final class StatementTest extends TestCase
             $statement = $connection($statement, [ 3 ]);
 
             $this->fail('Expected StatementNotValid excpetion');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->assertInstanceOf(StatementNotValid::class, $e);
 
             /* @var $e StatementNotValid */
 
-            $this->assertInstanceOf(\PDOException::class, $e->original);
+            $this->assertInstanceOf(PDOException::class, $e->original);
             $this->assertNull($e->getPrevious());
 
             $this->assertIsString($e->statement);
@@ -90,12 +98,12 @@ final class StatementTest extends TestCase
             $statement = $connection($statement, [ 1, "oneone" ]);
 
             $this->fail('Expected StatementNotValid excpetion');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->assertInstanceOf(StatementNotValid::class, $e);
 
             /* @var $e StatementNotValid */
 
-            $this->assertInstanceOf(\PDOException::class, $e->original);
+            $this->assertInstanceOf(PDOException::class, $e->original);
             $this->assertNull($e->getPrevious());
 
             $this->assertEquals($statement, $e->statement);
@@ -126,7 +134,7 @@ final class StatementTest extends TestCase
 
             $this->fail('Expected StatementNotValid');
         } catch (StatementNotValid $e) {
-            $this->assertInstanceOf(\PDOException::class, $e->original);
+            $this->assertInstanceOf(PDOException::class, $e->original);
             $this->assertNull($e->getPrevious());
 
             $this->assertIsString($e->statement);
@@ -136,7 +144,7 @@ final class StatementTest extends TestCase
                 'HY000(1) no such table: undefined_table — `DELETE FROM undefined_table`',
                 $e->getMessage()
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->fail('Expected StatementNotValid');
         }
     }
@@ -299,16 +307,16 @@ final class StatementTest extends TestCase
 
         return [
 
-            [ [ \PDO::FETCH_ASSOC ] ],
-            [ [ \PDO::FETCH_COLUMN, 123 ] ],
+            [ [ PDO::FETCH_ASSOC ] ],
+            [ [ PDO::FETCH_COLUMN, 123 ] ],
             [
                 [
-                    \PDO::FETCH_FUNC,
+                    PDO::FETCH_FUNC,
                     function () {
                     }
                 ]
             ],
-            [ [ \PDO::FETCH_CLASS, Article::class ] ],
+            [ [ PDO::FETCH_CLASS, Article::class ] ],
 //            [ [ \PDO::FETCH_CLASS, Article::class, [ $model ] ] ]
 
         ];
@@ -350,7 +358,7 @@ final class StatementTest extends TestCase
         $statement
             ->expects($this->once())
             ->method('fetchAll')
-            ->with(\PDO::FETCH_KEY_PAIR)
+            ->with(PDO::FETCH_KEY_PAIR)
             ->willReturn($pairs);
 
         /* @var $statement Statement */

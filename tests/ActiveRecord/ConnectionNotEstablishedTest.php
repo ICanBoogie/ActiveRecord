@@ -9,11 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-class ConnectionNotEstablishedTest extends \PHPUnit\Framework\TestCase
+use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
+use PHPUnit\Framework\TestCase;
+
+final class ConnectionNotEstablishedTest extends TestCase
 {
-    public function test_get_id()
+    public function test_get_id(): void
     {
         $id = 'testing';
         $e = new ConnectionNotEstablished($id, "message");

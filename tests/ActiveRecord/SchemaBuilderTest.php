@@ -1,7 +1,10 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
+use ICanBoogie\ActiveRecord\SchemaColumn;
 use PHPUnit\Framework\TestCase;
 
 final class SchemaBuilderTest extends TestCase

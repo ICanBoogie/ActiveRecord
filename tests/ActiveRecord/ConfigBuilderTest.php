@@ -1,11 +1,15 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Acme\Node;
+use ICanBoogie\ActiveRecord\Config;
+use ICanBoogie\ActiveRecord\ConfigBuilder;
+use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Fixtures;
 use Test\ICanBoogie\SetStateHelper;
 

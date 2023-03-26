@@ -9,10 +9,21 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Acme\Node;
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\ActiveRecordCache;
+use ICanBoogie\ActiveRecord\Config;
+use ICanBoogie\ActiveRecord\ConfigBuilder;
+use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelDefinition;
+use ICanBoogie\ActiveRecord\Query;
+use ICanBoogie\ActiveRecord\RecordNotFound;
+use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaColumn;
+use ICanBoogie\ActiveRecord\ScopeNotDefined;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\PropertyNotWritable;
@@ -20,6 +31,7 @@ use ICanBoogie\Prototype\MethodNotDefined;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\CustomQuery;
+use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Fixtures;
 
 use function uniqid;
@@ -124,14 +136,16 @@ final class ModelTest extends TestCase
 
         $connection = $connections->connection_for_id(Config::DEFAULT_CONNECTION_ID);
 
-        $model = new Model($connection, $models, new ModelDefinition(
+        $model = new Model(
+            $connection, $models, new ModelDefinition(
             'nodes',
             connection: 'primary',
             schema: new Schema([
                 'id' => SchemaColumn::serial(primary: true),
             ]),
             activerecord_class: Node::class
-        ));
+        )
+        );
 
         $this->assertEquals('nodes', $model->id);
     }
@@ -616,7 +630,8 @@ EOT
 
     public function test_custom_query(): void
     {
-        $model = new Model($this->connections['primary'], $this->models, new ModelDefinition(
+        $model = new Model(
+            $this->connections['primary'], $this->models, new ModelDefinition(
             id: uniqid(),
             connection: Config::DEFAULT_CONNECTION_ID,
             schema: new Schema([
@@ -624,7 +639,8 @@ EOT
             ]),
             activerecord_class: Node::class,
             query_class: CustomQuery::class,
-        ));
+        )
+        );
 
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));
         $this->assertInstanceOf(CustomQuery::class, $query2 = $model->query());

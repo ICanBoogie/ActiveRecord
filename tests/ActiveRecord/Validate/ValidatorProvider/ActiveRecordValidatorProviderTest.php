@@ -9,25 +9,24 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord\Validate\ValidatorProvider;
+namespace Test\ICanBoogie\ActiveRecord\Validate\ValidatorProvider;
 
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
+use ICanBoogie\ActiveRecord\Validate\ValidatorProvider\ActiveRecordValidatorProvider;
 use ICanBoogie\Validate\ValidatorProvider\BuiltinValidatorProvider;
 use ICanBoogie\Validate\ValidatorProvider\ValidatorProviderCollection;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group validate
  * @small
  */
-class ActiveRecordValidatorProviderTest extends \PHPUnit\Framework\TestCase
+final class ActiveRecordValidatorProviderTest extends TestCase
 {
     /**
      * @dataProvider provide_test_provider
-     *
-     * @param string $alias
-     * @param string $class
      */
-    public function test_provider($alias, $class)
+    public function test_provider(string $alias, string $class): void
     {
         $provider = new ValidatorProviderCollection([
 
@@ -40,9 +39,9 @@ class ActiveRecordValidatorProviderTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @return array
+     * @return array<array{ string, class-string }>
      */
-    public static function provide_test_provider()
+    public static function provide_test_provider(): array
     {
         return [
 

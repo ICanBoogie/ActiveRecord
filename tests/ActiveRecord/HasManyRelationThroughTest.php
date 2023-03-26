@@ -9,12 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Acme\HasMany\Appointment;
-use ICanBoogie\Acme\HasMany\Patient;
-use ICanBoogie\Acme\HasMany\Physician;
+use ICanBoogie\ActiveRecord\HasManyRelation;
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Query;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\HasMany\Appointment;
+use Test\ICanBoogie\Acme\HasMany\Patient;
+use Test\ICanBoogie\Acme\HasMany\Physician;
 use Test\ICanBoogie\Fixtures;
 
 use function array_column;
@@ -45,11 +48,11 @@ final class HasManyRelationThroughTest extends TestCase
          * NOTE: Relation and the prototype method are only setup when a model is loaded.
          */
 
-        /** @phpstan-ignore-next-line*/
+        /** @phpstan-ignore-next-line */
         $this->physicians = $models->model_for_id('physicians');
-        /** @phpstan-ignore-next-line*/
+        /** @phpstan-ignore-next-line */
         $this->patients = $models->model_for_id('patients');
-        /** @phpstan-ignore-next-line*/
+        /** @phpstan-ignore-next-line */
         $this->appointments = $models->model_for_id('appointments');
     }
 

@@ -9,8 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;

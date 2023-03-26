@@ -9,24 +9,23 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord\Validate;
+namespace Test\ICanBoogie\ActiveRecord\Validate;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Validate\ValidateActiveRecord;
 use ICanBoogie\Validate\ValidationErrors;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group validate
  * @medium
  */
-class ValidateActiveRecordTest extends \PHPUnit\Framework\TestCase
+final class ValidateActiveRecordTest extends TestCase
 {
     /**
      * @dataProvider provide_test_validate
-     *
-     * @param ActiveRecord $record
-     * @param bool $should_validate
      */
-    public function test_validate($record, $should_validate)
+    public function test_validate(ActiveRecord $record, bool $should_validate): void
     {
         $validate = new ValidateActiveRecord();
 
@@ -38,9 +37,9 @@ class ValidateActiveRecordTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @return array
+     * @return array<array{ object, bool }>
      */
-    public static function provide_test_validate()
+    public static function provide_test_validate(): array
     {
         return [
 

@@ -9,9 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
+use ICanBoogie\ActiveRecord\Connection;
+use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaColumn;
+use ICanBoogie\ActiveRecord\Table;
+use ICanBoogie\ActiveRecord\TableDefinition;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
@@ -149,10 +154,10 @@ final class TableTest extends TestCase
             )
         );
 
-        $statement = 'SELECT FROM {self} WHERE {primary} = 1';
+        $statement = 'SELECT * FROM {self} WHERE {primary} = 1';
 
         $this->assertEquals(
-            'SELECT FROM prefix_testing WHERE __multicolumn_primary__p1_p2 = 1',
+            'SELECT * FROM prefix_testing WHERE __multicolumn_primary__p1_p2 = 1',
             $table->resolve_statement($statement)
         );
     }

@@ -9,11 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-class ModelAlreadyInstantiatedTest extends \PHPUnit\Framework\TestCase
+use ICanBoogie\ActiveRecord\ModelAlreadyInstantiated;
+use PHPUnit\Framework\TestCase;
+
+final class ModelAlreadyInstantiatedTest extends TestCase
 {
-    public function test_get_id()
+    public function test_get_id(): void
     {
         $id = 'testing';
         $e = new ModelAlreadyInstantiated($id);

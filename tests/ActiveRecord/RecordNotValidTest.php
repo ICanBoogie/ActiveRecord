@@ -9,13 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Acme\Subscriber;
+use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\ValidationErrors;
 use ICanBoogie\Validate\Validator\Email;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Subscriber;
 
 /**
  * @group validate

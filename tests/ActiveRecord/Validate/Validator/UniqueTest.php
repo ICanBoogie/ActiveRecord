@@ -9,12 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord\Validate\Validator;
+namespace Test\ICanBoogie\ActiveRecord\Validate\Validator;
 
-use ICanBoogie\Acme\Node;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
+use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\Context;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Fixtures;
 
 /**

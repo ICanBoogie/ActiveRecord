@@ -9,11 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-class UnableToSetFetchModeTest extends \PHPUnit\Framework\TestCase
+use ICanBoogie\ActiveRecord\UnableToSetFetchMode;
+use PHPUnit\Framework\TestCase;
+
+final class UnableToSetFetchModeTest extends TestCase
 {
-    public function test_get_id()
+    public function test_get_id(): void
     {
         $mode = uniqid();
         $e = new UnableToSetFetchMode($mode);

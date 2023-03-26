@@ -9,13 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord\Property;
+namespace Test\ICanBoogie\ActiveRecord\Property;
 
-use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\UpdatedAtPropertyTest\A;
 use ICanBoogie\ActiveRecord\UpdatedAtPropertyTest\B;
+use ICanBoogie\DateTime;
+use PHPUnit\Framework\TestCase;
 
-class UpdatedAtPropertyTest extends \PHPUnit\Framework\TestCase
+class UpdatedAtPropertyTest extends TestCase
 {
     /**
      * @dataProvider provide_test_property
@@ -54,9 +55,12 @@ class UpdatedAtPropertyTest extends \PHPUnit\Framework\TestCase
 
 namespace ICanBoogie\ActiveRecord\UpdatedAtPropertyTest;
 
-class A extends \ICanBoogie\Prototyped
+use ICanBoogie\ActiveRecord\Property\UpdatedAtProperty;
+use ICanBoogie\Prototyped;
+
+class A extends Prototyped
 {
-    use \ICanBoogie\ActiveRecord\Property\UpdatedAtProperty;
+    use UpdatedAtProperty;
 }
 
 class B extends A

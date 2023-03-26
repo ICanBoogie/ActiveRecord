@@ -1,6 +1,6 @@
 <?php
 
-namespace ICanBoogie\ActiveRecordTest;
+namespace Test\ICanBoogie\ActiveRecordTest;
 
 use ICanBoogie\ActiveRecord;
 
@@ -11,38 +11,20 @@ use ICanBoogie\ActiveRecord;
  */
 class ValidateCase extends ActiveRecord
 {
-    /**
-     * @var int
-     */
-    private $id;
+    private int $id;
 
-    /**
-     * @return int
-     */
-    protected function get_id()
+    protected function get_id(): ?int
     {
-        return $this->id;
+        return $this->id ?? null;
     }
 
-    /**
-     * @var string
-     */
-    public $name;
+    public string $name;
 
-    /**
-     * @var string
-     */
-    public $email;
+    public string $email;
 
-    /**
-     * @var string
-     */
-    private $timezone = 'Europe\Pas';
+    private string $timezone = 'Europe\Pas';
 
-    /**
-     * @return string
-     */
-    protected function get_timezone()
+    protected function get_timezone(): string
     {
         return $this->timezone;
     }

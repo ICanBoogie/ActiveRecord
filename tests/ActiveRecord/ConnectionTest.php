@@ -1,8 +1,9 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
+use ICanBoogie\ActiveRecord\Connection;
 use PHPUnit\Framework\TestCase;
 
 final class ConnectionTest extends TestCase
@@ -17,7 +18,7 @@ final class ConnectionTest extends TestCase
         $this->connection = new Connection(
             new ConnectionDefinition(
                 id: $this->id,
-                dsn:'sqlite::memory:',
+                dsn: 'sqlite::memory:',
                 charset_and_collate: 'ascii/bin',
                 time_zone: '+02:30',
             )

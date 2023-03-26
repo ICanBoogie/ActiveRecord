@@ -1,7 +1,10 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelResolver;
+use ICanBoogie\ActiveRecord\StaticModelResolver;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 

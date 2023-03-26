@@ -9,11 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Acme\Node;
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\RecordNotFound;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Node;
 
 final class RecordNotFoundTest extends TestCase
 {

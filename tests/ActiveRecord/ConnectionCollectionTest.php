@@ -9,9 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
+use ICanBoogie\ActiveRecord\Connection;
+use ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished;
+use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\ConnectionNotDefined;
+use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 use function uniqid;
@@ -78,7 +84,7 @@ final class ConnectionCollectionTest extends TestCase
 
     public function test_should_throw_an_exception_on_setting_invalid_connection(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->connections['invalid'] = [
 
             'd_s_n' => 'sqlite::memory:'

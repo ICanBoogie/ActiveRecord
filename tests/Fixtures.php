@@ -2,13 +2,6 @@
 
 namespace Test\ICanBoogie;
 
-use ICanBoogie\Acme\CommentModel;
-use ICanBoogie\Acme\Count;
-use ICanBoogie\Acme\HasMany\Appointment;
-use ICanBoogie\Acme\HasMany\Patient;
-use ICanBoogie\Acme\HasMany\Physician;
-use ICanBoogie\Acme\Node;
-use ICanBoogie\Acme\Subscriber;
 use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
@@ -21,7 +14,14 @@ use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Brand;
 use Test\ICanBoogie\Acme\Car;
 use Test\ICanBoogie\Acme\Comment;
+use Test\ICanBoogie\Acme\CommentModel;
+use Test\ICanBoogie\Acme\Count;
 use Test\ICanBoogie\Acme\Driver;
+use Test\ICanBoogie\Acme\HasMany\Appointment;
+use Test\ICanBoogie\Acme\HasMany\Patient;
+use Test\ICanBoogie\Acme\HasMany\Physician;
+use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\Acme\Subscriber;
 
 final class Fixtures
 {

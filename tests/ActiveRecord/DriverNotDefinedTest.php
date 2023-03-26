@@ -9,11 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-class DriverNotDefinedTest extends \PHPUnit\Framework\TestCase
+use ICanBoogie\ActiveRecord\DriverNotDefined;
+use PHPUnit\Framework\TestCase;
+
+final class DriverNotDefinedTest extends TestCase
 {
-    public function test_exception()
+    public function test_exception(): void
     {
         $driver_name = uniqid();
         $exception = new DriverNotDefined($driver_name);

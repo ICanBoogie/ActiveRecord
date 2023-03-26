@@ -9,19 +9,19 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord\Property;
+namespace Test\ICanBoogie\ActiveRecord\Property;
 
 use ICanBoogie\DateTime;
-use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\A;
-use ICanBoogie\ActiveRecord\CreatedAtPropertyTest\B;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\ActiveRecord\CreatedAtPropertyTest\A;
+use Test\ICanBoogie\ActiveRecord\CreatedAtPropertyTest\B;
 
 final class CreatedAtPropertyTest extends TestCase
 {
     /**
      * @dataProvider provide_test_property
      */
-    public function test_property($classname): void
+    public function test_property(string $classname): void
     {
         /* @var $r A */
         $r = new $classname();
@@ -53,11 +53,14 @@ final class CreatedAtPropertyTest extends TestCase
     }
 }
 
-namespace ICanBoogie\ActiveRecord\CreatedAtPropertyTest;
+namespace Test\ICanBoogie\ActiveRecord\CreatedAtPropertyTest;
 
-class A extends \ICanBoogie\Prototyped
+use ICanBoogie\ActiveRecord\Property\CreatedAtProperty;
+use ICanBoogie\Prototyped;
+
+class A extends Prototyped
 {
-    use \ICanBoogie\ActiveRecord\Property\CreatedAtProperty;
+    use CreatedAtProperty;
 }
 
 class B extends A

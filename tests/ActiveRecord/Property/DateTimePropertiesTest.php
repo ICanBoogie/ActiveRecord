@@ -9,13 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord\Property;
+namespace Test\ICanBoogie\ActiveRecord\Property;
 
-use ICanBoogie\DateTime;
 use ICanBoogie\ActiveRecord\DateTimePropertiesTest\A;
 use ICanBoogie\ActiveRecord\DateTimePropertiesTest\B;
+use ICanBoogie\DateTime;
+use PHPUnit\Framework\TestCase;
 
-class DateTimePropertiesTest extends \PHPUnit\Framework\TestCase
+class DateTimePropertiesTest extends TestCase
 {
     public function test_properties()
     {
@@ -93,13 +94,18 @@ class DateTimePropertiesTest extends \PHPUnit\Framework\TestCase
 
 namespace ICanBoogie\ActiveRecord\DateTimePropertiesTest;
 
-class A extends \ICanBoogie\Prototyped
+use ICanBoogie\ActiveRecord\Property\CreatedAtProperty;
+use ICanBoogie\ActiveRecord\Property\DateTimeProperty;
+use ICanBoogie\ActiveRecord\Property\UpdatedAtProperty;
+use ICanBoogie\Prototyped;
+
+class A extends Prototyped
 {
-    use \ICanBoogie\ActiveRecord\Property\CreatedAtProperty;
-    use \ICanBoogie\ActiveRecord\Property\UpdatedAtProperty;
+    use CreatedAtProperty;
+    use UpdatedAtProperty;
 }
 
 class B extends A
 {
-    use \ICanBoogie\ActiveRecord\Property\DateTimeProperty;
+    use DateTimeProperty;
 }

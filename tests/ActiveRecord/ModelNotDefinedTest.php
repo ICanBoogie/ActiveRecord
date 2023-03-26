@@ -9,11 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-class ModelNotDefinedTest extends \PHPUnit\Framework\TestCase
+use ICanBoogie\ActiveRecord\ModelNotDefined;
+use PHPUnit\Framework\TestCase;
+
+class ModelNotDefinedTest extends TestCase
 {
-    public function test_get_id()
+    public function test_get_id(): void
     {
         $id = 'testing';
         $e = new ModelNotDefined($id);

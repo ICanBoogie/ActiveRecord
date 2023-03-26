@@ -9,13 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\ActiveRecordClassNotValid;
+use PHPUnit\Framework\TestCase;
 
-class ActiveRecordClassNotValidTest extends \PHPUnit\Framework\TestCase
+final class ActiveRecordClassNotValidTest extends TestCase
 {
-    public function test_get_class()
+    public function test_get_class(): void
     {
         $expected = ActiveRecord::class;
         $e = new ActiveRecordClassNotValid($expected);

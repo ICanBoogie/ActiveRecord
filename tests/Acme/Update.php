@@ -1,6 +1,6 @@
 <?php
 
-namespace ICanBoogie\Acme;
+namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
 

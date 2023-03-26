@@ -9,8 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaColumn;
+use ICanBoogie\ActiveRecord\SchemaIndex;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\SetStateHelper;
 

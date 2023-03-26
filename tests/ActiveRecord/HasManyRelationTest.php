@@ -9,8 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\HasManyRelation;
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Query;
+use ICanBoogie\ActiveRecord\RelationCollection;
+use ICanBoogie\ActiveRecord\RelationNotDefined;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Fixtures;
 

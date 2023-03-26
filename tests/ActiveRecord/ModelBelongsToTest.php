@@ -1,6 +1,6 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
 use LogicException;
 use PHPUnit\Framework\TestCase;

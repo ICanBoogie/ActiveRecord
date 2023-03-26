@@ -9,11 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\RelationCollection;
+use ICanBoogie\ActiveRecord\RelationNotDefined;
 use PHPUnit\Framework\TestCase;
 
-class RelationNotDefinedTest extends TestCase
+final class RelationNotDefinedTest extends TestCase
 {
     public function test_exception(): void
     {

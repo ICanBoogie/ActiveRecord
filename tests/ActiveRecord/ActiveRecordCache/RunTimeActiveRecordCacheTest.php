@@ -9,8 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
+namespace Test\ICanBoogie\ActiveRecord\ActiveRecordCache;
 
+use ICanBoogie\ActiveRecord\ActiveRecordCache\RuntimeActiveRecordCache;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Fixtures;

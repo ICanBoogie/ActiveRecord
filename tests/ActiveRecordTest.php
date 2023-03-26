@@ -9,20 +9,20 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie;
+namespace Test\ICanBoogie;
 
-use ICanBoogie\Acme\Node;
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelResolver;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaColumn;
 use ICanBoogie\ActiveRecord\StaticModelResolver;
-use ICanBoogie\ActiveRecordTest\Sample;
-use ICanBoogie\ActiveRecordTest\ValidateCase;
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Test\ICanBoogie\Fixtures;
+use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\ActiveRecordTest\Sample;
+use Test\ICanBoogie\ActiveRecordTest\ValidateCase;
 
 use function mt_rand;
 use function serialize;
@@ -111,16 +111,18 @@ final class ActiveRecordTest extends TestCase
             ->willReturn('madonna');
         $model
             ->method('get_extended_schema')
-            ->willReturn(new Schema([
+            ->willReturn(
+                new Schema([
 
-                $primary => SchemaColumn::serial(primary: true),
-                'reversed' => SchemaColumn::varchar(),
-                'date' => SchemaColumn::datetime(),
-                'do_not_allow_null' => SchemaColumn::varchar(),
-                'allow_null' => SchemaColumn::varchar(null: true),
-                'allow_null_with_value' => SchemaColumn::varchar(null: true),
+                    $primary => SchemaColumn::serial(primary: true),
+                    'reversed' => SchemaColumn::varchar(),
+                    'date' => SchemaColumn::datetime(),
+                    'do_not_allow_null' => SchemaColumn::varchar(),
+                    'allow_null' => SchemaColumn::varchar(null: true),
+                    'allow_null_with_value' => SchemaColumn::varchar(null: true),
 
-            ]));
+                ])
+            );
         $model
             ->expects($this->once())
             ->method('save')

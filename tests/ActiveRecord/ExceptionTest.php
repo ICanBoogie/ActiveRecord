@@ -9,35 +9,52 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
-class ExceptionTest extends \PHPUnit\Framework\TestCase
+use ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished;
+use ICanBoogie\ActiveRecord\ConnectionNotDefined;
+use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
+use ICanBoogie\ActiveRecord\Exception;
+use ICanBoogie\ActiveRecord\ModelAlreadyInstantiated;
+use ICanBoogie\ActiveRecord\ModelNotDefined;
+use ICanBoogie\ActiveRecord\RecordNotFound;
+use ICanBoogie\ActiveRecord\StatementNotValid;
+use ICanBoogie\ActiveRecord\UnableToSetFetchMode;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+
+final class ExceptionTest extends TestCase
 {
     /**
      * @dataProvider provide_test_implementing
+     *
+     * @param array<mixed> $ctor_args
      */
-    public function test_implementing($classname, $ctor_args)
+    public function test_implementing(string $classname, array $ctor_args): void
     {
-        $r = new \ReflectionClass(__NAMESPACE__ . '\\' . $classname);
+        $r = new ReflectionClass($classname);
         $exception = $r->newInstanceArgs($ctor_args);
         $this->assertInstanceOf(Exception::class, $exception);
     }
 
-    public static function provide_test_implementing()
+    /**
+     * @return array<array{ string, array<mixed> }>
+     */
+    public static function provide_test_implementing(): array
     {
         return [
 
-            [ 'ConnectionNotDefined', [ 'connection-name' ] ],
-            [ 'ConnectionNotEstablished', [ 'connection-name', 'message' ] ],
-            [ 'ConnectionAlreadyEstablished', [ 'connection-name' ] ],
+            [ ConnectionNotDefined::class, [ 'connection-name' ] ],
+            [ ConnectionNotEstablished::class, [ 'connection-name', 'message' ] ],
+            [ ConnectionAlreadyEstablished::class, [ 'connection-name' ] ],
 
-            [ 'RecordNotFound', [ "message", [] ] ],
+            [ RecordNotFound::class, [ "message", [] ] ],
 
-            [ 'ModelNotDefined', [ 'model-name' ] ],
-            [ 'ModelAlreadyInstantiated', [ 'model-name' ] ],
+            [ ModelNotDefined::class, [ 'model-name' ] ],
+            [ ModelAlreadyInstantiated::class, [ 'model-name' ] ],
 
-            [ 'StatementNotValid', [ 'statement' ] ],
-            [ 'UnableToSetFetchMode', [ 'mode' ] ]
+            [ StatementNotValid::class, [ 'statement' ] ],
+            [ UnableToSetFetchMode::class, [ 'mode' ] ]
 
         ];
     }

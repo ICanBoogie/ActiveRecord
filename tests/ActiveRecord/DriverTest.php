@@ -9,12 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace ICanBoogie\ActiveRecord;
+namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
+use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Driver\MySQLDriver;
 use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Driver;
 use Throwable;
 
 final class DriverTest extends TestCase
@@ -65,7 +68,7 @@ final class DriverTest extends TestCase
             ->add_varchar('product')
             ->add_varchar('name')
             ->add_timestamp('created_at', default: SchemaBuilder::CURRENT_TIMESTAMP)
-            ->add_index([ 'country', 'week', 'product'], unique: true)
+            ->add_index([ 'country', 'week', 'product' ], unique: true)
             ->add_index('week', name: 'my_week_index')
             ->build();
 
