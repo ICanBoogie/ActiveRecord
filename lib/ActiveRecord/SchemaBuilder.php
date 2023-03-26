@@ -461,6 +461,8 @@ final class SchemaBuilder
                     name: $attribute->name,
                 ),
 
+                Attribute\HasMany::class => null,
+
                 default => throw new LogicException("Don't know what to do with " . $attribute::class)
             };
         }

@@ -26,7 +26,9 @@ final class AssociationBuilder
      * When "A" has a reference to "B", we say "A" belongs to "B".
      *
      * @param class-string|string $associate
-     *     A model class or identifier.
+     *     The associate ActiveRecord class or model identifier.
+     * @param non-empty-string|null $as
+     *     The name of the accessor.
      */
     public function belongs_to(
         string $associate,
@@ -42,19 +44,29 @@ final class AssociationBuilder
         return $this;
     }
 
+    /**
+     * @param class-string|string $associate
+     *     The associate ActiveRecord class or model identifier.
+     * @param non-empty-string|null $as
+     *     The name of the accessor.
+     * @param class-string|string|null $through
+     *     The pivot ActiveRecord class or model identifier.
+     *
+     * @return $this
+     */
     public function has_many(
-        string $model_id,
+        string $associate,
         string $local_key = null,
         string $foreign_key = null,
         string $as = null,
         string $through = null,
     ): self {
         $this->has_many[] = new TransientHasManyAssociation(
-            model_id: $model_id,
+            associate: $associate,
             local_key: $local_key,
             foreign_key: $foreign_key,
             as: $as,
-            through: $through
+            through: $through,
         );
 
         return $this;

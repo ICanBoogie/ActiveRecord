@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use Closure;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Attribute\BelongsTo;
+use ICanBoogie\ActiveRecord\Attribute\HasMany;
 use ICanBoogie\ActiveRecord\Attribute\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Config\Association;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
@@ -31,7 +32,6 @@ use olvlvl\ComposerAttributeCollector\Attributes;
 use olvlvl\ComposerAttributeCollector\TargetClass;
 use olvlvl\ComposerAttributeCollector\TargetProperty;
 
-use function array_filter;
 use function array_map;
 use function class_exists;
 use function get_debug_type;
@@ -202,7 +202,7 @@ final class ConfigBuilder
 
     private function resolve_has_many(string $owner, TransientHasManyAssociation $association): HasManyAssociation
     {
-        $related = $association->model_id;
+        $related = $this->resolve_model_id($association->associate);
         $local_key = $association->local_key ?? $this->transient_models[$owner]->schema->primary;
         $foreign_key = $association->foreign_key;
         $as = $association->as ?? $related;
@@ -229,12 +229,18 @@ final class ConfigBuilder
             );
         }
 
+        $through = $association->through;
+
+        if ($through) {
+            $through = $this->resolve_model_id($through);
+        }
+
         return new HasManyAssociation(
             $related,
             $local_key,
             $foreign_key,
             $as,
-            $association->through,
+            $through,
         );
     }
 
@@ -398,7 +404,10 @@ final class ConfigBuilder
 
             $this->schemas[$class] = $this->build_schema_from_attributes($target_classes, $target_properties);
 
-            $this->add_associations_from_attributes($class, $target_classes, $target_properties);
+            $this->add_associations_from_attributes(
+                $class,
+                array_merge($target_classes, $target_properties)
+            );
         }
     }
 
@@ -424,33 +433,49 @@ final class ConfigBuilder
 
     /**
      * @param class-string $class ActiveRecord class
-     * @param TargetClass<SchemaAttribute>[] $target_classes
-     * @param TargetProperty<SchemaAttribute>[] $target_properties
+     * @param TargetClass<SchemaAttribute>[]|TargetProperty<SchemaAttribute>[] $targets
      */
     private function add_associations_from_attributes(
         string $class,
-        array $target_classes,
-        array $target_properties
+        array $targets
     ): void {
         $this->association_builders[$class] = $b = new AssociationBuilder();
 
-        foreach ($target_properties as $t) {
+        foreach ($targets as $t) {
             $attribute = $t->attribute;
-            $property = $t->name;
 
             if ($attribute instanceof BelongsTo) {
+                $property = $t->name;
                 $as = $attribute->as ?? $this->create_belong_to_accessor($property);
 
-                $b->belongs_to($attribute->active_record_class, $property, $as);
+                $b->belongs_to($attribute->associate, local_key: $property, as: $as);
+
+                continue;
+            }
+
+            if ($attribute instanceof HasMany) {
+                $b->has_many(
+                    associate: $attribute->associate,
+                    foreign_key: $attribute->foreign_key,
+                    as: $attribute->as,
+                    through: $attribute->through,
+                );
             }
         }
     }
 
+    /**
+     * @param non-empty-string $property
+     *
+     * @return non-empty-string
+     */
     private function create_belong_to_accessor(string $property): string
     {
         if (str_ends_with($property, '_id')) {
             $property = substr($property, 0, -3);
         }
+
+        assert($property !== '');
 
         return $property;
     }

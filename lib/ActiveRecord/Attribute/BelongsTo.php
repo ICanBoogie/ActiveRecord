@@ -11,12 +11,13 @@ use Attribute;
 final class BelongsTo implements SchemaAttribute
 {
     /**
-     * @param class-string $active_record_class
-     * @param string|null $as
+     * @param class-string $associate
+     *     The associate ActiveRecord class.
+     * @param non-empty-string|null $as
      *     The name of the prototype property used to access the association, default is built from property name.
      */
     public function __construct(
-        public readonly string $active_record_class,
+        public readonly string $associate,
         public readonly bool $null = false,
         public readonly bool $unique = false,
         public readonly ?string $as = null,
