@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use Closure;
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Attribute\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Config\Association;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\Config\BelongsToAssociation;
@@ -25,12 +26,18 @@ use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
 use InvalidArgumentException;
 use LogicException;
+use olvlvl\ComposerAttributeCollector\Attributes;
+use olvlvl\ComposerAttributeCollector\TargetClass;
+use olvlvl\ComposerAttributeCollector\TargetProperty;
 
 use function array_map;
+use function class_exists;
 use function get_debug_type;
+use function ICanBoogie\iterable_to_groups;
 use function ICanBoogie\singularize;
 use function is_string;
 use function preg_match;
+use function sprintf;
 
 final class ConfigBuilder
 {
@@ -264,31 +271,39 @@ final class ConfigBuilder
     }
 
     /**
-     * @param (Closure(SchemaBuilder $schema): SchemaBuilder) $schema_builder
      * @param class-string<ActiveRecord> $activerecord_class
-     * @param class-string<Model<int|string, ActiveRecord>>|null $model_class
+     * @param class-string<Model>|null $model_class
      * @param class-string<Query<ActiveRecord>>|null $query_class
+     * @param (Closure(SchemaBuilder $schema): SchemaBuilder)|null $schema_builder
      */
     public function add_model(
         string $id,
-        Closure $schema_builder,
         string $activerecord_class,
-        string $connection = Config::DEFAULT_CONNECTION_ID,
+        string|null $model_class = null,
+        string|null $query_class = null,
         string|null $name = null,
         string|null $alias = null,
         string|null $extends = null,
         string|null $implements = null,
-        string|null $model_class = null,
-        string|null $query_class = null,
+        Closure $schema_builder = null,
         Closure $association_builder = null,
+        string $connection = Config::DEFAULT_CONNECTION_ID,
     ): self {
         if ($activerecord_class === ActiveRecord::class) {
             throw new LogicException("\$activerecord_class must be an extension of ICanBoogie\ActiveRecord");
         }
 
-        $inner_schema_builder = new SchemaBuilder();
-        $schema_builder($inner_schema_builder);
-        $schema = $inner_schema_builder->build();
+        $schema = $this->schemas[$activerecord_class] ?? null;
+
+        if ($schema_builder) {
+            $inner_schema_builder = new SchemaBuilder();
+            $schema_builder($inner_schema_builder);
+            $schema = $inner_schema_builder->build();
+        } elseif ($schema === null && $this->from_attributes) {
+            throw new LogicException("expected schema builder because the config was built from attributes but there's no schema for $activerecord_class");
+        } elseif ($schema === null) {
+            throw new LogicException("expected schema builder for '$id'");
+        }
 
         if ($association_builder) {
             $inner_association_builder = new AssociationBuilder();
@@ -310,5 +325,68 @@ final class ConfigBuilder
         );
 
         return $this;
+    }
+
+    /**
+     * Schemas built from attributes.
+     *
+     * @var array<class-string, Schema>
+     *     Where _key_ is an ActiveRecord class.
+     */
+    private array $schemas = [];
+    private bool $from_attributes = false;
+
+    public function from_attributes(): self
+    {
+        if (!class_exists(Attributes::class)) {
+            throw new LogicException(
+                sprintf(
+                    "unable to load %s, is the package olvlvl/composer-attribute-collector activated?",
+                    Attributes::class
+                )
+            );
+        }
+
+        $this->from_attributes = true;
+        $this->build_schemas_from_attributes();
+
+        return $this;
+    }
+
+    private function build_schemas_from_attributes(): void
+    {
+        /** @var TargetClass<SchemaAttribute>[] $target_classes */
+        $target_classes = Attributes::filterTargetClasses(
+            Attributes::predicateForAttributeInstanceOf(SchemaAttribute::class)
+        );
+
+        /** @var TargetProperty<SchemaAttribute>[] $target_properties */
+        $target_properties = Attributes::filterTargetProperties(
+            Attributes::predicateForAttributeInstanceOf(SchemaAttribute::class)
+        );
+
+        $target_classes_by_class = iterable_to_groups($target_classes, fn(TargetClass $t) => $t->name);
+        $target_properties_by_class = iterable_to_groups($target_properties, fn(TargetProperty $t) => $t->class);
+
+        foreach ($target_properties_by_class as $class => $target_properties) {
+            $target_classes = $target_classes_by_class[$class] ?? [];
+
+            $this->schemas[$class] = $this->build_schema_from_attributes($target_classes, $target_properties);
+        }
+    }
+
+    /**
+     * @param TargetClass<SchemaAttribute>[] $target_classes
+     * @param TargetProperty<SchemaAttribute>[] $target_properties
+     */
+    private function build_schema_from_attributes(array $target_classes, array $target_properties): Schema
+    {
+        $ca = array_map(fn(TargetClass $t) => [ $t->attribute ], $target_classes);
+        $pa = array_map(fn(TargetProperty $t) => [ $t->attribute, $t->name ], $target_properties);
+
+        $builder = new SchemaBuilder();
+        $builder->from_attributes($ca, $pa);
+
+        return $builder->build();
     }
 }

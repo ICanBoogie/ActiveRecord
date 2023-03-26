@@ -69,14 +69,16 @@ class SchemaColumn
 
     public const TYPE_BLOB = 'BLOB';
     public const TYPE_BOOLEAN = 'BOOLEAN';
-    public const TYPE_CHAR = 'CHAR';
     public const TYPE_DATE = 'DATE';
     public const TYPE_DATETIME = 'DATETIME';
     public const TYPE_FLOAT = 'FLOAT';
     public const TYPE_INT = 'INT';
     public const TYPE_TIMESTAMP = 'TIMESTAMP';
     public const TYPE_TEXT = 'TEXT';
+    public const TYPE_CHAR = 'CHAR';
     public const TYPE_VARCHAR = 'VARCHAR';
+    public const TYPE_BINARY = 'BINARY';
+    public const TYPE_VARBINARY = 'VARBINARY';
 
     public const SIZE_TINY = 'TINY';
     public const SIZE_SMALL = 'SMALL';
@@ -205,7 +207,7 @@ class SchemaColumn
         );
     }
 
-    private static function assert_datetime_default(?string $default): void
+    public static function assert_datetime_default(?string $default): void
     {
         if ($default && !in_array($default, [ self::NOW, self::CURRENT_TIMESTAMP ])) {
             throw new LogicException("Can only be one of 'NOW' or 'CURRENT_TIMESTAMP', given: $default.");

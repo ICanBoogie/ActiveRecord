@@ -5,6 +5,7 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\SchemaColumn;
+use LogicException;
 use PHPUnit\Framework\TestCase;
 
 final class SchemaBuilderTest extends TestCase
@@ -35,5 +36,14 @@ final class SchemaBuilderTest extends TestCase
         ]))->index('is_active');
 
         $this->assertEquals($expected, $actual);
+    }
+
+    public function test_fail_on_index_with_undefined_column(): void
+    {
+        $builder = (new SchemaBuilder())->add_boolean('is_active');
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage("Column used by index is not defined: madonna");
+        $builder->add_index([ 'madonna' ]);
     }
 }

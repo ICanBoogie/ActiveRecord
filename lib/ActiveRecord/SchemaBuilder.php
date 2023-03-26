@@ -2,6 +2,14 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Attribute;
+use ICanBoogie\ActiveRecord\Attribute\SchemaAttribute;
+use LogicException;
+
+use function array_filter;
+use function in_array;
+use function is_string;
+
 final class SchemaBuilder
 {
     public const SIZE_TINY = 'TINY';
@@ -65,6 +73,7 @@ final class SchemaBuilder
     public function add_boolean(
         string $col_name,
         bool $null = false,
+        /** @obsolete */
         bool $unique = false,
     ): self {
         $this->columns[$col_name] = SchemaColumn::boolean(
@@ -214,6 +223,46 @@ final class SchemaBuilder
         return $this;
     }
 
+    public function add_binary(
+        string $col_name,
+        int $size = 255,
+        bool $null = false,
+        bool $unique = false,
+        bool $primary = false,
+        ?string $comment = null,
+    ): self {
+        $this->columns[$col_name] = new SchemaColumn(
+            type: SchemaColumn::TYPE_BINARY,
+            size: $size,
+            null: $null,
+            unique: $unique,
+            primary: $primary,
+            comment: $comment,
+        );
+
+        return $this;
+    }
+
+    public function add_varbinary(
+        string $col_name,
+        int $size = 255,
+        bool $null = false,
+        bool $unique = false,
+        bool $primary = false,
+        ?string $comment = null,
+    ): self {
+        $this->columns[$col_name] = new SchemaColumn(
+            type: SchemaColumn::TYPE_VARBINARY,
+            size: $size,
+            null: $null,
+            unique: $unique,
+            primary: $primary,
+            comment: $comment,
+        );
+
+        return $this;
+    }
+
     public function add_blob(
         string $col_name,
         string|null $size = null,
@@ -263,13 +312,158 @@ final class SchemaBuilder
      *     Identifiers of the columns making the unique index.
      *
      * @return $this
+     *
+     * @throws LogicException if a column used by the index is not defined.
      */
     public function add_index(
         array|string $columns,
         bool $unique = false,
         ?string $name = null
     ): self {
+        if (is_string($columns)) {
+            $columns = [ $columns ];
+        }
+
+        foreach ($columns as $column) {
+            $this->columns[$column] ??
+                throw new LogicException("Column used by index is not defined: $column");
+        }
+
         $this->indexes[] = [ $columns, $unique, $name ];
+
+        return $this;
+    }
+
+    /**
+     * @param array{ SchemaAttribute }[] $class_attributes
+     * @param array{ SchemaAttribute, string }[] $property_attributes
+     *
+     * @return $this
+     */
+    public function from_attributes(
+        array $class_attributes,
+        array $property_attributes,
+    ): self {
+        $ids = [];
+
+        $property_attributes = array_filter($property_attributes, function ($ar) use (&$ids) {
+            [ $attribute, $property ] = $ar;
+
+            if ($attribute instanceof Attribute\Id) {
+                $ids[] = $property;
+
+                return false;
+            }
+
+            return true;
+        });
+
+        foreach ($property_attributes as [ $attribute, $name ]) {
+            $is_primary = in_array($name, $ids);
+
+            match ($attribute::class) {
+                // Numeric Data Types
+
+                Attribute\Boolean::class => $this->add_boolean(
+                    col_name: $name,
+                    null: $attribute->null,
+                ),
+
+                Attribute\Integer::class => $this->add_integer(
+                    col_name: $name,
+                    size: $attribute->size,
+                    unsigned: $attribute->unsigned,
+                    null: $attribute->null,
+                    unique: $attribute->unique,
+                ),
+
+                Attribute\Serial::class => $this->add_serial(
+                    col_name: $name,
+                    primary: in_array($name, $ids)
+                ),
+
+                // Date and Time Data Types
+
+                Attribute\Date::class => $this->add_date(
+                    col_name: $name,
+                    null: $attribute->null,
+                    default: $attribute->default,
+                ),
+
+                Attribute\DateTime::class => $this->add_datetime(
+                    col_name: $name,
+                    null: $attribute->null,
+                    default: $attribute->default,
+                ),
+
+                // String Data Types
+
+                Attribute\Char::class => $this->add_char(
+                    col_name: $name,
+                    size: $attribute->size,
+                    null: $attribute->null,
+                    unique: $attribute->unique,
+                    primary: $is_primary,
+                    collate: $attribute->collate,
+                ),
+
+                Attribute\VarChar::class => $this->add_varchar(
+                    col_name: $name,
+                    size: $attribute->size,
+                    null: $attribute->null,
+                    unique: $attribute->unique,
+                    primary: $is_primary,
+                    collate: $attribute->collate,
+                ),
+
+                Attribute\Binary::class => $this->add_binary(
+                    col_name: $name,
+                    size: $attribute->size,
+                    null: $attribute->null,
+                    unique: $attribute->unique,
+                    primary: $is_primary,
+                ),
+
+                Attribute\VarBinary::class => $this->add_varbinary(
+                    col_name: $name,
+                    size: $attribute->size,
+                    null: $attribute->null,
+                    unique: $attribute->unique,
+                    primary: $is_primary,
+                ),
+
+                Attribute\Text::class => $this->add_text(
+                    col_name: $name,
+                    size: $attribute->size,
+                    null: $attribute->null,
+                    unique: $attribute->unique,
+                    primary: $is_primary,
+                ),
+
+                // Relations
+
+                Attribute\BelongsTo::class => $this->add_foreign(
+                    col_name: $name,
+                    null: $attribute->null,
+                    unique: $attribute->unique,
+                    primary: $is_primary,
+                ),
+
+                default => throw new LogicException("Don't know what to do with " . $attribute::class)
+            };
+        }
+
+        foreach ($class_attributes as [ $attribute ]) {
+            match ($attribute::class) {
+                Attribute\Index::class => $this->add_index(
+                    columns: $attribute->columns,
+                    unique: $attribute->unique,
+                    name: $attribute->name,
+                ),
+
+                default => throw new LogicException("Don't know what to do with " . $attribute::class)
+            };
+        }
 
         return $this;
     }

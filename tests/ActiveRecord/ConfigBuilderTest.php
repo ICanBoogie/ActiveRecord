@@ -6,6 +6,7 @@ use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
+use ICanBoogie\ActiveRecord\SchemaIndex;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
@@ -24,19 +25,19 @@ final class ConfigBuilderTest extends TestCase
             )
             ->add_model(
                 id: 'nodes',
+                activerecord_class: Node::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_serial('nid', primary: true)
                     ->add_varchar('title'),
-                activerecord_class: Node::class,
             )
             ->add_model(
                 id: 'articles',
+                activerecord_class: Article::class,
+                model_class: ArticleModel::class,
+                extends: 'nodes',
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_text('body')
                     ->add_datetime('date'),
-                activerecord_class: Article::class,
-                extends: 'nodes',
-                model_class: ArticleModel::class,
             )
             ->build();
 
@@ -45,6 +46,36 @@ final class ConfigBuilderTest extends TestCase
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
         $this->assertFalse($schema['nid']->auto_increment);
+    }
+
+    public function test_from_attributes(): void
+    {
+        $config = (new ConfigBuilder())
+            ->from_attributes()
+            ->add_connection(
+                id: Config::DEFAULT_CONNECTION_ID,
+                dsn: 'sqlite::memory:',
+            )
+            ->add_model(
+                id: 'nodes',
+                activerecord_class: Node::class,
+            )
+            ->add_model(
+                id: 'articles',
+                activerecord_class: Article::class,
+                model_class: ArticleModel::class,
+                extends: 'nodes',
+            )
+            ->build();
+
+        $schema = $config->models['articles']->schema;
+
+        $this->assertInstanceOf(Schema::class, $schema);
+        $this->assertEquals('nid', $schema->primary);
+        $this->assertFalse($schema['nid']->auto_increment);
+        $this->assertEquals([
+            new SchemaIndex([ 'rating' ], name: 'idx_rating')
+        ], $schema->indexes);
     }
 
     public function test_export(): void

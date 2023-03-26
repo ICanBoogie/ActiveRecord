@@ -61,118 +61,118 @@ final class Fixtures
             $_ = match ($id) {
                 'nodes' => $config->add_model(
                     id: 'nodes',
+                    activerecord_class: Node::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('nid', primary: true)
                         ->add_varchar('title'),
-                    activerecord_class: Node::class,
                 ),
                 'articles' => $config->add_model(
                     id: 'articles',
+                    activerecord_class: Article::class,
+                    model_class: ArticleModel::class,
+                    extends: 'nodes',
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_varchar('body')
                         ->add_datetime('date', default: $schema::CURRENT_TIMESTAMP)
                         ->add_integer('rating', size: $schema::SIZE_TINY, null: true),
-                    activerecord_class: Article::class,
-                    extends: 'nodes',
-                    model_class: ArticleModel::class,
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many('comments', foreign_key: 'nid')
                 ),
                 'comments' => $config->add_model(
                     id: 'comments',
+                    activerecord_class: Comment::class,
+                    model_class: CommentModel::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('comment_id', primary: true)
                         ->add_foreign('nid')
                         ->add_text('body'),
-                    activerecord_class: Comment::class,
-                    model_class: CommentModel::class,
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->belongs_to('articles', local_key: 'nid')
                 ),
                 'counts' => $config->add_model(
                     id: 'counts',
+                    activerecord_class: Count::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('id', primary: true)
                         ->add_varchar('name')
                         ->add_datetime('date'),
-                    activerecord_class: Count::class,
                 ),
                 #
                 # car&drivers
                 #
                 'drivers' => $config->add_model(
-                    'drivers',
+                    id: 'drivers',
+                    activerecord_class: Driver::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('driver_id', primary: true)
-                        ->add_varchar('name'),
-                    activerecord_class: Driver::class
+                        ->add_varchar('name')
                 ),
                 'brands' => $config->add_model(
                     id: 'brands',
+                    activerecord_class: Brand::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('brand_id', primary: true)
                         ->add_varchar('name'),
-                    activerecord_class: Brand::class,
                 ),
                 'cars' => $config->add_model(
                     id: 'cars',
+                    activerecord_class: Car::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('car_id', primary: true)
                         ->add_foreign('driver_id')
                         ->add_foreign('brand_id')
                         ->add_varchar('name'),
-                    activerecord_class: Car::class,
                 ),
                 #
                 #
                 #
                 'subscribers' => $config->add_model(
                     id: 'subscribers',
+                    activerecord_class: Subscriber::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('subscriber_id', primary: true)
                         ->add_varchar('email'),
-                    activerecord_class: Subscriber::class,
                 ),
                 'updates' => $config->add_model(
                     id: 'updates',
+                    activerecord_class: Subscriber::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('updated_id', primary: true)
                         ->add_foreign('subscriber_id')
                         ->add_datetime('updated_at')
                         ->add_char('updated_hash', size: 40),
-                    activerecord_class: Subscriber::class,
                 ),
                 #
                 #
                 #
                 'physicians' => $config->add_model(
                     id: 'physicians',
+                    activerecord_class: Physician::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('ph_id', primary: true)
                         ->add_varchar('name'),
-                    activerecord_class: Physician::class,
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many('appointments', foreign_key: 'physician_id')
                         ->has_many('patients', through: 'appointments'),
                 ),
                 'appointments' => $config->add_model(
                     id: 'appointments',
+                    activerecord_class: Appointment::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('ap_id', primary: true)
                         ->add_foreign('physician_id')
                         ->add_foreign('patient_id')
                         ->add_date('appointment_date'),
-                    activerecord_class: Appointment::class,
                     association_builder: fn(AssociationBuilder $a) => $a
                         ->belongs_to('physicians', local_key: 'physician_id')
                         ->belongs_to('patients', local_key: 'patient_id'),
                 ),
                 'patients' => $config->add_model(
                     id: 'patients',
+                    activerecord_class: Patient::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('pa_id', primary: true)
                         ->add_varchar('name'),
-                    activerecord_class: Patient::class,
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many('appointments', foreign_key: 'patient_id')
                         ->has_many('physicians', foreign_key: 'patient_id', through: 'appointments'),

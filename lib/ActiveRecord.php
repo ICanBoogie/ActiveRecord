@@ -154,12 +154,12 @@ abstract class ActiveRecord extends Prototyped
      *
      * @param array<string, mixed> $options Save options.
      *
-     * @return bool|int Primary key value of the active record, or a boolean if the primary key
+     * @return bool|int|mixed Primary key value of the active record, or a boolean if the primary key
      * is not a serial.
      *
      * @throws Throwable
      */
-    public function save(array $options = []): int|bool
+    public function save(array $options = []): mixed
     {
         if (empty($options[self::SAVE_SKIP_VALIDATION])) {
             $this->assert_is_valid();
