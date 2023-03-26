@@ -54,7 +54,7 @@ final class ConfigBuilderTest extends TestCase
     public function test_from_attributes(): void
     {
         $config = (new ConfigBuilder())
-            ->from_attributes()
+            ->use_attributes()
             ->add_connection(
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
@@ -84,7 +84,7 @@ final class ConfigBuilderTest extends TestCase
     public function test_from_attributes_with_association(): void
     {
         $config = (new ConfigBuilder())
-            ->from_attributes()
+            ->use_attributes()
             ->add_connection(
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',

@@ -41,6 +41,14 @@ final class SchemaBuilder
         return $schema;
     }
 
+    /**
+     * Whether the builder is empty i.e. no column is defined yet.
+     */
+    public function is_empty(): bool
+    {
+        return count($this->columns) === 0;
+    }
+
     public function add_column(
         string $col_name,
         string $type,
@@ -335,8 +343,8 @@ final class SchemaBuilder
     }
 
     /**
-     * @param array{ SchemaAttribute }[] $class_attributes
-     * @param array{ SchemaAttribute, string }[] $property_attributes
+     * @param SchemaAttribute[] $class_attributes
+     * @param array{ SchemaAttribute, non-empty-string }[] $property_attributes
      *
      * @return $this
      */
@@ -453,7 +461,7 @@ final class SchemaBuilder
             };
         }
 
-        foreach ($class_attributes as [ $attribute ]) {
+        foreach ($class_attributes as $attribute) {
             match ($attribute::class) {
                 Attribute\Index::class => $this->add_index(
                     columns: $attribute->columns,

@@ -13,8 +13,6 @@ namespace ICanBoogie\ActiveRecord;
 
 use Closure;
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Attribute\BelongsTo;
-use ICanBoogie\ActiveRecord\Attribute\HasMany;
 use ICanBoogie\ActiveRecord\Attribute\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Config\Association;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
@@ -35,13 +33,11 @@ use olvlvl\ComposerAttributeCollector\TargetProperty;
 use function array_map;
 use function class_exists;
 use function get_debug_type;
-use function ICanBoogie\iterable_to_groups;
 use function ICanBoogie\singularize;
+use function is_a;
 use function is_string;
 use function preg_match;
 use function sprintf;
-use function str_ends_with;
-use function substr;
 
 final class ConfigBuilder
 {
@@ -165,8 +161,12 @@ final class ConfigBuilder
         return $models;
     }
 
-    private function try_key(string $key, string $on): ?string
+    private function try_key(mixed $key, string $on): ?string
     {
+        if (!is_string($key)) {
+            return null;
+        }
+
         $schema = $this->transient_models[$on]->schema;
 
         return isset($schema[$key]) ? $key : null;
@@ -316,31 +316,29 @@ final class ConfigBuilder
 
         $this->model_aliases[$activerecord_class] = $id;
 
+        //
+
+        [ $inner_schema_builder, $inner_association_builder ] = $this->create_builders($activerecord_class);
+
         // schema
 
-        $schema = $this->schemas[$activerecord_class] ?? null;
-
         if ($schema_builder) {
-            $inner_schema_builder = new SchemaBuilder();
             $schema_builder($inner_schema_builder);
-            $schema = $inner_schema_builder->build();
-        } elseif ($schema === null && $this->from_attributes) {
+        } elseif ($this->use_attributes && $inner_schema_builder->is_empty()) {
             throw new LogicException("expected schema builder because the config was built from attributes but there's no schema for $activerecord_class");
-        } elseif ($schema === null) {
-            throw new LogicException("expected schema builder for '$id'");
         }
+
+        $schema = $inner_schema_builder->build();
 
         // association
 
-        $inner_association_builder = $this->association_builders[$activerecord_class] ?? null;
-
         if ($association_builder) {
-            $inner_association_builder ??= new AssociationBuilder();
             $association_builder($inner_association_builder);
         }
-        if ($inner_association_builder) {
-            $this->association[$id] = $inner_association_builder->build();
-        }
+
+        $this->association[$id] = $inner_association_builder->build();
+
+        // transient model
 
         $this->transient_models[$id] = new TransientModelDefinition(
             id: $id,
@@ -358,16 +356,12 @@ final class ConfigBuilder
         return $this;
     }
 
-    /**
-     * Schemas built from attributes.
-     *
-     * @var array<class-string, Schema>
-     *     Where _key_ is an ActiveRecord class.
-     */
-    private array $schemas = [];
-    private bool $from_attributes = false;
+    private bool $use_attributes = false;
 
-    public function from_attributes(): self
+    /**
+     * Enables the use of attributes to create schemas and associations.
+     */
+    public function use_attributes(): self
     {
         if (!class_exists(Attributes::class)) {
             throw new LogicException(
@@ -378,105 +372,58 @@ final class ConfigBuilder
             );
         }
 
-        $this->from_attributes = true;
-        $this->build_schemas_from_attributes();
+        $this->use_attributes = true;
 
         return $this;
     }
 
-    private function build_schemas_from_attributes(): void
+    /**
+     * Creates a schema builder and an association builder, if attributes are enabled they are configured using them.
+     *
+     * @param class-string $activerecord_class
+     *     An ActiveRecord class.
+     *
+     * @return array{ SchemaBuilder, AssociationBuilder }
+     */
+    private function create_builders(string $activerecord_class): array
     {
+        $schema_builder = new SchemaBuilder();
+        $association_builder = new AssociationBuilder();
+
+        if ($this->use_attributes) {
+            [ $class_targets, $target_properties ] = $this->find_attribute_targets($activerecord_class);
+
+            $class_attributes = array_map(fn(TargetClass $t) => $t->attribute, $class_targets);
+            $property_attributes = array_map(fn(TargetProperty $t) => [ $t->attribute, $t->name ], $target_properties);
+
+            $schema_builder->from_attributes($class_attributes, $property_attributes);
+            $association_builder->from_attributes($class_attributes, $property_attributes);
+        }
+
+        return [ $schema_builder, $association_builder ];
+    }
+
+    /**
+     * @param class-string $activerecord_class
+     *     An ActiveRecord class.
+     *
+     * @return array{
+     *     TargetClass<SchemaAttribute>[],
+     *     TargetProperty<SchemaAttribute>[],
+     * }
+     */
+    private function find_attribute_targets(string $activerecord_class): array
+    {
+        $predicate = fn(string $attribute, string $class): bool =>
+            is_a($attribute, SchemaAttribute::class, true)
+            && $class === $activerecord_class;
+
         /** @var TargetClass<SchemaAttribute>[] $target_classes */
-        $target_classes = Attributes::filterTargetClasses(
-            Attributes::predicateForAttributeInstanceOf(SchemaAttribute::class)
-        );
+        $target_classes = Attributes::filterTargetClasses($predicate);
 
         /** @var TargetProperty<SchemaAttribute>[] $target_properties */
-        $target_properties = Attributes::filterTargetProperties(
-            Attributes::predicateForAttributeInstanceOf(SchemaAttribute::class)
-        );
+        $target_properties = Attributes::filterTargetProperties($predicate);
 
-        $target_classes_by_class = iterable_to_groups($target_classes, fn(TargetClass $t) => $t->name);
-        $target_properties_by_class = iterable_to_groups($target_properties, fn(TargetProperty $t) => $t->class);
-
-        foreach ($target_properties_by_class as $class => $target_properties) {
-            $target_classes = $target_classes_by_class[$class] ?? [];
-
-            $this->schemas[$class] = $this->build_schema_from_attributes($target_classes, $target_properties);
-
-            $this->add_associations_from_attributes(
-                $class,
-                array_merge($target_classes, $target_properties)
-            );
-        }
-    }
-
-    /**
-     * @param TargetClass<SchemaAttribute>[] $target_classes
-     * @param TargetProperty<SchemaAttribute>[] $target_properties
-     */
-    private function build_schema_from_attributes(array $target_classes, array $target_properties): Schema
-    {
-        $ca = array_map(fn(TargetClass $t) => [ $t->attribute ], $target_classes);
-        $pa = array_map(fn(TargetProperty $t) => [ $t->attribute, $t->name ], $target_properties);
-
-        $builder = new SchemaBuilder();
-        $builder->from_attributes($ca, $pa);
-
-        return $builder->build();
-    }
-
-    /**
-     * @var array<class-string, AssociationBuilder>
-     */
-    private array $association_builders = [];
-
-    /**
-     * @param class-string $class ActiveRecord class
-     * @param TargetClass<SchemaAttribute>[]|TargetProperty<SchemaAttribute>[] $targets
-     */
-    private function add_associations_from_attributes(
-        string $class,
-        array $targets
-    ): void {
-        $this->association_builders[$class] = $b = new AssociationBuilder();
-
-        foreach ($targets as $t) {
-            $attribute = $t->attribute;
-
-            if ($attribute instanceof BelongsTo) {
-                $property = $t->name;
-                $as = $attribute->as ?? $this->create_belong_to_accessor($property);
-
-                $b->belongs_to($attribute->associate, local_key: $property, as: $as);
-
-                continue;
-            }
-
-            if ($attribute instanceof HasMany) {
-                $b->has_many(
-                    associate: $attribute->associate,
-                    foreign_key: $attribute->foreign_key,
-                    as: $attribute->as,
-                    through: $attribute->through,
-                );
-            }
-        }
-    }
-
-    /**
-     * @param non-empty-string $property
-     *
-     * @return non-empty-string
-     */
-    private function create_belong_to_accessor(string $property): string
-    {
-        if (str_ends_with($property, '_id')) {
-            $property = substr($property, 0, -3);
-        }
-
-        assert($property !== '');
-
-        return $property;
+        return [ $target_classes, $target_properties ];
     }
 }
