@@ -25,8 +25,8 @@ final class AssociationBuilder
     /**
      * When "A" has a reference to "B", we say "A" belongs to "B".
      *
-     * @param string $associate
-     *     A model identifier.
+     * @param class-string|string $associate
+     *     A model class or identifier.
      */
     public function belongs_to(
         string $associate,

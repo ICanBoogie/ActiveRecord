@@ -5,8 +5,8 @@ namespace ICanBoogie\ActiveRecord\Config;
 final class TransientBelongsToAssociation
 {
     /**
-     * @param string $associate
-     *     A model identifier.
+     * @param class-string|string $associate
+     *     A model class or identifier.
      */
     public function __construct(
         public readonly string $associate,

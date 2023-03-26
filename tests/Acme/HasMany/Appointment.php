@@ -11,11 +11,12 @@ use ICanBoogie\ActiveRecord\Attribute\Serial;
 /**
  * @property-read Physician $physician
  * @property-read Patient $patient
+ *
+ * @extends ActiveRecord<int>
  */
 class Appointment extends ActiveRecord
 {
-    #[Serial]
-    #[Id]
+    #[Id, Serial]
     public int $ap_id;
 
     #[BelongsTo(Physician::class)]

@@ -10,6 +10,9 @@ use ICanBoogie\ActiveRecord\SchemaIndex;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\HasMany\Appointment;
+use Test\ICanBoogie\Acme\HasMany\Patient;
+use Test\ICanBoogie\Acme\HasMany\Physician;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Fixtures;
 use Test\ICanBoogie\SetStateHelper;
@@ -76,6 +79,37 @@ final class ConfigBuilderTest extends TestCase
         $this->assertEquals([
             new SchemaIndex([ 'rating' ], name: 'idx_rating')
         ], $schema->indexes);
+    }
+
+    public function test_from_attributes_with_association(): void
+    {
+        $config = (new ConfigBuilder())
+            ->from_attributes()
+            ->add_connection(
+                id: Config::DEFAULT_CONNECTION_ID,
+                dsn: 'sqlite::memory:',
+            )
+            ->add_model(
+                id: 'physicians',
+                activerecord_class: Physician::class,
+            )
+            ->add_model(
+                id: 'patients',
+                activerecord_class: Patient::class,
+            )
+            ->add_model(
+                id: 'appointments',
+                activerecord_class: Appointment::class,
+            )
+            ->build();
+
+        $ap_def = $config->models['appointments'];
+
+        $this->assertNotNull($ap_def->association);
+        $this->assertEquals([
+            new Config\BelongsToAssociation('physicians', 'physician_id', 'ph_id', 'physician'),
+            new Config\BelongsToAssociation('patients', 'patient_id', 'pa_id', 'patient'),
+        ], $ap_def->association->belongs_to);
     }
 
     public function test_export(): void

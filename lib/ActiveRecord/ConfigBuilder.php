@@ -13,6 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use Closure;
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Attribute\BelongsTo;
 use ICanBoogie\ActiveRecord\Attribute\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Config\Association;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
@@ -30,6 +31,7 @@ use olvlvl\ComposerAttributeCollector\Attributes;
 use olvlvl\ComposerAttributeCollector\TargetClass;
 use olvlvl\ComposerAttributeCollector\TargetProperty;
 
+use function array_filter;
 use function array_map;
 use function class_exists;
 use function get_debug_type;
@@ -38,6 +40,8 @@ use function ICanBoogie\singularize;
 use function is_string;
 use function preg_match;
 use function sprintf;
+use function str_ends_with;
+use function substr;
 
 final class ConfigBuilder
 {
@@ -170,7 +174,7 @@ final class ConfigBuilder
 
     private function resolve_belongs_to(string $owner, TransientBelongsToAssociation $association): BelongsToAssociation
     {
-        $associate = $association->associate;
+        $associate = $this->resolve_model_id($association->associate);
         $foreign_key = $this->transient_models[$associate]->schema->primary;
 
         if (!is_string($foreign_key)) {
@@ -234,6 +238,11 @@ final class ConfigBuilder
         );
     }
 
+    private function resolve_model_id(string $model_id_or_active_record_class): string
+    {
+        return $this->model_aliases[$model_id_or_active_record_class] ?? $model_id_or_active_record_class;
+    }
+
     /**
      * @return $this
      */
@@ -271,6 +280,12 @@ final class ConfigBuilder
     }
 
     /**
+     * @var array<class-string, string>
+     *     Where _key_ is an ActiveRecord class and _value_ a model identifier.
+     */
+    private array $model_aliases = [];
+
+    /**
      * @param class-string<ActiveRecord> $activerecord_class
      * @param class-string<Model>|null $model_class
      * @param class-string<Query<ActiveRecord>>|null $query_class
@@ -293,6 +308,10 @@ final class ConfigBuilder
             throw new LogicException("\$activerecord_class must be an extension of ICanBoogie\ActiveRecord");
         }
 
+        $this->model_aliases[$activerecord_class] = $id;
+
+        // schema
+
         $schema = $this->schemas[$activerecord_class] ?? null;
 
         if ($schema_builder) {
@@ -305,9 +324,15 @@ final class ConfigBuilder
             throw new LogicException("expected schema builder for '$id'");
         }
 
+        // association
+
+        $inner_association_builder = $this->association_builders[$activerecord_class] ?? null;
+
         if ($association_builder) {
-            $inner_association_builder = new AssociationBuilder();
+            $inner_association_builder ??= new AssociationBuilder();
             $association_builder($inner_association_builder);
+        }
+        if ($inner_association_builder) {
             $this->association[$id] = $inner_association_builder->build();
         }
 
@@ -372,6 +397,8 @@ final class ConfigBuilder
             $target_classes = $target_classes_by_class[$class] ?? [];
 
             $this->schemas[$class] = $this->build_schema_from_attributes($target_classes, $target_properties);
+
+            $this->add_associations_from_attributes($class, $target_classes, $target_properties);
         }
     }
 
@@ -388,5 +415,43 @@ final class ConfigBuilder
         $builder->from_attributes($ca, $pa);
 
         return $builder->build();
+    }
+
+    /**
+     * @var array<class-string, AssociationBuilder>
+     */
+    private array $association_builders = [];
+
+    /**
+     * @param class-string $class ActiveRecord class
+     * @param TargetClass<SchemaAttribute>[] $target_classes
+     * @param TargetProperty<SchemaAttribute>[] $target_properties
+     */
+    private function add_associations_from_attributes(
+        string $class,
+        array $target_classes,
+        array $target_properties
+    ): void {
+        $this->association_builders[$class] = $b = new AssociationBuilder();
+
+        foreach ($target_properties as $t) {
+            $attribute = $t->attribute;
+            $property = $t->name;
+
+            if ($attribute instanceof BelongsTo) {
+                $as = $attribute->as ?? $this->create_belong_to_accessor($property);
+
+                $b->belongs_to($attribute->active_record_class, $property, $as);
+            }
+        }
+    }
+
+    private function create_belong_to_accessor(string $property): string
+    {
+        if (str_ends_with($property, '_id')) {
+            $property = substr($property, 0, -3);
+        }
+
+        return $property;
     }
 }
