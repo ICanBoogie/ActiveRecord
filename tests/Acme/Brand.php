@@ -4,6 +4,9 @@ namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
 
+/**
+ * @extends ActiveRecord<int>
+ */
 class Brand extends ActiveRecord
 {
     public int $brand_id;

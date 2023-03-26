@@ -18,7 +18,7 @@ vendor:
 test-dependencies: vendor
 
 .PHONY: test
-test: test-dependencies test-cleanup
+test: test-dependencies
 	@$(PHPUNIT) $(ARGS)
 
 .PHONY: test-coverage
@@ -33,7 +33,7 @@ test-coveralls: test-dependencies
 
 .PHONY: test-cleanup
 test-cleanup:
-	rm -rf tests/sandbox/*
+	@rm -rf tests/sandbox/*
 
 .PHONY: test-container
 test-container: test-container-81

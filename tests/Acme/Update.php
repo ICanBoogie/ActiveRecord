@@ -4,6 +4,9 @@ namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
 
+/**
+ * @extends ActiveRecord<int>
+ */
 class Update extends ActiveRecord
 {
     public int $update_id;

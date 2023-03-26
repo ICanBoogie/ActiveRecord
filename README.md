@@ -432,54 +432,45 @@ and the primary key of the parent is used to link records together. When the mod
 tables are joined. When values are inserted or updated, they are split to update the various
 tables. Also, the connection of the parent model is inherited.
 
-The `EXTENDING` attribute specifies the model to extend.
-
 ```php
 <?php
 
+namespace App;
+
+use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelCollection;
-use ICanBoogie\DateTime;
+use ICanBoogie\ActiveRecord\ModelDefinition;
+use ICanBoogie\ActiveRecord\SchemaBuilder;use ICanBoogie\DateTime;
 
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+/* @var ConfigBuilder $config */
 
-$models = new ModelCollection($connections, [
+$config
+    ->add_model(
+        id: 'nodes',
+        schema_builder: fn(SchemaBuilder $b) => $b
+            ->add_serial('nid', primary: true)
+            ->add_varchar('title'),
+        activerecord_class: Node::class
+    )
+    ->add_model(
+        id: 'articles',
+        schema_builder: fn(SchemaBuilder $b) => $b
+            ->add_varchar('body')
+            ->add_date('date'),
+        activerecord_class: Article::class,
+        extends: 'nodes'
+    );
 
-    'nodes' => [
+// …
 
-        Model::SCHEMA => [
-
-            'nid' => 'serial',
-            'title' => 'varchar'
-
-        ]
-    ],
-
-    'contents' => [
-
-        Model::EXTENDING => 'nodes',
-        Model::SCHEMA => [
-
-            'body' => 'text',
-            'date' => 'date'
-
-        ]
-    ],
-
-    'news' => [
-
-        Model::EXTENDING => 'contents'
-
-    ]
-]);
-
-$models['news']->save([
-
-    'title' => "Testing!",
-    'body' => "Testing...",
+$article = Article::from([
+    'title' => "My Article",
+    'body' => "Testing",
     'date' => DateTime::now()
-
 ]);
+
+$article->save();
 ```
 
 Contrary to tables, models are not required to define a schema if they extend another model, but

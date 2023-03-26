@@ -17,7 +17,11 @@ use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\StaticModelResolver;
 use ICanBoogie\Validate\ValidationErrors;
 use LogicException;
+use ReflectionException;
+use Throwable;
 
+use function array_keys;
+use function is_array;
 use function is_numeric;
 
 /**
@@ -27,8 +31,13 @@ use function is_numeric;
  * @method ValidationErrors validate() Validate the active record, returns an array of errors.
  *
  * @property-read Model $model The model managing the active record.
+ * @uses self::get_model()
  * @property-read string $model_id The identifier of the model managing the active record.
+ * @uses self::get_model_id()
  * @property-read bool $is_new Whether the record is new or not.
+ * @uses self::get_is_new()
+ *
+ * @template TKey of int|string|string[]
  */
 abstract class ActiveRecord extends Prototyped
 {
@@ -36,9 +45,14 @@ abstract class ActiveRecord extends Prototyped
 
     /**
      * Model managing the active record.
+     *
+     * @var Model<TKey, static>
      */
     private Model $model;
 
+    /**
+     * @return Model<TKey, static>
+     */
     protected function get_model(): Model
     {
         return $this->model
@@ -60,12 +74,9 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * @param ?Model $model The model managing the active record. A {@link Model}
-     * instance can be specified as well as a model identifier. If `$model` is empty, the model
-     * will be resolved with {@link StaticModelResolver} when required.
-     *
-     * @throws \InvalidArgumentException if $model is neither a model identifier nor a
-     * {@link Model} instance.
+     * @param ?Model<TKey,static> $model
+     *     The model managing the active record. A {@link Model} instance can be specified as well as a model
+     *     identifier. If `$model` is null, the model will be resolved with {@link StaticModelResolver} when required.
      */
     public function __construct(Model $model = null)
     {
@@ -80,15 +91,21 @@ abstract class ActiveRecord extends Prototyped
      *
      * Properties whose value are instances of the {@link ActiveRecord} class are removed from the
      * exported properties.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws ReflectionException
      */
-    public function __sleep(): array
+    public function __sleep() // @phpstan-ignore-line
     {
         $properties = parent::__sleep();
 
+        /** @phpstan-ignore-next-line */
         unset($properties['model']);
+        /** @phpstan-ignore-next-line */
         unset($properties['model_id']);
 
-        foreach (\array_keys($properties) as $property) {
+        foreach (array_keys($properties) as $property) {
             if ($this->$property instanceof self) {
                 unset($properties[$property]);
             }
@@ -101,9 +118,9 @@ abstract class ActiveRecord extends Prototyped
      * Removes `model` from the output, since `model_id` is good enough to figure which model
      * is used.
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function __debugInfo()
+    public function __debugInfo(): array
     {
         $array = (array)$this;
 
@@ -114,14 +131,12 @@ abstract class ActiveRecord extends Prototyped
 
     /**
      * Whether the record is new or not.
-     *
-     * @return bool
      */
     protected function get_is_new(): bool
     {
         $primary = $this->get_model()->primary;
 
-        if (\is_array($primary)) {
+        if (is_array($primary)) {
             foreach ($primary as $property) {
                 if (empty($this->$property)) {
                     return true;
@@ -141,8 +156,10 @@ abstract class ActiveRecord extends Prototyped
      *
      * @return bool|int Primary key value of the active record, or a boolean if the primary key
      * is not a serial.
+     *
+     * @throws Throwable
      */
-    public function save(array $options = [])
+    public function save(array $options = []): int|bool
     {
         if (empty($options[self::SAVE_SKIP_VALIDATION])) {
             $this->assert_is_valid();
@@ -158,7 +175,7 @@ abstract class ActiveRecord extends Prototyped
 
         $primary = $model->primary;
 
-        if (\is_array($primary)) {
+        if (is_array($primary)) {
             return $model->insert($properties, [ 'on duplicate' => true ]);
         }
 

@@ -81,7 +81,9 @@ class HasManyRelation extends Relation
         // Because of the select, we need to set the mode otherwise an array would be
         // fetched instead of an object.
         $q->mode(PDO::FETCH_CLASS, $related->activerecord_class);
+        //phpcs:disable Generic.Files.LineLength.TooLong
         $q->join(expression: "INNER JOIN `$through->name` ON `$through->name`.{$r2->local_key} = `$r2_model->alias`.{$related->primary}");
+        //phpcs:disable Generic.Files.LineLength.TooLong
         $q->join(expression: "INNER JOIN `$owner->name` `$owner->alias` ON `$through->name`.{$r1->local_key} = `$owner->alias`.{$owner->primary}");
         $q->where("`$owner->alias`.{$owner->primary} = ?", $record->{$this->local_key});
 

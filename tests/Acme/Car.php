@@ -7,6 +7,8 @@ use ICanBoogie\ActiveRecord;
 /**
  * @property Brand $brand
  * @property Driver $driver
+ *
+ * @extends ActiveRecord<int>
  */
 class Car extends ActiveRecord
 {

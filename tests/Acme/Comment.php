@@ -4,6 +4,9 @@ namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
 
+/**
+ * @extends ActiveRecord<int>
+ */
 class Comment extends ActiveRecord
 {
     public int $comment_id;

@@ -31,7 +31,7 @@ class RelationCollection implements ArrayAccess
     private array $relations;
 
     /**
-     * @param Model<int|string|string[], ActiveRecord> $model The parent model.
+     * @param Model<int|string|string[], ActiveRecord<int|string|string[]>> $model The parent model.
      */
     public function __construct(
         public readonly Model $model
@@ -85,8 +85,7 @@ class RelationCollection implements ArrayAccess
         string $local_key,
         string $foreign_key,
         string $as,
-    ): void
-    {
+    ): void {
         $this->relations[$as] = new BelongsToRelation(
             owner: $this->model,
             related: $related,
@@ -105,8 +104,7 @@ class RelationCollection implements ArrayAccess
         string $foreign_key,
         string $as,
         ?string $through = null,
-    ): void
-    {
+    ): void {
         $this->relations[$as] = new HasManyRelation(
             owner: $this->model,
             related: $related,

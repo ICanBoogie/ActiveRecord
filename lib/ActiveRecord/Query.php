@@ -578,8 +578,7 @@ class Query implements IteratorAggregate
         string $mode = 'INNER',
         string $as = null,
         string $on = null,
-    ): void
-    {
+    ): void {
         $as ??= $query->model->alias;
         $on ??= $query->model->primary;
 
@@ -615,6 +614,7 @@ class Query implements IteratorAggregate
         string $on = null,
     ): void {
         $as ??= $model->alias;
+        //phpcs:disable PSR2.Methods.FunctionCallSignature.SpaceBeforeOpenBracket
         $on ??= (function () use ($model): string {
             $primary = $this->model->primary;
             $model_schema = $model->extended_schema;

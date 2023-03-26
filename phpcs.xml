@@ -2,12 +2,9 @@
 <ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="PHP_CodeSniffer"
          xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
     <file>lib</file>
-    <file>tests</file>
     <exclude-pattern>tests/sandbox/*</exclude-pattern>
 
-    <rule ref="Generic">
-        <exclude name="Generic.Files.LineLength.TooLong"/>
-    </rule>
+    <arg name="colors"/>
 
     <rule ref="PSR1">
         <exclude name="PSR1.Methods.CamelCapsMethodName.NotCamelCaps"/>
@@ -18,6 +15,12 @@
         <exclude name="PSR12.Operators.OperatorSpacing.NoSpaceAfter"/>
     </rule>
 
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+        <exclude-pattern>tests/bootstrap.php</exclude-pattern>
+    </rule>
+    <rule ref="Generic.Files.LineLength.TooLong">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
     <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
         <exclude-pattern>tests/*</exclude-pattern>
     </rule>

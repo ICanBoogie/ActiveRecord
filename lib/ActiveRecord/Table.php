@@ -41,32 +41,6 @@ use function substr;
 class Table extends Prototyped
 {
     /**
-     * Alias of the table.
-     */
-    public const ALIAS = 'alias';
-
-    /**
-     * Connection.
-     */
-    public const CONNECTION = 'connection';
-
-    /**
-     * Extended model.
-     */
-    public const EXTENDING = 'extends';
-    public const IMPLEMENTING = 'implements';
-
-    /**
-     * Unprefixed Name of the table.
-     */
-    public const NAME = 'name';
-
-    /**
-     * Schema of the table.
-     */
-    public const SCHEMA = 'schema';
-
-    /**
      * The parent is used when the table is in a hierarchy, which is the case if the table
      * extends another table.
      */
@@ -365,7 +339,7 @@ class Table extends Prototyped
      * The statement is prepared by the {@link prepare()} method before it is executed.
      *
      * @param string $query
-     * @param array $args
+     * @param array<int|string, mixed> $args
      * @param array $options
      *
      * @return mixed
