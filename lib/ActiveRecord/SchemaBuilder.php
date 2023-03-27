@@ -2,11 +2,10 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Attribute;
-use ICanBoogie\ActiveRecord\Attribute\SchemaAttribute;
+use ICanBoogie\ActiveRecord\Schema\ColumnAttribute;
+use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use LogicException;
 
-use function array_filter;
 use function in_array;
 use function is_string;
 
@@ -76,6 +75,89 @@ final class SchemaBuilder
         );
 
         return $this;
+    }
+
+    private function add_column_from_attribute(ColumnAttribute $attribute, string $col_name, bool $is_primary): self
+    {
+        return match ($attribute::class) {
+            Schema\Boolean::class, Schema\Integer::class, Schema\Serial::class => $this->add_column(
+                col_name: $col_name,
+                type: SchemaColumn::TYPE_INT,
+                size: $attribute->size,
+                unsigned: $attribute->unsigned,
+                null: $attribute->null,
+                auto_increment: $attribute->serial,
+                unique: $attribute->unique,
+                primary: $is_primary
+            ),
+
+            Schema\Date::class => $this->add_date(
+                col_name: $col_name,
+                null: $attribute->null,
+                default: $attribute->default,
+            ),
+
+            Schema\DateTime::class => $this->add_datetime(
+                col_name: $col_name,
+                null: $attribute->null,
+                default: $attribute->default,
+            ),
+
+            // String Data Types
+
+            Schema\Char::class => $this->add_char(
+                col_name: $col_name,
+                size: $attribute->size,
+                null: $attribute->null,
+                unique: $attribute->unique,
+                primary: $is_primary,
+                collate: $attribute->collate,
+            ),
+
+            Schema\VarChar::class => $this->add_varchar(
+                col_name: $col_name,
+                size: $attribute->size,
+                null: $attribute->null,
+                unique: $attribute->unique,
+                primary: $is_primary,
+                collate: $attribute->collate,
+            ),
+
+            Schema\Binary::class => $this->add_binary(
+                col_name: $col_name,
+                size: $attribute->size,
+                null: $attribute->null,
+                unique: $attribute->unique,
+                primary: $is_primary,
+            ),
+
+            Schema\VarBinary::class => $this->add_varbinary(
+                col_name: $col_name,
+                size: $attribute->size,
+                null: $attribute->null,
+                unique: $attribute->unique,
+                primary: $is_primary,
+            ),
+
+            Schema\Text::class => $this->add_text(
+                col_name: $col_name,
+                size: $attribute->size,
+                null: $attribute->null,
+                unique: $attribute->unique,
+                primary: $is_primary,
+            ),
+
+            // Relations
+
+            Schema\BelongsTo::class => $this->add_foreign(
+                col_name: $col_name,
+                null: $attribute->null,
+                unique: $attribute->unique,
+                primary: $is_primary,
+            ),
+
+            default => throw new LogicException("Don't know what to do with: " . $attribute::class),
+        };
     }
 
     public function add_boolean(
@@ -354,125 +436,33 @@ final class SchemaBuilder
     ): self {
         $ids = [];
 
-        $property_attributes = array_filter($property_attributes, function ($ar) use (&$ids) {
-            [ $attribute, $property ] = $ar;
-
-            if ($attribute instanceof Attribute\Id) {
+        //
+        // Before we process the property attributes, we need look for Id markers,
+        // so we can property set the `primary` property.
+        //
+        foreach ($property_attributes as [ $attribute, $property ]) {
+            if ($attribute instanceof Schema\Id) {
                 $ids[] = $property;
-
-                return false;
             }
-
-            return true;
-        });
+        }
 
         foreach ($property_attributes as [ $attribute, $name ]) {
+            if (!$attribute instanceof ColumnAttribute) {
+                continue;
+            }
+
             $is_primary = in_array($name, $ids);
-
-            match ($attribute::class) {
-                // Numeric Data Types
-
-                Attribute\Boolean::class => $this->add_boolean(
-                    col_name: $name,
-                    null: $attribute->null,
-                ),
-
-                Attribute\Integer::class => $this->add_integer(
-                    col_name: $name,
-                    size: $attribute->size,
-                    unsigned: $attribute->unsigned,
-                    null: $attribute->null,
-                    unique: $attribute->unique,
-                ),
-
-                Attribute\Serial::class => $this->add_serial(
-                    col_name: $name,
-                    primary: in_array($name, $ids)
-                ),
-
-                // Date and Time Data Types
-
-                Attribute\Date::class => $this->add_date(
-                    col_name: $name,
-                    null: $attribute->null,
-                    default: $attribute->default,
-                ),
-
-                Attribute\DateTime::class => $this->add_datetime(
-                    col_name: $name,
-                    null: $attribute->null,
-                    default: $attribute->default,
-                ),
-
-                // String Data Types
-
-                Attribute\Char::class => $this->add_char(
-                    col_name: $name,
-                    size: $attribute->size,
-                    null: $attribute->null,
-                    unique: $attribute->unique,
-                    primary: $is_primary,
-                    collate: $attribute->collate,
-                ),
-
-                Attribute\VarChar::class => $this->add_varchar(
-                    col_name: $name,
-                    size: $attribute->size,
-                    null: $attribute->null,
-                    unique: $attribute->unique,
-                    primary: $is_primary,
-                    collate: $attribute->collate,
-                ),
-
-                Attribute\Binary::class => $this->add_binary(
-                    col_name: $name,
-                    size: $attribute->size,
-                    null: $attribute->null,
-                    unique: $attribute->unique,
-                    primary: $is_primary,
-                ),
-
-                Attribute\VarBinary::class => $this->add_varbinary(
-                    col_name: $name,
-                    size: $attribute->size,
-                    null: $attribute->null,
-                    unique: $attribute->unique,
-                    primary: $is_primary,
-                ),
-
-                Attribute\Text::class => $this->add_text(
-                    col_name: $name,
-                    size: $attribute->size,
-                    null: $attribute->null,
-                    unique: $attribute->unique,
-                    primary: $is_primary,
-                ),
-
-                // Relations
-
-                Attribute\BelongsTo::class => $this->add_foreign(
-                    col_name: $name,
-                    null: $attribute->null,
-                    unique: $attribute->unique,
-                    primary: $is_primary,
-                ),
-
-                default => throw new LogicException("Don't know what to do with " . $attribute::class)
-            };
+            $this->add_column_from_attribute($attribute, $name, $is_primary);
         }
 
         foreach ($class_attributes as $attribute) {
-            match ($attribute::class) {
-                Attribute\Index::class => $this->add_index(
+            if ($attribute instanceof Schema\Index) {
+                $this->add_index(
                     columns: $attribute->columns,
                     unique: $attribute->unique,
                     name: $attribute->name,
-                ),
-
-                Attribute\HasMany::class => null,
-
-                default => throw new LogicException("Don't know what to do with " . $attribute::class)
-            };
+                );
+            }
         }
 
         return $this;

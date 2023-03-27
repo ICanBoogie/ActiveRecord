@@ -13,7 +13,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use Closure;
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Attribute\SchemaAttribute;
+use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Config\Association;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\Config\BelongsToAssociation;

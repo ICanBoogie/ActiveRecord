@@ -3,10 +3,10 @@
 namespace Test\ICanBoogie\Acme\HasMany;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Attribute\BelongsTo;
-use ICanBoogie\ActiveRecord\Attribute\DateTime;
-use ICanBoogie\ActiveRecord\Attribute\Id;
-use ICanBoogie\ActiveRecord\Attribute\Serial;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\DateTime;
+use ICanBoogie\ActiveRecord\Schema\Id;
+use ICanBoogie\ActiveRecord\Schema\Serial;
 
 /**
  * @property-read Physician $physician

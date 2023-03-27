@@ -1,12 +1,12 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord\Attribute;
+namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
 use ICanBoogie\ActiveRecord\SchemaColumn;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class DateTime implements SchemaAttribute
+final class DateTime implements ColumnAttribute
 {
     public function __construct(
         public readonly bool $null = false,

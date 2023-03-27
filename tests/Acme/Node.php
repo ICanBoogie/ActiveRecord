@@ -9,10 +9,10 @@ use ICanBoogie\ActiveRecord;
  */
 class Node extends ActiveRecord
 {
-    #[ActiveRecord\Attribute\Serial]
-    #[ActiveRecord\Attribute\Id]
+    #[ActiveRecord\Schema\Serial]
+    #[ActiveRecord\Schema\Id]
     public int $nid;
 
-    #[ActiveRecord\Attribute\VarChar]
+    #[ActiveRecord\Schema\VarChar]
     public string $title;
 }

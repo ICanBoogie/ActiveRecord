@@ -1,6 +1,6 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord\Attribute;
+namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
 
@@ -8,7 +8,7 @@ use Attribute;
  * Marks a relationship with another model, with the property as reference.
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class BelongsTo implements SchemaAttribute
+final class BelongsTo implements ColumnAttribute
 {
     /**
      * @param class-string $associate

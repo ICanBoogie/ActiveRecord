@@ -1,6 +1,6 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord\Attribute;
+namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
 

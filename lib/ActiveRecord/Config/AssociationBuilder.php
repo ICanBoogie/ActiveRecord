@@ -2,9 +2,9 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
-use ICanBoogie\ActiveRecord\Attribute\BelongsTo;
-use ICanBoogie\ActiveRecord\Attribute\HasMany;
-use ICanBoogie\ActiveRecord\Attribute\SchemaAttribute;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\HasMany;
+use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 
 use function assert;
 use function str_ends_with;

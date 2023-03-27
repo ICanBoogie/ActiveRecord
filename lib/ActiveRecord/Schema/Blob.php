@@ -1,17 +1,16 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord\Attribute;
+namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Text implements SchemaAttribute
+final class Blob implements ColumnAttribute
 {
     public function __construct(
-        public readonly string|null $size = null,
+        public readonly int $size = 255,
         public readonly bool $null = false,
         public readonly bool $unique = false,
-        public readonly ?string $collate = null,
     ) {
     }
 }

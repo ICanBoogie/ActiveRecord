@@ -3,10 +3,10 @@
 namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Attribute\BelongsTo;
-use ICanBoogie\ActiveRecord\Attribute\Id;
-use ICanBoogie\ActiveRecord\Attribute\Serial;
-use ICanBoogie\ActiveRecord\Attribute\Text;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\Id;
+use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\Schema\Text;
 
 /**
  * @extends ActiveRecord<int>

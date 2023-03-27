@@ -1,11 +1,11 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord\Attribute;
+namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Binary implements SchemaAttribute
+final class VarBinary implements ColumnAttribute
 {
     public function __construct(
         public readonly int $size = 255,

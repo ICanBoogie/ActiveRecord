@@ -3,10 +3,10 @@
 namespace Test\ICanBoogie\Acme\HasMany;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Attribute\HasMany;
-use ICanBoogie\ActiveRecord\Attribute\Id;
-use ICanBoogie\ActiveRecord\Attribute\Serial;
-use ICanBoogie\ActiveRecord\Attribute\VarChar;
+use ICanBoogie\ActiveRecord\Schema\HasMany;
+use ICanBoogie\ActiveRecord\Schema\Id;
+use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\Schema\VarChar;
 use ICanBoogie\ActiveRecord\Query;
 
 /**
