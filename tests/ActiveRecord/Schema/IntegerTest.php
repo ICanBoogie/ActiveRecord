@@ -4,7 +4,7 @@ namespace Test\ICanBoogie\ActiveRecord\Schema;
 
 use Closure;
 use ICanBoogie\ActiveRecord\Schema\Integer;
-use InvalidArgumentException;
+use LogicException;
 use PHPUnit\Framework\TestCase;
 
 final class IntegerTest extends TestCase
@@ -14,7 +14,7 @@ final class IntegerTest extends TestCase
      */
     public function testInvalid(string $message, Closure $new): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessage($message);
         $new();
     }

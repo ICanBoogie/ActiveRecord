@@ -583,10 +583,10 @@ EOT
             $model_id => new ModelDefinition(
                 id: $model_id,
                 connection: Config::DEFAULT_CONNECTION_ID,
-                schema: new Schema([
-                    'nid' => SchemaColumn::serial(primary: true),
-                    'title' => SchemaColumn::varchar(),
-                ]),
+                schema: (new ActiveRecord\SchemaBuilder())
+                    ->add_serial('nid', primary: true)
+                    ->add_character('title')
+                    ->build(),
                 activerecord_class: Node::class,
             )
         ]);

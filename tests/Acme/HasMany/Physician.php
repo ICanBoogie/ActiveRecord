@@ -3,11 +3,11 @@
 namespace Test\ICanBoogie\Acme\HasMany;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Query;
+use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\HasMany;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Serial;
-use ICanBoogie\ActiveRecord\Schema\VarChar;
-use ICanBoogie\ActiveRecord\Query;
 
 /**
  * @property-read Query<Appointment> $appointments
@@ -19,10 +19,9 @@ use ICanBoogie\ActiveRecord\Query;
 #[HasMany(Patient::class, through: Appointment::class)]
 class Physician extends ActiveRecord
 {
-    #[Serial]
-    #[Id]
+    #[Id, Serial]
     public int $ph_id;
 
-    #[VarChar]
+    #[Character]
     public string $name;
 }

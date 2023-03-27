@@ -88,15 +88,15 @@ final class SchemaColumnTest extends TestCase
             /* VARCHAR */
 
             [
-                SchemaColumn::varchar(),
+                SchemaColumn::character(),
                 "VARCHAR(255) NOT NULL"
             ],
             [
-                SchemaColumn::varchar(size: 32),
+                SchemaColumn::character(size: 32),
                 "VARCHAR(32) NOT NULL"
             ],
             [
-                SchemaColumn::varchar(unique: true, collate: 'ascii_general_ci'),
+                SchemaColumn::character(unique: true, collate: 'ascii_general_ci'),
                 "VARCHAR(255) NOT NULL UNIQUE COLLATE ascii_general_ci"
             ],
 

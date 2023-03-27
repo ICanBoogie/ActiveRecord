@@ -16,8 +16,8 @@ final class SchemaBuilderTest extends TestCase
             ->add_boolean('is_active')
             ->add_integer('rating_count')
             ->add_decimal('rating_avg', null: true)
-            ->add_char('country', 2)
-            ->add_varchar('title')
+            ->add_character('country', size: 2, fixed: true)
+            ->add_character('title')
             ->add_text('body')
             ->add_datetime('date', default: SchemaBuilder::CURRENT_TIMESTAMP)
             ->add_index('is_active')
@@ -28,8 +28,8 @@ final class SchemaBuilderTest extends TestCase
             'is_active' => SchemaColumn::boolean(),
             'rating_count' => SchemaColumn::int(),
             'rating_avg' => SchemaColumn::float(null: true),
-            'country' => SchemaColumn::char(2),
-            'title' => SchemaColumn::varchar(),
+            'country' => SchemaColumn::character(2, fixed: true),
+            'title' => SchemaColumn::character(),
             'body' => SchemaColumn::text(),
             'date' => SchemaColumn::datetime(default: SchemaColumn::CURRENT_TIMESTAMP)
 

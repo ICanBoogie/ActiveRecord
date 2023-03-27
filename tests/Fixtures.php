@@ -64,7 +64,7 @@ final class Fixtures
                     activerecord_class: Node::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('nid', primary: true)
-                        ->add_varchar('title'),
+                        ->add_character('title'),
                 ),
                 'articles' => $config->add_model(
                     id: 'articles',
@@ -72,7 +72,7 @@ final class Fixtures
                     model_class: ArticleModel::class,
                     extends: 'nodes',
                     schema_builder: fn(SchemaBuilder $schema) => $schema
-                        ->add_varchar('body')
+                        ->add_character('body')
                         ->add_datetime('date', default: $schema::CURRENT_TIMESTAMP)
                         ->add_integer('rating', size: $schema::SIZE_TINY, null: true),
                     association_builder: fn(AssociationBuilder $association) => $association
@@ -94,7 +94,7 @@ final class Fixtures
                     activerecord_class: Count::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('id', primary: true)
-                        ->add_varchar('name')
+                        ->add_character('name')
                         ->add_datetime('date'),
                 ),
                 #
@@ -105,14 +105,14 @@ final class Fixtures
                     activerecord_class: Driver::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('driver_id', primary: true)
-                        ->add_varchar('name')
+                        ->add_character('name')
                 ),
                 'brands' => $config->add_model(
                     id: 'brands',
                     activerecord_class: Brand::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('brand_id', primary: true)
-                        ->add_varchar('name'),
+                        ->add_character('name'),
                 ),
                 'cars' => $config->add_model(
                     id: 'cars',
@@ -121,7 +121,7 @@ final class Fixtures
                         ->add_serial('car_id', primary: true)
                         ->add_foreign('driver_id')
                         ->add_foreign('brand_id')
-                        ->add_varchar('name'),
+                        ->add_character('name'),
                 ),
                 #
                 #
@@ -131,7 +131,7 @@ final class Fixtures
                     activerecord_class: Subscriber::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('subscriber_id', primary: true)
-                        ->add_varchar('email'),
+                        ->add_character('email'),
                 ),
                 'updates' => $config->add_model(
                     id: 'updates',
@@ -140,7 +140,7 @@ final class Fixtures
                         ->add_serial('updated_id', primary: true)
                         ->add_foreign('subscriber_id')
                         ->add_datetime('updated_at')
-                        ->add_char('updated_hash', size: 40),
+                        ->add_character('updated_hash', size: 40, fixed: true),
                 ),
                 #
                 #
@@ -150,7 +150,7 @@ final class Fixtures
                     activerecord_class: Physician::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('ph_id', primary: true)
-                        ->add_varchar('name'),
+                        ->add_character('name'),
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many('appointments', foreign_key: 'physician_id')
                         ->has_many('patients', through: 'appointments'),
@@ -172,7 +172,7 @@ final class Fixtures
                     activerecord_class: Patient::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('pa_id', primary: true)
-                        ->add_varchar('name'),
+                        ->add_character('name'),
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many('appointments', foreign_key: 'patient_id')
                         ->has_many('physicians', foreign_key: 'patient_id', through: 'appointments'),

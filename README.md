@@ -450,13 +450,13 @@ $config
         id: 'nodes',
         schema_builder: fn(SchemaBuilder $b) => $b
             ->add_serial('nid', primary: true)
-            ->add_varchar('title'),
+            ->add_character('title'),
         activerecord_class: Node::class
     )
     ->add_model(
         id: 'articles',
         schema_builder: fn(SchemaBuilder $b) => $b
-            ->add_varchar('body')
+            ->add_character('body')
             ->add_date('date'),
         activerecord_class: Article::class,
         extends: 'nodes'

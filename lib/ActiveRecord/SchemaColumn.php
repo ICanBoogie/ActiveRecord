@@ -218,8 +218,9 @@ class SchemaColumn
      * https://dev.mysql.com/doc/refman/8.0/en/string-types.html
      */
 
-    public static function char(
+    public static function character(
         int $size = 255,
+        bool $fixed = false,
         bool $null = false,
         bool $unique = false,
         bool $primary = false,
@@ -227,26 +228,7 @@ class SchemaColumn
         ?string $collate = null,
     ): self {
         return new self(
-            type: self::TYPE_CHAR,
-            size: $size,
-            null: $null,
-            unique: $unique,
-            primary: $primary,
-            comment: $comment,
-            collate: $collate,
-        );
-    }
-
-    public static function varchar(
-        int $size = 255,
-        bool $null = false,
-        bool $unique = false,
-        bool $primary = false,
-        ?string $comment = null,
-        ?string $collate = null,
-    ): self {
-        return new self(
-            type: self::TYPE_VARCHAR,
+            type: $fixed ? self::TYPE_CHAR : self::TYPE_VARCHAR,
             size: $size,
             null: $null,
             unique: $unique,

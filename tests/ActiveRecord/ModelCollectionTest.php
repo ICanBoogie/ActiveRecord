@@ -102,7 +102,7 @@ final class ModelCollectionTest extends TestCase
             connection: Config::DEFAULT_CONNECTION_ID,
             schema: new Schema([
                 'brand_id' => SchemaColumn::serial(primary: true),
-                'name' => SchemaColumn::varchar(),
+                'name' => SchemaColumn::character(),
             ]),
             activerecord_class: Brand::class,
             name: 'brands',

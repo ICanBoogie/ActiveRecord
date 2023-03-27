@@ -77,13 +77,15 @@ final class SchemaBuilder
         return $this;
     }
 
-    private function add_column_from_attribute(ColumnAttribute $attribute, string $col_name, bool $is_primary): self
+    private function add_column_from_attribute(ColumnAttribute $attribute, string $col_name, bool $is_primary): void
     {
-        return match ($attribute::class) {
+        match ($attribute::class) {
             //
             // Integer
             //
-            Schema\Boolean::class, Schema\Integer::class, Schema\Serial::class => $this->add_column(
+            Schema\Boolean::class,
+            Schema\Integer::class,
+            Schema\Serial::class => $this->add_column(
                 col_name: $col_name,
                 type: SchemaColumn::TYPE_INT,
                 size: $attribute->size,
@@ -116,22 +118,14 @@ final class SchemaBuilder
 
             // String Data Types
 
-            Schema\Char::class => $this->add_char(
+            Schema\Character::class => $this->add_character(
                 col_name: $col_name,
                 size: $attribute->size,
+                fixed: $attribute->fixed,
                 null: $attribute->null,
                 unique: $attribute->unique,
-                primary: $is_primary,
                 collate: $attribute->collate,
-            ),
-
-            Schema\VarChar::class => $this->add_varchar(
-                col_name: $col_name,
-                size: $attribute->size,
-                null: $attribute->null,
-                unique: $attribute->unique,
                 primary: $is_primary,
-                collate: $attribute->collate,
             ),
 
             Schema\Binary::class => $this->add_binary(
@@ -282,37 +276,18 @@ final class SchemaBuilder
         return $this;
     }
 
-    public function add_char(
+    public function add_character(
         string $col_name,
         int $size = 255,
+        bool $fixed = false,
         bool $null = false,
         bool $unique = false,
+        ?string $collate = null,
         bool $primary = false,
         ?string $comment = null,
-        ?string $collate = null,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::char(
-            size: $size,
-            null: $null,
-            unique: $unique,
-            primary: $primary,
-            comment: $comment,
-            collate: $collate,
-        );
-
-        return $this;
-    }
-
-    public function add_varchar(
-        string $col_name,
-        int $size = 255,
-        bool $null = false,
-        bool $unique = false,
-        bool $primary = false,
-        ?string $comment = null,
-        ?string $collate = null,
-    ): self {
-        $this->columns[$col_name] = SchemaColumn::varchar(
+        $this->columns[$col_name] = new SchemaColumn(
+            type: $fixed ? SchemaColumn::TYPE_CHAR : SchemaColumn::TYPE_VARCHAR,
             size: $size,
             null: $null,
             unique: $unique,

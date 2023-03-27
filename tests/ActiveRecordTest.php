@@ -115,11 +115,11 @@ final class ActiveRecordTest extends TestCase
                 new Schema([
 
                     $primary => SchemaColumn::serial(primary: true),
-                    'reversed' => SchemaColumn::varchar(),
+                    'reversed' => SchemaColumn::character(),
                     'date' => SchemaColumn::datetime(),
-                    'do_not_allow_null' => SchemaColumn::varchar(),
-                    'allow_null' => SchemaColumn::varchar(null: true),
-                    'allow_null_with_value' => SchemaColumn::varchar(null: true),
+                    'do_not_allow_null' => SchemaColumn::character(),
+                    'allow_null' => SchemaColumn::character(null: true),
+                    'allow_null_with_value' => SchemaColumn::character(null: true),
 
                 ])
             );

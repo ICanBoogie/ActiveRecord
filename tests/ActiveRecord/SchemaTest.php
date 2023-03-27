@@ -37,7 +37,7 @@ final class SchemaTest extends TestCase
     {
         $schema = (new Schema([
             'id' => SchemaColumn::serial(primary: true),
-            'name' => SchemaColumn::varchar(32),
+            'name' => SchemaColumn::character(32),
         ]))->index([ 'id', 'name' ]);
 
         $actual = SetStateHelper::export_import($schema);
@@ -50,7 +50,7 @@ final class SchemaTest extends TestCase
         $schema = new Schema(
             $columns = [
                 'id' => SchemaColumn::serial(primary: true),
-                'name' => SchemaColumn::varchar(32),
+                'name' => SchemaColumn::character(32),
             ]
         );
 
@@ -121,7 +121,7 @@ final class SchemaTest extends TestCase
             "no index" => [
                 new Schema([
                     'id' => SchemaColumn::serial(primary: true),
-                    'title' => SchemaColumn::varchar(),
+                    'title' => SchemaColumn::character(),
                 ]),
                 []
             ],
@@ -129,7 +129,7 @@ final class SchemaTest extends TestCase
             "a primary and a unique" => [
                 new Schema([
                     'id' => SchemaColumn::foreign(primary: true),
-                    'name' => SchemaColumn::varchar(unique: true),
+                    'name' => SchemaColumn::character(unique: true),
                 ]),
                 []
             ],
@@ -137,9 +137,9 @@ final class SchemaTest extends TestCase
             "two indexes, one of them unique " => [
                 (new Schema([
                     'id' => SchemaColumn::serial(primary: true),
-                    'country' => SchemaColumn::char(size: 2),
-                    'week' => SchemaColumn::char(size: 8),
-                    'product' => SchemaColumn::varchar(),
+                    'country' => SchemaColumn::character(2),
+                    'week' => SchemaColumn::character(8),
+                    'product' => SchemaColumn::character(),
                 ]))
                     ->index([ 'country', 'week', 'product' ], unique: true)
                     ->index('week', name: "my_week_index"),
@@ -162,7 +162,7 @@ final class SchemaTest extends TestCase
     {
         $schema = new Schema([
             'id' => SchemaColumn::serial(),
-            'title' => SchemaColumn::varchar(),
+            'title' => SchemaColumn::character(),
         ]);
 
         $this->assertEquals($expected, $schema->filter_values($values));

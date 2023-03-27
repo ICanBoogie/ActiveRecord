@@ -14,8 +14,7 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
  */
 class Update extends ActiveRecord
 {
-    #[Serial]
-    #[Id]
+    #[Id, Serial]
     public int $update_id;
 
     #[BelongsTo(Subscriber::class)]

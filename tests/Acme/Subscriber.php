@@ -3,19 +3,18 @@
 namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Serial;
-use ICanBoogie\ActiveRecord\Schema\VarChar;
 
 /**
  * @extends ActiveRecord<int>
  */
 class Subscriber extends ActiveRecord
 {
-    #[Serial]
-    #[Id]
+    #[Id, Serial]
     public int $subscriber_id;
 
-    #[VarChar]
+    #[Character]
     public string $email;
 }

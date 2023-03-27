@@ -3,7 +3,7 @@
 namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
-use InvalidArgumentException;
+use LogicException;
 
 use function in_array;
 
@@ -58,13 +58,13 @@ class Integer implements ColumnAttribute
         public readonly bool $unique = false,
     ) {
         in_array($size, self::ALLOWED_SIZES)
-            or throw new InvalidArgumentException("Size must be one of the allowed ones");
+            or throw new LogicException("Size must be one of the allowed ones");
 
         if ($serial) {
-            $size > 1 or throw new InvalidArgumentException("A serial integer must be at least 2 bytes");
-            $unsigned or throw new InvalidArgumentException("A serial integer must be unsigned");
-            !$null or throw new InvalidArgumentException("A serial integer cannot be nullable");
-            $unique or throw new InvalidArgumentException("A serial integer must be unique");
+            $size > 1 or throw new LogicException("A serial integer must be at least 2 bytes");
+            $unsigned or throw new LogicException("A serial integer must be unsigned");
+            !$null or throw new LogicException("A serial integer cannot be nullable");
+            $unique or throw new LogicException("A serial integer must be unique");
         }
     }
 }

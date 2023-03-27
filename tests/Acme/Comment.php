@@ -13,8 +13,7 @@ use ICanBoogie\ActiveRecord\Schema\Text;
  */
 class Comment extends ActiveRecord
 {
-    #[Serial]
-    #[Id]
+    #[Id, Serial]
     public int $comment_id;
 
     #[BelongsTo(Node::class)]

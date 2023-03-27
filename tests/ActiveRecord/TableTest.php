@@ -43,7 +43,7 @@ final class TableTest extends TestCase
                 name: 'animals',
                 schema: self::$animals_schema = new Schema([
                     'id' => SchemaColumn::serial(primary: true),
-                    'name' => SchemaColumn::varchar(),
+                    'name' => SchemaColumn::character(),
                     'date' => SchemaColumn::timestamp(),
                 ])
             )
@@ -149,7 +149,7 @@ final class TableTest extends TestCase
                 schema: new Schema([
                     'p1' => new SchemaColumn(type: 'int', size: 'big', primary: true),
                     'p2' => new SchemaColumn(type: 'int', size: 'big', primary: true),
-                    'f1' => SchemaColumn::varchar(),
+                    'f1' => SchemaColumn::character(),
                 ])
             )
         );

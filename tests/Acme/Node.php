@@ -3,16 +3,18 @@
 namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Schema\Character;
+use ICanBoogie\ActiveRecord\Schema\Id;
+use ICanBoogie\ActiveRecord\Schema\Serial;
 
 /**
  * @extends ActiveRecord<int>
  */
 class Node extends ActiveRecord
 {
-    #[ActiveRecord\Schema\Serial]
-    #[ActiveRecord\Schema\Id]
+    #[Id, Serial]
     public int $nid;
 
-    #[ActiveRecord\Schema\VarChar]
+    #[Character]
     public string $title;
 }

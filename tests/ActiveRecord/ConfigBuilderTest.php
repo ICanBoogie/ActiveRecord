@@ -31,7 +31,7 @@ final class ConfigBuilderTest extends TestCase
                 activerecord_class: Node::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_serial('nid', primary: true)
-                    ->add_varchar('title'),
+                    ->add_character('title'),
             )
             ->add_model(
                 id: 'articles',

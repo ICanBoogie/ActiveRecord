@@ -4,9 +4,9 @@ namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Serial;
-use ICanBoogie\ActiveRecord\Schema\VarChar;
 
 /**
  * @property Brand $brand
@@ -16,8 +16,7 @@ use ICanBoogie\ActiveRecord\Schema\VarChar;
  */
 class Car extends ActiveRecord
 {
-    #[Serial]
-    #[Id]
+    #[Id, Serial]
     public int $car_id;
 
     #[BelongsTo(Driver::class)]
@@ -26,6 +25,6 @@ class Car extends ActiveRecord
     #[BelongsTo(Brand::class)]
     public int $brand_id;
 
-    #[VarChar]
+    #[Character]
     public string $name;
 }
