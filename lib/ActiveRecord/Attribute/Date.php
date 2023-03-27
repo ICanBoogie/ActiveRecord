@@ -6,18 +6,12 @@ use Attribute;
 use ICanBoogie\ActiveRecord\SchemaColumn;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Date extends Column
+final class Date implements SchemaAttribute
 {
     public function __construct(
-        bool $null = false,
-        ?string $default = null,
+        public readonly bool $null = false,
+        public readonly ?string $default = null,
     ) {
         SchemaColumn::assert_datetime_default($default);
-
-        parent::__construct(
-            type: parent::TYPE_DATE,
-            null: $null,
-            default: $default,
-        );
     }
 }
