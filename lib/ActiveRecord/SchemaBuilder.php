@@ -80,6 +80,9 @@ final class SchemaBuilder
     private function add_column_from_attribute(ColumnAttribute $attribute, string $col_name, bool $is_primary): self
     {
         return match ($attribute::class) {
+            //
+            // Integer
+            //
             Schema\Boolean::class, Schema\Integer::class, Schema\Serial::class => $this->add_column(
                 col_name: $col_name,
                 type: SchemaColumn::TYPE_INT,
@@ -89,6 +92,14 @@ final class SchemaBuilder
                 auto_increment: $attribute->serial,
                 unique: $attribute->unique,
                 primary: $is_primary
+            ),
+
+            //
+            // Decimal @TODO: IMPROVE SUPPORT
+            //
+            Schema\Decimal::class => $this->add_decimal(
+                col_name: $col_name,
+                null: $attribute->null,
             ),
 
             Schema\Date::class => $this->add_date(
