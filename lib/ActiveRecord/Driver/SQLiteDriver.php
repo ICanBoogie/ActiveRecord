@@ -12,13 +12,6 @@
 namespace ICanBoogie\ActiveRecord\Driver;
 
 use ICanBoogie\ActiveRecord\Schema;
-use ICanBoogie\ActiveRecord\SchemaColumn;
-use ICanBoogie\ActiveRecord\SchemaIndex;
-
-use function array_filter;
-use function array_map;
-use function implode;
-use function is_array;
 
 /**
  * Connection driver for SQLite.
@@ -43,7 +36,7 @@ final class SQLiteDriver extends BasicDriver
             ->query('SELECT name FROM sqlite_master WHERE type = "table" AND name = ?', [ $name ])
             ->all(\PDO::FETCH_COLUMN);
 
-        return !!$tables;
+        return count($tables) > 0;
     }
 
     /**

@@ -69,9 +69,11 @@ class TableRendererForSQLite
                 false => "DECIMAL($column->precision, $column->scale)"
             },
 
-            Character::class => match ($column->fixed) {
-                true => "CHAR($column->size)",
-                false => "VARCHAR($column->size)"
+            Character::class => match (true) { // @phpstan-ignore-line
+                !$column->fixed && !$column->binary => "VARCHAR($column->size)",
+                $column->fixed && !$column->binary => "CHAR($column->size)",
+                !$column->fixed && $column->binary => "VARBINARY($column->size)",
+                $column->fixed && $column->binary => "BINARY($column->size)",
             },
             Text::class => "{$column->size}TEXT",
 

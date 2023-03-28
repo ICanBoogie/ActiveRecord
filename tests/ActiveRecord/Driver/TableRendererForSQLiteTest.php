@@ -165,6 +165,25 @@ final class TableRendererForSQLiteTest extends TestCase
                 SQL,
             ],
 
+            'Character' => [
+                new Schema(
+                    columns: [
+                        'title1' => new Character(),
+                        'title2' => new Character(fixed: true),
+                        'title3' => new Character(binary: true),
+                        'title4' => new Character(fixed: true, binary: true),
+                    ],
+                ),
+                <<<SQL
+                CREATE TABLE tblSample (
+                title1 VARCHAR(255) NOT NULL,
+                title2 CHAR(255) NOT NULL,
+                title3 VARBINARY(255) NOT NULL,
+                title4 BINARY(255) NOT NULL
+                );
+                SQL,
+            ],
+
         ];
     }
 }
