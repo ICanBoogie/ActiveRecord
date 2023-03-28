@@ -6,9 +6,9 @@ use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
-use ICanBoogie\ActiveRecord\Schema\SchemaColumn;
 use ICanBoogie\ActiveRecord\Schema\Constraints;
 use ICanBoogie\ActiveRecord\Schema\Integer;
+use ICanBoogie\ActiveRecord\Schema\SchemaColumn;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use RuntimeException;
@@ -61,7 +61,7 @@ class TableRendererForSQLite
     {
         return match ($column::class) {
             Boolean::class => 'BOOLEAN',
-            Serial::class, BelongsTo::class => "INTEGER",
+            Serial::class, BelongsTo::class => "INTEGER", // SQLite doesn't like sizes on SERIAL
             Integer::class => "INTEGER($column->size)",
 
             Schema\Decimal::class => match ($column->approximate) {
@@ -120,9 +120,8 @@ class TableRendererForSQLite
 
         if (is_array($primary)) {
             $primary = implode(', ', $primary);
-        }
-
-        if ($primary && !$schema->columns[$primary] instanceof Serial) {
+            $constraints .= "PRIMARY KEY ($primary)\n";
+        } elseif (is_string($primary) && !$schema->columns[$primary] instanceof Serial) {
             $constraints .= "PRIMARY KEY ($primary)\n";
         }
 

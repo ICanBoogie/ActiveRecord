@@ -2,13 +2,8 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
-use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\HasMany;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
-
-use function assert;
-use function str_ends_with;
-use function substr;
 
 final class AssociationBuilder
 {
@@ -82,11 +77,10 @@ final class AssociationBuilder
 
     /**
      * @param SchemaAttribute[] $class_attributes
-     * @param array{ SchemaAttribute, non-empty-string }[] $property_attributes
      *
      * @return $this
      */
-    public function from_attributes(array $class_attributes, array $property_attributes): self
+    public function from_attributes(array $class_attributes): self
     {
         foreach ($class_attributes as $attribute) {
             if (!$attribute instanceof HasMany) {
@@ -101,32 +95,6 @@ final class AssociationBuilder
             );
         }
 
-        foreach ($property_attributes as [ $attribute, $property ]) {
-            if (!$attribute instanceof BelongsTo) {
-                continue;
-            }
-
-            $as = $attribute->as ?? $this->resolve_belong_to_accessor($property);
-
-            $this->belongs_to($attribute->associate, local_key: $property, as: $as);
-        }
-
         return $this;
-    }
-
-    /**
-     * @param non-empty-string $property
-     *
-     * @return non-empty-string
-     */
-    private function resolve_belong_to_accessor(string $property): string
-    {
-        if (str_ends_with($property, '_id')) {
-            $property = substr($property, 0, -3);
-        }
-
-        assert($property !== '');
-
-        return $property;
     }
 }

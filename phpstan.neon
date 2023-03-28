@@ -4,3 +4,4 @@ parameters:
     - lib
   ignoreErrors:
   - "#get_.*is unused#"
+  - "#ActiveRecord but does not specify its types#"

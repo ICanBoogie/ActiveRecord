@@ -86,10 +86,8 @@ final class Fixtures
                     model_class: CommentModel::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('comment_id', primary: true)
-                        ->add_foreign('nid')
+                        ->belongs_to('nid', Article::class)
                         ->add_text('body'),
-                    association_builder: fn(AssociationBuilder $association) => $association
-                        ->belongs_to('articles', local_key: 'nid')
                 ),
                 'counts' => $config->add_model(
                     id: 'counts',
@@ -162,12 +160,9 @@ final class Fixtures
                     activerecord_class: Appointment::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('ap_id', primary: true)
-                        ->add_foreign('physician_id')
-                        ->add_foreign('patient_id')
+                        ->belongs_to('physician_id', Physician::class)
+                        ->belongs_to('patient_id', Patient::class)
                         ->add_date('appointment_date'),
-                    association_builder: fn(AssociationBuilder $a) => $a
-                        ->belongs_to('physicians', local_key: 'physician_id')
-                        ->belongs_to('patients', local_key: 'patient_id'),
                 ),
                 'patients' => $config->add_model(
                     id: 'patients',

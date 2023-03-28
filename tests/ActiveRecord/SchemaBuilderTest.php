@@ -3,6 +3,7 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -19,7 +20,7 @@ final class SchemaBuilderTest extends TestCase
             ->add_character('country', size: 2, fixed: true)
             ->add_character('title')
             ->add_text('body')
-            ->add_datetime('date', default: SchemaBuilder::CURRENT_TIMESTAMP)
+            ->add_datetime('date', default: DateTime::CURRENT_TIMESTAMP)
             ->add_index('is_active')
             ->build();
 
@@ -32,7 +33,7 @@ final class SchemaBuilderTest extends TestCase
                 'country' => new Schema\Character(2, fixed: true),
                 'title' => new Schema\Character(),
                 'body' => new Schema\Text(),
-                'date' => new Schema\DateTime(default: Schema\DateTime::CURRENT_TIMESTAMP)
+                'date' => new DateTime(default: DateTime::CURRENT_TIMESTAMP)
             ],
             primary: 'nid',
             indexes: [

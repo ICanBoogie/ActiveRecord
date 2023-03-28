@@ -15,6 +15,8 @@ use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Driver\MySQLDriver;
 use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
+use ICanBoogie\ActiveRecord\Schema\DateTime;
+use ICanBoogie\ActiveRecord\Schema\Time;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Driver;
@@ -69,7 +71,7 @@ final class DriverTest extends TestCase
             ->add_character('week', size: 8, fixed: true)
             ->add_character('product')
             ->add_character('name')
-            ->add_timestamp('created_at', default: SchemaBuilder::CURRENT_TIMESTAMP)
+            ->add_timestamp('created_at', default: DateTime::CURRENT_TIMESTAMP)
             ->add_index([ 'country', 'week', 'product' ], unique: true)
             ->add_index('week', name: 'my_week_index')
             ->build();

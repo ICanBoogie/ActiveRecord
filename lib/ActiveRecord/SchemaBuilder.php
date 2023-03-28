@@ -2,6 +2,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Binary;
 use ICanBoogie\ActiveRecord\Schema\Blob;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
@@ -23,10 +25,6 @@ use function is_string;
 
 final class SchemaBuilder
 {
-    public const SIZE_TINY = 'TINY';
-
-    public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
-
     /**
      * @var array<non-empty-string, SchemaColumn>
      */
@@ -146,6 +144,11 @@ final class SchemaBuilder
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     *
+     * @return $this
+     */
     public function add_float(
         string $col_name,
         bool $null = false,
@@ -401,10 +404,41 @@ final class SchemaBuilder
     }
 
     /**
+     * @param non-empty-string $col_name
+     * @param class-string<ActiveRecord> $associate
+     *     The local key i.e. column name.
+     * @param positive-int $size
+     * @param non-empty-string|null $as
+     *
+     * @return $this
+     *
+     * @see BelongsTo
+     */
+    public function belongs_to(
+        string $col_name,
+        string $associate,
+        int $size = Integer::SIZE_REGULAR,
+        bool $null = false,
+        bool $unique = false,
+        ?string $as = null,
+    ): self {
+        $this->columns[$col_name] = new BelongsTo(
+            associate: $associate,
+            size: $size,
+            null: $null,
+            unique: $unique,
+            as: $as,
+        );
+
+        return $this;
+    }
+
+    /**
      * Adds an index on one or multiple columns.
      *
      * @param non-empty-string|non-empty-array<non-empty-string> $columns
      *     Identifiers of the columns making the unique index.
+     * @param non-empty-string|null $name
      *
      * @return $this
      *

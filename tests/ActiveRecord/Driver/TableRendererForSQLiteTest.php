@@ -12,6 +12,8 @@ use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Equipment;
+use Test\ICanBoogie\Acme\Location;
 
 final class TableRendererForSQLiteTest extends TestCase
 {
@@ -121,20 +123,22 @@ final class TableRendererForSQLiteTest extends TestCase
                 SQL,
             ],
 
-            'PersonEquipment' => [
+            'EquipmentLocation' => [
                 new Schema(
                     columns: [
-                        'person_id' => new BelongsTo('persons'),
-                        'equipment_id' => new BelongsTo('equipment_id'),
+                        'equipment_id' => new BelongsTo(Equipment::class),
+                        'location_id' => new BelongsTo(Location::class),
+                        'location_hint' => new Character(null: true),
                     ],
-                    primary: [ 'person_id', 'equipment_id' ]
+                    primary: [ 'equipment_id', 'location_id' ]
                 ),
                 <<<SQL
                 CREATE TABLE tblSample (
-                person_id INTEGER NOT NULL,
                 equipment_id INTEGER NOT NULL,
+                location_id INTEGER NOT NULL,
+                location_hint VARCHAR(255) NULL,
 
-                PRIMARY KEY (person_id, equipment_id)
+                PRIMARY KEY (equipment_id, location_id)
                 );
                 SQL,
             ],

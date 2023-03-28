@@ -23,6 +23,7 @@ use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientBelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use InvalidArgumentException;
@@ -32,6 +33,7 @@ use olvlvl\ComposerAttributeCollector\TargetClass;
 use olvlvl\ComposerAttributeCollector\TargetProperty;
 
 use function array_map;
+use function assert;
 use function class_exists;
 use function get_debug_type;
 use function ICanBoogie\singularize;
@@ -39,6 +41,8 @@ use function is_a;
 use function is_string;
 use function preg_match;
 use function sprintf;
+use function str_ends_with;
+use function substr;
 
 final class ConfigBuilder
 {
@@ -344,6 +348,18 @@ final class ConfigBuilder
 
         // association
 
+        foreach ($schema->columns as $local_key => $column) {
+            if (!$column instanceof BelongsTo) {
+                continue;
+            }
+
+            $inner_association_builder->belongs_to(
+                associate: $column->associate,
+                local_key: $local_key,
+                as: $column->as ?? $this->resolve_belong_to_accessor($local_key),
+            );
+        }
+
         if ($association_builder) {
             $association_builder($inner_association_builder);
         }
@@ -366,6 +382,22 @@ final class ConfigBuilder
         );
 
         return $this;
+    }
+
+    /**
+     * @param non-empty-string $local_key
+     *
+     * @return non-empty-string
+     */
+    private function resolve_belong_to_accessor(string $local_key): string
+    {
+        if (str_ends_with($local_key, '_id')) {
+            $local_key = substr($local_key, 0, -3);
+        }
+
+        assert($local_key !== '');
+
+        return $local_key;
     }
 
     private bool $use_attributes = false;
@@ -409,7 +441,7 @@ final class ConfigBuilder
             $property_attributes = array_map(fn(TargetProperty $t) => [ $t->attribute, $t->name ], $target_properties);
 
             $schema_builder->from_attributes($class_attributes, $property_attributes);
-            $association_builder->from_attributes($class_attributes, $property_attributes);
+            $association_builder->from_attributes($class_attributes);
         }
 
         return [ $schema_builder, $association_builder ];
