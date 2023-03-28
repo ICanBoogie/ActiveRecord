@@ -5,6 +5,8 @@ namespace Test\ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\ActiveRecord\Driver\TableRendererForSQLite;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\Binary;
+use ICanBoogie\ActiveRecord\Schema\Blob;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Date;
@@ -58,10 +60,12 @@ final class TableRendererForSQLiteTest extends TestCase
 
                         'c1' => new Character(),
                         'c2' => new Character(fixed: true),
-                        'c3' => new Character(binary: true),
-                        'c4' => new Character(fixed: true, binary: true),
+                        'c3' => new Binary(),
+                        'c4' => new Binary(fixed: true),
                         'c5' => new Text(),
                         'c6' => new Text(size: Text::SIZE_LONG),
+                        'c7' => new Blob(),
+                        'c8' => new Blob(size: Blob::SIZE_LONG),
 
                         't1' => new DateTime(),
                         't2' => new DateTime(default: DateTime::CURRENT_TIMESTAMP),
@@ -87,6 +91,8 @@ final class TableRendererForSQLiteTest extends TestCase
                 c4 BINARY(255) NOT NULL,
                 c5 TEXT NOT NULL,
                 c6 LONGTEXT NOT NULL,
+                c7 BLOB NOT NULL,
+                c8 LONGBLOB NOT NULL,
                 t1 DATETIME NOT NULL,
                 t2 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 t3 TIMESTAMP NOT NULL,

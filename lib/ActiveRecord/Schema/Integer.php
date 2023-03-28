@@ -31,7 +31,7 @@ class Integer extends Constraints implements SchemaColumn
 
     /**
      * @param array{
-     *     size: positive-int,
+     *     size: self::SIZE_*,
      *     unsigned: bool,
      *     serial: bool,
      *     null: bool,
@@ -54,9 +54,8 @@ class Integer extends Constraints implements SchemaColumn
     }
 
     /**
-     * @param positive-int $size
-     *     Number of bytes used to store values. Must be one of: {@link self::SIZE_TINY}, {@link self::SIZE_SMALL},
-     *     {@link self::SIZE_MEDIUM}, {@link self::SIZE_REGULAR}, {@link self::SIZE_BIG}.
+     * @param self::SIZE_* $size
+     *     Number of bytes used to store values.
      * @param bool $unsigned
      *     Whether values are unsigned.
      *     Values are signed by default.

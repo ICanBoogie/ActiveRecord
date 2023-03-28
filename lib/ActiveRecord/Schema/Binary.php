@@ -3,17 +3,16 @@
 namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
-use InvalidArgumentException;
 use LogicException;
 
 /**
  * Represents a string, that can be a binary one.
  *
- * - `VARCHAR(255)` is `Character`
- * - `CHAR(32)` is `Character(32, fixed: true)`
+ * - `VARBINARY(255)` is `Binary`
+ * - `BINARY(32)` is `Binary(32, fixed: true)`
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Character extends Constraints implements SchemaColumn
+class Binary extends Constraints implements SchemaColumn
 {
     /**
      * @param array{
@@ -22,14 +21,19 @@ class Character extends Constraints implements SchemaColumn
      *     null: bool,
      *     default: ?string,
      *     unique: bool,
-     *     collate: non-empty-string|null,
      * } $an_array
      *
      * @return object
      */
     public static function __set_state(array $an_array): object
     {
-        return new self(...$an_array);
+        return new self(
+            $an_array['size'],
+            $an_array['fixed'],
+            $an_array['null'],
+            $an_array['default'],
+            $an_array['unique'],
+        );
     }
 
     /**
@@ -37,7 +41,7 @@ class Character extends Constraints implements SchemaColumn
      *     Maximum number of characters or size.
      * @param bool $fixed
      *     Whether `$size` is fixed instead of a maximum.
-     *     A truthful `$fixed` will result in `CHAR` column rather than a `VARCHAR`.
+     *     A truthful `$fixed` will result in `BINARY` column rather than a `VARBINARY`.
      */
     public function __construct(
         public readonly int $size = 255,
@@ -45,17 +49,15 @@ class Character extends Constraints implements SchemaColumn
         bool $null = false,
         ?string $default = null,
         bool $unique = false,
-        ?string $collate = null,
     ) {
         if ($fixed && $size > 255) {
-            throw new InvalidArgumentException("For fixed character, the size must be less than 255, given: $size");
+            throw new LogicException("For fixed binary, the size must be less than 255, given: $size");
         }
 
         parent::__construct(
             null: $null,
             default: $default,
             unique: $unique,
-            collate: $collate,
         );
     }
 }

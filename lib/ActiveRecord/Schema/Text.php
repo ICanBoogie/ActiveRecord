@@ -7,14 +7,50 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final class Text extends Constraints implements SchemaColumn
 {
-    public const SIZE_SMALL = 'SMALL';
+    /**
+     * A `TEXT`` with a maximum length of 255 characters.
+     */
+    public const SIZE_TINY = 'TINY';
+
+    /**
+     * A `TEXT`` with a maximum length of 65535 characters.
+     */
+    public const SIZE_REGULAR = 'REGULAR';
+
+    /**
+     * A `TEXT`` with a maximum length of 16777215 characters.
+     */
     public const SIZE_MEDIUM = 'MEDIUM';
-    public const SIZE_REGULAR = '';
+
+    /**
+     * A `TEXT`` with a maximum length of 4294967295 characters.
+     */
     public const SIZE_LONG = 'LONG';
 
     /**
-     * @param string $size
-     *     One of {@link SIZE_SMALL}, {@link SIZE_MEDIUM}, {@link SIZE_REGULAR}, {@link SIZE_LONG}.
+     * @param array{
+     *     size: self::SIZE_*,
+     *     null: bool,
+     *     default: ?string,
+     *     unique: bool,
+     *     collate: non-empty-string|null,
+     * } $an_array
+     *
+     * @return object
+     */
+    public static function __set_state(array $an_array): object
+    {
+        return new self(
+            $an_array['size'],
+            $an_array['null'],
+            $an_array['default'],
+            $an_array['unique'],
+            $an_array['collate'],
+        );
+    }
+
+    /**
+     * @param self::SIZE_* $size
      */
     public function __construct(
         public readonly string $size = self::SIZE_REGULAR,

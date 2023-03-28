@@ -4,6 +4,8 @@ namespace ICanBoogie\ActiveRecord\Driver;
 
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\Binary;
+use ICanBoogie\ActiveRecord\Schema\Blob;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Constraints;
@@ -64,18 +66,22 @@ class TableRendererForSQLite
             Serial::class, BelongsTo::class => "INTEGER", // SQLite doesn't like sizes on SERIAL
             Integer::class => "INTEGER($column->size)",
 
-            Schema\Decimal::class => match ($column->approximate) {
-                true => "FLOAT($column->precision)",
-                false => "DECIMAL($column->precision, $column->scale)"
-            },
+            Schema\Decimal::class => $column->approximate
+                ? "FLOAT($column->precision)"
+                : "DECIMAL($column->precision, $column->scale)",
 
-            Character::class => match (true) { // @phpstan-ignore-line
-                !$column->fixed && !$column->binary => "VARCHAR($column->size)",
-                $column->fixed && !$column->binary => "CHAR($column->size)",
-                !$column->fixed && $column->binary => "VARBINARY($column->size)",
-                $column->fixed && $column->binary => "BINARY($column->size)",
-            },
-            Text::class => "{$column->size}TEXT",
+            Character::class => $column->fixed
+                ? "CHAR($column->size)"
+                : "VARCHAR($column->size)",
+            Binary::class => $column->fixed
+                ? "BINARY($column->size)"
+                : "VARBINARY($column->size)",
+            Text::class => $column->size === Text::SIZE_REGULAR
+                ? "TEXT"
+                : "{$column->size}TEXT",
+            Blob::class => $column->size === Blob::SIZE_REGULAR
+                ? "BLOB"
+                : "{$column->size}BLOB",
 
             Schema\DateTime::class => "DATETIME",
             Schema\Timestamp::class => "TIMESTAMP",
