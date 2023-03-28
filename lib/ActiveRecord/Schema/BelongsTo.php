@@ -8,7 +8,7 @@ use Attribute;
  * Marks a relationship with another model, with the property as reference.
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class BelongsTo extends Constraints implements ColumnAttribute
+final class BelongsTo extends Constraints implements SchemaColumn
 {
     /**
      * @param class-string $associate

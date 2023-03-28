@@ -6,7 +6,7 @@ use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
-use ICanBoogie\ActiveRecord\Schema\ColumnAttribute;
+use ICanBoogie\ActiveRecord\Schema\SchemaColumn;
 use ICanBoogie\ActiveRecord\Schema\Constraints;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
@@ -57,7 +57,7 @@ class TableRendererForSQLite
         return $render;
     }
 
-    private function render_type_name(ColumnAttribute $column): string
+    private function render_type_name(SchemaColumn $column): string
     {
         return match ($column::class) {
             Boolean::class => 'BOOLEAN',
@@ -84,7 +84,7 @@ class TableRendererForSQLite
         };
     }
 
-    private function render_column_constraint(ColumnAttribute $column): string
+    private function render_column_constraint(SchemaColumn $column): string
     {
         $constraint = '';
 

@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Schema;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Text extends Constraints implements ColumnAttribute
+final class Text extends Constraints implements SchemaColumn
 {
     public const SIZE_SMALL = 'SMALL';
     public const SIZE_MEDIUM = 'MEDIUM';

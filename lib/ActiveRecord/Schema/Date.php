@@ -3,10 +3,9 @@
 namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
-use ICanBoogie\ActiveRecord\SchemaColumn;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Date extends Constraints implements ColumnAttribute
+final class Date extends Constraints implements SchemaColumn
 {
     /**
      * @param array{

@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Schema;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Time extends Constraints implements ColumnAttribute
+final class Time extends Constraints implements SchemaColumn
 {
     /**
      * @param array{

@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Schema;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Binary implements ColumnAttribute
+final class Binary implements SchemaColumn
 {
     public function __construct(
         public readonly int $size = 255,

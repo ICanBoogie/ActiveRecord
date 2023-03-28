@@ -6,7 +6,7 @@ use Attribute;
 use LogicException;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Character extends Constraints implements ColumnAttribute
+class Character extends Constraints implements SchemaColumn
 {
     public const MAX_SIZE = 65535;
 

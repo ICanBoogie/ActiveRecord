@@ -12,7 +12,7 @@ use Attribute;
  * https://www.postgresql.org/docs/current/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Decimal extends Constraints implements ColumnAttribute
+class Decimal extends Constraints implements SchemaColumn
 {
     /**
      * @param positive-int $precision

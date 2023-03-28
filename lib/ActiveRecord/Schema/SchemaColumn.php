@@ -7,6 +7,6 @@ namespace ICanBoogie\ActiveRecord\Schema;
  *
  * @internal
  */
-interface ColumnAttribute extends SchemaAttribute
+interface SchemaColumn extends SchemaAttribute
 {
 }

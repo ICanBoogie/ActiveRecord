@@ -6,7 +6,7 @@ use ICanBoogie\ActiveRecord\Schema\Binary;
 use ICanBoogie\ActiveRecord\Schema\Blob;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
-use ICanBoogie\ActiveRecord\Schema\ColumnAttribute;
+use ICanBoogie\ActiveRecord\Schema\SchemaColumn;
 use ICanBoogie\ActiveRecord\Schema\Date;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Decimal;
@@ -28,7 +28,7 @@ final class SchemaBuilder
     public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
 
     /**
-     * @var array<non-empty-string, ColumnAttribute>
+     * @var array<non-empty-string, SchemaColumn>
      */
     private array $columns = [];
 
@@ -448,7 +448,7 @@ final class SchemaBuilder
                 continue;
             }
 
-            if ($attribute instanceof ColumnAttribute) {
+            if ($attribute instanceof SchemaColumn) {
                 $this->columns[$name] = $attribute;
             }
         }

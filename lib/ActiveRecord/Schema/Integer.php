@@ -13,7 +13,7 @@ use function in_array;
  * - `TINYINT` is `Integer(size: Integer::SIZE_TINY)` or `Integer(1)`
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Integer extends Constraints implements ColumnAttribute
+class Integer extends Constraints implements SchemaColumn
 {
     public const SIZE_TINY = 1;
     public const SIZE_SMALL = 2;

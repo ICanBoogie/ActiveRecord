@@ -8,7 +8,7 @@ use LogicException;
 use function in_array;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class DateTime extends Constraints implements ColumnAttribute
+final class DateTime extends Constraints implements SchemaColumn
 {
     public const NOW = 'NOW';
     public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
