@@ -11,7 +11,7 @@ use Attribute;
 final class Index implements SchemaAttribute
 {
     /**
-     * @param string|array<string> $columns
+     * @param non-empty-string|non-empty-array<non-empty-string> $columns
      *     Identifiers of the columns making the unique index.
      */
     public function __construct(

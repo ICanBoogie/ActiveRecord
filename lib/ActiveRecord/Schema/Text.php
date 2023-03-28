@@ -5,13 +5,29 @@ namespace ICanBoogie\ActiveRecord\Schema;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Text implements ColumnAttribute
+final class Text extends Constraints implements ColumnAttribute
 {
+    public const SIZE_SMALL = 'SMALL';
+    public const SIZE_MEDIUM = 'MEDIUM';
+    public const SIZE_REGULAR = '';
+    public const SIZE_LONG = 'LONG';
+
+    /**
+     * @param string $size
+     *     One of {@link SIZE_SMALL}, {@link SIZE_MEDIUM}, {@link SIZE_REGULAR}, {@link SIZE_LONG}.
+     */
     public function __construct(
-        public readonly string|null $size = null,
-        public readonly bool $null = false,
-        public readonly bool $unique = false,
-        public readonly ?string $collate = null,
+        public readonly string $size = self::SIZE_REGULAR,
+        bool $null = false,
+        ?string $default = null,
+        bool $unique = false,
+        ?string $collate = null,
     ) {
+        parent::__construct(
+            null: $null,
+            default: $default,
+            unique: $unique,
+            collate: $collate,
+        );
     }
 }

@@ -13,7 +13,7 @@ use function in_array;
  * - `TINYINT` is `Integer(size: Integer::SIZE_TINY)` or `Integer(1)`
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Integer implements ColumnAttribute
+class Integer extends Constraints implements ColumnAttribute
 {
     public const SIZE_TINY = 1;
     public const SIZE_SMALL = 2;
@@ -36,9 +36,6 @@ class Integer implements ColumnAttribute
      * @param bool $unsigned
      *     Whether values are unsigned.
      *     Values are signed by default.
-     * @param bool $null
-     *     Whether values can be nullable.
-     *     Values are not nullable by default.
      * @param bool $serial
      *     An integer that is automatically incremented by the database. This has a few constraints:
      *     - `$size` must at least 2 bytes
@@ -46,16 +43,14 @@ class Integer implements ColumnAttribute
      *     - `$null` must be `false`
      *     - `$unique` must be `true`
      *     Values are not serial by default.
-     * @param bool $unique
-     *     Whether values must be unique.
-     *     Values are not unique by default.
      */
     public function __construct(
         public readonly int $size = self::SIZE_REGULAR,
         public readonly bool $unsigned = false,
-        public readonly bool $null = false,
         public readonly bool $serial = false,
-        public readonly bool $unique = false,
+        bool $null = false,
+        bool $unique = false,
+        int|string|null $default = null,
     ) {
         in_array($size, self::ALLOWED_SIZES)
             or throw new LogicException("Size must be one of the allowed ones");
@@ -66,5 +61,11 @@ class Integer implements ColumnAttribute
             !$null or throw new LogicException("A serial integer cannot be nullable");
             $unique or throw new LogicException("A serial integer must be unique");
         }
+
+        parent::__construct(
+            null: $null,
+            default: $default,
+            unique: $unique,
+        );
     }
 }
