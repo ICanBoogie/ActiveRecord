@@ -2,6 +2,7 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Schema\HasMany;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 
@@ -28,8 +29,8 @@ final class AssociationBuilder
     /**
      * When "A" has a reference to "B", we say "A" belongs to "B".
      *
-     * @param class-string|string $associate
-     *     The associate ActiveRecord class or model identifier.
+     * @param class-string<ActiveRecord> $associate
+     *     The associate ActiveRecord class.
      * @param non-empty-string|null $as
      *     The name of the accessor.
      */
@@ -48,7 +49,7 @@ final class AssociationBuilder
     }
 
     /**
-     * @param class-string|non-empty-string $associate
+     * @param class-string<ActiveRecord> $associate
      *     The associate ActiveRecord class or model identifier.
      * @param non-empty-string|null $as
      *     The name of the accessor.

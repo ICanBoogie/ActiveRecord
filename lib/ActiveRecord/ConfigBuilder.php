@@ -372,13 +372,13 @@ final class ConfigBuilder
             id: $id,
             schema: $schema,
             activerecord_class: $activerecord_class,
-            connection: $connection,
+            model_class: $model_class,
+            query_class: $query_class,
             name: $name,
             alias: $alias,
             extends: $extends,
             implements: $implements,
-            model_class: $model_class,
-            query_class: $query_class,
+            connection: $connection,
         );
 
         return $this;

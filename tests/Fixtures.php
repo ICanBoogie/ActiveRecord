@@ -78,7 +78,7 @@ final class Fixtures
                         ->add_datetime('date', default: DateTime::CURRENT_TIMESTAMP)
                         ->add_integer('rating', size: Integer::SIZE_TINY, null: true),
                     association_builder: fn(AssociationBuilder $association) => $association
-                        ->has_many('comments', foreign_key: 'nid')
+                        ->has_many(Comment::class, foreign_key: 'nid')
                 ),
                 'comments' => $config->add_model(
                     id: 'comments',
@@ -119,8 +119,8 @@ final class Fixtures
                     activerecord_class: Car::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('car_id', primary: true)
-                        ->add_foreign('driver_id')
-                        ->add_foreign('brand_id')
+                        ->belongs_to('driver_id', Driver::class)
+                        ->belongs_to('brand_id', Brand::class)
                         ->add_character('name'),
                 ),
                 #
@@ -138,7 +138,7 @@ final class Fixtures
                     activerecord_class: Subscriber::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('updated_id', primary: true)
-                        ->add_foreign('subscriber_id')
+                        ->belongs_to('subscriber_id', Subscriber::class)
                         ->add_datetime('updated_at')
                         ->add_character('updated_hash', size: 40, fixed: true),
                 ),
@@ -152,8 +152,8 @@ final class Fixtures
                         ->add_serial('ph_id', primary: true)
                         ->add_character('name'),
                     association_builder: fn(AssociationBuilder $association) => $association
-                        ->has_many('appointments', foreign_key: 'physician_id')
-                        ->has_many('patients', through: 'appointments'),
+                        ->has_many(Appointment::class, foreign_key: 'physician_id')
+                        ->has_many(Patient::class, through: 'appointments'),
                 ),
                 'appointments' => $config->add_model(
                     id: 'appointments',
@@ -171,8 +171,8 @@ final class Fixtures
                         ->add_serial('pa_id', primary: true)
                         ->add_character('name'),
                     association_builder: fn(AssociationBuilder $association) => $association
-                        ->has_many('appointments', foreign_key: 'patient_id')
-                        ->has_many('physicians', foreign_key: 'patient_id', through: 'appointments'),
+                        ->has_many(Appointment::class, foreign_key: 'patient_id')
+                        ->has_many(Physician::class, foreign_key: 'patient_id', through: 'appointments'),
                 ),
                 default => throw new LogicException("We don't have that model: $id")
             };

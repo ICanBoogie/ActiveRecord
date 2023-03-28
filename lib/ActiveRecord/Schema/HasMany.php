@@ -3,6 +3,7 @@
 namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
+use ICanBoogie\ActiveRecord;
 
 /**
  * Marks a relationship with another model, with the property as reference.
@@ -11,7 +12,7 @@ use Attribute;
 final class HasMany implements SchemaAttribute
 {
     /**
-     * @param class-string $associate
+     * @param class-string<ActiveRecord> $associate
      *     The associate ActiveRecord class.
      * @param non-empty-string|null $foreign_key
      *      Column key on the associate model, defaults to the local primary key (which might be wrong).
