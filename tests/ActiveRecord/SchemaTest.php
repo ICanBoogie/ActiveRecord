@@ -35,10 +35,15 @@ final class SchemaTest extends TestCase
 
     public function test_export(): void
     {
-        $schema = (new Schema([
-            'id' => SchemaColumn::serial(primary: true),
-            'name' => SchemaColumn::character(32),
-        ]))->index([ 'id', 'name' ]);
+        $schema = new Schema(
+            columns: [
+                'id' => SchemaColumn::serial(primary: true),
+                'name' => SchemaColumn::character(32),
+            ],
+            indexes: [
+                new SchemaIndex([ 'id', 'name' ])
+            ],
+        );
 
         $actual = SetStateHelper::export_import($schema);
 
@@ -112,7 +117,7 @@ final class SchemaTest extends TestCase
     }
 
     /**
-     * @return array[]
+     * @return array<array{ Schema, SchemaIndex[] }>
      */
     public static function provide_test_indexes(): array
     {
@@ -135,14 +140,18 @@ final class SchemaTest extends TestCase
             ],
 
             "two indexes, one of them unique " => [
-                (new Schema([
-                    'id' => SchemaColumn::serial(primary: true),
-                    'country' => SchemaColumn::character(2),
-                    'week' => SchemaColumn::character(8),
-                    'product' => SchemaColumn::character(),
-                ]))
-                    ->index([ 'country', 'week', 'product' ], unique: true)
-                    ->index('week', name: "my_week_index"),
+                new Schema(
+                    columns: [
+                        'id' => SchemaColumn::serial(primary: true),
+                        'country' => SchemaColumn::character(2),
+                        'week' => SchemaColumn::character(8),
+                        'product' => SchemaColumn::character(),
+                    ],
+                    indexes: [
+                        new SchemaIndex([ 'country', 'week', 'product' ], unique: true),
+                        new SchemaIndex([ 'week' ], name: "my_week_index"),
+                    ]
+                ),
                 [
                     new SchemaIndex([ 'country', 'week', 'product' ], unique: true),
                     new SchemaIndex([ 'week' ], name: "my_week_index"),

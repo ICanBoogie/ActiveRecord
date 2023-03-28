@@ -31,13 +31,19 @@ final class SchemaBuilder
 
     public function build(): Schema
     {
-        $schema = new Schema($this->columns);
+        $indexes = [];
 
-        foreach ($this->indexes as $index) {
-            $schema->index(...$index);
+        foreach ($this->indexes as $i) {
+            [ $columns, $unique, $name ] = $i + [ 2 => null ];
+
+            if (is_string($columns)) {
+                $columns = [ $columns ];
+            }
+
+            $indexes[] = new SchemaIndex($columns, $unique, $name);
         }
 
-        return $schema;
+        return new Schema($this->columns, $indexes);
     }
 
     /**

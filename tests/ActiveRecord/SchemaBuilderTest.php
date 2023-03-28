@@ -5,6 +5,7 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\SchemaColumn;
+use ICanBoogie\ActiveRecord\SchemaIndex;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 
@@ -23,17 +24,19 @@ final class SchemaBuilderTest extends TestCase
             ->add_index('is_active')
             ->build();
 
-        $expected = (new Schema([
-
-            'is_active' => SchemaColumn::boolean(),
-            'rating_count' => SchemaColumn::int(),
-            'rating_avg' => SchemaColumn::float(null: true),
-            'country' => SchemaColumn::character(2, fixed: true),
-            'title' => SchemaColumn::character(),
-            'body' => SchemaColumn::text(),
-            'date' => SchemaColumn::datetime(default: SchemaColumn::CURRENT_TIMESTAMP)
-
-        ]))->index('is_active');
+        $expected = new Schema(
+            columns: [
+                'is_active' => SchemaColumn::boolean(),
+                'rating_count' => SchemaColumn::int(),
+                'rating_avg' => SchemaColumn::float(null: true),
+                'country' => SchemaColumn::character(2, fixed: true),
+                'title' => SchemaColumn::character(),
+                'body' => SchemaColumn::text(),
+                'date' => SchemaColumn::datetime(default: SchemaColumn::CURRENT_TIMESTAMP)
+            ],
+            indexes: [
+                new SchemaIndex([ 'is_active' ])
+            ]);
 
         $this->assertEquals($expected, $actual);
     }

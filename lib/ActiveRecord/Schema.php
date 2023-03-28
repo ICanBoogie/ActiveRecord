@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ArrayAccess;
 use ArrayIterator;
 use ICanBoogie\Accessor\AccessorTrait;
+use InvalidArgumentException;
 use IteratorAggregate;
 use LogicException;
 use Traversable;
@@ -21,9 +22,14 @@ use Traversable;
 use function array_intersect_key;
 use function array_keys;
 use function count;
+use function get_debug_type;
 use function implode;
 use function is_string;
 use function reset;
+use function sprintf;
+use function trigger_error;
+
+use const E_USER_DEPRECATED;
 
 /**
  * Representation of a database table schema.
@@ -59,22 +65,12 @@ class Schema implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * @var array<string, SchemaColumn>
-     */
-    private array $columns = [];
-
-    /**
      * @return array<string, SchemaColumn>
      */
     private function get_columns(): array
     {
         return $this->columns;
     }
-
-    /**
-     * @var SchemaIndex[]
-     */
-    private array $indexes = [];
 
     /**
      * @return SchemaIndex[]
@@ -110,50 +106,26 @@ class Schema implements ArrayAccess, IteratorAggregate
      * @param array<string, SchemaColumn> $columns
      * @param array<SchemaIndex> $indexes
      */
-    public function __construct(array $columns = [], array $indexes = [])
-    {
-        foreach ($columns as $column_id => $column) {
-            $this[$column_id] = $column;
+    public function __construct(
+        private array $columns = [],
+        private array $indexes = []
+    ) {
+        foreach ($columns as $column) {
+            $column instanceof SchemaColumn
+                or throw new InvalidArgumentException(
+                    sprintf("Expected %s, given: %s",
+                        SchemaColumn::class,
+                        get_debug_type($column)
+                    )
+                );
         }
-
-        $this->indexes = $indexes;
     }
 
     private function set_column(string $column_id, SchemaColumn $column): void
     {
+        trigger_error("the schema is becoming readonly", E_USER_DEPRECATED);
+
         $this->columns[$column_id] = $column;
-    }
-
-    /**
-     * Create an index on one of multiple columns.
-     *
-     * @param array<string> $columns Identifiers of the columns making the unique index.
-     *
-     * @return $this
-     */
-    public function index(
-        array|string $columns,
-        bool $unique = false,
-        ?string $name = null
-    ): self {
-        if (is_string($columns)) {
-            $columns = [ $columns ];
-        }
-
-        foreach ($columns as $column_id) {
-            if (!isset($this->columns[$column_id])) {
-                $defined = implode(', ', array_keys($this->columns));
-
-                throw new LogicException(
-                    "Unable to create UNIQUE constraint, column '$column_id' is not defined."
-                    . " Defined columns are: $defined."
-                );
-            }
-        }
-
-        $this->indexes[] = new SchemaIndex($columns, unique: $unique, name: $name);
-
-        return $this;
     }
 
     /**
@@ -181,9 +153,13 @@ class Schema implements ArrayAccess, IteratorAggregate
      *
      * @param string $offset A column identifier.
      * @param SchemaColumn $value
+     *
+     * @deprecated
      */
     public function offsetSet($offset, $value): void
     {
+        trigger_error("the schema is becoming readonly", E_USER_DEPRECATED);
+
         $this->set_column($offset, $value);
     }
 
@@ -191,9 +167,13 @@ class Schema implements ArrayAccess, IteratorAggregate
      * Removes a column from the schema.
      *
      * @param string $offset A column identifier.
+     *
+     * @deprecated
      */
     public function offsetUnset($offset): void
     {
+        trigger_error("the schema is becoming readonly", E_USER_DEPRECATED);
+
         unset($this->columns[$offset]);
     }
 
