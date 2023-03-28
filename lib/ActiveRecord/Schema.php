@@ -11,70 +11,45 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use InvalidArgumentException;
 
 use function array_intersect_key;
 use function count;
 use function get_debug_type;
-use function reset;
 use function sprintf;
 
 /**
- * Representation of a database table schema.
- *
- * @property-read string[]|string|null $primary The primary key of the schema. A multi-dimensional
- * primary key is returned as an array.
+ * Schema of a database table.
  */
 class Schema
 {
     /**
-     * @uses get_primary
-     */
-    use AccessorTrait;
-
-    /**
      * @param array{
-     *     columns: array<string, SchemaColumn>,
+     *     columns: non-empty-array<non-empty-string, SchemaColumn>,
      *     indexes: array<SchemaIndex>,
      *  } $an_array
      */
     public static function __set_state(array $an_array): self
     {
-        return new self(...$an_array);
+        return new self($an_array['columns'], $an_array['indexes']);
     }
 
     /**
-     * @return string|string[]|null
+     * @var non-empty-string|non-empty-string[]|null
      */
-    private function get_primary(): string|array|null
-    {
-        $primary = [];
-
-        foreach ($this->columns as $column_id => $column) {
-            if (!$column->primary) {
-                continue;
-            }
-
-            $primary[] = $column_id;
-        }
-
-        return match (count($primary)) {
-            0 => null,
-            1 => reset($primary),
-            default => $primary,
-        };
-    }
+    public readonly string|array|null $primary;
 
     /**
-     * @param array<string, SchemaColumn> $columns
+     * @param non-empty-array<non-empty-string, SchemaColumn> $columns
      * @param array<SchemaIndex> $indexes
      */
     public function __construct(
-        public readonly array $columns = [],
+        public readonly array $columns,
         public readonly array $indexes = []
     ) {
-        foreach ($columns as $column) {
+        $primary = [];
+
+        foreach ($columns as $name => $column) {
             $column instanceof SchemaColumn
                 or throw new InvalidArgumentException(
                     sprintf("Expected %s, given: %s",
@@ -82,7 +57,17 @@ class Schema
                         get_debug_type($column)
                     )
                 );
+
+            if ($column->primary) {
+                $primary[] = $name;
+            }
         }
+
+        $this->primary = match (count($primary)) {
+            0 => null,
+            1 => $primary[0],
+            default => $primary,
+        };
     }
 
     /**
@@ -98,9 +83,9 @@ class Schema
     /**
      * Discards key/value pairs where _key_ is not a column identifier.
      *
-     * @param array<string, mixed> $values
+     * @param array<non-empty-string, mixed> $values
      *
-     * @return array<string, mixed>
+     * @return array<non-empty-string, mixed>
      */
     public function filter_values(array $values): array
     {
