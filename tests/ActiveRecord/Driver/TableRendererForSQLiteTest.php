@@ -7,11 +7,17 @@ use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
+use ICanBoogie\ActiveRecord\Schema\Date;
+use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Index;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
+use ICanBoogie\ActiveRecord\Schema\Time;
+use ICanBoogie\ActiveRecord\Schema\Timestamp;
+use PDO;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Equipment;
 use Test\ICanBoogie\Acme\Location;
 
@@ -28,6 +34,9 @@ final class TableRendererForSQLiteTest extends TestCase
         $actual = $renderer->render($schema, $prefixed_table_name);
 
         $this->assertEquals($expected, $actual);
+
+        $pdo = new PDO('sqlite::memory:');
+        $pdo->exec($actual);
     }
 
     /**
@@ -36,6 +45,59 @@ final class TableRendererForSQLiteTest extends TestCase
     public static function provideRender(): array
     {
         return [
+
+            [
+                new Schema(
+                    columns: [
+                        'i1' => new Boolean(),
+                        'i2' => new Integer(),
+                        'i3' => new Integer(size: Integer::SIZE_BIG),
+                        'i4' => new BelongsTo(Article::class),
+                        'i5' => new BelongsTo(Article::class, null: true),
+                        'i6' => new Serial(),
+
+                        'c1' => new Character(),
+                        'c2' => new Character(fixed: true),
+                        'c3' => new Character(binary: true),
+                        'c4' => new Character(fixed: true, binary: true),
+                        'c5' => new Text(),
+                        'c6' => new Text(size: Text::SIZE_LONG),
+
+                        't1' => new DateTime(),
+                        't2' => new DateTime(default: DateTime::CURRENT_TIMESTAMP),
+                        't3' => new Timestamp(),
+                        't4' => new Timestamp(default: Timestamp::CURRENT_TIMESTAMP),
+                        't5' => new Date(),
+                        't6' => new Date(default: Date::CURRENT_DATE),
+                        't7' => new Time(),
+                        't8' => new Time(default: Time::CURRENT_TIME),
+                    ],
+                ),
+                <<<SQL
+                CREATE TABLE tblSample (
+                i1 BOOLEAN NOT NULL,
+                i2 INTEGER(4) NOT NULL,
+                i3 INTEGER(8) NOT NULL,
+                i4 INTEGER NOT NULL,
+                i5 INTEGER NULL,
+                i6 INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+                c1 VARCHAR(255) NOT NULL,
+                c2 CHAR(255) NOT NULL,
+                c3 VARBINARY(255) NOT NULL,
+                c4 BINARY(255) NOT NULL,
+                c5 TEXT NOT NULL,
+                c6 LONGTEXT NOT NULL,
+                t1 DATETIME NOT NULL,
+                t2 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                t3 TIMESTAMP NOT NULL,
+                t4 TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                t5 DATE NOT NULL,
+                t6 DATE NOT NULL DEFAULT CURRENT_DATE,
+                t7 TIME NOT NULL,
+                t8 TIME NOT NULL DEFAULT CURRENT_TIME
+                );
+                SQL,
+            ],
 
             [
                 new Schema(
@@ -62,7 +124,7 @@ final class TableRendererForSQLiteTest extends TestCase
             [
                 new Schema(
                     columns: [
-                        'location_id' => new BelongsTo('locations'),
+                        'location_id' => new BelongsTo(Location::class),
                         'person_id' => new Serial(),
                         'person_uid' => new Character(11, fixed: true, unique: true),
                         'dance_session_id' => new BelongsTo('dance_sessions', null: true),
@@ -162,25 +224,6 @@ final class TableRendererForSQLiteTest extends TestCase
                 );
 
                 CREATE INDEX idx_active ON tblSample (active);
-                SQL,
-            ],
-
-            'Character' => [
-                new Schema(
-                    columns: [
-                        'title1' => new Character(),
-                        'title2' => new Character(fixed: true),
-                        'title3' => new Character(binary: true),
-                        'title4' => new Character(fixed: true, binary: true),
-                    ],
-                ),
-                <<<SQL
-                CREATE TABLE tblSample (
-                title1 VARCHAR(255) NOT NULL,
-                title2 CHAR(255) NOT NULL,
-                title3 VARBINARY(255) NOT NULL,
-                title4 BINARY(255) NOT NULL
-                );
                 SQL,
             ],
 

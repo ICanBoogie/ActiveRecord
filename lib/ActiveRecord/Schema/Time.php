@@ -7,6 +7,8 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final class Time extends Constraints implements SchemaColumn
 {
+    public const CURRENT_TIME = 'CURRENT_TIME';
+
     /**
      * @param array{
      *     null: bool,
@@ -28,8 +30,6 @@ final class Time extends Constraints implements SchemaColumn
         ?string $default = null,
         bool $unique = false,
     ) {
-        DateTime::assert_datetime_default($default);
-
         parent::__construct(
             null: $null,
             default: $default,
