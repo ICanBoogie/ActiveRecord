@@ -38,6 +38,7 @@ use function is_a;
 use function is_string;
 use function preg_match;
 use function sprintf;
+use function var_dump;
 
 final class ConfigBuilder
 {
@@ -92,19 +93,25 @@ final class ConfigBuilder
     private function build_associations(): array
     {
         foreach ($this->transient_models as $id => $model) {
-            if ($model->extends) {
-                $parent_schema = $this->transient_models[$model->extends]->schema;
-                $primary = $parent_schema->primary;
-
-                if (!is_string($primary)) {
-                    throw new InvalidConfig(
-                        "Model '$id' cannot extend '$model->extends',"
-                        . " the primary key is not a string, given: " . get_debug_type($primary)
-                    );
-                }
-
-                $model->schema[$primary] = $parent_schema[$primary]->with([ 'auto_increment' => false ]);
+            if (!$model->extends) {
+                continue;
             }
+
+            $parent_schema = $this->transient_models[$model->extends]->schema;
+            $primary = $parent_schema->primary;
+
+            if (!is_string($primary)) {
+                throw new InvalidConfig(
+                    "Model '$id' cannot extend '$model->extends',"
+                    . " the primary key is not a string, given: " . get_debug_type($primary)
+                );
+            }
+
+            $schema = $model->schema;
+            $model->schema = new Schema(
+                [ $primary => SchemaColumn::foreign(primary: true) ] + $schema->columns,
+                $schema->indexes,
+            );
         }
 
         $associations = [];

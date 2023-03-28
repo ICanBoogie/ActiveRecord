@@ -17,10 +17,10 @@ final class TransientModelDefinition
 {
     /**
      * @param class-string<ActiveRecord> $activerecord_class
-     * @param class-string<Model<int|string, ActiveRecord>>|null $model_class
-     * @param class-string<Query<ActiveRecord>>|null $query_class
+     * @param class-string<Model>|null $model_class
+     * @param class-string<Query>|null $query_class
      */
-    public function __construct(
+    public function __construct( // @phpstan-ignore-line
         public readonly string $id,
         public Schema $schema,
         public readonly string $activerecord_class,

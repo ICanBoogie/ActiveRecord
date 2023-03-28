@@ -55,10 +55,7 @@ class Schema implements ArrayAccess, IteratorAggregate
      */
     public static function __set_state(array $an_array): self
     {
-        $instance = new self($an_array['columns']);
-        $instance->indexes = $an_array['indexes'];
-
-        return $instance;
+        return new self($an_array['columns'], $an_array['indexes']);
     }
 
     /**
@@ -111,23 +108,21 @@ class Schema implements ArrayAccess, IteratorAggregate
 
     /**
      * @param array<string, SchemaColumn> $columns
+     * @param array<SchemaIndex> $indexes
      */
-    public function __construct(array $columns = [])
+    public function __construct(array $columns = [], array $indexes = [])
     {
         foreach ($columns as $column_id => $column) {
             $this[$column_id] = $column;
         }
+
+        $this->indexes = $indexes;
     }
 
     private function set_column(string $column_id, SchemaColumn $column): void
     {
         $this->columns[$column_id] = $column;
     }
-//
-//    /**
-//     * @var array<int, string[]>
-//     */
-//    private array $unique_indexes = [];
 
     /**
      * Create an index on one of multiple columns.

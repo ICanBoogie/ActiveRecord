@@ -306,37 +306,6 @@ class SchemaColumn
     }
 
     /**
-     * @param array{
-     *     type?: string,
-     *     size?: string|int|null,
-     *     unsigned?: bool,
-     *     null?: bool,
-     *     default?: mixed,
-     *     unique?: bool,
-     *     primary?: bool,
-     *     comment?: ?string,
-     *     collate?: ?string
-     * } $properties
-     */
-    public function with(array $properties): self
-    {
-        $properties += [
-            'type' => $this->type,
-            'size' => $this->size,
-            'unsigned' => $this->unsigned,
-            'null' => $this->null,
-            'default' => $this->default,
-            'auto_increment' => $this->auto_increment,
-            'unique' => $this->unique,
-            'primary' => $this->primary,
-            'comment' => $this->comment,
-            'collate' => $this->collate,
-        ];
-
-        return new self(...$properties);
-    }
-
-    /**
      * Returns the formatted type, including the size.
      */
     protected function get_formatted_type(): string

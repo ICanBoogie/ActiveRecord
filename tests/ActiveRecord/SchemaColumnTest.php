@@ -169,28 +169,4 @@ final class SchemaColumnTest extends TestCase
 
         ];
     }
-
-    public function test_with(): void
-    {
-        $column = new SchemaColumn('int');
-        $new_column = $column->with([
-            'type' => 'varchar',
-            'size' => 255,
-            'null' => true,
-            'unique' => true,
-            'comment' => 'Madonna',
-        ]);
-
-        $this->assertNotSame($column, $new_column);
-        $this->assertEquals(
-            new SchemaColumn(
-                type: 'varchar',
-                size: 255,
-                null: true,
-                unique: true,
-                comment: 'Madonna',
-            ),
-            $new_column
-        );
-    }
 }
