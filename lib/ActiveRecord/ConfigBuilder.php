@@ -176,7 +176,7 @@ final class ConfigBuilder
 
         $schema = $this->transient_models[$on]->schema;
 
-        return isset($schema[$key]) ? $key : null;
+        return $schema->has_column($key) ? $key : null;
     }
 
     private function resolve_belongs_to(string $owner, TransientBelongsToAssociation $association): BelongsToAssociation

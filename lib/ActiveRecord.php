@@ -185,7 +185,7 @@ abstract class ActiveRecord extends Prototyped
 
         if (
             !$model->parent && $primary && isset($properties[$primary])
-            && !$model->extended_schema[$primary]->auto_increment
+            && !$model->extended_schema->columns[$primary]->auto_increment
         ) {
             return $model->insert($properties, [ 'on duplicate' => true ]);
         }
@@ -250,7 +250,7 @@ abstract class ActiveRecord extends Prototyped
     protected function alter_persistent_properties(array $properties, Schema $schema): array
     {
         foreach ($properties as $identifier => $value) {
-            if ($value !== null || (isset($schema[$identifier]) && $schema[$identifier]->null)) {
+            if ($value !== null || ($schema->has_column($identifier) && $schema->columns[$identifier]->null)) {
                 continue;
             }
 

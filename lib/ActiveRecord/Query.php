@@ -621,11 +621,11 @@ class Query implements IteratorAggregate
 
             if (is_array($primary)) {
                 foreach ($primary as $column) {
-                    if (isset($model_schema[$column])) {
+                    if ($model_schema->has_column($column)) {
                         return $column;
                     }
                 }
-            } elseif (empty($model_schema[$primary])) {
+            } elseif (!$model_schema->has_column($primary)) {
                 $primary = $model_schema->primary;
 
                 if (is_array($primary)) {
@@ -652,14 +652,14 @@ class Query implements IteratorAggregate
      */
     private function render_join_on(string $column, string $as, Query $query): string
     {
-        if (isset($query->model->schema[$column]) && isset($this->model->schema[$column])) {
+        if ($query->model->schema->has_column($column) && $this->model->schema->has_column($column)) {
             return "USING(`$column`)";
         }
 
         $target = $this->model;
 
         while ($target) {
-            if (isset($target->schema[$column])) {
+            if ($target->schema->has_column($column)) {
                 break;
             }
 

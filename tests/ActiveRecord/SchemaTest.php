@@ -27,8 +27,8 @@ final class SchemaTest extends TestCase
             'id' => $id = SchemaColumn::serial(primary: true),
         ]);
 
-        $this->assertTrue(isset($schema['id']));
-        $this->assertEquals($id, $schema['id']);
+        $this->assertTrue($schema->has_column('id'));
+        $this->assertEquals($id, $schema->columns['id']);
     }
 
     public function test_export(): void

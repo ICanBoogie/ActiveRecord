@@ -11,12 +11,10 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ArrayAccess;
 use ArrayIterator;
 use ICanBoogie\Accessor\AccessorTrait;
 use InvalidArgumentException;
 use IteratorAggregate;
-use LogicException;
 use Traversable;
 
 use function array_intersect_key;
@@ -28,16 +26,12 @@ use function sprintf;
 /**
  * Representation of a database table schema.
  *
- * @property-read array<string, SchemaColumn> $columns The columns of the schema.
- * @property-read SchemaIndex[] $indexes The indexes of the schema.
- * @property-read array $unique_indexes The unique indexes of the schema.
  * @property-read string[]|string|null $primary The primary key of the schema. A multi-dimensional
  * primary key is returned as an array.
  *
- * @implements ArrayAccess<string, SchemaColumn>
  * @implements IteratorAggregate<string, SchemaColumn>
  */
-class Schema implements ArrayAccess, IteratorAggregate
+class Schema implements IteratorAggregate
 {
     /**
      * @uses get_primary
@@ -97,48 +91,13 @@ class Schema implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Checks if a column exists.
+     * Whether the schema has a column.
      *
-     * @param string $offset A column identifier.
+     * Prefer using this method than `isset(schema->columns[$name])`.
      */
-    public function offsetExists($offset): bool
+    public function has_column(string $name): bool
     {
-        return isset($this->columns[$offset]);
-    }
-
-    /**
-     * Returns a column.
-     *
-     * @param string $offset A column identifier.
-     */
-    public function offsetGet($offset): SchemaColumn
-    {
-        return $this->columns[$offset];
-    }
-
-    /**
-     * Adds a column to the schema.
-     *
-     * @param string $offset A column identifier.
-     * @param SchemaColumn $value
-     *
-     * @deprecated
-     */
-    public function offsetSet($offset, $value): void
-    {
-        throw new LogicException("the schema is now readonly");
-    }
-
-    /**
-     * Removes a column from the schema.
-     *
-     * @param string $offset A column identifier.
-     *
-     * @deprecated
-     */
-    public function offsetUnset($offset): void
-    {
-        throw new LogicException("the schema is now readonly");
+        return isset($this->columns[$name]);
     }
 
     /**

@@ -33,7 +33,7 @@ class BelongsToRelation extends Relation
         $id = $record->{$local_key} ?? null;
 
         if (!$id) {
-            if ($this->owner->schema[$local_key]->null) {
+            if ($this->owner->schema->columns[$local_key]->null) {
                 return null;
             }
 

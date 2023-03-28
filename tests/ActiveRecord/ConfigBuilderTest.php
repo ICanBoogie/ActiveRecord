@@ -48,7 +48,7 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
-        $this->assertFalse($schema['nid']->auto_increment);
+        $this->assertFalse($schema->columns['nid']->auto_increment);
     }
 
     public function test_from_attributes(): void
@@ -75,7 +75,7 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
-        $this->assertFalse($schema['nid']->auto_increment);
+        $this->assertFalse($schema->columns['nid']->auto_increment);
         $this->assertEquals([
             new SchemaIndex([ 'rating' ], name: 'idx_rating')
         ], $schema->indexes);
