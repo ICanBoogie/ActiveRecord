@@ -20,16 +20,10 @@ use LogicException;
 use Traversable;
 
 use function array_intersect_key;
-use function array_keys;
 use function count;
 use function get_debug_type;
-use function implode;
-use function is_string;
 use function reset;
 use function sprintf;
-use function trigger_error;
-
-use const E_USER_DEPRECATED;
 
 /**
  * Representation of a database table schema.
@@ -46,10 +40,7 @@ use const E_USER_DEPRECATED;
 class Schema implements ArrayAccess, IteratorAggregate
 {
     /**
-     * @uses get_columns
      * @uses get_primary
-     * @uses get_indexes
-     * @uses get_unique_indexes
      */
     use AccessorTrait;
 
@@ -61,23 +52,7 @@ class Schema implements ArrayAccess, IteratorAggregate
      */
     public static function __set_state(array $an_array): self
     {
-        return new self($an_array['columns'], $an_array['indexes']);
-    }
-
-    /**
-     * @return array<string, SchemaColumn>
-     */
-    private function get_columns(): array
-    {
-        return $this->columns;
-    }
-
-    /**
-     * @return SchemaIndex[]
-     */
-    private function get_indexes(): array
-    {
-        return $this->indexes;
+        return new self(...$an_array);
     }
 
     /**
@@ -107,8 +82,8 @@ class Schema implements ArrayAccess, IteratorAggregate
      * @param array<SchemaIndex> $indexes
      */
     public function __construct(
-        private array $columns = [],
-        private array $indexes = []
+        public readonly array $columns = [],
+        public readonly array $indexes = []
     ) {
         foreach ($columns as $column) {
             $column instanceof SchemaColumn
@@ -119,13 +94,6 @@ class Schema implements ArrayAccess, IteratorAggregate
                     )
                 );
         }
-    }
-
-    private function set_column(string $column_id, SchemaColumn $column): void
-    {
-        trigger_error("the schema is becoming readonly", E_USER_DEPRECATED);
-
-        $this->columns[$column_id] = $column;
     }
 
     /**
@@ -158,9 +126,7 @@ class Schema implements ArrayAccess, IteratorAggregate
      */
     public function offsetSet($offset, $value): void
     {
-        trigger_error("the schema is becoming readonly", E_USER_DEPRECATED);
-
-        $this->set_column($offset, $value);
+        throw new LogicException("the schema is now readonly");
     }
 
     /**
@@ -172,9 +138,7 @@ class Schema implements ArrayAccess, IteratorAggregate
      */
     public function offsetUnset($offset): void
     {
-        trigger_error("the schema is becoming readonly", E_USER_DEPRECATED);
-
-        unset($this->columns[$offset]);
+        throw new LogicException("the schema is now readonly");
     }
 
     /**

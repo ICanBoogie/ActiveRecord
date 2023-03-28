@@ -23,14 +23,12 @@ final class SchemaTest extends TestCase
 {
     public function test_array_access(): void
     {
-        $schema = new Schema();
-        $id = SchemaColumn::serial(primary: true);
-        $this->assertFalse(isset($schema['id']));
-        $schema['id'] = $id;
+        $schema = new Schema([
+            'id' => $id = SchemaColumn::serial(primary: true),
+        ]);
+
         $this->assertTrue(isset($schema['id']));
         $this->assertEquals($id, $schema['id']);
-        unset($schema['id']);
-        $this->assertFalse(isset($schema['id']));
     }
 
     public function test_export(): void
