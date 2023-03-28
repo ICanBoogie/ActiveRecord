@@ -12,6 +12,11 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
+use ICanBoogie\ActiveRecord\Schema\Boolean;
+use ICanBoogie\ActiveRecord\Schema\Character;
+use ICanBoogie\ActiveRecord\Schema\Integer;
+use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\Schema\Text;
 use LogicException;
 
 use function array_filter;
@@ -32,6 +37,8 @@ use function strtoupper;
  * @property-read string $formatted_index
  * @property-read string $formatted_null
  * @property-read string $formatted_type
+ *
+ * @deprecated
  */
 class SchemaColumn
 {
@@ -92,30 +99,16 @@ class SchemaColumn
      * https://dev.mysql.com/doc/refman/8.0/en/numeric-types.html
      */
 
-    public static function boolean(
-        bool $null = false,
-        bool $unique = false,
-    ): self {
-        return new self(
-            type: self::TYPE_INT,
-            size: 1,
-            null: $null,
-            unique: $unique,
-        );
-    }
+    /**
+     * @param positive-int $size
+     */
+    public static function serial(
+        int $size = Integer::SIZE_REGULAR,
+    ): Serial {
+        throw new LogicException("DEPRECATED");
 
-    public static function int(
-        int|string|null $size = null,
-        bool $unsigned = false,
-        bool $null = false,
-        bool $unique = false,
-    ): self {
-        return new self(
-            type: self::TYPE_INT,
-            size: $size,
-            unsigned: $unsigned,
-            null: $null,
-            unique: $unique,
+        return new Serial(
+            size: $size
         );
     }
 
@@ -124,43 +117,13 @@ class SchemaColumn
         bool $unsigned = false,
         bool $null = false,
     ): self {
+        throw new LogicException("DEPRECATED");
+
         return new self(
             type: self::TYPE_FLOAT,
             size: $precision,
             unsigned: $unsigned,
             null: $null,
-        );
-    }
-
-    /**
-     * @see https://dev.mysql.com/doc/refman/8.0/en/numeric-type-syntax.html
-     */
-    public static function serial(
-        bool $primary = false
-    ): self {
-        return new self(
-            type: self::TYPE_INT,
-            size: self::SIZE_BIG,
-            unsigned: true,
-            null: false,
-            auto_increment: true,
-            unique: !$primary,
-            primary: $primary,
-        );
-    }
-
-    public static function foreign(
-        bool $null = false,
-        bool $unique = false,
-        bool $primary = false,
-    ): self {
-        return new self(
-            type: self::TYPE_INT,
-            size: self::SIZE_BIG,
-            unsigned: true,
-            null: $null,
-            unique: $primary ? false : $unique,
-            primary: $primary,
         );
     }
 
@@ -172,6 +135,8 @@ class SchemaColumn
         bool $null = false,
         ?string $default = null,
     ): self {
+        throw new LogicException("DEPRECATED");
+
         self::assert_datetime_default($default);
 
         return new self(
@@ -185,6 +150,8 @@ class SchemaColumn
         bool $null = false,
         ?string $default = null,
     ): self {
+        throw new LogicException("DEPRECATED");
+
         self::assert_datetime_default($default);
 
         return new self(
@@ -198,6 +165,8 @@ class SchemaColumn
         bool $null = false,
         ?string $default = null,
     ): self {
+        throw new LogicException("DEPRECATED");
+
         self::assert_datetime_default($default);
 
         return new self(
@@ -218,22 +187,26 @@ class SchemaColumn
      * https://dev.mysql.com/doc/refman/8.0/en/string-types.html
      */
 
+    /**
+     * @param positive-int $size
+     * @param non-empty-string|null $collate
+     */
     public static function character(
         int $size = 255,
         bool $fixed = false,
         bool $null = false,
+        ?string $default = null,
         bool $unique = false,
-        bool $primary = false,
-        ?string $comment = null,
         ?string $collate = null,
-    ): self {
-        return new self(
-            type: $fixed ? self::TYPE_CHAR : self::TYPE_VARCHAR,
+    ): Character {
+        throw new LogicException("DEPRECATED");
+
+        return new Character(
             size: $size,
+            fixed: $fixed,
             null: $null,
+            default: $default,
             unique: $unique,
-            primary: $primary,
-            comment: $comment,
             collate: $collate,
         );
     }
@@ -246,6 +219,8 @@ class SchemaColumn
         ?string $comment = null,
         ?string $collate = null,
     ): self {
+        throw new LogicException("DEPRECATED");
+
         $size = match ($size) {
             self::SIZE_SMALL => null,
             self::SIZE_BIG => 'LONG',
@@ -263,27 +238,23 @@ class SchemaColumn
         );
     }
 
+    /**
+     * @param non-empty-string|null $collate
+     */
     public static function text(
-        string|null $size = null,
+        string $size = Text::SIZE_REGULAR,
         bool $null = false,
+        ?string $default = null,
         bool $unique = false,
-        bool $primary = false,
-        ?string $comment = null,
         ?string $collate = null,
-    ): self {
-        $size = match ($size) {
-            self::SIZE_SMALL => null,
-            self::SIZE_BIG => 'LONG',
-            default => $size,
-        };
+    ): Text {
+        throw new LogicException("DEPRECATED");
 
-        return new self(
-            type: self::TYPE_TEXT,
+        return new Text(
             size: $size,
             null: $null,
+            default: $default,
             unique: $unique,
-            primary: $primary,
-            comment: $comment,
             collate: $collate,
         );
     }
@@ -302,6 +273,8 @@ class SchemaColumn
         public readonly ?string $comment = null,
         public readonly ?string $collate = null,
     ) {
+        throw new LogicException("DEPRECATED");
+
         $this->type = strtoupper($type);
     }
 
@@ -310,6 +283,8 @@ class SchemaColumn
      */
     protected function get_formatted_type(): string
     {
+        throw new LogicException("DEPRECATED");
+
         $type = strtoupper($this->type);
         $size = $this->size;
 
@@ -340,6 +315,8 @@ class SchemaColumn
      */
     protected function get_formatted_default(): string
     {
+        throw new LogicException("DEPRECATED");
+
         $default = $this->default;
 
         return match ($default) {
@@ -355,6 +332,8 @@ class SchemaColumn
      */
     protected function get_formatted_type_attributes(): string
     {
+        throw new LogicException("DEPRECATED");
+
         return $this->unsigned ? 'UNSIGNED' : '';
     }
 
@@ -363,6 +342,8 @@ class SchemaColumn
      */
     protected function get_formatted_null(): string
     {
+        throw new LogicException("DEPRECATED");
+
         return $this->null ? 'NULL' : 'NOT NULL';
     }
 
@@ -371,6 +352,8 @@ class SchemaColumn
      */
     protected function get_formatted_key(): string
     {
+        throw new LogicException("DEPRECATED");
+
         return implode(
             ' ',
             array_filter([
@@ -387,6 +370,8 @@ class SchemaColumn
      */
     protected function get_formatted_comment(): string
     {
+        throw new LogicException("DEPRECATED");
+
         return $this->comment ? "`$this->comment`" : '';
     }
 
@@ -395,6 +380,8 @@ class SchemaColumn
      */
     protected function get_formatted_collate(): string
     {
+        throw new LogicException("DEPRECATED");
+
         return $this->collate ? "COLLATE $this->collate" : '';
     }
 
@@ -403,6 +390,8 @@ class SchemaColumn
      */
     protected function get_formatted_auto_increment(): string
     {
+        throw new LogicException("DEPRECATED");
+
         return $this->auto_increment ? 'AUTO_INCREMENT' : '';
     }
 
@@ -411,6 +400,8 @@ class SchemaColumn
      */
     protected function get_is_serial(): bool
     {
+        throw new LogicException("DEPRECATED");
+
         return $this->type == self::TYPE_INT
             && !$this->null
             && $this->auto_increment
@@ -422,6 +413,8 @@ class SchemaColumn
      */
     public function render(): string
     {
+        throw new LogicException("DEPRECATED");
+
         return implode(
             ' ',
             array_filter([
@@ -439,6 +432,8 @@ class SchemaColumn
 
     public function __toString(): string
     {
+        throw new LogicException("DEPRECATED");
+
         return $this->render();
     }
 }

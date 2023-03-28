@@ -12,7 +12,7 @@ use Attribute;
  * https://www.postgresql.org/docs/current/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Decimal implements ColumnAttribute
+class Decimal extends Constraints implements ColumnAttribute
 {
     /**
      * @param positive-int $precision
@@ -24,19 +24,17 @@ class Decimal implements ColumnAttribute
      * @param bool $approximate
      *     Whether stored values can be approximate i.e. inexact.
      *     If `true` resulting column type will be `FLOAT` or `DOUBLE` instead of `NUMERIC`, `DECIMAL`, or `REAL`.
-     * @param bool $null
-     *     Whether values can be nullable.
-     *     Values are not nullable by default.
-     * @param bool $unique
-     *     Whether values must be unique.
-     *     Values are not unique by default.
      */
     public function __construct(
         public readonly int $precision,
         public readonly int $scale = 0,
         public readonly bool $approximate = false,
-        public readonly bool $null = false,
-        public readonly bool $unique = false,
+        bool $null = false,
+        bool $unique = false,
     ) {
+        parent::__construct(
+            null: $null,
+            unique: $unique,
+        );
     }
 }

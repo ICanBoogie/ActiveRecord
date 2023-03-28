@@ -11,6 +11,9 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+/**
+ * @deprecated
+ */
 final class SchemaIndex
 {
     /**

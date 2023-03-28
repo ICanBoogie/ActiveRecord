@@ -91,59 +91,6 @@ final class ActiveRecordTest extends TestCase
         $this->assertArrayHasKey('title', $array);
     }
 
-    public function test_save(): void
-    {
-        $this->markTestSkipped("doesn't work with readonly parent");
-
-        $id = mt_rand(10000, 100000);
-        $reverse = uniqid();
-        $primary = 'id';
-        $allow_null_with_value = uniqid();
-
-        $model = $this
-            ->getMockBuilder(Model::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods([ 'save', 'get_id' ])
-            ->addMethods([ 'get_extended_schema' ])
-            ->getMock();
-        $model
-            ->method('get_id')
-            ->willReturn('madonna');
-        $model
-            ->method('get_extended_schema')
-            ->willReturn(
-                new Schema([
-
-                    $primary => SchemaColumn::serial(primary: true),
-                    'reversed' => SchemaColumn::character(),
-                    'date' => SchemaColumn::datetime(),
-                    'do_not_allow_null' => SchemaColumn::character(),
-                    'allow_null' => SchemaColumn::character(null: true),
-                    'allow_null_with_value' => SchemaColumn::character(null: true),
-
-                ])
-            );
-        $model
-            ->expects($this->once())
-            ->method('save')
-            ->with([
-
-                'reverse' => strrev($reverse),
-                'allow_null' => null,
-                'allow_null_with_value' => $allow_null_with_value,
-
-            ])
-            ->willReturn($id);
-
-        $record = new Sample($model);
-        $record->reverse = $reverse;
-        $record->{'do_not_allow_null'} = null;
-        $record->{'allow_null'} = null;
-        $record->{'allow_null_with_value'} = $allow_null_with_value;
-
-        $this->assertSame($id, $record->save());
-    }
-
     public function test_delete_missing_primary(): void
     {
         $record = new Node($this->model);

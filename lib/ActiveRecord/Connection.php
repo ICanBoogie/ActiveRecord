@@ -313,19 +313,13 @@ class Connection
     }
 
     /**
+     * @param non-empty-string $unprefixed_table_name
+     *
      * @throws Throwable
      */
     public function create_table(string $unprefixed_table_name, Schema $schema): void
     {
         $this->driver->create_table($this->table_name_prefix . $unprefixed_table_name, $schema);
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function create_indexes(string $unprefixed_table_name, Schema $schema): void
-    {
-        $this->driver->create_indexes($this->table_name_prefix . $unprefixed_table_name, $schema);
     }
 
     /**

@@ -202,9 +202,11 @@ final class QueryTest extends TestCase
         $updates = $models['updates'];
         $subscribers = $models['subscribers'];
 
+        $actual = (string)$updates->select('update_id, email')->join(model: $subscribers);
+
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `subscriber` USING(`subscriber_id`)",
-            (string)$updates->select('update_id, email')->join(model: $subscribers)
+            $actual
         );
 
         $this->assertEquals(

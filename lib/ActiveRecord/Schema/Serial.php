@@ -20,6 +20,14 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final class Serial extends Integer
 {
+    /**
+     * @param array{ size: positive-int } $an_array
+     */
+    public static function __set_state(array $an_array): object
+    {
+        return new self($an_array['size']);
+    }
+
     public function __construct(
         int $size = parent::SIZE_REGULAR,
     ){

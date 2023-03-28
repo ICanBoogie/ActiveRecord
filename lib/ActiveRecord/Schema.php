@@ -11,10 +11,11 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Schema\ColumnAttribute;
+use ICanBoogie\ActiveRecord\Schema\Index;
 use InvalidArgumentException;
 
 use function array_intersect_key;
-use function count;
 use function get_debug_type;
 use function sprintf;
 
@@ -25,49 +26,46 @@ class Schema
 {
     /**
      * @param array{
-     *     columns: non-empty-array<non-empty-string, SchemaColumn>,
-     *     indexes: array<SchemaIndex>,
+     *     columns: non-empty-array<non-empty-string, ColumnAttribute>,
+     *     primary: non-empty-string|non-empty-string[]|null,
+     *     indexes: array<Index>,
      *  } $an_array
      */
     public static function __set_state(array $an_array): self
     {
-        return new self($an_array['columns'], $an_array['indexes']);
+        return new self(...$an_array);
     }
 
     /**
-     * @var non-empty-string|non-empty-string[]|null
-     */
-    public readonly string|array|null $primary;
-
-    /**
-     * @param non-empty-array<non-empty-string, SchemaColumn> $columns
-     * @param array<SchemaIndex> $indexes
+     * @param non-empty-array<non-empty-string, ColumnAttribute> $columns
+     * @param non-empty-string|non-empty-string[]|null $primary
+     * @param array<Index> $indexes
      */
     public function __construct(
         public readonly array $columns,
+        public readonly string|array|null $primary = null,
         public readonly array $indexes = []
     ) {
-        $primary = [];
-
         foreach ($columns as $name => $column) {
-            $column instanceof SchemaColumn
+            $column instanceof ColumnAttribute
                 or throw new InvalidArgumentException(
-                    sprintf("Expected %s, given: %s",
-                        SchemaColumn::class,
+                    sprintf("Expected %s for column %s, given: %s",
+                        ColumnAttribute::class,
+                        $name,
                         get_debug_type($column)
                     )
                 );
-
-            if ($column->primary) {
-                $primary[] = $name;
-            }
         }
 
-        $this->primary = match (count($primary)) {
-            0 => null,
-            1 => $primary[0],
-            default => $primary,
-        };
+        foreach ($indexes as $index) {
+            $index instanceof Index
+                or throw new InvalidArgumentException(
+                    sprintf("Expected %s, given: %s",
+                        ColumnAttribute::class,
+                        get_debug_type($index)
+                    )
+                );
+        }
     }
 
     /**

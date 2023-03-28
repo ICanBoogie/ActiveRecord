@@ -34,6 +34,8 @@ final class DriverTest extends TestCase
         string $driver_class,
         array $expected,
     ): void {
+        $this->markTestSkipped("only SQLite is supported for now");
+
         $connection = new class (
             new ConnectionDefinition('', 'sqlite::memory:'),
             $this,

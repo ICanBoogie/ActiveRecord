@@ -22,6 +22,7 @@ use ICanBoogie\ActiveRecord\ModelDefinition;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\SchemaColumn;
 use ICanBoogie\ActiveRecord\ScopeNotDefined;
 use ICanBoogie\DateTime;
@@ -137,14 +138,16 @@ final class ModelTest extends TestCase
         $connection = $connections->connection_for_id(Config::DEFAULT_CONNECTION_ID);
 
         $model = new Model(
-            $connection, $models, new ModelDefinition(
-            'nodes',
-            connection: 'primary',
-            schema: new Schema([
-                'id' => SchemaColumn::serial(primary: true),
-            ]),
-            activerecord_class: Node::class
-        )
+            $connection,
+            $models,
+            new ModelDefinition(
+                'nodes',
+                connection: 'primary',
+                schema: (new SchemaBuilder())
+                    ->add_serial('id', primary: true)
+                    ->build(),
+                activerecord_class: Node::class,
+            )
         );
 
         $this->assertEquals('nodes', $model->id);
@@ -583,7 +586,7 @@ EOT
             $model_id => new ModelDefinition(
                 id: $model_id,
                 connection: Config::DEFAULT_CONNECTION_ID,
-                schema: (new ActiveRecord\SchemaBuilder())
+                schema: (new SchemaBuilder())
                     ->add_serial('nid', primary: true)
                     ->add_character('title')
                     ->build(),
@@ -631,15 +634,17 @@ EOT
     public function test_custom_query(): void
     {
         $model = new Model(
-            $this->connections['primary'], $this->models, new ModelDefinition(
-            id: uniqid(),
-            connection: Config::DEFAULT_CONNECTION_ID,
-            schema: new Schema([
-                'id' => SchemaColumn::serial(primary: true),
-            ]),
-            activerecord_class: Node::class,
-            query_class: CustomQuery::class,
-        )
+            $this->connections['primary'],
+            $this->models,
+            new ModelDefinition(
+                id: uniqid(),
+                connection: Config::DEFAULT_CONNECTION_ID,
+                schema: (new SchemaBuilder())
+                    ->add_serial('id', primary: true)
+                    ->build(),
+                activerecord_class: Node::class,
+                query_class: CustomQuery::class,
+            )
         );
 
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));

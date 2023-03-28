@@ -2,6 +2,7 @@
 
 namespace ICanBoogie\ActiveRecord\Driver;
 
+use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
@@ -10,7 +11,6 @@ use ICanBoogie\ActiveRecord\Schema\Constraints;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
-use ICanBoogie\ActiveRecord\Schema2;
 use RuntimeException;
 
 use function implode;
@@ -21,7 +21,12 @@ use function is_array;
  */
 class TableRendererForSQLite
 {
-    public function render(Schema2 $schema, string $prefixed_table_name): string
+    /**
+     * @param non-empty-string $prefixed_table_name
+     *
+     * @return non-empty-string
+     */
+    public function render(Schema $schema, string $prefixed_table_name): string
     {
         $column_defs = implode(",\n", $this->render_column_defs($schema));
         $table_constraints = $this->render_table_constraints($schema);
@@ -38,7 +43,7 @@ class TableRendererForSQLite
     /**
      * @return string[]
      */
-    private function render_column_defs(Schema2 $schema): array
+    private function render_column_defs(Schema $schema): array
     {
         $render = [];
 
@@ -58,11 +63,22 @@ class TableRendererForSQLite
             Boolean::class => 'BOOLEAN',
             Serial::class, BelongsTo::class => "INTEGER",
             Integer::class => "INTEGER($column->size)",
+
+            Schema\Decimal::class => match ($column->approximate) {
+                true => "FLOAT($column->precision)",
+                false => "DECIMAL($column->precision, $column->scale)"
+            },
+
             Character::class => match ($column->fixed) {
                 true => "CHAR($column->size)",
                 false => "VARCHAR($column->size)"
             },
             Text::class => "{$column->size}TEXT",
+
+            Schema\DateTime::class => "DATETIME",
+            Schema\Timestamp::class => "TIMESTAMP",
+            Schema\Date::class => "DATE",
+            Schema\Time::class => "TIME",
 
             default => throw new RuntimeException("Don't know what to do with " . $column::class)
         };
@@ -93,7 +109,7 @@ class TableRendererForSQLite
         return ltrim($constraint);
     }
 
-    private function render_table_constraints(Schema2 $schema): string
+    private function render_table_constraints(Schema $schema): string
     {
         $constraints = '';
 
@@ -127,7 +143,7 @@ class TableRendererForSQLite
         return $constraints;
     }
 
-    private function render_create_index(Schema2 $schema, string $prefixed_table_name): string
+    private function render_create_index(Schema $schema, string $prefixed_table_name): string
     {
         $create_index = '';
 

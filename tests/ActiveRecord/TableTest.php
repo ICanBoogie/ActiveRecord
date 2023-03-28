@@ -14,7 +14,7 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Schema;
-use ICanBoogie\ActiveRecord\SchemaColumn;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\Table;
 use ICanBoogie\ActiveRecord\TableDefinition;
 use PHPUnit\Framework\TestCase;
@@ -22,14 +22,14 @@ use ReflectionMethod;
 
 final class TableTest extends TestCase
 {
-    private static Connection $connection;
-    private static Table $animals;
-    private static Schema $animals_schema;
-    private static Table $dogs;
+    private Connection $connection;
+    private Table $animals;
+    private Schema $animals_schema;
+    private Table $dogs;
 
-    public static function setUpBeforeClass(): void
+    protected function setUp(): void
     {
-        self::$connection = $connection = new Connection(
+        $this->connection = $connection = new Connection(
             new ConnectionDefinition(
                 id: '',
                 dsn: 'sqlite::memory:',
@@ -37,32 +37,32 @@ final class TableTest extends TestCase
             )
         );
 
-        self::$animals = new Table(
+        $this->animals = new Table(
             $connection,
             new TableDefinition(
                 name: 'animals',
-                schema: self::$animals_schema = new Schema([
-                    'id' => SchemaColumn::serial(primary: true),
-                    'name' => SchemaColumn::character(),
-                    'date' => SchemaColumn::timestamp(),
-                ])
+                schema: $this->animals_schema = (new SchemaBuilder())
+                    ->add_serial('id', primary: true)
+                    ->add_character('name')
+                    ->add_timestamp('date')
+                    ->build()
             )
         );
 
-        self::$dogs = new Table(
+        $this->dogs = new Table(
             $connection,
             new TableDefinition(
                 name: 'dogs',
-                schema: new Schema([
-                    'id' => SchemaColumn::foreign(primary: true),
-                    'bark_volume' => SchemaColumn::float(),
-                ])
+                schema: (new SchemaBuilder())
+                    ->add_foreign('id', primary: true)
+                    ->add_float('bark_volume')
+                    ->build()
             ),
-            self::$animals
+            $this->animals
         );
 
-        self::$animals->install();
-        self::$dogs->install();
+        $this->animals->install();
+        $this->dogs->install();
     }
 
     /*
@@ -71,53 +71,53 @@ final class TableTest extends TestCase
 
     public function test_get_connection(): void
     {
-        $this->assertEquals(self::$connection, self::$animals->connection);
+        $this->assertEquals($this->connection, $this->animals->connection);
     }
 
     public function test_get_name(): void
     {
-        $this->assertEquals('prefix_animals', self::$animals->name);
+        $this->assertEquals('prefix_animals', $this->animals->name);
     }
 
     public function test_get_unprefixed_name(): void
     {
-        $this->assertEquals('animals', self::$animals->unprefixed_name);
+        $this->assertEquals('animals', $this->animals->unprefixed_name);
     }
 
     public function test_get_primary(): void
     {
-        $this->assertEquals('id', self::$animals->primary);
+        $this->assertEquals('id', $this->animals->primary);
     }
 
     public function test_get_inherited_primary(): void
     {
-        $this->assertEquals('id', self::$dogs->primary);
+        $this->assertEquals('id', $this->dogs->primary);
     }
 
     public function test_get_alias(): void
     {
-        $this->assertEquals('animal', self::$animals->alias);
-        $this->assertEquals('dog', self::$dogs->alias);
+        $this->assertEquals('animal', $this->animals->alias);
+        $this->assertEquals('dog', $this->dogs->alias);
     }
 
     public function test_get_schema(): void
     {
-        $this->assertInstanceOf(Schema::class, self::$animals->schema);
+        $this->assertInstanceOf(Schema::class, $this->animals->schema);
     }
 
     public function test_get_schema_options(): void
     {
-        $this->assertEquals(self::$animals_schema, self::$animals->schema);
+        $this->assertEquals($this->animals_schema, $this->animals->schema);
     }
 
     public function test_get_parent(): void
     {
-        $this->assertEquals(self::$animals, self::$dogs->parent);
+        $this->assertEquals($this->animals, $this->dogs->parent);
     }
 
     public function test_get_update_join(): void
     {
-        $table = self::$dogs;
+        $table = $this->dogs;
         $method = new ReflectionMethod(Table::class, 'lazy_get_update_join');
         $method->setAccessible(true);
 
@@ -126,7 +126,7 @@ final class TableTest extends TestCase
 
     public function test_get_select_join(): void
     {
-        $table = self::$dogs;
+        $table = $this->dogs;
         $method = new ReflectionMethod(Table::class, 'lazy_get_select_join');
         $method->setAccessible(true);
 
@@ -135,7 +135,7 @@ final class TableTest extends TestCase
 
     public function test_extended_schema(): void
     {
-        $schema = self::$dogs->extended_schema;
+        $schema = $this->dogs->extended_schema;
 
         $this->assertInstanceOf(Schema::class, $schema);
     }
@@ -143,14 +143,14 @@ final class TableTest extends TestCase
     public function test_resolve_statement__multi_column_primary_key(): void
     {
         $table = new Table(
-            self::$connection,
+            $this->connection,
             new TableDefinition(
                 name: 'testing',
-                schema: new Schema([
-                    'p1' => new SchemaColumn(type: 'int', size: 'big', primary: true),
-                    'p2' => new SchemaColumn(type: 'int', size: 'big', primary: true),
-                    'f1' => SchemaColumn::character(),
-                ])
+                schema: (new SchemaBuilder())
+                    ->add_integer('p1', size: Schema\Integer::SIZE_BIG, primary: true)
+                    ->add_integer('p2', size: Schema\Integer::SIZE_BIG, primary: true)
+                    ->add_character('f1')
+                    ->build()
             )
         );
 

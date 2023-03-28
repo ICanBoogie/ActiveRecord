@@ -3,6 +3,7 @@
 namespace Test\ICanBoogie\ActiveRecord\Driver;
 
 use ICanBoogie\ActiveRecord\Driver\TableRendererForSQLite;
+use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
@@ -10,7 +11,6 @@ use ICanBoogie\ActiveRecord\Schema\Index;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
-use ICanBoogie\ActiveRecord\Schema2;
 use PHPUnit\Framework\TestCase;
 
 final class TableRendererForSQLiteTest extends TestCase
@@ -18,7 +18,7 @@ final class TableRendererForSQLiteTest extends TestCase
     /**
      * @dataProvider provideRender
      */
-    public function test_render(Schema2 $schema, string $expected): void
+    public function test_render(Schema $schema, string $expected): void
     {
         $prefixed_table_name = 'tblSample';
 
@@ -29,14 +29,14 @@ final class TableRendererForSQLiteTest extends TestCase
     }
 
     /**
-     * @return array<array{ Schema2, string }>
+     * @return array<array{ Schema, string }>
      */
     public static function provideRender(): array
     {
         return [
 
             [
-                new Schema2(
+                new Schema(
                     columns: [
                         'dance_session_id' => new Serial(),
                         'name' => new Character(),
@@ -58,7 +58,7 @@ final class TableRendererForSQLiteTest extends TestCase
             ],
 
             [
-                new Schema2(
+                new Schema(
                     columns: [
                         'location_id' => new BelongsTo('locations'),
                         'person_id' => new Serial(),
@@ -78,7 +78,7 @@ final class TableRendererForSQLiteTest extends TestCase
             ],
 
             'Contacts' => [
-                new Schema2(
+                new Schema(
                     columns: [
                         'first_name' => new Character(),
                         'last_name' => new Character(),
@@ -100,7 +100,7 @@ final class TableRendererForSQLiteTest extends TestCase
             ],
 
             'Contacts Nameless Index' => [
-                new Schema2(
+                new Schema(
                     columns: [
                         'first_name' => new Character(),
                         'last_name' => new Character(),
@@ -122,7 +122,7 @@ final class TableRendererForSQLiteTest extends TestCase
             ],
 
             'PersonEquipment' => [
-                new Schema2(
+                new Schema(
                     columns: [
                         'person_id' => new BelongsTo('persons'),
                         'equipment_id' => new BelongsTo('equipment_id'),
@@ -140,7 +140,7 @@ final class TableRendererForSQLiteTest extends TestCase
             ],
 
             'Article' => [
-                new Schema2(
+                new Schema(
                     columns: [
                         'nid' => new Serial(),
                         'title' => new Character(),

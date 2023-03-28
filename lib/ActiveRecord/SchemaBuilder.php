@@ -2,48 +2,61 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Schema\Binary;
+use ICanBoogie\ActiveRecord\Schema\Blob;
+use ICanBoogie\ActiveRecord\Schema\Boolean;
+use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\ColumnAttribute;
+use ICanBoogie\ActiveRecord\Schema\Date;
+use ICanBoogie\ActiveRecord\Schema\DateTime;
+use ICanBoogie\ActiveRecord\Schema\Decimal;
+use ICanBoogie\ActiveRecord\Schema\Index;
+use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
+use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\Schema\Text;
+use ICanBoogie\ActiveRecord\Schema\Timestamp;
+use ICanBoogie\ActiveRecord\Schema\VarBinary;
 use LogicException;
 
-use function in_array;
 use function is_string;
 
 final class SchemaBuilder
 {
     public const SIZE_TINY = 'TINY';
-    public const SIZE_SMALL = 'SMALL';
-    public const SIZE_MEDIUM = 'MEDIUM';
-    public const SIZE_BIG = 'BIG';
 
-    public const NOW = 'NOW';
     public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
 
     /**
-     * @var array<string, SchemaColumn>
+     * @var array<non-empty-string, ColumnAttribute>
      */
     private array $columns = [];
 
     /**
-     * @var array<array{ string|array<string>, bool, ?string }>
+     * @var array<non-empty-string>
+     */
+    private array $primary = [];
+
+    /**
+     * @var array<Index>
      */
     private array $indexes = [];
 
     public function build(): Schema
     {
-        $indexes = [];
+        assert(count($this->columns) > 0);
 
-        foreach ($this->indexes as $i) {
-            [ $columns, $unique, $name ] = $i + [ 2 => null ];
+        $primary = match (count($this->primary)) {
+            0 => null,
+            1 => reset($this->primary),
+            default => $this->primary,
+        };
 
-            if (is_string($columns)) {
-                $columns = [ $columns ];
-            }
-
-            $indexes[] = new SchemaIndex($columns, $unique, $name);
-        }
-
-        return new Schema($this->columns, $indexes);
+        return new Schema(
+            columns: $this->columns,
+            primary: $primary,
+            indexes: $this->indexes
+        );
     }
 
     /**
@@ -54,147 +67,78 @@ final class SchemaBuilder
         return count($this->columns) === 0;
     }
 
-    public function add_column(
-        string $col_name,
-        string $type,
-        string|int|null $size = null,
-        bool $unsigned = false,
-        bool $null = false,
-        mixed $default = null,
-        bool $auto_increment = false,
-        bool $unique = false,
-        bool $primary = false,
-        ?string $comment = null,
-        ?string $collate = null,
-    ): self {
-        $this->columns[$col_name] = new SchemaColumn(
-            type: $type,
-            size: $size,
-            unsigned: $unsigned,
-            null: $null,
-            default: $default,
-            auto_increment: $auto_increment,
-            unique: $unique,
-            primary: $primary,
-            comment: $comment,
-            collate: $collate,
-        );
-
-        return $this;
-    }
-
-    private function add_column_from_attribute(ColumnAttribute $attribute, string $col_name, bool $is_primary): void
-    {
-        match ($attribute::class) {
-            //
-            // Integer
-            //
-            Schema\Boolean::class,
-            Schema\Integer::class,
-            Schema\Serial::class => $this->add_column(
-                col_name: $col_name,
-                type: SchemaColumn::TYPE_INT,
-                size: $attribute->size,
-                unsigned: $attribute->unsigned,
-                null: $attribute->null,
-                auto_increment: $attribute->serial,
-                unique: $attribute->unique,
-                primary: $is_primary
-            ),
-
-            //
-            // Decimal @TODO: IMPROVE SUPPORT
-            //
-            Schema\Decimal::class => $this->add_decimal(
-                col_name: $col_name,
-                null: $attribute->null,
-            ),
-
-            Schema\Date::class => $this->add_date(
-                col_name: $col_name,
-                null: $attribute->null,
-                default: $attribute->default,
-            ),
-
-            Schema\DateTime::class => $this->add_datetime(
-                col_name: $col_name,
-                null: $attribute->null,
-                default: $attribute->default,
-            ),
-
-            // String Data Types
-
-            Schema\Character::class => $this->add_character(
-                col_name: $col_name,
-                size: $attribute->size,
-                fixed: $attribute->fixed,
-                null: $attribute->null,
-                unique: $attribute->unique,
-                collate: $attribute->collate,
-                primary: $is_primary,
-            ),
-
-            Schema\Binary::class => $this->add_binary(
-                col_name: $col_name,
-                size: $attribute->size,
-                null: $attribute->null,
-                unique: $attribute->unique,
-                primary: $is_primary,
-            ),
-
-            Schema\VarBinary::class => $this->add_varbinary(
-                col_name: $col_name,
-                size: $attribute->size,
-                null: $attribute->null,
-                unique: $attribute->unique,
-                primary: $is_primary,
-            ),
-
-            Schema\Text::class => $this->add_text(
-                col_name: $col_name,
-                size: $attribute->size,
-                null: $attribute->null,
-                unique: $attribute->unique,
-                primary: $is_primary,
-            ),
-
-            // Relations
-
-            Schema\BelongsTo::class => $this->add_foreign(
-                col_name: $col_name,
-                null: $attribute->null,
-                unique: $attribute->unique,
-                primary: $is_primary,
-            ),
-
-            default => throw new LogicException("Don't know what to do with: " . $attribute::class),
-        };
-    }
-
+    /**
+     * @param non-empty-string $col_name
+     *
+     * @return $this
+     *
+     * @see Boolean
+     */
     public function add_boolean(
         string $col_name,
         bool $null = false,
-        /** @obsolete */
-        bool $unique = false,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::boolean(
+        $this->columns[$col_name] = new Boolean(
             null: $null,
-            unique: $unique,
         );
 
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     * @param positive-int $size
+     *
+     * @return $this
+     *
+     * @see Integer
+     */
     public function add_integer(
         string $col_name,
-        int|string|null $size = null,
+        int $size = Integer::SIZE_REGULAR,
         bool $unsigned = false,
+        bool $serial = false,
+        bool $null = false,
+        bool $unique = false,
+        int|string $default = null,
+        bool $primary = false,
+    ): self {
+        $this->columns[$col_name] = new Integer(
+            size: $size,
+            unsigned: $unsigned,
+            serial: $serial,
+            null: $null,
+            unique: $unique,
+            default: $default,
+        );
+
+        if ($primary) {
+            $this->primary[] = $col_name;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param non-empty-string $col_name
+     * @param positive-int $precision
+     *
+     * @return $this
+     *
+     * @see Decimal
+     */
+    public function add_decimal(
+        string $col_name,
+        int $precision,
+        int $scale = 0,
+        bool $approximate = false,
         bool $null = false,
         bool $unique = false,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::int(
-            size: $size,
-            unsigned: $unsigned,
+        $this->columns[$col_name] = new Decimal(
+            precision: $precision,
+            scale: $scale,
+            approximate: $approximate,
             null: $null,
             unique: $unique
         );
@@ -202,53 +146,85 @@ final class SchemaBuilder
         return $this;
     }
 
-    public function add_decimal(
+    public function add_float(
         string $col_name,
-        ?int $precision = null,
-        bool $unsigned = false,
         bool $null = false,
+        bool $unique = false,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::float(
-            precision: $precision,
-            unsigned: $unsigned,
-            null: $null
+        return $this->add_decimal(
+            col_name: $col_name,
+            precision: 9,
+            approximate: true,
+            null: $null,
+            unique: $unique,
         );
-
-        return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     * @param positive-int $size
+     *
+     * @return $this
+     *
+     * @see Serial
+     */
     public function add_serial(
         string $col_name,
+        int $size = Integer::SIZE_REGULAR,
         bool $primary = false,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::serial(
-            primary: $primary,
+        $this->columns[$col_name] = new Serial(
+            size: $size
         );
+
+        if ($primary) {
+            $this->primary[] = $col_name;
+        }
 
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     * @param positive-int $size
+     *
+     * @return $this
+     *
+     * @see Integer
+     */
     public function add_foreign(
         string $col_name,
+        int $size = Integer::SIZE_REGULAR,
         bool $null = false,
         bool $unique = false,
         bool $primary = false,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::foreign(
+        $this->columns[$col_name] = new Integer(
+            size: $size,
             null: $null,
             unique: $unique,
-            primary: $primary,
         );
+
+        if ($primary) {
+            $this->primary[] = $col_name;
+        }
 
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     *
+     * @return $this
+     *
+     * @see Date
+     */
     public function add_date(
         string $col_name,
         bool $null = false,
         ?string $default = null,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::date(
+        $this->columns[$col_name] = new Date(
             null: $null,
             default: $default,
         );
@@ -256,12 +232,19 @@ final class SchemaBuilder
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     *
+     * @return $this
+     *
+     * @see DateTime
+     */
     public function add_datetime(
         string $col_name,
         bool $null = false,
         ?string $default = null,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::datetime(
+        $this->columns[$col_name] = new DateTime(
             null: $null,
             default: $default,
         );
@@ -269,12 +252,19 @@ final class SchemaBuilder
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     *
+     * @return $this
+     *
+     * @see Timestamp
+     */
     public function add_timestamp(
         string $col_name,
         bool $null = false,
         ?string $default = null,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::timestamp(
+        $this->columns[$col_name] = new Timestamp(
             null: $null,
             default: $default,
         );
@@ -282,105 +272,128 @@ final class SchemaBuilder
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     * @param positive-int $size
+     * @param non-empty-string|null $collate
+     *
+     * @return $this
+     *
+     * @see Character
+     */
     public function add_character(
         string $col_name,
         int $size = 255,
         bool $fixed = false,
         bool $null = false,
+        ?string $default = null,
         bool $unique = false,
         ?string $collate = null,
         bool $primary = false,
-        ?string $comment = null,
     ): self {
-        $this->columns[$col_name] = new SchemaColumn(
-            type: $fixed ? SchemaColumn::TYPE_CHAR : SchemaColumn::TYPE_VARCHAR,
+        $this->columns[$col_name] = new Character(
             size: $size,
+            fixed: $fixed,
             null: $null,
+            default: $default,
             unique: $unique,
-            primary: $primary,
-            comment: $comment,
             collate: $collate,
         );
+
+        if ($primary) {
+            $this->primary[] = $col_name;
+        }
 
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     *
+     * @return $this
+     *
+     * @see Binary
+     */
     public function add_binary(
         string $col_name,
         int $size = 255,
         bool $null = false,
         bool $unique = false,
-        bool $primary = false,
-        ?string $comment = null,
     ): self {
-        $this->columns[$col_name] = new SchemaColumn(
-            type: SchemaColumn::TYPE_BINARY,
+        $this->columns[$col_name] = new Binary(
             size: $size,
             null: $null,
             unique: $unique,
-            primary: $primary,
-            comment: $comment,
         );
 
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     *
+     * @return $this
+     *
+     * @see VarBinary
+     */
     public function add_varbinary(
         string $col_name,
         int $size = 255,
         bool $null = false,
         bool $unique = false,
-        bool $primary = false,
-        ?string $comment = null,
     ): self {
-        $this->columns[$col_name] = new SchemaColumn(
-            type: SchemaColumn::TYPE_VARBINARY,
+        $this->columns[$col_name] = new VarBinary(
             size: $size,
             null: $null,
             unique: $unique,
-            primary: $primary,
-            comment: $comment,
         );
 
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     *
+     * @return $this
+     *
+     * @see Blob
+     */
     public function add_blob(
         string $col_name,
-        string|null $size = null,
+        int $size = 255,
         bool $null = false,
         bool $unique = false,
-        bool $primary = false,
-        ?string $comment = null,
-        ?string $collate = null,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::blob(
+        $this->columns[$col_name] = new Blob(
             size: $size,
             null: $null,
             unique: $unique,
-            primary: $primary,
-            comment: $comment,
-            collate: $collate,
         );
 
         return $this;
     }
 
+    /**
+     * @param non-empty-string $col_name
+     * @param non-empty-string|null $collate
+     *
+     * @return $this
+     *
+     * @see Text
+     */
     public function add_text(
         string $col_name,
-        string|null $size = null,
+        string $size = Text::SIZE_REGULAR,
         bool $null = false,
+        string $default = null,
         bool $unique = false,
-        bool $primary = false,
-        ?string $comment = null,
-        ?string $collate = null,
+        string $collate = null,
     ): self {
-        $this->columns[$col_name] = SchemaColumn::text(
+        $this->columns[$col_name] = new Text(
             size: $size,
             null: $null,
+            default: $default,
             unique: $unique,
-            primary: $primary,
-            comment: $comment,
             collate: $collate,
         );
 
@@ -390,12 +403,14 @@ final class SchemaBuilder
     /**
      * Adds an index on one or multiple columns.
      *
-     * @param string|array<string> $columns
+     * @param non-empty-string|non-empty-array<non-empty-string> $columns
      *     Identifiers of the columns making the unique index.
      *
      * @return $this
      *
      * @throws LogicException if a column used by the index is not defined.
+     *
+     * @see Index
      */
     public function add_index(
         array|string $columns,
@@ -411,7 +426,7 @@ final class SchemaBuilder
                 throw new LogicException("Column used by index is not defined: $column");
         }
 
-        $this->indexes[] = [ $columns, $unique, $name ];
+        $this->indexes[] = new Index($columns, $unique, $name);
 
         return $this;
     }
@@ -426,34 +441,21 @@ final class SchemaBuilder
         array $class_attributes,
         array $property_attributes,
     ): self {
-        $ids = [];
-
-        //
-        // Before we process the property attributes, we need look for Id markers,
-        // so we can property set the `primary` property.
-        //
-        foreach ($property_attributes as [ $attribute, $property ]) {
-            if ($attribute instanceof Schema\Id) {
-                $ids[] = $property;
-            }
-        }
-
         foreach ($property_attributes as [ $attribute, $name ]) {
-            if (!$attribute instanceof ColumnAttribute) {
+            if ($attribute instanceof Schema\Id) {
+                $this->primary[] = $name;
+
                 continue;
             }
 
-            $is_primary = in_array($name, $ids);
-            $this->add_column_from_attribute($attribute, $name, $is_primary);
+            if ($attribute instanceof ColumnAttribute) {
+                $this->columns[$name] = $attribute;
+            }
         }
 
         foreach ($class_attributes as $attribute) {
             if ($attribute instanceof Schema\Index) {
-                $this->add_index(
-                    columns: $attribute->columns,
-                    unique: $attribute->unique,
-                    name: $attribute->name,
-                );
+                $this->indexes[] = $attribute;
             }
         }
 

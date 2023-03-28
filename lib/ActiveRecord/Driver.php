@@ -38,16 +38,11 @@ interface Driver
     /**
      * Creates a table given a schema.
      *
-     * @throws Throwable
-     */
-    public function create_table(string $table_name, Schema $schema): void;
-
-    /**
-     * Creates indexes given a schema.
+     * @param non-empty-string $table_name
      *
      * @throws Throwable
      */
-    public function create_indexes(string $table_name, Schema $schema): void;
+    public function create_table(string $table_name, Schema $schema): void;
 
     /**
      * Checks if a specified table exists in the database.

@@ -7,6 +7,8 @@ use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\Schema\DateTime;
+use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use LogicException;
 use Test\ICanBoogie\Acme\Article;
@@ -73,8 +75,8 @@ final class Fixtures
                     extends: 'nodes',
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_character('body')
-                        ->add_datetime('date', default: $schema::CURRENT_TIMESTAMP)
-                        ->add_integer('rating', size: $schema::SIZE_TINY, null: true),
+                        ->add_datetime('date', default: DateTime::CURRENT_TIMESTAMP)
+                        ->add_integer('rating', size: Integer::SIZE_TINY, null: true),
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many('comments', foreign_key: 'nid')
                 ),

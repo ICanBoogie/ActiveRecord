@@ -69,7 +69,7 @@ class Table extends Prototyped
     /**
      * Primary key of the table, retrieved from the schema defined using the {@link SCHEMA} attribute.
      *
-     * @var string[]|string|null
+     * @var non-empty-string|non-empty-array<non-empty-string>|null
      */
     public readonly array|string|null $primary;
 
@@ -141,7 +141,7 @@ class Table extends Prototyped
         $columns = array_reverse($columns);
         $columns = array_merge(...array_values($columns));
 
-        return new Schema($columns);
+        return new Schema($columns, primary: $this->primary);
     }
 
     public function __construct(
@@ -248,7 +248,6 @@ class Table extends Prototyped
     public function install(): void
     {
         $this->connection->create_table($this->unprefixed_name, $this->schema);
-        $this->connection->create_indexes($this->unprefixed_name, $this->schema);
     }
 
     /**

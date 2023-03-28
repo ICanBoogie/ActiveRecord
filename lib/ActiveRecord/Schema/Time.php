@@ -3,15 +3,37 @@
 namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
-use ICanBoogie\ActiveRecord\SchemaColumn;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Time implements ColumnAttribute
+final class Time extends Constraints implements ColumnAttribute
 {
+    /**
+     * @param array{
+     *     null: bool,
+     *     default: ?string,
+     *     unique: bool,
+     * } $an_array
+     */
+    public static function __set_state(array $an_array): object
+    {
+        return new self(
+            $an_array['null'],
+            $an_array['default'],
+            $an_array['unique'],
+        );
+    }
+
     public function __construct(
-        public readonly bool $null = false,
-        public readonly ?string $default = null,
+        bool $null = false,
+        ?string $default = null,
+        bool $unique = false,
     ) {
-        SchemaColumn::assert_datetime_default($default);
+        DateTime::assert_datetime_default($default);
+
+        parent::__construct(
+            null: $null,
+            default: $default,
+            unique: $unique,
+        );
     }
 }

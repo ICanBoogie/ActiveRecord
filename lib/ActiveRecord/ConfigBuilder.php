@@ -23,6 +23,7 @@ use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientBelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
+use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use InvalidArgumentException;
 use LogicException;
@@ -107,9 +108,14 @@ final class ConfigBuilder
             }
 
             $schema = $model->schema;
+            $parent_column = $parent_schema->columns[$primary];
+
+            assert($parent_column instanceof Integer);
+
             $model->schema = new Schema(
-                [ $primary => SchemaColumn::foreign(primary: true) ] + $schema->columns,
-                $schema->indexes,
+                columns: [ $primary => new Integer(size: $parent_column->size, unique: true) ] + $schema->columns,
+                primary: $primary,
+                indexes: $schema->indexes,
             );
         }
 

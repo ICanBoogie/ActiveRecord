@@ -6,7 +6,6 @@ use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
-use ICanBoogie\ActiveRecord\SchemaIndex;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
@@ -48,7 +47,7 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
-        $this->assertFalse($schema->columns['nid']->auto_increment);
+        $this->assertFalse($schema->columns['nid']->serial);
     }
 
     public function test_from_attributes(): void
@@ -75,9 +74,9 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
-        $this->assertFalse($schema->columns['nid']->auto_increment);
+        $this->assertFalse($schema->columns['nid']->serial);
         $this->assertEquals([
-            new SchemaIndex([ 'rating' ], name: 'idx_rating')
+            new Schema\Index('rating', name: 'idx_rating')
         ], $schema->indexes);
     }
 

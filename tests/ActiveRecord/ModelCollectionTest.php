@@ -10,6 +10,7 @@ use ICanBoogie\ActiveRecord\ModelCollection;
 use ICanBoogie\ActiveRecord\ModelDefinition;
 use ICanBoogie\ActiveRecord\ModelNotDefined;
 use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\SchemaColumn;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
@@ -100,10 +101,10 @@ final class ModelCollectionTest extends TestCase
         $models['brands'] = $config = new ModelDefinition(
             id: 'brands',
             connection: Config::DEFAULT_CONNECTION_ID,
-            schema: new Schema([
-                'brand_id' => SchemaColumn::serial(primary: true),
-                'name' => SchemaColumn::character(),
-            ]),
+            schema: (new SchemaBuilder())
+                ->add_serial('brand_id', primary: true)
+                ->add_character('name')
+                ->build(),
             activerecord_class: Brand::class,
             name: 'brands',
         );

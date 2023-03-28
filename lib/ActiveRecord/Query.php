@@ -600,14 +600,14 @@ class Query implements IteratorAggregate
      * Join a model to the query.
      *
      * @param Model<int|string|string[], ActiveRecord> $model
-     * @param string $mode
+     * @param non-empty-string $mode
      *     Join mode.
-     * @param ?string $as
+     * @param ?non-empty-string $as
      *     The alias of the model. Default: The model's alias.
-     * @param ?string $on
+     * @param ?non-empty-string $on
      *     The column on which the joint is created, or an _ON_ expression. Default: The model's primary key. @todo
      */
-    private function join_with_model(
+    private function join_with_model( // @phpstan-ignore-line
         Model $model,
         string $mode = 'INNER',
         string $as = null,
@@ -618,6 +618,8 @@ class Query implements IteratorAggregate
         $on ??= (function () use ($model): string {
             $primary = $this->model->primary;
             $model_schema = $model->extended_schema;
+
+            assert(is_array($primary) || is_string($primary));
 
             if (is_array($primary)) {
                 foreach ($primary as $column) {

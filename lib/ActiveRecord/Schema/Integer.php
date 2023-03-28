@@ -30,6 +30,30 @@ class Integer extends Constraints implements ColumnAttribute
     ];
 
     /**
+     * @param array{
+     *     size: positive-int,
+     *     unsigned: bool,
+     *     serial: bool,
+     *     null: bool,
+     *     unique: bool,
+     *     default: int|string|null,
+     * } $an_array
+     *
+     * @return object
+     */
+    public static function __set_state(array $an_array): object
+    {
+        return new self(
+            $an_array['size'],
+            $an_array['unsigned'],
+            $an_array['serial'],
+            $an_array['null'],
+            $an_array['unique'],
+            $an_array['default'],
+        );
+    }
+
+    /**
      * @param positive-int $size
      *     Number of bytes used to store values. Must be one of: {@link self::SIZE_TINY}, {@link self::SIZE_SMALL},
      *     {@link self::SIZE_MEDIUM}, {@link self::SIZE_REGULAR}, {@link self::SIZE_BIG}.
@@ -50,7 +74,7 @@ class Integer extends Constraints implements ColumnAttribute
         public readonly bool $serial = false,
         bool $null = false,
         bool $unique = false,
-        int|string|null $default = null,
+        int|string $default = null,
     ) {
         in_array($size, self::ALLOWED_SIZES)
             or throw new LogicException("Size must be one of the allowed ones");
@@ -64,7 +88,7 @@ class Integer extends Constraints implements ColumnAttribute
 
         parent::__construct(
             null: $null,
-            default: $default,
+            default: $default === null ? null : "$default",
             unique: $unique,
         );
     }

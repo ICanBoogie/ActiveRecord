@@ -4,8 +4,6 @@ namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
-use ICanBoogie\ActiveRecord\SchemaColumn;
-use ICanBoogie\ActiveRecord\SchemaIndex;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 
@@ -14,9 +12,10 @@ final class SchemaBuilderTest extends TestCase
     public function test_build(): void
     {
         $actual = (new SchemaBuilder())
+            ->add_serial('nid', primary: true)
             ->add_boolean('is_active')
             ->add_integer('rating_count')
-            ->add_decimal('rating_avg', null: true)
+            ->add_decimal('rating_avg', 5, null: true)
             ->add_character('country', size: 2, fixed: true)
             ->add_character('title')
             ->add_text('body')
@@ -26,17 +25,20 @@ final class SchemaBuilderTest extends TestCase
 
         $expected = new Schema(
             columns: [
-                'is_active' => SchemaColumn::boolean(),
-                'rating_count' => SchemaColumn::int(),
-                'rating_avg' => SchemaColumn::float(null: true),
-                'country' => SchemaColumn::character(2, fixed: true),
-                'title' => SchemaColumn::character(),
-                'body' => SchemaColumn::text(),
-                'date' => SchemaColumn::datetime(default: SchemaColumn::CURRENT_TIMESTAMP)
+                'nid' => new Schema\Serial(),
+                'is_active' => new Schema\Boolean(),
+                'rating_count' => new Schema\Integer(),
+                'rating_avg' => new Schema\Decimal(5, null: true),
+                'country' => new Schema\Character(2, fixed: true),
+                'title' => new Schema\Character(),
+                'body' => new Schema\Text(),
+                'date' => new Schema\DateTime(default: Schema\DateTime::CURRENT_TIMESTAMP)
             ],
+            primary: 'nid',
             indexes: [
-                new SchemaIndex([ 'is_active' ])
-            ]);
+                new Schema\Index([ 'is_active' ])
+            ],
+        );
 
         $this->assertEquals($expected, $actual);
     }

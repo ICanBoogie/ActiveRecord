@@ -95,44 +95,10 @@ abstract class BasicDriver implements Driver
 
     /**
      * Renders the statement to create the specified table.
+     *
+     * @param non-empty-string $table_name
+     *
+     * @return non-empty-string
      */
     abstract protected function render_create_table(string $table_name, Schema $schema): string;
-
-    public function create_indexes(string $table_name, Schema $schema): void
-    {
-        foreach ($schema->indexes as $index) {
-            $this->connection->exec(
-                $this->render_create_index($table_name, $index)
-            );
-        }
-    }
-
-    /**
-     * Renders the statement to create the specified index.
-     */
-    abstract protected function render_create_index(string $table_name, SchemaIndex $index): string;
-
-    /**
-     * @return string[]
-     */
-    protected function render_create_table_lines(Schema $schema): array
-    {
-        $lines = [];
-
-        foreach ($schema->columns as $column_id => $column) {
-            $lines[$column_id] = $this->render_create_table_line($schema, $column_id, $column);
-        }
-
-        return $lines;
-    }
-
-    protected function render_create_table_line(Schema $schema, string $column_id, SchemaColumn $column): string
-    {
-        return $this->quote_identifier($column_id) . " " . $this->render_column($column);
-    }
-
-    /**
-     * Renders the column definition.
-     */
-    abstract protected function render_column(SchemaColumn $column): string;
 }

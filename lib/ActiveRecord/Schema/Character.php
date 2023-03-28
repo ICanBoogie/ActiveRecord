@@ -10,6 +10,11 @@ class Character extends Constraints implements ColumnAttribute
 {
     public const MAX_SIZE = 65535;
 
+    public static function __set_state(array $an_array): object
+    {
+        return new self(...$an_array);
+    }
+
     /**
      * @param positive-int $size
      *     Maximum number of characters.
