@@ -119,7 +119,7 @@ abstract class BasicDriver implements Driver
     {
         $lines = [];
 
-        foreach ($schema as $column_id => $column) {
+        foreach ($schema->columns as $column_id => $column) {
             $lines[$column_id] = $this->render_create_table_line($schema, $column_id, $column);
         }
 

@@ -13,7 +13,6 @@ namespace ICanBoogie\ActiveRecord;
 
 use Closure;
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Config\Association;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\Config\BelongsToAssociation;
@@ -24,6 +23,7 @@ use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientBelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
+use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use InvalidArgumentException;
 use LogicException;
 use olvlvl\ComposerAttributeCollector\Attributes;
@@ -38,7 +38,6 @@ use function is_a;
 use function is_string;
 use function preg_match;
 use function sprintf;
-use function var_dump;
 
 final class ConfigBuilder
 {
@@ -159,7 +158,7 @@ final class ConfigBuilder
                 alias: $transient->alias,
                 extends: $transient->extends,
                 implements: $transient->implements,
-                model_class: $transient->model_class ?? Model::class, // @phpstan-ignore-line
+                model_class: $transient->model_class ?? Model::class,
                 query_class: $transient->query_class ?? Query::class,
                 association: $associations[$id] ?? null,
             );
@@ -301,10 +300,10 @@ final class ConfigBuilder
     /**
      * @param class-string<ActiveRecord> $activerecord_class
      * @param class-string<Model>|null $model_class
-     * @param class-string<Query<ActiveRecord>>|null $query_class
+     * @param class-string<Query>|null $query_class
      * @param (Closure(SchemaBuilder $schema): SchemaBuilder)|null $schema_builder
      */
-    public function add_model(
+    public function add_model( // @phpstan-ignore-line
         string $id,
         string $activerecord_class,
         string|null $model_class = null,

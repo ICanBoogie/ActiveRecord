@@ -11,11 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ArrayIterator;
 use ICanBoogie\Accessor\AccessorTrait;
 use InvalidArgumentException;
-use IteratorAggregate;
-use Traversable;
 
 use function array_intersect_key;
 use function count;
@@ -28,10 +25,8 @@ use function sprintf;
  *
  * @property-read string[]|string|null $primary The primary key of the schema. A multi-dimensional
  * primary key is returned as an array.
- *
- * @implements IteratorAggregate<string, SchemaColumn>
  */
-class Schema implements IteratorAggregate
+class Schema
 {
     /**
      * @uses get_primary
@@ -98,14 +93,6 @@ class Schema implements IteratorAggregate
     public function has_column(string $name): bool
     {
         return isset($this->columns[$name]);
-    }
-
-    /**
-     * @return Traversable<string, SchemaColumn>
-     */
-    public function getIterator(): Traversable
-    {
-        return new ArrayIterator($this->columns);
     }
 
     /**

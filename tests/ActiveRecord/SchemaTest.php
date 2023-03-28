@@ -21,7 +21,7 @@ use function iterator_to_array;
 
 final class SchemaTest extends TestCase
 {
-    public function test_array_access(): void
+    public function test_has_column(): void
     {
         $schema = new Schema([
             'id' => $id = SchemaColumn::serial(primary: true),
@@ -46,19 +46,6 @@ final class SchemaTest extends TestCase
         $actual = SetStateHelper::export_import($schema);
 
         $this->assertEquals($schema, $actual);
-    }
-
-    public function test_iterator(): void
-    {
-        $schema = new Schema(
-            $columns = [
-                'id' => SchemaColumn::serial(primary: true),
-                'name' => SchemaColumn::character(32),
-            ]
-        );
-
-        $this->assertEquals($columns, $schema->columns);
-        $this->assertEquals($columns, iterator_to_array($schema));
     }
 
     /**
