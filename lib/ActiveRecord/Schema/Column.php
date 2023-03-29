@@ -2,7 +2,10 @@
 
 namespace ICanBoogie\ActiveRecord\Schema;
 
-abstract class Constraints
+/**
+ * Base for columns.
+ */
+abstract class Column implements SchemaAttribute
 {
     /**
      * @param bool $null

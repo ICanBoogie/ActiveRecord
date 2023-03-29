@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Schema;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Timestamp extends Constraints implements SchemaColumn
+final class Timestamp extends Column
 {
     public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
 

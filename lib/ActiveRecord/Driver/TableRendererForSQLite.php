@@ -8,9 +8,8 @@ use ICanBoogie\ActiveRecord\Schema\Binary;
 use ICanBoogie\ActiveRecord\Schema\Blob;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
-use ICanBoogie\ActiveRecord\Schema\Constraints;
+use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Integer;
-use ICanBoogie\ActiveRecord\Schema\SchemaColumn;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use RuntimeException;
@@ -59,7 +58,7 @@ class TableRendererForSQLite
         return $render;
     }
 
-    private function render_type_name(SchemaColumn $column): string
+    private function render_type_name(Column $column): string
     {
         return match ($column::class) {
             Boolean::class => 'BOOLEAN',
@@ -92,7 +91,7 @@ class TableRendererForSQLite
         };
     }
 
-    private function render_column_constraint(SchemaColumn $column): string
+    private function render_column_constraint(Column $column): string
     {
         $constraint = '';
 
@@ -105,12 +104,10 @@ class TableRendererForSQLite
             $constraint .= " PRIMARY KEY AUTOINCREMENT";
         }
 
-        if ($column instanceof Constraints) {
-            $constraint .= $column->null ? " NULL" : " NOT NULL";
-            $constraint .= $column->default !== null ? " DEFAULT $column->default" : '';
-            $constraint .= $column->unique ? " UNIQUE" : '';
-            $constraint .= $column->collate ? " COLLATE $column->collate" : '';
-        }
+        $constraint .= $column->null ? " NULL" : " NOT NULL";
+        $constraint .= $column->default !== null ? " DEFAULT $column->default" : '';
+        $constraint .= $column->unique ? " UNIQUE" : '';
+        $constraint .= $column->collate ? " COLLATE $column->collate" : '';
 
         // foreign-key-clause goes here
 

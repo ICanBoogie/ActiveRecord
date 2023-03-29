@@ -4,7 +4,6 @@ namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
 use InvalidArgumentException;
-use LogicException;
 
 /**
  * Represents a string, that can be a binary one.
@@ -13,7 +12,7 @@ use LogicException;
  * - `CHAR(32)` is `Character(32, fixed: true)`
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Character extends Constraints implements SchemaColumn
+class Character extends Column
 {
     /**
      * @param array{

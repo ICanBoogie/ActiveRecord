@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Schema;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Date extends Constraints implements SchemaColumn
+final class Date extends Column
 {
     public const CURRENT_DATE = 'CURRENT_DATE';
 

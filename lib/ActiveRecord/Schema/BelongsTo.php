@@ -9,7 +9,7 @@ use ICanBoogie\ActiveRecord;
  * Marks a relationship with another model, with the property as reference.
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class BelongsTo extends Integer implements SchemaColumn
+final class BelongsTo extends Integer
 {
     /**
      * @param array{

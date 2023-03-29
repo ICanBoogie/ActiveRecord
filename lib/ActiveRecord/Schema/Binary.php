@@ -12,7 +12,7 @@ use LogicException;
  * - `BINARY(32)` is `Binary(32, fixed: true)`
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Binary extends Constraints implements SchemaColumn
+class Binary extends Column
 {
     /**
      * @param array{

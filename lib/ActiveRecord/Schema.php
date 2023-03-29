@@ -11,7 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Schema\SchemaColumn;
+use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Index;
 use InvalidArgumentException;
 
@@ -26,7 +26,7 @@ class Schema
 {
     /**
      * @param array{
-     *     columns: non-empty-array<non-empty-string, SchemaColumn>,
+     *     columns: non-empty-array<non-empty-string, Column>,
      *     primary: non-empty-string|non-empty-string[]|null,
      *     indexes: array<Index>,
      *  } $an_array
@@ -37,7 +37,7 @@ class Schema
     }
 
     /**
-     * @param non-empty-array<non-empty-string, SchemaColumn> $columns
+     * @param non-empty-array<non-empty-string, Column> $columns
      * @param non-empty-string|non-empty-string[]|null $primary
      * @param array<Index> $indexes
      */
@@ -47,10 +47,10 @@ class Schema
         public readonly array $indexes = []
     ) {
         foreach ($columns as $name => $column) {
-            $column instanceof SchemaColumn
+            $column instanceof Column
                 or throw new InvalidArgumentException(
                     sprintf("Expected %s for column %s, given: %s",
-                        SchemaColumn::class,
+                        Column::class,
                         $name,
                         get_debug_type($column)
                     )
@@ -61,7 +61,7 @@ class Schema
             $index instanceof Index
                 or throw new InvalidArgumentException(
                     sprintf("Expected %s, given: %s",
-                        SchemaColumn::class,
+                        Index::class,
                         get_debug_type($index)
                     )
                 );

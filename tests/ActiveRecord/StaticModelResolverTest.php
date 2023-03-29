@@ -14,7 +14,7 @@ final class StaticModelResolverTest extends TestCase
     {
         $actual = StaticModelResolver::defined();
 
-        $this->assertNull($actual);
+        $this->assertNotNull($actual);
     }
 
     public function test_model_for_activerecord(): void

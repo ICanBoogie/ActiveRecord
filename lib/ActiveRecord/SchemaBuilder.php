@@ -8,17 +8,17 @@ use ICanBoogie\ActiveRecord\Schema\Binary;
 use ICanBoogie\ActiveRecord\Schema\Blob;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
-use ICanBoogie\ActiveRecord\Schema\SchemaColumn;
+use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Date;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Decimal;
+use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Index;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Timestamp;
-use ICanBoogie\ActiveRecord\Schema\VarBinary;
 use LogicException;
 
 use function is_string;
@@ -26,7 +26,7 @@ use function is_string;
 final class SchemaBuilder
 {
     /**
-     * @var array<non-empty-string, SchemaColumn>
+     * @var array<non-empty-string, Column>
      */
     private array $columns = [];
 
@@ -85,7 +85,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
-     * @param positive-int $size
+     * @param Integer::SIZE_* $size
      *
      * @return $this
      *
@@ -237,6 +237,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
+     * @param non-empty-string|null $default
      *
      * @return $this
      *
@@ -246,10 +247,12 @@ final class SchemaBuilder
         string $col_name,
         bool $null = false,
         ?string $default = null,
+        bool $unique = false,
     ): self {
         $this->columns[$col_name] = new DateTime(
             null: $null,
             default: $default,
+            unique: $unique,
         );
 
         return $this;
@@ -312,6 +315,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
+     * @param positive-int $size
      *
      * @return $this
      *
@@ -320,11 +324,13 @@ final class SchemaBuilder
     public function add_binary(
         string $col_name,
         int $size = 255,
+        bool $fixed = false,
         bool $null = false,
         bool $unique = false,
     ): self {
         $this->columns[$col_name] = new Binary(
             size: $size,
+            fixed: $fixed,
             null: $null,
             unique: $unique,
         );
@@ -334,28 +340,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
-     *
-     * @return $this
-     *
-     * @see VarBinary
-     */
-    public function add_varbinary(
-        string $col_name,
-        int $size = 255,
-        bool $null = false,
-        bool $unique = false,
-    ): self {
-        $this->columns[$col_name] = new VarBinary(
-            size: $size,
-            null: $null,
-            unique: $unique,
-        );
-
-        return $this;
-    }
-
-    /**
-     * @param non-empty-string $col_name
+     * @param Blob::SIZE_* $size
      *
      * @return $this
      *
@@ -363,7 +348,7 @@ final class SchemaBuilder
      */
     public function add_blob(
         string $col_name,
-        int $size = 255,
+        string $size = Blob::SIZE_REGULAR,
         bool $null = false,
         bool $unique = false,
     ): self {
@@ -378,6 +363,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
+     * @param Text::SIZE_* $size
      * @param non-empty-string|null $collate
      *
      * @return $this
@@ -476,19 +462,19 @@ final class SchemaBuilder
         array $property_attributes,
     ): self {
         foreach ($property_attributes as [ $attribute, $name ]) {
-            if ($attribute instanceof Schema\Id) {
+            if ($attribute instanceof Id) {
                 $this->primary[] = $name;
 
                 continue;
             }
 
-            if ($attribute instanceof SchemaColumn) {
+            if ($attribute instanceof Column) {
                 $this->columns[$name] = $attribute;
             }
         }
 
         foreach ($class_attributes as $attribute) {
-            if ($attribute instanceof Schema\Index) {
+            if ($attribute instanceof Index) {
                 $this->indexes[] = $attribute;
             }
         }
