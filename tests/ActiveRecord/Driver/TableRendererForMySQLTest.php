@@ -82,7 +82,7 @@ final class TableRendererForMySQLTest extends TestCase
                     ],
                 ),
                 <<<SQL
-                CREATE TABLE `tblSample` (
+                CREATE TABLE tblSample (
                 i1 BOOLEAN UNSIGNED NOT NULL,
                 i2 INTEGER(4) NOT NULL,
                 i3 INTEGER(8) NOT NULL,
@@ -124,7 +124,7 @@ final class TableRendererForMySQLTest extends TestCase
                     ],
                 ),
                 <<<SQL
-                CREATE TABLE `tblSample` (
+                CREATE TABLE tblSample (
                 id INTEGER(4) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE
                 ) COLLATE utf8_general_ci;
                 SQL,
@@ -142,7 +142,7 @@ final class TableRendererForMySQLTest extends TestCase
                     ]
                 ),
                 <<<SQL
-                CREATE TABLE `tblSample` (
+                CREATE TABLE tblSample (
                 first_name VARCHAR(255) NOT NULL,
                 last_name VARCHAR(255) NOT NULL,
                 email VARCHAR(255) NOT NULL UNIQUE
@@ -164,7 +164,7 @@ final class TableRendererForMySQLTest extends TestCase
                     ]
                 ),
                 <<<SQL
-                CREATE TABLE `tblSample` (
+                CREATE TABLE tblSample (
                 first_name VARCHAR(255) NOT NULL,
                 last_name VARCHAR(255) NOT NULL,
                 email VARCHAR(255) NOT NULL UNIQUE
@@ -184,7 +184,7 @@ final class TableRendererForMySQLTest extends TestCase
                     primary: [ 'equipment_id', 'location_id' ]
                 ),
                 <<<SQL
-                CREATE TABLE `tblSample` (
+                CREATE TABLE tblSample (
                 equipment_id INTEGER(4) NOT NULL,
                 location_id INTEGER(4) NOT NULL,
                 location_hint VARCHAR(255) NULL,

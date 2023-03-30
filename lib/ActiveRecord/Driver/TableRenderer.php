@@ -42,7 +42,7 @@ abstract class TableRenderer
         $sep4 = $create_index ? "\n\n" : '';
 
         return <<<SQL
-        CREATE TABLE `$prefixed_table_name` (
+        CREATE TABLE $prefixed_table_name (
         $column_defs$sep1$table_constraints$sep2)$sep3$table_options;$sep4$create_index
         SQL;
     }
@@ -74,7 +74,6 @@ abstract class TableRenderer
     {
         return match ($column::class) {
             Boolean::class => 'BOOLEAN',
-            Integer::class => "INTEGER($column->size)",
 
             Decimal::class => $column->approximate
                 ? "FLOAT($column->precision)"

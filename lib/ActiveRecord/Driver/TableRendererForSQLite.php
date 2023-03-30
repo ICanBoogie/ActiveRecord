@@ -5,6 +5,7 @@ namespace ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Column;
+use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 
 use function implode;
@@ -33,6 +34,7 @@ final class TableRendererForSQLite extends TableRenderer
     {
         return match ($column::class) {
             Serial::class, BelongsTo::class => "INTEGER", // SQLite doesn't like sizes on SERIAL
+            Integer::class => "INTEGER($column->size)",
 
             default => parent::render_type_name($column)
         };

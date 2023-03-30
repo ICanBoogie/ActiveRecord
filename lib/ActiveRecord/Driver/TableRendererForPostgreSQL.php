@@ -4,21 +4,28 @@ namespace ICanBoogie\ActiveRecord\Driver;
 
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\Binary;
+use ICanBoogie\ActiveRecord\Schema\Blob;
+use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Date;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Time;
+
+use InvalidArgumentException;
 
 use function implode;
 use function in_array;
 use function is_array;
+use function PHPUnit\Framework\matches;
 
 /**
  * @see https://www.sqlite.org/lang_createtable.html
  */
-class TableRendererForMySQL extends TableRenderer
+class TableRendererForPostgreSQL extends TableRenderer
 {
     protected function render_column_defs(Schema $schema): array
     {
@@ -37,7 +44,31 @@ class TableRendererForMySQL extends TableRenderer
     protected function render_type_name(Column $column): string
     {
         return match ($column::class) {
-            Serial::class, BelongsTo::class, Integer::class => "INTEGER($column->size)",
+            Serial::class => match ($column->size) {
+                Integer::SIZE_SMALL => "SMALLSERIAL",
+                Integer::SIZE_REGULAR => "SERIAL",
+                Integer::SIZE_BIG => "BIGSERIAL",
+                default => throw new InvalidArgumentException("Serial size {$column->size} is not supported by PostgreSQL")
+            },
+            BelongsTo::class, Integer::class => match ($column->size) {
+                Integer::SIZE_SMALL => "SMALLINT",
+                Integer::SIZE_REGULAR => "INTEGER",
+                Integer::SIZE_BIG => "BIGINT",
+                default => throw new InvalidArgumentException("Integer size {$column->size} is not supported by PostgreSQL")
+            },
+
+            // https://www.postgresql.org/docs/current/datatype-bit.html
+            Binary::class => $column->fixed
+                ? "BIT($column->size)"
+                : "BIT VARYING($column->size)",
+
+            // https://www.postgresql.org/docs/current/datatype-character.html
+            Text::class => "TEXT",
+            // https://www.postgresql.org/docs/current/datatype-binary.html
+            Blob::class => "BYTEA",
+
+            // https://www.postgresql.org/docs/current/datatype-datetime.html
+            DateTime::class => "TIMESTAMP",
 
             default => parent::render_type_name($column)
         };
@@ -47,16 +78,11 @@ class TableRendererForMySQL extends TableRenderer
     {
         $constraint = '';
 
-        if ($column instanceof Integer) {
+        if ($column instanceof Integer && !$column instanceof Boolean && !$column instanceof Serial) {
             $constraint .= $column->unsigned ? " UNSIGNED" : '';
         }
 
         $constraint .= $column->null ? " NULL" : " NOT NULL";
-
-        if ($column instanceof Serial) {
-            $constraint .= " AUTO_INCREMENT";
-        }
-
         $constraint .= $column->default !== null ? " DEFAULT " . $this->format_default($column->default) : '';
         $constraint .= $column->unique ? " UNIQUE" : '';
         $constraint .= $column->collate ? " COLLATE $column->collate" : '';
@@ -142,9 +168,6 @@ class TableRendererForMySQL extends TableRenderer
 
     protected function render_table_options(): array
     {
-        $options = [];
-        $options[] = "COLLATE utf8_general_ci";
-
-        return $options;
+        return [];
     }
 }

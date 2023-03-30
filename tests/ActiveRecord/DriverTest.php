@@ -83,7 +83,7 @@ final class DriverTest extends TestCase
             [
                 MySQLDriver::class,
                 <<<MySQL
-                CREATE TABLE `menus` (
+                CREATE TABLE menus (
                 id INTEGER(4) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
                 uuid CHAR(36) NOT NULL UNIQUE,
                 country CHAR(2) NOT NULL,
@@ -103,7 +103,7 @@ final class DriverTest extends TestCase
             [
                 SQLiteDriver::class,
                 <<<SQLite
-                CREATE TABLE `menus` (
+                CREATE TABLE menus (
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
                 uuid CHAR(36) NOT NULL UNIQUE,
                 country CHAR(2) NOT NULL,

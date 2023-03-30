@@ -2,7 +2,8 @@
 
 namespace Test\ICanBoogie\ActiveRecord\Driver;
 
-use ICanBoogie\ActiveRecord\Driver\TableRendererForSQLite;
+use ICanBoogie\ActiveRecord\Driver\TableRendererForMySQL;
+use ICanBoogie\ActiveRecord\Driver\TableRendererForPostgreSQL;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Binary;
@@ -17,13 +18,12 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Time;
 use ICanBoogie\ActiveRecord\Schema\Timestamp;
-use PDO;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Equipment;
 use Test\ICanBoogie\Acme\Location;
 
-final class TableRendererForSQLiteTest extends TestCase
+final class TableRendererForPostgreSQLTest extends TestCase
 {
     /**
      * @dataProvider provideRender
@@ -32,13 +32,10 @@ final class TableRendererForSQLiteTest extends TestCase
     {
         $prefixed_table_name = 'tblSample';
 
-        $renderer = new TableRendererForSQLite();
+        $renderer = new TableRendererForPostgreSQL();
         $actual = $renderer->render($schema, $prefixed_table_name);
 
         $this->assertEquals($expected, $actual);
-
-        $pdo = new PDO('sqlite::memory:');
-        $pdo->exec($actual);
     }
 
     /**
@@ -88,28 +85,29 @@ final class TableRendererForSQLiteTest extends TestCase
                 <<<SQL
                 CREATE TABLE tblSample (
                 i1 BOOLEAN NOT NULL,
-                i2 INTEGER(4) NOT NULL,
-                i3 INTEGER(8) NOT NULL,
+                i2 INTEGER NOT NULL,
+                i3 BIGINT NOT NULL,
                 i4 INTEGER NOT NULL,
                 i5 INTEGER NULL,
-                i6 INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+                i6 SERIAL NOT NULL UNIQUE,
                 c1 VARCHAR(255) NOT NULL,
                 c2 CHAR(11) NOT NULL,
-                c3 VARBINARY(255) NOT NULL,
-                c4 BINARY(11) NOT NULL,
+                c3 BIT VARYING(255) NOT NULL,
+                c4 BIT(11) NOT NULL,
                 c5 TEXT NOT NULL,
-                c6 LONGTEXT NOT NULL,
-                c7 BLOB NOT NULL,
-                c8 LONGBLOB NOT NULL,
-                t1 DATETIME NOT NULL,
-                t2 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                c6 TEXT NOT NULL,
+                c7 BYTEA NOT NULL,
+                c8 BYTEA NOT NULL,
+                t1 TIMESTAMP NOT NULL,
+                t2 TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                 t3 TIMESTAMP NOT NULL,
-                t4 TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                t4 TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                 t5 DATE NOT NULL,
-                t6 DATE NOT NULL DEFAULT CURRENT_DATE,
+                t6 DATE NOT NULL DEFAULT (CURRENT_DATE),
                 t7 TIME NOT NULL,
-                t8 TIME NOT NULL DEFAULT CURRENT_TIME,
+                t8 TIME NOT NULL DEFAULT (CURRENT_TIME),
 
+                PRIMARY KEY (i6),
                 UNIQUE (c2),
                 UNIQUE (c3)
                 );
@@ -120,7 +118,7 @@ final class TableRendererForSQLiteTest extends TestCase
                 SQL,
             ],
 
-            "SQLite: A Serial must be the primary key" => [
+            "MySQL: A Serial doesn't have to be the primary key" => [
                 new Schema(
                     columns: [
                         'id' => new Serial(),
@@ -128,7 +126,7 @@ final class TableRendererForSQLiteTest extends TestCase
                 ),
                 <<<SQL
                 CREATE TABLE tblSample (
-                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE
+                id SERIAL NOT NULL UNIQUE
                 );
                 SQL,
             ],
