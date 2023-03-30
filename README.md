@@ -171,60 +171,65 @@ class, and usually implement a specific business logic.
 
 namespace App\Modules\Nodes;
 
-use ICanBoogie\ActiveRecord;use ICanBoogie\ActiveRecord\ConnectionCollection;use ICanBoogie\ActiveRecord\Model;use ICanBoogie\ActiveRecord\ModelCollection;use ICanBoogie\ActiveRecord\ModelDefinition;
+use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelDefinition;
+use ICanBoogie\ActiveRecord\Schema\Character;
+use ICanBoogie\ActiveRecord\Schema\Id;
+use ICanBoogie\ActiveRecord\Schema\Integer;
+use ICanBoogie\ActiveRecord\Schema\Serial;
 
+/**
+ * @extends Model<Node>
+ */
 class NodeModel extends Model
 {
     // …
 }
 
+/**
+ * @extends ActiveRecord<int>
+ */
 class Node extends ActiveRecord
 {
-    public $id;
-    public $title;
-    public $number;
+    #[Id, Serial]
+    public int $id;
+    #[Character(80)]
+    public string $title;
+    #[Inetger]
+    public int $number;
 
     // …
 }
 
+$config = (new ActiveRecord\ConfigBuilder())
+    ->use_attributes()
+    ->add_connection(/*...*/)
+    ->add_model(
+        id: 'nodes',
+        activerecord_class: Node::class,
+        model_class: NodeModel::class,
+    )
+    ->build();
+
 /* @var $connections ConnectionCollection */
 
-$models = new ModelCollection($connections, [
-
-    'nodes' => new ModelDefinition(
-        id: 'nodes',
-        connection: ActiveRecord\Config::DEFAULT_CONNECTION_ID,
-        schema:, new Schema([
-            'id' => 'serial',
-            'title' => [ 'varchar', 80 ],
-            'number' => [ 'integer', 'unsigned' => true ]
-        ]),
-        activerecord_class: Node::class,
-    ]
-]);
-
+$models = new ModelCollection($cconnections, $config->models);
 $models->install();
 
 $node_model = $models['nodes'];
 
-$node = Node::from([
+$node = new Node($node_model);
+//               ^^^^^^^^^^^
+// because we don't use a model provider yet, we need to specify the model to the active record
 
-    'title' => "My first node",
-    'number' => 123
-
-], [ $node_model ]);
-// ^ because we don't use a model provider yet, we need to specify the model to the active record
-
-# or
-
-$node = $node_model->new([
-
-    'title' => "My first node",
-    'number' => 123
-
-]);
-
+$node->title = "My first node";
+$node->number = 123;
 $id = $node->save();
+# or
+$id = $node->id;
 
 echo "Saved node, got id: $id\n";
 ```
@@ -233,28 +238,11 @@ echo "Saved node, got id: $id\n";
 
 
 
-### Defining the database connection
-
-The `CONNECTION` key specifies the database connection, an instance of the [Connection][] class.
-
-
-
-
-
-### Defining the Active Record class
-
-The `ACTIVERECORD_CLASS` key specifies the class used to instantiate the active records of the
-model.
-
-
-
-
-
 ### Defining the name of the table
 
-The `NAME` key specifies the name of the table. If a table prefix is defined by the connection,
-it is used to prefix the table name. The `name` and `unprefixed_name` properties returns the
-prefixed name and original name of the table:
+The `$name` argument specifies the name of the table. If a table prefix is defined by the
+connection, it is used to prefix the table name. The `name` and `unprefixed_name` properties returns
+the prefixed name and original name of the table:
 
 ```php
 <?php
@@ -280,101 +268,36 @@ $stmt = $model('SELECT * FROM `{self}` LIMIT 10');
 
 ### Defining the schema of the model
 
-The columns and properties of the table are defined with a schema, which is specified by the
-`SCHEMA` attribute. A key defines the name of the column, and a value defines the properties of
-the column. Most column types use the following basic definition pattern:
+To specify the schema, tt is recommended to use attributes on your ActiveRecord class:
 
-```
-'<identifier>' => '<type_and_default_options>'
-# or
-'<identifier>' => [ '<type>', <size> ];
-```
+- [Boolean](lib/ActiveRecord/Schema/Boolean.php)
+- [Integer](lib/ActiveRecord/Schema/Integer.php)
+- [Serial](lib/ActiveRecord/Schema/Serial.php)
+- [BelongsTo](lib/ActiveRecord/Schema/BelongsTo.php)
+- [Decimal](lib/ActiveRecord/Schema/Decimal.php)
+- [Character](lib/ActiveRecord/Schema/Character.php)
+- [Text](lib/ActiveRecord/Schema/Text.php)
+- [Binary](lib/ActiveRecord/Schema/Binary.php)
+- [Blob](lib/ActiveRecord/Schema/Blob.php)
+- [DateTime](lib/ActiveRecord/Schema/DateTime.php)
+- [Timestamp](lib/ActiveRecord/Schema/Timestamp.php)
+- [Date](lib/ActiveRecord/Schema/Date.php)
+- [Time](lib/ActiveRecord/Schema/Time.php)
+- [Id](lib/ActiveRecord/Schema/Id.php)
+- [HasMany](lib/ActiveRecord/Schema/HasMany.php)
 
-The following types are available: `blob`, `char`, `integer`, `text`, `varchar`,
-`bit`, `boolean`, `date`, `datetime`, `time`, `timestamp`, `year`, `enum`, `double` et `float`. The
-`serial` and `foreign` special types are used to define auto incrementing primary keys and foreign
-keys:
-
-```php
-<?php
-
-[
-    'nid' => 'serial', // bigint(20) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (`nid`)
-    'uid' => 'foreign' // bigint(20) unsigned NOT NULL, KEY `uid` (`uid`)
-];
-```
-
-The size of the field can be defined as an integer for the `blob`, `char`, `integer`, `varchar` and
-`bit` types:
+Alternatively, you can use `$schema_builder` to build the schema by hand:
 
 ```php
 <?php
 
-[
-    'title' => 'varchar', // varchar(255) NOT NULL
-    'slug' => [ 'varchar', 80 ], // varchar(80) NOT NULL
-    'weight' => 'integer', // int(11) NOT NULL
-    'small_count' => [ 'integer', 8 ], // int(8) NOT NULL,
-    'price' => [ 'float', [ 10, 3 ] ], // float(10,3) NOT NULL
-];
+/* @var \ICanBoogie\ActiveRecord\SchemaBuilder $schema */
+
+$schema
+    ->add_serial('id', primary: true)
+    ->add_character('title', 80)
+    ->add_integer('number')
 ```
-
-The size of the field can be defined using the qualifiers `tiny`, `small`, `medium`,
-`big` or `long` for the `blob`, `char`, `integer`, `text` and `varchar` types:
-
-```php
-<?php
-
-[
-    'body' => [ 'text', 'long' ] // longtext NOT NULL
-];
-```
-
-The qualifier `null` specifies that a field can be null, by default fields are not capable
-of receiving the `null`:
-
-```
-[ 'varchar', 'null' => true ] // varchar(255)
-[ 'integer', 'null' => true ] // int(11)
-[ 'integer' ] // int(11) NOT NULL
-```
-
-The qualifier `unsigned` specifies that a numeric value is not signed:
-
-```
-[ 'integer' ] // int(11)
-[ 'integer', 'unsigned' => true ] // int(10) unsigned
-```
-
-The qualifier `indexed` specifies that a field should be indexed:
-
-```php
-<?php
-
-[
-    'slug' => [ 'varchar', 'indexed' => true ], // varchar(255) NOT NULL, KEY `slug` (`slug`)
-    'is_online' => [ 'boolean', 'indexed' => true ], // tinyint(1) NOT NULL, KEY `is_online` (`is_online`),
-
-    'page_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL
-    'content_id' => [ 'foreign', 'indexed' => 'page-content' ], // bigint(20) unsigned NOT NULL, KEY `page-content` (`page_id`, `content_id`)
-];
-```
-
-The qualifier `primary` specifies that a column is a primary key. A multi-column primary key is
-created if multiple columns have the `primary` qualifier:
-
-```php
-<?php
-
-[
-    'vtid' => [ 'foreign', 'primary' => true ],
-    'nid' => [ 'foreign', 'primary' => true ],
-    'weight' => [ 'integer', 'unsigned' => true ]
-];
-
-// ADD PRIMARY KEY ( `vtid` , `nid` )
-```
-
 
 
 
@@ -400,8 +323,7 @@ Note: The method only checks if the corresponding table exists, not if its schem
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-if ($model->is_installed())
-{
+if ($model->is_installed()) {
     echo "The model is already installed.";
 }
 ```
@@ -448,17 +370,17 @@ use ICanBoogie\ActiveRecord\SchemaBuilder;use ICanBoogie\DateTime;
 $config
     ->add_model(
         id: 'nodes',
+        activerecord_class: Node::class,
         schema_builder: fn(SchemaBuilder $b) => $b
             ->add_serial('nid', primary: true)
             ->add_character('title'),
-        activerecord_class: Node::class
     )
     ->add_model(
         id: 'articles',
+        activerecord_class: Article::class,
         schema_builder: fn(SchemaBuilder $b) => $b
             ->add_character('body')
             ->add_date('date'),
-        activerecord_class: Article::class,
         extends: 'nodes'
     );
 
@@ -505,41 +427,38 @@ can then by obtained using the magic property `user`.
 ```php
 <?php
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Schema\Id;
+use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
 
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+class Article extends ActiveRecord
+{
+    #[Id, Serial]
+    public int $id;
 
-$models = new ModelCollection($connections, [
+    #[BelongsTo(User::class)]
+    public int $uid;
+}
 
-    'news' => [
+class User extends ActiveRecord
+{
+    #[Id, Serial]
+    public int $uid;
 
-        Model::BELONGS_TO => 'users',
-        Model::SCHEMA => [
+    #[Character]
+    public string $name;
+}
 
-            'news_id' => 'serial',
-            'uid' => 'foreign'
-            // …
-
-        ]
-    ],
-
-    'users' => [
-
-        Model::SCHEMA => [
-
-            'uid' => 'serial',
-            'name' => 'varchar'
-            // …
-
-        ]
-    ]
-
-]);
+// …
 
 /* @var $news Model */
 
-$record = $news->one;
+$record = $news->query()->one;
 
 echo "{$record->title} belongs to {$record->user->name}.";
 ```
@@ -551,9 +470,9 @@ echo "{$record->title} belongs to {$record->user->name}.";
 ### One-to-many relation (has_many)
 
 A one-to-many relation can be established between two models. For instance, an article having
-many comments. The relation is specified with the `HAS_MANY` attribute or the `has_many()` method
-of the parent model. A getter is added to the active record class of the model and returns a
-[Query][] instance when it is accessed.
+many comments. The relation is specified with the [HasMany](lib/ActiveRecord/Schema/HasMany.php)
+attribute. A getter is added to the active record class of the model and returns a [Query][]
+instance when it is accessed.
 
 The following example demonstrates how a one-to-many relation can be established between the
 "articles" and "comments" models, while creating the models:
@@ -561,90 +480,54 @@ The following example demonstrates how a one-to-many relation can be established
 ```php
 <?php
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Schema\Id;
+use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\Character;
+use ICanBoogie\ActiveRecord\Schema\HasMany;
 use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
+
+class Article extends ActiveRecord
+{
+    #[Id, Serial]
+    public int $id;
+
+    #[BelongsTo(User::class)]
+    public int $uid;
+}
+
+#[HasMany(Article::class)]
+class User extends ActiveRecord
+{
+    #[Id, Serial]
+    public int $uid;
+
+    #[Character]
+    public string $name;
+}
 
 // …
 
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+/* @var $user User */
 
-$models = new ModelCollection($connections, [
+foreach ($user->articles as $article) {
+    echo "User {$user->name} has article {$article->id}.";
+}
 
-    'comments' => [
-
-        Model::ACTIVERECORD_CLASS => Comment::class,
-        Model::SCHEMA => [
-
-            'comment_id' => 'serial',
-            'article_id' => 'foreign',
-            'body' => 'text'
-
-        ]
-    ],
-
-    'articles' => [
-
-        Model::ACTIVERECORD_CLASS => Article::class,
-        Model::HAS_MANY => 'comments',
-        Model::SCHEMA => [
-
-            'article_id' => 'serial',
-            'title' => 'varchar'
-
-        ]
-    ]
-
-]);
 ```
-
-The relation can also be established after the models are created using the `has_many` method:
-
-```php
-<?php
-
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
-
-$articles = $models['articles'];
-$comments = $models['comments'];
-
-$articles->has_many($comments);
-# or, if the model can be obtained with `get_model()`
-$articles->has_many('comments');
-
-# The local and foreign keys can be specified if they cannot be obtained from the models
-$articles->has_many('comments', [ 'local_key' => 'article_id', 'related_key' => 'comment_id' ]);
-
-# The name of the magic property can also be specified
-$articles->has_many('comments', [ 'as' => 'article_comments' ]);
-```
-
-The following example demonstrates how all the comments of the author called "me"
-can be retrieved in order from an article:
-
-```php
-<?php
-
-/* @var $articles \ICanBoogie\ActiveRecord\Model */
-
-$comments = $articles->one->comments->filter_by_author("me")->ordered->all;
-```
-
-
-
-
 
 
 
 ## Active Records
 
 An active record is an object-oriented representation of a record in a database. Usually, the
-table columns are its public properties and it is not unusual that getters/setters and business
+table columns are its public properties, and it is not unusual that getters/setters and business
 logic methods are implemented by its class.
 
-The model managing the record needs to be specified when the instance is created. It can be
-specified through the `__construct` method as a model identifier or a [Model][] instance, or by
-defining the `MODEL_ID` constant, which is the favorite method since it can be easily
-introspected.
+If the model managing the record is not specified when the instance is created, [StaticModelResolver](lib/ActiveRecord/StaticModelResolver.php) will be used to resolve the model when needed.
 
 ```php
 <?php
@@ -655,8 +538,6 @@ use ICanBoogie\ActiveRecord;
 
 class Node extends ActiveRecord
 {
-    const MODEL_ID = "nodes";
-
     // …
 
     protected function get_next()
@@ -710,14 +591,19 @@ For following example demonstrates how a `User` active record class could implem
 
 use ICanBoogie\ActiveRecord;
 
+// …
+
 class User extends ActiveRecord
 {
     use ActiveRecord\Property\CreatedAtProperty;
     use ActiveRecord\Property\UpdatedAtProperty;
 
-    public $id;
-    public $username;
-    public $email;
+    #[Id, Serial]
+    public int $id;
+    #[Character]
+    public string $username;
+    #[Character(unique: true)]
+    public string $email;
 
     // …
 
