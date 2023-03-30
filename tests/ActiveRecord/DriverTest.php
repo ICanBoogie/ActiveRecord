@@ -16,7 +16,6 @@ use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Driver\MySQLDriver;
 use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
-use ICanBoogie\ActiveRecord\Schema\Time;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Driver;
@@ -28,37 +27,30 @@ final class DriverTest extends TestCase
      * @dataProvider provide_expected
      *
      * @param class-string<Driver> $driver_class
-     * @param array<string> $expected
+     * @param string $expected
      *
      * @throws Throwable
      */
     public function test_create_table_and_indexes(
         string $driver_class,
-        array $expected,
+        string $expected,
     ): void {
-        $this->markTestSkipped("only SQLite is supported for now");
-
         $connection = new class (
             new ConnectionDefinition('', 'sqlite::memory:'),
             $this,
             $expected,
         ) extends Connection {
-            /**
-             * @param array<string> $expected
-             */
             public function __construct(
                 ConnectionDefinition $definition,
                 private readonly TestCase $test,
-                private readonly array $expected,
+                private readonly string $expected,
             ) {
                 parent::__construct($definition);
             }
 
-            private int $i = 0;
-
             public function exec(string $statement): bool|int
             {
-                $this->test->assertEquals($this->expected[$this->i++], $statement);
+                $this->test->assertEquals($this->expected, $statement);
 
                 return 1;
             }
@@ -79,11 +71,10 @@ final class DriverTest extends TestCase
         $table_name = "menus";
         $driver = new $driver_class(fn() => $connection);
         $driver->create_table($table_name, $schema);
-        $driver->create_indexes($table_name, $schema);
     }
 
     /**
-     * @return array<array{ class-string<Driver>, string[] }>
+     * @return array<array{ class-string<Driver>, string }>
      */
     public static function provide_expected(): array
     {
@@ -91,49 +82,41 @@ final class DriverTest extends TestCase
 
             [
                 MySQLDriver::class,
-                [
-                    <<<SQL
-                    CREATE TABLE `menus` (
-                        `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                        `uuid` CHAR(36) NOT NULL UNIQUE,
-                        `country` CHAR(2) NOT NULL,
-                        `week` CHAR(8) NOT NULL,
-                        `product` VARCHAR(255) NOT NULL,
-                        `name` VARCHAR(255) NOT NULL,
-                        `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-                    ) COLLATE utf8_general_ci
-                    SQL,
-                    <<<SQL
-                    CREATE UNIQUE INDEX `country_week_product` ON `menus` (`country`, `week`, `product`)
-                    SQL,
-                    <<<SQL
-                    CREATE INDEX `my_week_index` ON `menus` (`week`)
-                    SQL,
-                ]
+                <<<MySQL
+                CREATE TABLE `menus` (
+                id INTEGER(4) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
+                uuid CHAR(36) NOT NULL UNIQUE,
+                country CHAR(2) NOT NULL,
+                week CHAR(8) NOT NULL,
+                product VARCHAR(255) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+
+                PRIMARY KEY (id),
+                UNIQUE (country, week, product)
+                ) COLLATE utf8_general_ci;
+
+                CREATE INDEX my_week_index ON menus (week);
+                MySQL,
             ],
 
             [
                 SQLiteDriver::class,
-                [
-                    <<<SQLite
-                    CREATE TABLE `menus` (
-                        `id` INTEGER NOT NULL,
-                        `uuid` CHAR(36) NOT NULL UNIQUE,
-                        `country` CHAR(2) NOT NULL,
-                        `week` CHAR(8) NOT NULL,
-                        `product` VARCHAR(255) NOT NULL,
-                        `name` VARCHAR(255) NOT NULL,
-                        `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        PRIMARY KEY(`id`)
-                    )
-                    SQLite,
-                    <<<SQLite
-                    CREATE UNIQUE INDEX `country_week_product` ON `menus` (`country`, `week`, `product`)
-                    SQLite,
-                    <<<SQLite
-                    CREATE INDEX `my_week_index` ON `menus` (`week`)
-                    SQLite,
-                ]
+                <<<SQLite
+                CREATE TABLE `menus` (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+                uuid CHAR(36) NOT NULL UNIQUE,
+                country CHAR(2) NOT NULL,
+                week CHAR(8) NOT NULL,
+                product VARCHAR(255) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                UNIQUE (country, week, product)
+                );
+
+                CREATE INDEX my_week_index ON menus (week);
+                SQLite,
             ],
 
         ];

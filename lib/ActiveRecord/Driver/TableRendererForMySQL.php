@@ -5,15 +5,20 @@ namespace ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Column;
+use ICanBoogie\ActiveRecord\Schema\Date;
+use ICanBoogie\ActiveRecord\Schema\DateTime;
+use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\Schema\Time;
 
 use function implode;
+use function in_array;
 use function is_array;
 
 /**
  * @see https://www.sqlite.org/lang_createtable.html
  */
-final class TableRendererForSQLite extends TableRenderer
+class TableRendererForMySQL extends TableRenderer
 {
     protected function render_column_defs(Schema $schema): array
     {
@@ -32,7 +37,7 @@ final class TableRendererForSQLite extends TableRenderer
     protected function render_type_name(Column $column): string
     {
         return match ($column::class) {
-            Serial::class, BelongsTo::class => "INTEGER", // SQLite doesn't like sizes on SERIAL
+            Serial::class, BelongsTo::class => "INTEGER($column->size)",
 
             default => parent::render_type_name($column)
         };
@@ -42,23 +47,32 @@ final class TableRendererForSQLite extends TableRenderer
     {
         $constraint = '';
 
-        //
-        // AUTOINCREMENT can only be used with PRIMARY KEY,
-        // but there can be only one PRIMARY KEY,
-        // careful with table-constraint.
-        //
-        if ($column instanceof Serial) {
-            $constraint .= " PRIMARY KEY AUTOINCREMENT";
+        if ($column instanceof Integer) {
+            $constraint .= $column->unsigned ? " UNSIGNED" : '';
         }
 
         $constraint .= $column->null ? " NULL" : " NOT NULL";
-        $constraint .= $column->default !== null ? " DEFAULT $column->default" : '';
+
+        if ($column instanceof Serial) {
+            $constraint .= " AUTO_INCREMENT";
+        }
+
+        $constraint .= $column->default !== null ? " DEFAULT " . $this->format_default($column->default) : '';
         $constraint .= $column->unique ? " UNIQUE" : '';
         $constraint .= $column->collate ? " COLLATE $column->collate" : '';
 
         // foreign-key-clause goes here
 
         return ltrim($constraint);
+    }
+
+    private function format_default(string $default): string
+    {
+        if (in_array($default, [ DateTime::CURRENT_TIMESTAMP, Date::CURRENT_DATE, Time::CURRENT_TIME ])) {
+            return "($default)";
+        }
+
+        return $default;
     }
 
     protected function render_table_constraints(Schema $schema): array
@@ -73,7 +87,7 @@ final class TableRendererForSQLite extends TableRenderer
         if (is_array($primary)) {
             $primary = implode(', ', $primary);
             $constraints[] = "PRIMARY KEY ($primary)";
-        } elseif (is_string($primary) && !$schema->columns[$primary] instanceof Serial) {
+        } elseif (is_string($primary)) {
             $constraints[] = "PRIMARY KEY ($primary)";
         }
 
@@ -111,17 +125,26 @@ final class TableRendererForSQLite extends TableRenderer
             if (!$name) {
                 $name = is_array($columns) ? implode('_', $columns) : $columns;
             }
-            if (is_array($columns)) {
-                $columns = implode(', ', $columns);
-            }
+            $columns = $this->render_column_list($columns);
             $create_index .= "CREATE {$unique}INDEX $name ON $prefixed_table_name ($columns);\n";
         }
 
         return rtrim($create_index, "\n");
     }
 
+    /**
+     * @param string|string[] $columns
+     */
+    private function render_column_list(string|array $columns): string
+    {
+        return is_array($columns) ? implode(', ', $columns) : $columns;
+    }
+
     protected function render_table_options(): array
     {
-        return [];
+        $options = [];
+        $options[] = "COLLATE utf8_general_ci";
+
+        return $options;
     }
 }

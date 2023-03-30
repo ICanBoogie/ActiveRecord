@@ -2,7 +2,7 @@
 
 namespace Test\ICanBoogie\ActiveRecord\Driver;
 
-use ICanBoogie\ActiveRecord\Driver\TableRendererForSQLite;
+use ICanBoogie\ActiveRecord\Driver\TableRendererForMySQL;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Binary;
@@ -17,13 +17,12 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Time;
 use ICanBoogie\ActiveRecord\Schema\Timestamp;
-use PDO;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Equipment;
 use Test\ICanBoogie\Acme\Location;
 
-final class TableRendererForSQLiteTest extends TestCase
+final class TableRendererForMySQLTest extends TestCase
 {
     /**
      * @dataProvider provideRender
@@ -32,13 +31,10 @@ final class TableRendererForSQLiteTest extends TestCase
     {
         $prefixed_table_name = 'tblSample';
 
-        $renderer = new TableRendererForSQLite();
+        $renderer = new TableRendererForMySQL();
         $actual = $renderer->render($schema, $prefixed_table_name);
 
         $this->assertEquals($expected, $actual);
-
-        $pdo = new PDO('sqlite::memory:');
-        $pdo->exec($actual);
     }
 
     /**
@@ -87,12 +83,12 @@ final class TableRendererForSQLiteTest extends TestCase
                 ),
                 <<<SQL
                 CREATE TABLE `tblSample` (
-                i1 BOOLEAN NOT NULL,
+                i1 BOOLEAN UNSIGNED NOT NULL,
                 i2 INTEGER(4) NOT NULL,
                 i3 INTEGER(8) NOT NULL,
-                i4 INTEGER NOT NULL,
-                i5 INTEGER NULL,
-                i6 INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+                i4 INTEGER(4) NOT NULL,
+                i5 INTEGER(4) NULL,
+                i6 INTEGER(4) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
                 c1 VARCHAR(255) NOT NULL,
                 c2 CHAR(11) NOT NULL,
                 c3 VARBINARY(255) NOT NULL,
@@ -102,17 +98,18 @@ final class TableRendererForSQLiteTest extends TestCase
                 c7 BLOB NOT NULL,
                 c8 LONGBLOB NOT NULL,
                 t1 DATETIME NOT NULL,
-                t2 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                t2 DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                 t3 TIMESTAMP NOT NULL,
-                t4 TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                t4 TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                 t5 DATE NOT NULL,
-                t6 DATE NOT NULL DEFAULT CURRENT_DATE,
+                t6 DATE NOT NULL DEFAULT (CURRENT_DATE),
                 t7 TIME NOT NULL,
-                t8 TIME NOT NULL DEFAULT CURRENT_TIME,
+                t8 TIME NOT NULL DEFAULT (CURRENT_TIME),
 
+                PRIMARY KEY (i6),
                 UNIQUE (c2),
                 UNIQUE (c3)
-                );
+                ) COLLATE utf8_general_ci;
 
                 CREATE INDEX c1 ON tblSample (c1);
                 CREATE UNIQUE INDEX idx_c4 ON tblSample (c4);
@@ -120,7 +117,7 @@ final class TableRendererForSQLiteTest extends TestCase
                 SQL,
             ],
 
-            "SQLite: A Serial must be the primary key" => [
+            "MySQL: A Serial doesn't have to be the primary key" => [
                 new Schema(
                     columns: [
                         'id' => new Serial(),
@@ -128,8 +125,8 @@ final class TableRendererForSQLiteTest extends TestCase
                 ),
                 <<<SQL
                 CREATE TABLE `tblSample` (
-                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE
-                );
+                id INTEGER(4) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE
+                ) COLLATE utf8_general_ci;
                 SQL,
             ],
 
@@ -149,7 +146,7 @@ final class TableRendererForSQLiteTest extends TestCase
                 first_name VARCHAR(255) NOT NULL,
                 last_name VARCHAR(255) NOT NULL,
                 email VARCHAR(255) NOT NULL UNIQUE
-                );
+                ) COLLATE utf8_general_ci;
 
                 CREATE INDEX name ON tblSample (first_name, last_name);
                 SQL,
@@ -171,7 +168,7 @@ final class TableRendererForSQLiteTest extends TestCase
                 first_name VARCHAR(255) NOT NULL,
                 last_name VARCHAR(255) NOT NULL,
                 email VARCHAR(255) NOT NULL UNIQUE
-                );
+                ) COLLATE utf8_general_ci;
 
                 CREATE INDEX first_name_last_name ON tblSample (first_name, last_name);
                 SQL,
@@ -188,12 +185,12 @@ final class TableRendererForSQLiteTest extends TestCase
                 ),
                 <<<SQL
                 CREATE TABLE `tblSample` (
-                equipment_id INTEGER NOT NULL,
-                location_id INTEGER NOT NULL,
+                equipment_id INTEGER(4) NOT NULL,
+                location_id INTEGER(4) NOT NULL,
                 location_hint VARCHAR(255) NULL,
 
                 PRIMARY KEY (equipment_id, location_id)
-                );
+                ) COLLATE utf8_general_ci;
                 SQL,
             ],
 
