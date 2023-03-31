@@ -6,9 +6,26 @@ use Closure;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use LogicException;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\SetStateHelper;
 
 final class IntegerTest extends TestCase
 {
+    public function testExport(): void
+    {
+        $expected = new Integer(
+            size: Integer::SIZE_BIG,
+            unsigned: true,
+            serial: false,
+            null: true,
+            unique: true,
+            default: 123,
+        );
+
+        $actual = SetStateHelper::export_import($expected);
+
+        $this->assertEquals($expected, $actual);
+    }
+
     /**
      * @dataProvider provideInvalid
      */
@@ -28,12 +45,12 @@ final class IntegerTest extends TestCase
 
             [
                 "Size must be one of the allowed ones",
-                fn() => new Integer(size: 5)
+                fn() => new Integer(size: 5) // @phpstan-ignore-line
             ],
 
             [
                 "Size must be one of the allowed ones",
-                fn() => new Integer(size: 9)
+                fn() => new Integer(size: 9) // @phpstan-ignore-line
             ],
 
             // serial
@@ -50,7 +67,7 @@ final class IntegerTest extends TestCase
 
             [
                 "A serial integer cannot be nullable",
-                fn() => new Integer(size: Integer::SIZE_BIG, unsigned: true, null: true, serial: true)
+                fn() => new Integer(size: Integer::SIZE_BIG, unsigned: true, serial: true, null: true)
             ],
 
             [

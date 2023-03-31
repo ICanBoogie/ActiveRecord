@@ -16,7 +16,7 @@ final class Timestamp extends Column
      *     unique: bool,
      * } $an_array
      */
-    public static function __set_state(array $an_array): object
+    public static function __set_state(array $an_array): self
     {
         return new self(
             $an_array['null'],

@@ -5,11 +5,23 @@ namespace Test\ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\SetStateHelper;
 
 use function get_object_vars;
 
 final class BooleanTest extends TestCase
 {
+    public function testExport(): void
+    {
+        $expected = new Boolean(
+            null: true,
+        );
+
+        $actual = SetStateHelper::export_import($expected);
+
+        $this->assertEquals($expected, $actual);
+    }
+
     /**
      * @dataProvider provideInstance
      */

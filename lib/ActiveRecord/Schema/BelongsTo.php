@@ -14,15 +14,13 @@ final class BelongsTo extends Integer
     /**
      * @param array{
      *     associate: class-string<ActiveRecord>,
-     *     size: positive-int,
+     *     size: Integer::SIZE_*,
      *     null: bool,
      *     unique: bool,
      *     as: non-empty-string|null,
      * } $an_array
-     *
-     * @return object
      */
-    public static function __set_state(array $an_array): object
+    public static function __set_state(array $an_array): self
     {
         return new self(
             $an_array['associate'],

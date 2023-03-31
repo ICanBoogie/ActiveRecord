@@ -15,6 +15,28 @@ use Attribute;
 class Decimal extends Column
 {
     /**
+     * @param array{
+     *     precision: positive-int,
+     *     scale: int,
+     *     approximate: bool,
+     *     null: bool,
+     *     default: ?non-empty-string,
+     *     unique: bool,
+     * } $an_array
+     */
+    public static function __set_state(array $an_array): self
+    {
+        return new self(
+            $an_array['precision'],
+            $an_array['scale'],
+            $an_array['approximate'],
+            $an_array['null'],
+            $an_array['default'],
+            $an_array['unique'],
+        );
+    }
+
+    /**
      * @param positive-int $precision
      *     The total count of significant digits in the whole number, that is,
      *     the number of digits to both sides of the decimal point.
@@ -30,10 +52,12 @@ class Decimal extends Column
         public readonly int $scale = 0,
         public readonly bool $approximate = false,
         bool $null = false,
+        ?string $default = null,
         bool $unique = false,
     ) {
         parent::__construct(
             null: $null,
+            default: $default,
             unique: $unique,
         );
     }

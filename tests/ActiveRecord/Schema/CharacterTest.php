@@ -6,9 +6,26 @@ use Closure;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\SetStateHelper;
 
 final class CharacterTest extends TestCase
 {
+    public function testExport(): void
+    {
+        $expected = new Character(
+            size: 250,
+            fixed: true,
+            null: true,
+            default: "madonna",
+            unique: true,
+            collate: "utf8",
+        );
+
+        $actual = SetStateHelper::export_import($expected);
+
+        $this->assertEquals($expected, $actual);
+    }
+
     /**
      * @dataProvider provideInvalid
      */

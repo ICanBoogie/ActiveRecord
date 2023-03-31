@@ -23,10 +23,8 @@ class Character extends Column
      *     unique: bool,
      *     collate: non-empty-string|null,
      * } $an_array
-     *
-     * @return object
      */
-    public static function __set_state(array $an_array): object
+    public static function __set_state(array $an_array): self
     {
         return new self(...$an_array);
     }

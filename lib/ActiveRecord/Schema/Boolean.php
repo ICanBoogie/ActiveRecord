@@ -11,10 +11,8 @@ final class Boolean extends Integer
      * @param array{
      *     null: bool,
      * } $an_array
-     *
-     * @return object
      */
-    public static function __set_state(array $an_array): object
+    public static function __set_state(array $an_array): self
     {
         return new self(
             $an_array['null'],

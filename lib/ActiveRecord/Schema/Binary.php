@@ -3,6 +3,7 @@
 namespace ICanBoogie\ActiveRecord\Schema;
 
 use Attribute;
+use InvalidArgumentException;
 use LogicException;
 
 /**
@@ -22,10 +23,8 @@ class Binary extends Column
      *     default: ?string,
      *     unique: bool,
      * } $an_array
-     *
-     * @return object
      */
-    public static function __set_state(array $an_array): object
+    public static function __set_state(array $an_array): self
     {
         return new self(
             $an_array['size'],
@@ -51,7 +50,7 @@ class Binary extends Column
         bool $unique = false,
     ) {
         if ($fixed && $size > 255) {
-            throw new LogicException("For fixed binary, the size must be less than 255, given: $size");
+            throw new InvalidArgumentException("For fixed binary, the size must be less than 255, given: $size");
         }
 
         parent::__construct(
