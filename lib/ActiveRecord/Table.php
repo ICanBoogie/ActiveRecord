@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\Prototyped;
 use InvalidArgumentException;
 use LogicException;
+use PDO;
 use Throwable;
 
 use function array_combine;
@@ -321,16 +322,17 @@ class Table extends Prototyped
     }
 
     /**
-     * @param string $string
-     * @param int $parameter_type
-     *
-     * @return string
-     * @see Connection::quote()
-     *
+     * @see PDO::quote()
      */
-    public function quote(string $string, int $parameter_type = \PDO::PARAM_STR): string
+    public function quote(string $string, int $type = PDO::PARAM_STR): string
     {
-        return $this->connection->quote($string, $parameter_type);
+        $quoted = $this->connection->pdo->quote($string, $type);
+
+        if ($quoted === false) {
+            throw new InvalidArgumentException("Unsupported quote type: $type");
+        }
+
+        return $quoted;
     }
 
     /**
