@@ -34,15 +34,15 @@
     "ext-pdo": "*",
     "icanboogie/common": "^6.0",
     "icanboogie/datetime": "^6.0",
-    "icanboogie/inflector": "^2.0",
+    "icanboogie/inflector": "^2.2",
     "icanboogie/prototype": "^6.0",
     "icanboogie/validate": "^6.0"
   },
   "require-dev": {
     "ext-pdo_mysql": "*",
-    "olvlvl/composer-attribute-collector": "dev-properties",
+    "olvlvl/composer-attribute-collector": "^2.0",
     "phpstan/phpstan": "^1.10",
-    "phpunit/phpunit": "^10.0"
+    "phpunit/phpunit": "^10.2"
   },
   "autoload": {
     "psr-4": {
@@ -60,5 +60,16 @@
     "files": [
       "vendor/attributes.php"
     ]
+  },
+  "extra": {
+    "composer-attribute-collector": {
+      "include": [
+        "lib",
+        "tests"
+      ],
+      "exclude": [
+        "tests/sandox"
+      ]
+    }
   }
 }

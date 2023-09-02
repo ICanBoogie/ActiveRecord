@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.2/phpunit.xsd"
          beStrictAboutCoverageMetadata="true"
          beStrictAboutOutputDuringTests="true"
          bootstrap="tests/bootstrap.php"
@@ -11,14 +11,14 @@
          colors="true"
          executionOrder="depends,defects"
 >
-    <coverage>
-        <include>
-            <directory suffix=".php">lib</directory>
-        </include>
-    </coverage>
     <testsuites>
         <testsuite name="icanboogie/activerecord">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+    <source>
+        <include>
+            <directory>lib</directory>
+        </include>
+    </source>
 </phpunit>

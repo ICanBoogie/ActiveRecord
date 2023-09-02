@@ -19,6 +19,7 @@ test-dependencies: vendor
 
 .PHONY: test
 test: test-dependencies
+	@rm -rf tests/sandbox/*
 	@$(PHPUNIT) $(ARGS)
 
 .PHONY: test-coverage
