@@ -1,9 +1,12 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord;
+namespace ICanBoogie\ActiveRecord\Config;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\Config\Association;
+use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Query;
+use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\TableDefinition;
 
 /**
  * Model configuration, used during configuration.

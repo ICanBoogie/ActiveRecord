@@ -19,6 +19,7 @@ use ICanBoogie\ActiveRecord\Config\BelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Config\HasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\InvalidConfig;
+use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientBelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;

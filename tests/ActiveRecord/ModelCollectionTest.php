@@ -3,15 +3,13 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config;
+use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelAlreadyInstantiated;
 use ICanBoogie\ActiveRecord\ModelCollection;
-use ICanBoogie\ActiveRecord\ModelDefinition;
 use ICanBoogie\ActiveRecord\ModelNotDefined;
-use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
-use ICanBoogie\ActiveRecord\SchemaColumn;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
@@ -98,7 +96,7 @@ final class ModelCollectionTest extends TestCase
     public function test_offset_set(): void
     {
         $models = $this->models;
-        $models['brands'] = $config = new ModelDefinition(
+        $models['brands'] = $definition = new ModelDefinition(
             id: 'brands',
             connection: Config::DEFAULT_CONNECTION_ID,
             schema: (new SchemaBuilder())
@@ -113,7 +111,7 @@ final class ModelCollectionTest extends TestCase
         $this->assertInstanceOf(Model::class, $models['brands']);
 
         try {
-            $models['brands'] = $config;
+            $models['brands'] = $definition;
 
             $this->fail("Expected ModelAlreadyInstantiated");
         } catch (ModelAlreadyInstantiated $e) {

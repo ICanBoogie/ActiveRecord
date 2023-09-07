@@ -14,16 +14,14 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ActiveRecordCache;
 use ICanBoogie\ActiveRecord\Config;
+use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelCollection;
-use ICanBoogie\ActiveRecord\ModelDefinition;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotFound;
-use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
-use ICanBoogie\ActiveRecord\SchemaColumn;
 use ICanBoogie\ActiveRecord\ScopeNotDefined;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
@@ -140,7 +138,7 @@ final class ModelTest extends TestCase
         $model = new Model(
             $connection,
             $models,
-            new ModelDefinition(
+            new Config\ModelDefinition(
                 'nodes',
                 connection: 'primary',
                 schema: (new SchemaBuilder())
@@ -583,7 +581,7 @@ EOT
         $model_id = 't' . uniqid();
 
         $models = new ModelCollection($this->connections, [
-            $model_id => new ModelDefinition(
+            $model_id => new Config\ModelDefinition(
                 id: $model_id,
                 connection: Config::DEFAULT_CONNECTION_ID,
                 schema: (new SchemaBuilder())

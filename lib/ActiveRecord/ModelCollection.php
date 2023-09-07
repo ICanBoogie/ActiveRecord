@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use ArrayAccess;
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use LogicException;
 use RuntimeException;
 use Throwable;
@@ -235,8 +236,6 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
 
     /**
      * Instantiate a model with the specified attributes.
-     *
-     * @param ModelDefinition $attributes
      */
     private function instantiate_model(ModelDefinition $attributes): Model
     {

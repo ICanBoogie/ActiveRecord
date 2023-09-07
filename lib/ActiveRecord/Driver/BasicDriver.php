@@ -16,8 +16,6 @@ use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\ActiveRecord\Schema;
-use ICanBoogie\ActiveRecord\SchemaColumn;
-use ICanBoogie\ActiveRecord\SchemaIndex;
 use ICanBoogie\DateTime;
 
 /**

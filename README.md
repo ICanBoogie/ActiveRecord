@@ -175,7 +175,6 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelCollection;
-use ICanBoogie\ActiveRecord\ModelDefinition;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Integer;
@@ -198,7 +197,7 @@ class Node extends ActiveRecord
     public int $id;
     #[Character(80)]
     public string $title;
-    #[Inetger]
+    #[Integer]
     public int $number;
 
     // …
@@ -360,10 +359,8 @@ tables. Also, the connection of the parent model is inherited.
 namespace App;
 
 use ICanBoogie\ActiveRecord\ConfigBuilder;
-use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
-use ICanBoogie\ActiveRecord\ModelDefinition;
-use ICanBoogie\ActiveRecord\SchemaBuilder;use ICanBoogie\DateTime;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
+use ICanBoogie\DateTime;
 
 /* @var ConfigBuilder $config */
 

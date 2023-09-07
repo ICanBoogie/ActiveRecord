@@ -12,6 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
+use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 
 final class Config
 {

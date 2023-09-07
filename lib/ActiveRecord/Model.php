@@ -14,6 +14,7 @@ namespace ICanBoogie\ActiveRecord;
 use AllowDynamicProperties;
 use ArrayAccess;
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\OffsetNotWritable;
 use ICanBoogie\Prototype\MethodNotDefined;
 use LogicException;

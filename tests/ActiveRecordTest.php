@@ -15,8 +15,6 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelResolver;
 use ICanBoogie\ActiveRecord\RecordNotValid;
-use ICanBoogie\ActiveRecord\Schema;
-use ICanBoogie\ActiveRecord\SchemaColumn;
 use ICanBoogie\ActiveRecord\StaticModelResolver;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -24,9 +22,7 @@ use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\ActiveRecordTest\Sample;
 use Test\ICanBoogie\ActiveRecordTest\ValidateCase;
 
-use function mt_rand;
 use function serialize;
-use function strrev;
 use function uniqid;
 
 /**
