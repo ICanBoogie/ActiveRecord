@@ -18,12 +18,12 @@ final class ModelDefinition extends TableDefinition
      *     id: string,
      *     connection: string,
      *     schema: Schema,
+     *     model_class: class-string<Model>,
      *     activerecord_class: class-string<ActiveRecord>,
      *     name: ?string,
      *     alias: ?string,
      *     extends: ?string,
      *     implements: ?string,
-     *     model_class: class-string<Model<int|string|string[], ActiveRecord>>,
      *     query_class: class-string<Query<ActiveRecord>>,
      *     association: ?Association
      * } $an_array
@@ -34,20 +34,20 @@ final class ModelDefinition extends TableDefinition
     }
 
     /**
+     * @param class-string<Model> $model_class
      * @param class-string<ActiveRecord> $activerecord_class
-     * @param class-string<Model<int|string|string[], ActiveRecord>> $model_class
      * @param class-string<Query<ActiveRecord>> $query_class
      */
     public function __construct(
         public readonly string $id,
         public readonly string $connection,
         Schema $schema,
+        public readonly string $model_class,
         public readonly string $activerecord_class,
         ?string $name = null,
         ?string $alias = null,
         ?string $extends = null,
         ?string $implements = null,
-        public readonly string $model_class = Model::class,
         public readonly string $query_class = Query::class,
         public readonly ?Association $association = null,
     ) {

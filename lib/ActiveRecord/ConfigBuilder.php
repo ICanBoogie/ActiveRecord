@@ -309,15 +309,15 @@ final class ConfigBuilder
     private array $model_aliases = [];
 
     /**
+     * @param class-string<Model> $model_class
      * @param class-string<ActiveRecord> $activerecord_class
-     * @param class-string<Model>|null $model_class
      * @param class-string<Query>|null $query_class
      * @param (Closure(SchemaBuilder $schema): SchemaBuilder)|null $schema_builder
      */
     public function add_model( // @phpstan-ignore-line
         string $id,
+        string $model_class,
         string $activerecord_class,
-        string|null $model_class = null,
         string|null $query_class = null,
         string|null $name = null,
         string|null $alias = null,

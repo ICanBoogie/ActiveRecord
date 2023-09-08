@@ -31,6 +31,7 @@ use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\CustomQuery;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Fixtures;
 
 use function uniqid;
@@ -135,7 +136,7 @@ final class ModelTest extends TestCase
 
         $connection = $connections->connection_for_id(Config::DEFAULT_CONNECTION_ID);
 
-        $model = new Model(
+        $model = new class (
             $connection,
             $models,
             new Config\ModelDefinition(
@@ -144,9 +145,10 @@ final class ModelTest extends TestCase
                 schema: (new SchemaBuilder())
                     ->add_serial('id', primary: true)
                     ->build(),
+                model_class: NodeModel::class,
                 activerecord_class: Node::class,
             )
-        );
+        ) extends Model {};
 
         $this->assertEquals('nodes', $model->id);
     }
@@ -588,6 +590,7 @@ EOT
                     ->add_serial('nid', primary: true)
                     ->add_character('title')
                     ->build(),
+                model_class: NodeModel::class,
                 activerecord_class: Node::class,
             )
         ]);
@@ -631,7 +634,7 @@ EOT
 
     public function test_custom_query(): void
     {
-        $model = new Model(
+        $model = new class(
             $this->connections['primary'],
             $this->models,
             new ModelDefinition(
@@ -640,10 +643,11 @@ EOT
                 schema: (new SchemaBuilder())
                     ->add_serial('id', primary: true)
                     ->build(),
+                model_class: NodeModel::class,
                 activerecord_class: Node::class,
                 query_class: CustomQuery::class,
             )
-        );
+        ) extends Model{};
 
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));
         $this->assertInstanceOf(CustomQuery::class, $query2 = $model->query());

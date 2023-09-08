@@ -14,16 +14,26 @@ use LogicException;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Brand;
+use Test\ICanBoogie\Acme\BrandModel;
 use Test\ICanBoogie\Acme\Car;
+use Test\ICanBoogie\Acme\CarModel;
 use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\CommentModel;
 use Test\ICanBoogie\Acme\Count;
+use Test\ICanBoogie\Acme\CountModel;
 use Test\ICanBoogie\Acme\Driver;
+use Test\ICanBoogie\Acme\DriverModel;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
+use Test\ICanBoogie\Acme\HasMany\AppointmentModel;
 use Test\ICanBoogie\Acme\HasMany\Patient;
+use Test\ICanBoogie\Acme\HasMany\PatientModel;
 use Test\ICanBoogie\Acme\HasMany\Physician;
+use Test\ICanBoogie\Acme\HasMany\PhysicianModel;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Acme\Subscriber;
+use Test\ICanBoogie\Acme\SubscriberModel;
+use Test\ICanBoogie\Acme\UpdateModel;
 
 final class Fixtures
 {
@@ -63,6 +73,7 @@ final class Fixtures
             $_ = match ($id) {
                 'nodes' => $config->add_model(
                     id: 'nodes',
+                    model_class: NodeModel::class,
                     activerecord_class: Node::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('nid', primary: true)
@@ -70,8 +81,8 @@ final class Fixtures
                 ),
                 'articles' => $config->add_model(
                     id: 'articles',
-                    activerecord_class: Article::class,
                     model_class: ArticleModel::class,
+                    activerecord_class: Article::class,
                     extends: 'nodes',
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_character('body')
@@ -82,8 +93,8 @@ final class Fixtures
                 ),
                 'comments' => $config->add_model(
                     id: 'comments',
-                    activerecord_class: Comment::class,
                     model_class: CommentModel::class,
+                    activerecord_class: Comment::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('comment_id', primary: true)
                         ->belongs_to('nid', Article::class)
@@ -91,6 +102,7 @@ final class Fixtures
                 ),
                 'counts' => $config->add_model(
                     id: 'counts',
+                    model_class: CountModel::class,
                     activerecord_class: Count::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('id', primary: true)
@@ -102,6 +114,7 @@ final class Fixtures
                 #
                 'drivers' => $config->add_model(
                     id: 'drivers',
+                    model_class: DriverModel::class,
                     activerecord_class: Driver::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('driver_id', primary: true)
@@ -109,6 +122,7 @@ final class Fixtures
                 ),
                 'brands' => $config->add_model(
                     id: 'brands',
+                    model_class: BrandModel::class,
                     activerecord_class: Brand::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('brand_id', primary: true)
@@ -116,6 +130,7 @@ final class Fixtures
                 ),
                 'cars' => $config->add_model(
                     id: 'cars',
+                    model_class: CarModel::class,
                     activerecord_class: Car::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('car_id', primary: true)
@@ -128,6 +143,7 @@ final class Fixtures
                 #
                 'subscribers' => $config->add_model(
                     id: 'subscribers',
+                    model_class: SubscriberModel::class,
                     activerecord_class: Subscriber::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('subscriber_id', primary: true)
@@ -135,6 +151,7 @@ final class Fixtures
                 ),
                 'updates' => $config->add_model(
                     id: 'updates',
+                    model_class: UpdateModel::class,
                     activerecord_class: Subscriber::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('updated_id', primary: true)
@@ -147,6 +164,7 @@ final class Fixtures
                 #
                 'physicians' => $config->add_model(
                     id: 'physicians',
+                    model_class: PhysicianModel::class,
                     activerecord_class: Physician::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('ph_id', primary: true)
@@ -157,6 +175,7 @@ final class Fixtures
                 ),
                 'appointments' => $config->add_model(
                     id: 'appointments',
+                    model_class: AppointmentModel::class,
                     activerecord_class: Appointment::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('ap_id', primary: true)
@@ -166,6 +185,7 @@ final class Fixtures
                 ),
                 'patients' => $config->add_model(
                     id: 'patients',
+                    model_class: PatientModel::class,
                     activerecord_class: Patient::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_serial('pa_id', primary: true)

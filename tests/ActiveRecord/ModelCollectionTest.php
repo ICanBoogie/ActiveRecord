@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Brand;
+use Test\ICanBoogie\Acme\BrandModel;
 use Test\ICanBoogie\Acme\CommentModel;
 use Test\ICanBoogie\Fixtures;
 
@@ -103,6 +104,7 @@ final class ModelCollectionTest extends TestCase
                 ->add_serial('brand_id', primary: true)
                 ->add_character('name')
                 ->build(),
+            model_class: BrandModel::class,
             activerecord_class: Brand::class,
             name: 'brands',
         );
