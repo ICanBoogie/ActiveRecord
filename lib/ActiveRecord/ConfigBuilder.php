@@ -164,12 +164,11 @@ final class ConfigBuilder
                 id: $id,
                 connection: $transient->connection,
                 schema: $transient->schema,
-                activerecord_class: $transient->activerecord_class,
+                model_class: $transient->model_class,
                 name: $transient->name,
                 alias: $transient->alias,
                 extends: $transient->extends,
                 implements: $transient->implements,
-                model_class: $transient->model_class ?? Model::class,
                 query_class: $transient->query_class ?? Query::class,
                 association: $associations[$id] ?? null,
             );
@@ -317,7 +316,6 @@ final class ConfigBuilder
     public function add_model( // @phpstan-ignore-line
         string $id,
         string $model_class,
-        string $activerecord_class,
         string|null $query_class = null,
         string|null $name = null,
         string|null $alias = null,
@@ -327,6 +325,12 @@ final class ConfigBuilder
         Closure $association_builder = null,
         string $connection = Config::DEFAULT_CONNECTION_ID,
     ): self {
+        if (!is_a($model_class, Model::class, true)) {
+            throw new InvalidArgumentException("\$model_class must be an instance of ICanBoogie\ActiveRecord\Model");
+        }
+
+        $activerecord_class = $model_class::get_activerecord_class();
+
         if ($activerecord_class === ActiveRecord::class) {
             throw new LogicException("\$activerecord_class must be an extension of ICanBoogie\ActiveRecord");
         }

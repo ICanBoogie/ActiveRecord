@@ -19,7 +19,6 @@ final class ModelDefinition extends TableDefinition
      *     connection: string,
      *     schema: Schema,
      *     model_class: class-string<Model>,
-     *     activerecord_class: class-string<ActiveRecord>,
      *     name: ?string,
      *     alias: ?string,
      *     extends: ?string,
@@ -35,7 +34,6 @@ final class ModelDefinition extends TableDefinition
 
     /**
      * @param class-string<Model> $model_class
-     * @param class-string<ActiveRecord> $activerecord_class
      * @param class-string<Query<ActiveRecord>> $query_class
      */
     public function __construct(
@@ -43,7 +41,6 @@ final class ModelDefinition extends TableDefinition
         public readonly string $connection,
         Schema $schema,
         public readonly string $model_class,
-        public readonly string $activerecord_class,
         ?string $name = null,
         ?string $alias = null,
         ?string $extends = null,

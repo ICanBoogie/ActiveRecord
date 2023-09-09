@@ -104,7 +104,10 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
             : $class_or_activerecord;
 
         foreach ($this->definitions as $id => $definition) {
-            if ($class === $definition->activerecord_class) {
+            $model_class = $definition->model_class;
+            $activerecord_class = $model_class::get_activerecord_class();
+
+            if ($class === $activerecord_class) {
                 return $this->model_for_id($id);
             }
         }

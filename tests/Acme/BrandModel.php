@@ -9,4 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class BrandModel extends Model
 {
+    protected static string $activerecord_class = Brand::class;
 }

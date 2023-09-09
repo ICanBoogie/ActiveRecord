@@ -9,4 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class DanceSessionModel extends Model
 {
+    protected static string $activerecord_class = DanceSession::class;
 }

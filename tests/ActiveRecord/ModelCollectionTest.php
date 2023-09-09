@@ -105,7 +105,6 @@ final class ModelCollectionTest extends TestCase
                 ->add_character('name')
                 ->build(),
             model_class: BrandModel::class,
-            activerecord_class: Brand::class,
             name: 'brands',
         );
 

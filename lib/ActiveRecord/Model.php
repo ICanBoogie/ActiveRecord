@@ -60,16 +60,22 @@ use function method_exists;
  * @property-read bool $exists Whether the SQL table associated with the model exists.
  * @property-read ActiveRecord $one Retrieve the first record from the mode.
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
+ * @property-read class-string<TValue> $activerecord_class The activerecord class for the model.
  */
 #[AllowDynamicProperties]
 abstract class Model extends Table implements ArrayAccess
 {
     /**
-     * Active record instances class.
-     *
+     * @return class-string<TValue>
+     */
+    public static function get_activerecord_class(): string {
+        return static::$activerecord_class; // @phpstan-ignore-line
+    }
+
+    /**
      * @var class-string<TValue>
      */
-    public readonly string $activerecord_class;
+    protected static string $activerecord_class = ActiveRecord::class;
 
     /**
      * @var class-string<Query<TValue>>
@@ -102,6 +108,10 @@ abstract class Model extends Table implements ArrayAccess
         public readonly ModelProvider $models,
         private readonly ModelDefinition $definition
     ) {
+        if (static::$activerecord_class === ActiveRecord::class) {
+            throw new LogicException("The property \$activerecord_class must be overridden");
+        }
+
         $this->id = $definition->id;
         $this->relations = new RelationCollection($this);
 
@@ -113,9 +123,6 @@ abstract class Model extends Table implements ArrayAccess
 
         parent::__construct($connection, $definition, $parent);
 
-        /** @phpstan-ignore-next-line */
-        $this->activerecord_class = $definition->activerecord_class
-            ?? throw new LogicException("Missing ActiveRecord class for model '$this->id'");
         /** @phpstan-ignore-next-line */
         $this->query_class = $definition->query_class
             ?? Query::class;
@@ -574,7 +581,7 @@ abstract class Model extends Table implements ArrayAccess
      */
     protected function new_record(array $properties = []): ActiveRecord
     {
-        $class = $this->activerecord_class;
+        $class = static::$activerecord_class;
 
         return $properties ? $class::from($properties, [ $this ]) : new $class($this);
     }

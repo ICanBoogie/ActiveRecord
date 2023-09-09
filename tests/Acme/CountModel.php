@@ -9,5 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class CountModel extends Model
 {
-
+    protected static string $activerecord_class = Count::class;
 }

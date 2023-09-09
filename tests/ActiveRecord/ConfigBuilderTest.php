@@ -7,15 +7,10 @@ use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\TestCase;
-use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
-use Test\ICanBoogie\Acme\HasMany\Appointment;
 use Test\ICanBoogie\Acme\HasMany\AppointmentModel;
-use Test\ICanBoogie\Acme\HasMany\Patient;
 use Test\ICanBoogie\Acme\HasMany\PatientModel;
-use Test\ICanBoogie\Acme\HasMany\Physician;
 use Test\ICanBoogie\Acme\HasMany\PhysicianModel;
-use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Fixtures;
 use Test\ICanBoogie\SetStateHelper;
@@ -32,7 +27,6 @@ final class ConfigBuilderTest extends TestCase
             ->add_model(
                 id: 'nodes',
                 model_class: NodeModel::class,
-                activerecord_class: Node::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_serial('nid', primary: true)
                     ->add_character('title'),
@@ -40,7 +34,6 @@ final class ConfigBuilderTest extends TestCase
             ->add_model(
                 id: 'articles',
                 model_class: ArticleModel::class,
-                activerecord_class: Article::class,
                 extends: 'nodes',
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_text('body')
@@ -66,12 +59,10 @@ final class ConfigBuilderTest extends TestCase
             ->add_model(
                 id: 'nodes',
                 model_class: NodeModel::class,
-                activerecord_class: Node::class,
             )
             ->add_model(
                 id: 'articles',
                 model_class: ArticleModel::class,
-                activerecord_class: Article::class,
                 extends: 'nodes',
             )
             ->build();
@@ -97,17 +88,14 @@ final class ConfigBuilderTest extends TestCase
             ->add_model(
                 id: 'physicians',
                 model_class: PhysicianModel::class,
-                activerecord_class: Physician::class,
             )
             ->add_model(
                 id: 'patients',
                 model_class: PatientModel::class,
-                activerecord_class: Patient::class,
             )
             ->add_model(
                 id: 'appointments',
                 model_class: AppointmentModel::class,
-                activerecord_class: Appointment::class,
             )
             ->build();
 

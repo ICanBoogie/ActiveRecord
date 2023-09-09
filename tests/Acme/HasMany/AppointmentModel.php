@@ -9,4 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class AppointmentModel extends Model
 {
+    protected static string $activerecord_class = Appointment::class;
 }

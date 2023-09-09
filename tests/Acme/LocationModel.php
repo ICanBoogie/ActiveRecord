@@ -9,4 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class LocationModel extends Model
 {
+    protected static string $activerecord_class = Location::class;
 }

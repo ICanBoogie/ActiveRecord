@@ -9,4 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class EquipmentModel extends Model
 {
+    protected static string $activerecord_class = Equipment::class;
 }

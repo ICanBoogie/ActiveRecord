@@ -9,4 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class NodeModel extends Model
 {
+    protected static string $activerecord_class = Node::class;
 }

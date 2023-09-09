@@ -32,6 +32,7 @@ use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\CustomQuery;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\NodeModel;
+use Test\ICanBoogie\Acme\SampleRecord;
 use Test\ICanBoogie\Fixtures;
 
 use function uniqid;
@@ -146,9 +147,10 @@ final class ModelTest extends TestCase
                     ->add_serial('id', primary: true)
                     ->build(),
                 model_class: NodeModel::class,
-                activerecord_class: Node::class,
             )
-        ) extends Model {};
+        ) extends Model {
+            protected static string $activerecord_class = SampleRecord::class; // @phpstan-ignore-line
+        };
 
         $this->assertEquals('nodes', $model->id);
     }
@@ -591,7 +593,6 @@ EOT
                     ->add_character('title')
                     ->build(),
                 model_class: NodeModel::class,
-                activerecord_class: Node::class,
             )
         ]);
 
@@ -644,10 +645,11 @@ EOT
                     ->add_serial('id', primary: true)
                     ->build(),
                 model_class: NodeModel::class,
-                activerecord_class: Node::class,
                 query_class: CustomQuery::class,
             )
-        ) extends Model{};
+        ) extends Model {
+            protected static string $activerecord_class = SampleRecord::class; // @phpstan-ignore-line
+        };
 
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));
         $this->assertInstanceOf(CustomQuery::class, $query2 = $model->query());
