@@ -23,7 +23,6 @@ final class ModelDefinition extends TableDefinition
      *     alias: ?string,
      *     extends: ?string,
      *     implements: ?string,
-     *     query_class: class-string<Query<ActiveRecord>>,
      *     association: ?Association
      * } $an_array
      */
@@ -34,7 +33,6 @@ final class ModelDefinition extends TableDefinition
 
     /**
      * @param class-string<Model> $model_class
-     * @param class-string<Query<ActiveRecord>> $query_class
      */
     public function __construct(
         public readonly string $id,
@@ -45,7 +43,6 @@ final class ModelDefinition extends TableDefinition
         ?string $alias = null,
         ?string $extends = null,
         ?string $implements = null,
-        public readonly string $query_class = Query::class,
         public readonly ?Association $association = null,
     ) {
         parent::__construct(

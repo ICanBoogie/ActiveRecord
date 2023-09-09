@@ -78,9 +78,16 @@ abstract class Model extends Table implements ArrayAccess
     protected static string $activerecord_class = ActiveRecord::class;
 
     /**
+     * @return class-string<Query<TValue>>
+     */
+    public static function get_query_class(): string {
+        return static::$query_class;
+    }
+
+    /**
      * @var class-string<Query<TValue>>
      */
-    private readonly string $query_class;
+    protected static string $query_class = Query::class;
 
     /**
      * The identifier of the model.
@@ -108,7 +115,7 @@ abstract class Model extends Table implements ArrayAccess
         public readonly ModelProvider $models,
         private readonly ModelDefinition $definition
     ) {
-        if (static::$activerecord_class === ActiveRecord::class) {
+        if (static::$activerecord_class === ActiveRecord::class) { // @phpstan-ignore-line
             throw new LogicException("The property \$activerecord_class must be overridden");
         }
 
@@ -122,10 +129,6 @@ abstract class Model extends Table implements ArrayAccess
         }
 
         parent::__construct($connection, $definition, $parent);
-
-        /** @phpstan-ignore-next-line */
-        $this->query_class = $definition->query_class
-            ?? Query::class;
 
         $this->resolve_relations();
     }
@@ -243,7 +246,7 @@ abstract class Model extends Table implements ArrayAccess
         }
 
         if (
-            method_exists($this->query_class, $method)
+            method_exists(static::$query_class, $method)
             || str_starts_with($method, 'filter_by_')
             || method_exists($this, 'scope_' . $method)
         ) {
@@ -395,7 +398,7 @@ abstract class Model extends Table implements ArrayAccess
      */
     public function query(...$conditions_and_args): Query
     {
-        $class = $this->query_class;
+        $class = static::$query_class;
         $query = new $class($this);
 
         if ($conditions_and_args) {
@@ -428,7 +431,7 @@ abstract class Model extends Table implements ArrayAccess
         );
     }
 
-        /**
+    /**
      * Because records are cached, we need to remove the record from the cache when it is saved,
      * so that loading the record again returns the updated record, not the one in the cache.
      *

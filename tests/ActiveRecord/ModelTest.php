@@ -645,10 +645,10 @@ EOT
                     ->add_serial('id', primary: true)
                     ->build(),
                 model_class: NodeModel::class,
-                query_class: CustomQuery::class,
             )
         ) extends Model {
-            protected static string $activerecord_class = SampleRecord::class; // @phpstan-ignore-line
+            protected static string $activerecord_class = SampleRecord::class;
+            protected static string $query_class = CustomQuery::class;
         };
 
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));

@@ -169,7 +169,6 @@ final class ConfigBuilder
                 alias: $transient->alias,
                 extends: $transient->extends,
                 implements: $transient->implements,
-                query_class: $transient->query_class ?? Query::class,
                 association: $associations[$id] ?? null,
             );
         }
@@ -309,14 +308,11 @@ final class ConfigBuilder
 
     /**
      * @param class-string<Model> $model_class
-     * @param class-string<ActiveRecord> $activerecord_class
-     * @param class-string<Query>|null $query_class
      * @param (Closure(SchemaBuilder $schema): SchemaBuilder)|null $schema_builder
      */
     public function add_model( // @phpstan-ignore-line
         string $id,
         string $model_class,
-        string|null $query_class = null,
         string|null $name = null,
         string|null $alias = null,
         string|null $extends = null,
@@ -376,9 +372,7 @@ final class ConfigBuilder
         $this->transient_models[$id] = new TransientModelDefinition(
             id: $id,
             schema: $schema,
-            activerecord_class: $activerecord_class,
             model_class: $model_class,
-            query_class: $query_class,
             name: $name,
             alias: $alias,
             extends: $extends,

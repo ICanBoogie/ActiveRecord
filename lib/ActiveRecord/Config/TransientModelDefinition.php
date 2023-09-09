@@ -16,16 +16,12 @@ use ICanBoogie\ActiveRecord\Schema;
 final class TransientModelDefinition
 {
     /**
-     * @param class-string<ActiveRecord> $activerecord_class
-     * @param class-string<Model>|null $model_class
-     * @param class-string<Query>|null $query_class
+     * @param class-string<Model> $model_class
      */
     public function __construct( // @phpstan-ignore-line
         public readonly string $id,
         public Schema $schema,
-        public readonly string $activerecord_class,
-        public readonly ?string $model_class = null,
-        public readonly ?string $query_class = null,
+        public readonly string $model_class,
         public readonly ?string $name = null,
         public readonly ?string $alias = null,
         public readonly ?string $extends = null,

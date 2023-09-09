@@ -21,6 +21,8 @@
 - `Table` requires a `Connection` instance in its constructor, the `CONNECTION` attribute is no longer replaced by a `Connection` instance.
 - Replaced attributes arrays to initialize tables and models with objects.
 - Changed `Query::join()` and `Model::join()` signatures to enforce types.
+- The `ActiveRecord` class is now defined by the `Model` instead of provided by `ModelDefinition`.
+- The `Query` class is now defined by the `Model` instead of provided by `ModelDefinition`.
 
 ### Deprecated Features
 
