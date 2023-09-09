@@ -21,7 +21,6 @@ final class ModelDefinition extends TableDefinition
      *     model_class: class-string<Model>,
      *     name: ?string,
      *     alias: ?string,
-     *     extends: ?string,
      *     implements: ?string,
      *     association: ?Association
      * } $an_array
@@ -41,7 +40,6 @@ final class ModelDefinition extends TableDefinition
         public readonly string $model_class,
         ?string $name = null,
         ?string $alias = null,
-        ?string $extends = null,
         ?string $implements = null,
         public readonly ?Association $association = null,
     ) {
@@ -49,7 +47,6 @@ final class ModelDefinition extends TableDefinition
             name: $name ?? $id,
             schema: $schema,
             alias: $alias,
-            extends: $extends,
             implements: $implements
         );
     }

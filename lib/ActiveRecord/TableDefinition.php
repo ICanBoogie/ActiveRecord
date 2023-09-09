@@ -20,7 +20,6 @@ class TableDefinition
         public readonly string $name,
         public readonly Schema $schema,
         ?string $alias = null,
-        public readonly ?string $extends = null,
         public readonly ?string $implements = null,
     ) {
         $this->alias = $alias ?? $this->make_alias($this->name);

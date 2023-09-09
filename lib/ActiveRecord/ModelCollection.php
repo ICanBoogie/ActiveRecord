@@ -97,6 +97,17 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
         return $this->offsetGet($id);
     }
 
+    public function model_for_class(string $class): Model
+    {
+        foreach ($this->definitions as $id => $definition) {
+            if ($class === $definition->model_class) {
+                return $this->model_for_id($id);
+            }
+        }
+
+        throw new RuntimeException("Unable to find model for class '$class'");
+    }
+
     public function model_for_activerecord(string|ActiveRecord $class_or_activerecord): Model
     {
         $class = $class_or_activerecord instanceof ActiveRecord
@@ -112,7 +123,7 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
             }
         }
 
-        throw new RuntimeException("Unable to find model for $class");
+        throw new RuntimeException("Unable to find model for activerecord class '$class'");
     }
 
     /**

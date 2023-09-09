@@ -34,7 +34,6 @@ final class ConfigBuilderTest extends TestCase
             ->add_model(
                 id: 'articles',
                 model_class: ArticleModel::class,
-                extends: 'nodes',
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_text('body')
                     ->add_datetime('date'),
@@ -63,7 +62,6 @@ final class ConfigBuilderTest extends TestCase
             ->add_model(
                 id: 'articles',
                 model_class: ArticleModel::class,
-                extends: 'nodes',
             )
             ->build();
 

@@ -24,10 +24,12 @@ use function array_fill;
 use function array_keys;
 use function count;
 use function func_get_args;
+use function get_parent_class;
 use function implode;
 use function is_array;
 use function is_callable;
 use function method_exists;
+use function var_dump;
 
 /**
  * Base class for activerecord models.
@@ -122,15 +124,22 @@ abstract class Model extends Table implements ArrayAccess
         $this->id = $definition->id;
         $this->relations = new RelationCollection($this);
 
-        $parent = null;
-
-        if ($definition->extends) {
-            $parent = $models->model_for_id($definition->extends);
-        }
+        $parent = $this->resolve_parent($models);
 
         parent::__construct($connection, $definition, $parent);
 
         $this->resolve_relations();
+    }
+
+    private function resolve_parent(ModelProvider $models): ?Model
+    {
+        $parent_class = get_parent_class($this);
+
+        if ($parent_class === Model::class) {
+            return null;
+        }
+
+        return $models->model_for_class($parent_class);
     }
 
 //    // @codeCoverageIgnoreStart

@@ -5,10 +5,7 @@ namespace Test\ICanBoogie\Acme;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 
-/**
- * @extends Model<int, Article>
- */
-class ArticleModel extends Model
+class ArticleModel extends NodeModel
 {
     protected static string $activerecord_class = Article::class;
 

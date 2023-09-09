@@ -37,6 +37,7 @@ use function array_map;
 use function assert;
 use function class_exists;
 use function get_debug_type;
+use function get_parent_class;
 use function ICanBoogie\singularize;
 use function is_a;
 use function is_string;
@@ -57,7 +58,12 @@ final class ConfigBuilder
     /**
      * @var array<string, TransientModelDefinition>
      */
-    private array $transient_models = [];
+    private array $transient_model_definitions = [];
+
+    /**
+     * @var array<class-string<Model>, TransientModelDefinition>
+     */
+    private array $transient_model_definitions_by_class = [];
 
     /**
      * @var array<string, TransientAssociation>
@@ -77,17 +83,15 @@ final class ConfigBuilder
 
     private function validate_models(): void
     {
-        foreach ($this->transient_models as $id => $config) {
-            if (empty($this->connections[$config->connection])) {
-                throw new InvalidConfig("Model '$id' uses connection '$config->connection', but it is not configured.");
+        foreach ($this->transient_model_definitions as $id => $definition) {
+            if (empty($this->connections[$definition->connection])) {
+                throw new InvalidConfig("Model '$id' uses connection '$definition->connection', but it is not configured.");
             }
 
-            if ($config->extends && empty($this->transient_models[$config->extends])) {
-                throw new InvalidConfig("Model '$id' extends '$config->extends', but it is not configured.");
-            }
+            $this->resolve_parent_definition($definition);
 
-            if ($config->implements && empty($this->transient_models[$config->implements])) {
-                throw new InvalidConfig("Model '$id' implements '$config->implements', but it is not configured.");
+            if ($definition->implements && empty($this->transient_model_definitions[$definition->implements])) {
+                throw new InvalidConfig("Model '$id' implements '$definition->implements', but it is not configured.");
             }
         }
     }
@@ -97,27 +101,29 @@ final class ConfigBuilder
      */
     private function build_associations(): array
     {
-        foreach ($this->transient_models as $id => $model) {
-            if (!$model->extends) {
+        foreach ($this->transient_model_definitions as $id => $definition) {
+            $parent = $this->resolve_parent_definition($definition);
+
+            if (!$parent) {
                 continue;
             }
 
-            $parent_schema = $this->transient_models[$model->extends]->schema;
+            $parent_schema = $parent->schema;
             $primary = $parent_schema->primary;
 
             if (!is_string($primary)) {
                 throw new InvalidConfig(
-                    "Model '$id' cannot extend '$model->extends',"
+                    "Model '$id' cannot extend '$parent->id',"
                     . " the primary key is not a string, given: " . get_debug_type($primary)
                 );
             }
 
-            $schema = $model->schema;
+            $schema = $definition->schema;
             $parent_column = $parent_schema->columns[$primary];
 
             assert($parent_column instanceof Integer);
 
-            $model->schema = new Schema(
+            $definition->schema = new Schema(
                 columns: [ $primary => new Integer(size: $parent_column->size, unique: true) ] + $schema->columns,
                 primary: $primary,
                 indexes: $schema->indexes,
@@ -146,6 +152,18 @@ final class ConfigBuilder
         return $associations;
     }
 
+    private function resolve_parent_definition(TransientModelDefinition $definition): ?TransientModelDefinition
+    {
+        $parent_class = get_parent_class($definition->model_class);
+
+        if ($parent_class === Model::class) {
+            return null;
+        }
+
+        return $this->transient_model_definitions_by_class[$parent_class]
+            ?? throw new LogicException("The model '$definition->model_class' extends '$parent_class' but there's no definition for it");
+    }
+
     /**
      * Builds model configuration from model transient configurations and association configurations.
      *
@@ -159,7 +177,7 @@ final class ConfigBuilder
     {
         $models = [];
 
-        foreach ($this->transient_models as $id => $transient) {
+        foreach ($this->transient_model_definitions as $id => $transient) {
             $models[$id] = new ModelDefinition(
                 id: $id,
                 connection: $transient->connection,
@@ -167,7 +185,6 @@ final class ConfigBuilder
                 model_class: $transient->model_class,
                 name: $transient->name,
                 alias: $transient->alias,
-                extends: $transient->extends,
                 implements: $transient->implements,
                 association: $associations[$id] ?? null,
             );
@@ -182,7 +199,7 @@ final class ConfigBuilder
             return null;
         }
 
-        $schema = $this->transient_models[$on]->schema;
+        $schema = $this->transient_model_definitions[$on]->schema;
 
         return $schema->has_column($key) ? $key : null;
     }
@@ -190,7 +207,7 @@ final class ConfigBuilder
     private function resolve_belongs_to(string $owner, TransientBelongsToAssociation $association): BelongsToAssociation
     {
         $associate = $this->resolve_model_id($association->associate);
-        $foreign_key = $this->transient_models[$associate]->schema->primary;
+        $foreign_key = $this->transient_model_definitions[$associate]->schema->primary;
 
         if (!is_string($foreign_key)) {
             throw new InvalidConfig(
@@ -218,14 +235,14 @@ final class ConfigBuilder
     private function resolve_has_many(string $owner, TransientHasManyAssociation $association): HasManyAssociation
     {
         $related = $this->resolve_model_id($association->associate);
-        $local_key = $association->local_key ?? $this->transient_models[$owner]->schema->primary;
+        $local_key = $association->local_key ?? $this->transient_model_definitions[$owner]->schema->primary;
         $foreign_key = $association->foreign_key;
         $as = $association->as ?? $related;
 
         if ($association->through) {
-            $foreign_key ??= $this->transient_models[$related]->schema->primary;
+            $foreign_key ??= $this->transient_model_definitions[$related]->schema->primary;
         } else {
-            $foreign_key ??= $this->try_key($this->transient_models[$owner]->schema->primary, $related);
+            $foreign_key ??= $this->try_key($this->transient_model_definitions[$owner]->schema->primary, $related);
         }
 
         $foreign_key or throw new InvalidConfig(
@@ -315,7 +332,6 @@ final class ConfigBuilder
         string $model_class,
         string|null $name = null,
         string|null $alias = null,
-        string|null $extends = null,
         string|null $implements = null,
         Closure $schema_builder = null,
         Closure $association_builder = null,
@@ -369,13 +385,13 @@ final class ConfigBuilder
 
         // transient model
 
-        $this->transient_models[$id] = new TransientModelDefinition(
+        $this->transient_model_definitions[$id] =
+        $this->transient_model_definitions_by_class[$model_class] = new TransientModelDefinition(
             id: $id,
             schema: $schema,
             model_class: $model_class,
             name: $name,
             alias: $alias,
-            extends: $extends,
             implements: $implements,
             connection: $connection,
         );

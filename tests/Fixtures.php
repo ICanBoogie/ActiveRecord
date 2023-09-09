@@ -81,7 +81,6 @@ final class Fixtures
                 'articles' => $config->add_model(
                     id: 'articles',
                     model_class: ArticleModel::class,
-                    extends: 'nodes',
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_character('body')
                         ->add_datetime('date', default: DateTime::CURRENT_TIMESTAMP)
