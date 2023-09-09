@@ -183,9 +183,9 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 /**
  * @extends Model<int, Node>
  */
+ #[Model\Record(Node:::class)]
 class NodeModel extends Model
 {
-    public const activerecord_class = Node::class
 }
 
 /**

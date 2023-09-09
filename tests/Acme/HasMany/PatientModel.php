@@ -8,7 +8,7 @@ use Test\ICanBoogie\Acme\HasMany\Physician;
 /**
  * @extends Model<int, Patient>
  */
+#[Model\Record(Patient::class)]
 class PatientModel extends Model
 {
-    public const activerecord_class = Patient::class;
 }

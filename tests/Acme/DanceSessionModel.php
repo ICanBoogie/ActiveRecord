@@ -7,7 +7,7 @@ use ICanBoogie\ActiveRecord\Model;
 /**
  * @extends Model<int, DanceSession>
  */
+#[Model\Record(DanceSession::class)]
 class DanceSessionModel extends Model
 {
-    protected static string $activerecord_class = DanceSession::class;
 }

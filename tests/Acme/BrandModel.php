@@ -7,7 +7,7 @@ use ICanBoogie\ActiveRecord\Model;
 /**
  * @extends Model<int, Brand>
  */
+#[Model\Record(Brand::class)]
 class BrandModel extends Model
 {
-    public const activerecord_class = Brand::class;
 }

@@ -21,6 +21,7 @@ final class TransientModelDefinition
     public function __construct( // @phpstan-ignore-line
         public Schema $schema,
         public readonly string $model_class,
+        public readonly string $activerecord_class,
         public readonly string $table_name,
         public readonly string $alias,
         public readonly string $connection = Config::DEFAULT_CONNECTION_ID,

@@ -29,7 +29,6 @@ class ModelCollection implements ModelProvider, ModelResolver, ModelIterator
     /**
      * @uses get_instances
      * @uses get_definitions
-     * @uses get_connections
      */
     use AccessorTrait;
 
@@ -56,6 +55,11 @@ class ModelCollection implements ModelProvider, ModelResolver, ModelIterator
     private array $definitions = [];
 
     /**
+     * @var array<class-string<ActiveRecord>, class-string<Model>>
+     */
+    private array $activerecord_class_to_model_class = [];
+
+    /**
      * @return array<string, ModelDefinition>
      */
     private function get_definitions(): array
@@ -74,18 +78,22 @@ class ModelCollection implements ModelProvider, ModelResolver, ModelIterator
             assert($definition instanceof ModelDefinition);
 
             $this->definitions[$definition->model_class] = $definition;
+            // @phpstan-ignore-next-line
+            $this->activerecord_class_to_model_class[$definition->activerecord_class] = $definition->model_class;
         }
     }
 
     public function model_iterator(): iterable
     {
         foreach ($this->definitions as $definition) {
+            // @phpstan-ignore-next-line
             yield $definition->model_class => fn() => $this->model_for_class($definition->model_class);
         }
     }
 
     public function model_for_class(string $class): Model
     {
+        // @phpstan-ignore-next-line
         return $this->instances[$class] ??= $this->instantiate_model($class);
     }
 
@@ -110,16 +118,10 @@ class ModelCollection implements ModelProvider, ModelResolver, ModelIterator
             ? $class_or_activerecord::class
             : $class_or_activerecord;
 
-        foreach ($this->definitions as $definition) {
-            $model_class = $definition->model_class;
-            $activerecord_class = $model_class::get_activerecord_class();
+        $model_class = $this->activerecord_class_to_model_class[$class]
+            ?? throw new RuntimeException("No model defined for activerecord class '$class'");
 
-            if ($class === $activerecord_class) {
-                return $this->model_for_class($model_class);
-            }
-        }
-
-        throw new RuntimeException("Unable to find model for activerecord class '$class'");
+        return $this->model_for_class($model_class);
     }
 
     /**

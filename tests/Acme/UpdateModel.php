@@ -7,7 +7,7 @@ use ICanBoogie\ActiveRecord\Model;
 /**
  * @extends Model<int, Update>
  */
+#[Model\Record(Update::class)]
 class UpdateModel extends Model
 {
-    public const activerecord_class = Update::class;
 }

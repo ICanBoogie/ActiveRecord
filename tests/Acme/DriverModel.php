@@ -7,7 +7,7 @@ use ICanBoogie\ActiveRecord\Model;
 /**
  * @extends Model<int, Driver>
  */
+#[Model\Record(Driver::class)]
 class DriverModel extends Model
 {
-    public const activerecord_class = Driver::class;
 }

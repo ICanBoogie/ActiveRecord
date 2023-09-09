@@ -180,6 +180,7 @@ final class ConfigBuilder
                     alias: $transient->alias,
                 ),
                 model_class: $transient->model_class,
+                activerecord_class: $transient->activerecord_class,
                 connection: $transient->connection,
                 association: $associations[$class] ?? null,
             );
@@ -275,10 +276,6 @@ final class ConfigBuilder
 
     private function model_definition_for_activerecord(string $activerecord_class): TransientModelDefinition
     {
-        if (empty($this->model_class_by_active_record_class[$activerecord_class])) {
-            echo "FUCK!";
-        }
-
         $model_class = $this->model_class_by_active_record_class[$activerecord_class]
             ?? throw new LogicException("No model defined for ActiveRecord class '$activerecord_class'");
 
@@ -340,10 +337,8 @@ final class ConfigBuilder
         string $connection = Config::DEFAULT_CONNECTION_ID,
     ): self {
         Assert::extends_model($model_class);
-        Assert::model_activerecord($model_class);
 
-        /** @var class-string<ActiveRecord> $activerecord_class */
-        $activerecord_class = $model_class::activerecord_class;
+        $activerecord_class = ActiveRecord\Model\Record::resolve_activerecord_class($model_class);
 
         $this->model_class_by_active_record_class[$activerecord_class] = $model_class;
 
@@ -388,6 +383,7 @@ final class ConfigBuilder
         $this->transient_model_definitions_by_class[$model_class] = new TransientModelDefinition(
             schema: $schema,
             model_class: $model_class,
+            activerecord_class: $activerecord_class,
             table_name: $table_name,
             alias: $alias ?? singularize($table_name),
             connection: $connection,

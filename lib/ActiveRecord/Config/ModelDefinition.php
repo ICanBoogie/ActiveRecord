@@ -2,6 +2,7 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\TableDefinition;
 
@@ -16,6 +17,7 @@ class ModelDefinition
      * @param array{
      *     table: TableDefinition,
      *     model_class: class-string<Model>,
+     *     activerecord_class: class-string<ActiveRecord>,
      *     connection: string,
      *     association: ?Association
      * } $an_array
@@ -31,6 +33,7 @@ class ModelDefinition
     public function __construct(
         public readonly TableDefinition $table,
         public readonly string $model_class,
+        public readonly string $activerecord_class,
         public readonly string $connection,
         public readonly ?Association $association = null,
     ) {

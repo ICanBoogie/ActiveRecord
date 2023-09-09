@@ -7,7 +7,7 @@ use ICanBoogie\ActiveRecord\Model;
 /**
  * @extends Model<int, Location>
  */
+#[Model\Record(Location::class)]
 class LocationModel extends Model
 {
-    protected static string $activerecord_class = Location::class;
 }

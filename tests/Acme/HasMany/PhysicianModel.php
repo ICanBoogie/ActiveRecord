@@ -7,7 +7,7 @@ use ICanBoogie\ActiveRecord\Model;
 /**
  * @extends Model<int, Physician>
  */
+#[Model\Record(Physician::class)]
 class PhysicianModel extends Model
 {
-    public const activerecord_class = Physician::class;
 }

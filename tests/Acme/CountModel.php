@@ -7,7 +7,7 @@ use ICanBoogie\ActiveRecord\Model;
 /**
  * @extends Model<int, Count>
  */
+#[Model\Record(Count::class)]
 class CountModel extends Model
 {
-    public const activerecord_class = Count::class;
 }

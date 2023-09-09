@@ -23,6 +23,7 @@ use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\ScopeNotDefined;
+use ICanBoogie\ActiveRecord\TableDefinition;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
 use LogicException;
@@ -31,6 +32,7 @@ use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\CountModel;
 use Test\ICanBoogie\Acme\CustomQuery;
+use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Acme\SampleRecord;
 use Test\ICanBoogie\Fixtures;
@@ -80,30 +82,6 @@ final class ModelTest extends TestCase
         $this->nodes = $models->model_for_class(NodeModel::class);
         $this->model_records_count = 3;
         $this->counts_model = $counts;
-    }
-
-    public function test_fail_on_inherited_activerecord_class_from_model(): void
-    {
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches("/needs to override the constant activerecord_class with a class that extends ICanBoogie\\\ActiveRecord/");
-
-        new class(
-            $this->connections['primary'],
-            $this->models,
-            $this->createStub(ModelDefinition::class),
-        ) extends Model {};
-    }
-
-    public function test_fail_on_inherited_activerecord_class_from_other(): void
-    {
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches("/needs to override the constant activerecord_class with a class that extends Test\\\ICanBoogie\\\Acme\\\Node/");
-
-        new class(
-            $this->connections['primary'],
-            $this->models,
-            $this->createStub(ModelDefinition::class),
-        ) extends NodeModel {};
     }
 
     /**
@@ -548,7 +526,7 @@ EOT
 
         $models = new ModelCollection($this->connections, [
             new Config\ModelDefinition(
-                table: new ActiveRecord\TableDefinition(
+                table: new TableDefinition(
                     name: $name,
                     schema: (new SchemaBuilder())
                         ->add_serial('nid', primary: true)
@@ -556,6 +534,7 @@ EOT
                         ->build(),
                 ),
                 model_class: NodeModel::class,
+                activerecord_class: Node::class,
                 connection: Config::DEFAULT_CONNECTION_ID,
             )
         ]);
@@ -604,17 +583,17 @@ EOT
             $this->connections['primary'],
             $this->models,
             new ModelDefinition(
-                table: new ActiveRecord\TableDefinition(
+                table: new TableDefinition(
                     name: $id,
                     schema: (new SchemaBuilder())
                         ->add_serial('id', primary: true)
                         ->build()
                 ),
                 model_class: NodeModel::class,
+                activerecord_class: SampleRecord::class,
                 connection: Config::DEFAULT_CONNECTION_ID,
             )
         ) extends Model {
-            public const activerecord_class = SampleRecord::class;
             public const query_class = CustomQuery::class;
         };
 

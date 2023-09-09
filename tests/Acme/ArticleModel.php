@@ -5,10 +5,9 @@ namespace Test\ICanBoogie\Acme;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 
+#[Model\Record(Article::class)]
 class ArticleModel extends NodeModel
 {
-    public const activerecord_class = Article::class;
-
     /**
      * @used-by Model::scope
      */
