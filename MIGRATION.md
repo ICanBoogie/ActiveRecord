@@ -24,6 +24,7 @@
 - The `ActiveRecord` class is now defined by the `Model` instead of provided by `ModelDefinition`. The `activerecord_class` directive has been removed.
 - The `Query` class is now defined by the `Model` instead of provided by `ModelDefinition`. The `query_class` directive has been removed.
 - The parent model is now resolved by PHP inheritance. The `extends` directive has been removed.
+- Removed support for `implements` in `Table`.
 
 ### Deprecated Features
 

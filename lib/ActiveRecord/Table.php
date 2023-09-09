@@ -73,8 +73,6 @@ class Table extends Prototyped
      */
     public readonly array|string|null $primary;
 
-    protected $implements = [];
-
     /**
      * SQL fragment for the FROM clause of the query, made of the table's name and alias and those
      * of the hierarchy.
@@ -108,20 +106,7 @@ class Table extends Prototyped
 
     protected function lazy_get_select_join(): string
     {
-        $join = "`{$this->alias}`" . $this->update_join;
-
-        if (!$this->implements) {
-            return $join;
-        }
-
-        foreach ($this->implements as $implement) {
-            $table = $implement['table'];
-
-            $join .= empty($implement['loose']) ? 'INNER' : 'LEFT';
-            $join .= " JOIN `$table->name` AS {$table->alias} USING(`$table->primary`)";
-        }
-
-        return $join;
+        return "`{$this->alias}`" . $this->update_join;
     }
 
     /**
@@ -158,18 +143,10 @@ class Table extends Prototyped
         $this->schema = $definition->schema
             ?? throw new LogicException("The SCHEMA attribute is required");
         $this->primary = $this->schema->primary;
-        $this->implements = $definition->implements
-            ?? null;
 
         unset($this->update_join);
         unset($this->select_join);
-
-        $this->assert_implements_is_valid();
-
-        if ($parent && $parent->implements) {
-            $this->implements = array_merge($parent->implements, $this->implements);
-        }
-    }
+}
 
     /**
      * Interface to the connection's query() method.
@@ -187,34 +164,6 @@ class Table extends Prototyped
         $statement = $this->prepare($query, $options);
 
         return $statement($args);
-    }
-
-    /**
-     * Asserts the implements definition is valid.
-     */
-    private function assert_implements_is_valid(): void
-    {
-        $implements = $this->implements;
-
-        if (!$implements) {
-            return;
-        }
-
-        if (!is_array($implements)) {
-            throw new InvalidArgumentException("`IMPLEMENTING` must be an array.");
-        }
-
-        foreach ($implements as $implement) {
-            if (!is_array($implement)) {
-                throw new InvalidArgumentException("`IMPLEMENTING` must be an array.");
-            }
-
-            $table = $implement['table'];
-
-            if (!$table instanceof Table) {
-                throw new InvalidArgumentException("Implements table must be an instance of Table.");
-            }
-        }
     }
 
     /**

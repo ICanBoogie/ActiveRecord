@@ -6,4 +6,4 @@ parameters:
   - "#get_.*is unused#"
   - "#ActiveRecord but does not specify its types#"
   - "#with generic class ICanBoogie\\\\ActiveRecord does not specify its types#"
-  - "#with generic class ICanBoogie\\\\ActiveRecord\\\\Model but does not specify its types#"
+  - "#with generic class .+Model does not specify its types#"

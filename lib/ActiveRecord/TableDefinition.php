@@ -18,7 +18,6 @@ class TableDefinition
      *     name: string,
      *     schema: Schema,
      *     alias: ?string,
-     *     implements: ?string
      * } $an_array
      */
     public static function __set_state(array $an_array): self
@@ -38,7 +37,6 @@ class TableDefinition
         public readonly string $name,
         public readonly Schema $schema,
         ?string $alias = null,
-        public readonly ?string $implements = null,
     ) {
         $this->alias = $alias ?? $this->make_alias($this->name);
     }

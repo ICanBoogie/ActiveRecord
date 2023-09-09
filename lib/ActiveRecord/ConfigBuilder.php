@@ -57,12 +57,6 @@ final class ConfigBuilder
     private array $connections = [];
 
     /**
-     * @var array<string, TransientModelDefinition>
-     *     Where _key_ is a model identifier.
-     */
-    private array $transient_model_definitions = [];
-
-    /**
      * @var array<class-string<Model>, TransientModelDefinition>
      */
     private array $transient_model_definitions_by_class = [];
@@ -91,10 +85,6 @@ final class ConfigBuilder
             }
 
             $this->resolve_parent_definition($definition);
-
-            if ($definition->implements && empty($this->transient_model_definitions[$definition->implements])) {
-                throw new InvalidConfig("Model '$definition->model_class' implements '$definition->implements', but it is not configured.");
-            }
         }
     }
 
@@ -190,7 +180,6 @@ final class ConfigBuilder
                     name: $transient->table_name ?? $id,
                     schema: $transient->schema,
                     alias: $transient->alias,
-                    implements: $transient->implements,
                 ),
                 id: $id,
                 model_class: $transient->model_class,
@@ -346,7 +335,6 @@ final class ConfigBuilder
         string $model_class,
         string|null $name = null,
         string|null $alias = null,
-        string|null $implements = null,
         Closure $schema_builder = null,
         Closure $association_builder = null,
         string $connection = Config::DEFAULT_CONNECTION_ID,
@@ -395,14 +383,12 @@ final class ConfigBuilder
 
         // transient model
 
-        $this->transient_model_definitions[$id] =
         $this->transient_model_definitions_by_class[$model_class] = new TransientModelDefinition(
             id: $id,
             schema: $schema,
             model_class: $model_class,
             table_name: $name,
             alias: $alias,
-            implements: $implements,
             connection: $connection,
         );
 

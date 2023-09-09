@@ -5,13 +5,6 @@ namespace ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\TableDefinition;
 
-use function ICanBoogie\pluralize;
-use function ICanBoogie\underscore;
-use function str_ends_with;
-use function strlen;
-use function strrpos;
-use function substr;
-
 /**
  * @internal
  *
