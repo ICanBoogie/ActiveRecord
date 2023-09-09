@@ -223,7 +223,7 @@ final class ConfigBuilder
             ?? singularize($associate->id);
 
         return new BelongsToAssociation(
-            $associate->id,
+            $associate->model_class,
             $local_key,
             $foreign_key,
             $as,
@@ -268,11 +268,11 @@ final class ConfigBuilder
         }
 
         return new HasManyAssociation(
-            $related->id,
+            $related->model_class,
             $local_key,
             $foreign_key,
             $as,
-            $through?->id,
+            $through?->model_class,
         );
     }
 
@@ -435,8 +435,7 @@ final class ConfigBuilder
     /**
      * Creates a schema builder and an association builder, if attributes are enabled they are configured using them.
      *
-     * @param class-string $activerecord_class
-     *     An ActiveRecord class.
+     * @param class-string<ActiveRecord> $activerecord_class
      *
      * @return array{ SchemaBuilder, AssociationBuilder }
      */
@@ -459,8 +458,7 @@ final class ConfigBuilder
     }
 
     /**
-     * @param class-string $activerecord_class
-     *     An ActiveRecord class.
+     * @param class-string<ActiveRecord> $activerecord_class
      *
      * @return array{
      *     TargetClass<SchemaAttribute>[],

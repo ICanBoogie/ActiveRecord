@@ -2,6 +2,8 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
+use ICanBoogie\ActiveRecord\Model;
+
 /**
  * An _has many_ association between two models.
  *
@@ -11,7 +13,7 @@ final class HasManyAssociation
 {
     /**
      * @param array{
-     *     model_id: string,
+     *     associate: class-string<Model>,
      *     local_key: string,
      *     foreign_key: string,
      *     as: string,
@@ -23,8 +25,11 @@ final class HasManyAssociation
         return new self(...$an_array);
     }
 
+    /**
+     * @param class-string<Model> $associate
+     */
     public function __construct(
-        public readonly string $model_id,
+        public readonly string $associate,
         public readonly string $local_key,
         public readonly string $foreign_key,
         public readonly string $as,

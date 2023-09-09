@@ -16,6 +16,7 @@ use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
+use Test\ICanBoogie\Acme\HasMany\AppointmentModel;
 use Test\ICanBoogie\Acme\HasMany\Patient;
 use Test\ICanBoogie\Acme\HasMany\Physician;
 use Test\ICanBoogie\Fixtures;
@@ -74,7 +75,7 @@ final class HasManyRelationThroughTest extends TestCase
         $this->assertEquals('patients', $rp->as);
         $this->assertEquals('ph_id', $rp->local_key);
         $this->assertEquals('pa_id', $rp->foreign_key);
-        $this->assertEquals('appointments', $rp->through);
+        $this->assertEquals(AppointmentModel::class, $rp->through);
     }
 
     public function test_physician_has_many_appointments(): void

@@ -7,3 +7,4 @@ parameters:
   - "#ActiveRecord but does not specify its types#"
   - "#with generic class ICanBoogie\\\\ActiveRecord does not specify its types#"
   - "#with generic class .+Model does not specify its types#"
+  - "#with generic class .+Model but does not specify its types#"

@@ -2,6 +2,8 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
+use ICanBoogie\ActiveRecord\Model;
+
 /**
  * A _belong to_ association between two models.
  *
@@ -11,7 +13,7 @@ final class BelongsToAssociation
 {
     /**
      * @param array{
-     *     associate: string,
+     *     associate: class-string<Model>,
      *     local_key: string,
      *     foreign_key: string,
      *     as: string,
@@ -23,8 +25,7 @@ final class BelongsToAssociation
     }
 
     /**
-     * @param string $associate
-     *     A model identifier.
+     * @param class-string<Model> $associate
      */
     public function __construct(
         public readonly string $associate,

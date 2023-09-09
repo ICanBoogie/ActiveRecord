@@ -12,6 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
+use LogicException;
 use PDO;
 
 use function ICanBoogie\pluralize;
@@ -24,7 +25,8 @@ class HasManyRelation extends Relation
     /**
      * @inheritdoc
      *
-     * @param string|null $through If the association is made indirectly, this is the name of that model.
+     * @param class-string<Model>|null $through
+     *     A Model used as pivot.
      */
     public function __construct(
         Model $owner,
@@ -34,6 +36,10 @@ class HasManyRelation extends Relation
         string $as,
         public readonly ?string $through = null,
     ) {
+        if ($through) {
+            ActiveRecord\Config\Assert::extends_model($through);
+        }
+
         parent::__construct(
             owner: $owner,
             related: $related,
@@ -60,21 +66,24 @@ class HasManyRelation extends Relation
     }
 
     /**
+     * @param class-string<Model> $through
+     *
      * @return Query<ActiveRecord>
      *
      * https://guides.rubyonrails.org/association_basics.html#the-has-many-through-association
      */
-    private function build_through_query(ActiveRecord $record, string $through_id): Query
+    private function build_through_query(ActiveRecord $record, string $through): Query
     {
         // $owner == $r1_model
         // $related === $r2_model
 
         $owner = $this->owner;
         $related = $this->resolve_related();
-        $through = $this->ensure_model($through_id);
-        $r = $through->relations;
-        $r1 = $r->find(fn(Relation $r) => $r->related === $this->owner->id);
-        $r2 = $r->find(fn(Relation $r) => $r->related === $related->id);
+        $through_model = $this->ensure_model($through);
+        $r = $through_model->relations;
+        $r1 = $r->find(fn(Relation $r) => $r->related === $this->owner::class);
+        $r2 = $r->find(fn(Relation $r) => $r->related === $related::class)
+            ?? throw new LogicException("Unable to find related model for " . $related::class);
         $r2_model = $this->ensure_model($r2->related);
 
         $q = $related->select("`{alias}`.*");
@@ -82,9 +91,9 @@ class HasManyRelation extends Relation
         // fetched instead of an object.
         $q->mode(PDO::FETCH_CLASS, $related->activerecord_class);
         //phpcs:disable Generic.Files.LineLength.TooLong
-        $q->join(expression: "INNER JOIN `$through->name` ON `$through->name`.{$r2->local_key} = `$r2_model->alias`.{$related->primary}");
+        $q->join(expression: "INNER JOIN `$through_model->name` ON `$through_model->name`.{$r2->local_key} = `$r2_model->alias`.{$related->primary}");
         //phpcs:disable Generic.Files.LineLength.TooLong
-        $q->join(expression: "INNER JOIN `$owner->name` `$owner->alias` ON `$through->name`.{$r1->local_key} = `$owner->alias`.{$owner->primary}");
+        $q->join(expression: "INNER JOIN `$owner->name` `$owner->alias` ON `$through_model->name`.{$r1->local_key} = `$owner->alias`.{$owner->primary}");
         $q->where("`$owner->alias`.{$owner->primary} = ?", $record->{$this->local_key});
 
         return $q;

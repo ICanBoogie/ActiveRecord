@@ -23,10 +23,10 @@ use function explode;
 abstract class Relation
 {
     /**
-     * @param Model<int|string|string[], ActiveRecord> $owner
+     * @param Model $owner
      *     The parent model of the relation.
-     * @param string $related
-     *     The related model of the relation. Can be specified using its instance or its identifier.
+     * @param class-string<Model> $related
+     *     The class of the related Model.
      * @param string $local_key
      *     The name of the column on the owner model.
      * @param string $foreign_key
@@ -39,6 +39,8 @@ abstract class Relation
         public readonly string $foreign_key,
         public readonly string $as,
     ) {
+        ActiveRecord\Config\Assert::extends_model($related);
+
         $activerecord_class = $this->resolve_activerecord_class($owner);
         $prototype = Prototype::from($activerecord_class);
 
@@ -100,12 +102,15 @@ abstract class Relation
         return $this->ensure_model($this->related);
     }
 
-    protected function ensure_model(Model|string $model_or_id): Model
+    /**
+     * @param Model|class-string<Model> $model_or_class
+     */
+    protected function ensure_model(Model|string $model_or_class): Model
     {
-        if ($model_or_id instanceof Model) {
-            return $model_or_id;
+        if ($model_or_class instanceof Model) {
+            return $model_or_class;
         }
 
-        return $this->owner->models->model_for_id($model_or_id);
+        return $this->owner->models->model_for_class($model_or_class);
     }
 }

@@ -5,8 +5,10 @@ namespace Test\ICanBoogie\ActiveRecord;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Brand;
+use Test\ICanBoogie\Acme\BrandModel;
 use Test\ICanBoogie\Acme\Car;
 use Test\ICanBoogie\Acme\Driver;
+use Test\ICanBoogie\Acme\DriverModel;
 use Test\ICanBoogie\Fixtures;
 
 use function is_int;
@@ -24,13 +26,13 @@ final class ModelBelongsToTest extends TestCase
         $cars = $models->model_for_id('cars');
 
         $cars->belongs_to(
-            related: 'drivers',
+            related: DriverModel::class,
             local_key: 'driver_id',
             foreign_key: 'driver_id',
             as: 'driver',
         );
         $cars->belongs_to(
-            related: 'brands',
+            related: BrandModel::class,
             local_key: 'brand_id',
             foreign_key: 'brand_id',
             as: 'brand',

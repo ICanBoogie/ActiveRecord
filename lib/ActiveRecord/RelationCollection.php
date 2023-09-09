@@ -116,9 +116,7 @@ class RelationCollection implements ArrayAccess
     }
 
     /**
-     * @param (Closure(Relation, string $as): ?Relation) $predicate
-     *
-     * @return Relation|null
+     * @param (Closure(Relation, string $as): bool) $predicate
      */
     public function find(Closure $predicate): ?Relation
     {

@@ -17,6 +17,8 @@ use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RelationCollection;
 use ICanBoogie\ActiveRecord\RelationNotDefined;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Comment;
+use Test\ICanBoogie\Acme\CommentModel;
 use Test\ICanBoogie\Fixtures;
 
 final class HasManyRelationTest extends TestCase
@@ -61,7 +63,7 @@ final class HasManyRelationTest extends TestCase
         $this->assertInstanceOf(HasManyRelation::class, $relation);
         $this->assertSame('comments', $relation->as);
         $this->assertSame($this->articles, $relation->owner);
-        $this->assertSame('comments', $relation->related);
+        $this->assertSame(CommentModel::class, $relation->related);
         $this->assertSame('nid', $relation->local_key);
         $this->assertSame('nid', $relation->foreign_key);
     }
@@ -96,7 +98,7 @@ final class HasManyRelationTest extends TestCase
     {
         $articles = $this->articles;
         $articles->has_many(
-            related: 'comments',
+            related: CommentModel::class,
             foreign_key: 'nid',
             as: 'article_comments'
         );

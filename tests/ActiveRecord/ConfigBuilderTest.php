@@ -102,12 +102,12 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertNotNull($ap_def->association);
         $this->assertEquals([
-            new Config\BelongsToAssociation('physicians', 'physician_id', 'ph_id', 'physician'),
-            new Config\BelongsToAssociation('patients', 'patient_id', 'pa_id', 'patient'),
+            new Config\BelongsToAssociation(PhysicianModel::class, 'physician_id', 'ph_id', 'physician'),
+            new Config\BelongsToAssociation(PatientModel::class, 'patient_id', 'pa_id', 'patient'),
         ], $ap_def->association->belongs_to);
         $this->assertEquals([
-            new Config\HasManyAssociation('appointments', 'ph_id', 'physician_id', 'appointments', null),
-            new Config\HasManyAssociation('patients', 'ph_id', 'pa_id', 'patients', 'appointments'),
+            new Config\HasManyAssociation(AppointmentModel::class, 'ph_id', 'physician_id', 'appointments', null),
+            new Config\HasManyAssociation(PatientModel::class, 'ph_id', 'pa_id', 'patients', AppointmentModel::class),
         ], $ph_def->association->has_many);
     }
 

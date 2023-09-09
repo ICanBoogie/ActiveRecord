@@ -128,7 +128,7 @@ abstract class Model extends Table implements ArrayAccess
 
         parent::__construct($connection, $definition->table, $parent);
 
-        $this->resolve_relations();
+        $this->apply_associations($definition->association);
     }
 
     private function resolve_parent(ModelProvider $models): ?Model
@@ -165,47 +165,37 @@ abstract class Model extends Table implements ArrayAccess
     /**
      * Resolves relations with other models.
      */
-    private function resolve_relations(): void
+    private function apply_associations(?ActiveRecord\Config\Association $association): void
     {
-        $association = $this->definition->association;
-
         if (!$association) {
             return;
         }
 
         # belongs_to
 
-        $belongs_to = $association->belongs_to;
-
-        if ($belongs_to) {
-            foreach ($belongs_to as $r) {
-                $this->belongs_to(
-                    related: $r->associate,
-                    local_key: $r->local_key,
-                    foreign_key: $r->foreign_key,
-                    as: $r->as,
-                );
-            }
+        foreach ($association->belongs_to as $r) {
+            $this->belongs_to(
+                related: $r->associate,
+                local_key: $r->local_key,
+                foreign_key: $r->foreign_key,
+                as: $r->as,
+            );
         }
 
         # has_many
 
-        $has_many = $association->has_many;
-
-        if ($has_many) {
-            foreach ($has_many as $r) {
-                $this->has_many(
-                    related: $r->model_id,
-                    foreign_key: $r->foreign_key,
-                    as: $r->as,
-                    through: $r->through,
-                );
-            }
+        foreach ($association->has_many as $r) {
+            $this->has_many(
+                related: $r->associate,
+                foreign_key: $r->foreign_key,
+                as: $r->as,
+                through: $r->through,
+            );
         }
     }
 
     /**
-     * @param string $related A module identifier.
+     * @param class-string<Model> $related
      */
     public function belongs_to(
         string $related,
@@ -224,7 +214,8 @@ abstract class Model extends Table implements ArrayAccess
     }
 
     /**
-     * @param string $related A module identifier.
+     * @param class-string<Model> $related
+     * @param class-string<Model>|null $through
      */
     public function has_many(
         string $related,
