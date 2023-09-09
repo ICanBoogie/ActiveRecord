@@ -179,13 +179,15 @@ final class ConfigBuilder
 
         foreach ($this->transient_model_definitions as $id => $transient) {
             $models[$id] = new ModelDefinition(
+                table: new TableDefinition(
+                    name: $transient->table_name ?? $id,
+                    schema: $transient->schema,
+                    alias: $transient->alias,
+                    implements: $transient->implements,
+                ),
                 id: $id,
-                connection: $transient->connection,
-                schema: $transient->schema,
                 model_class: $transient->model_class,
-                name: $transient->name,
-                alias: $transient->alias,
-                implements: $transient->implements,
+                connection: $transient->connection,
                 association: $associations[$id] ?? null,
             );
         }
@@ -390,7 +392,7 @@ final class ConfigBuilder
             id: $id,
             schema: $schema,
             model_class: $model_class,
-            name: $name,
+            table_name: $name,
             alias: $alias,
             implements: $implements,
             connection: $connection,

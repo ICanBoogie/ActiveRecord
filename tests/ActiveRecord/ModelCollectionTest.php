@@ -10,10 +10,10 @@ use ICanBoogie\ActiveRecord\ModelAlreadyInstantiated;
 use ICanBoogie\ActiveRecord\ModelCollection;
 use ICanBoogie\ActiveRecord\ModelNotDefined;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
+use ICanBoogie\ActiveRecord\TableDefinition;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
-use Test\ICanBoogie\Acme\Brand;
 use Test\ICanBoogie\Acme\BrandModel;
 use Test\ICanBoogie\Acme\CommentModel;
 use Test\ICanBoogie\Fixtures;
@@ -98,14 +98,16 @@ final class ModelCollectionTest extends TestCase
     {
         $models = $this->models;
         $models['brands'] = $definition = new ModelDefinition(
+            table: new TableDefinition(
+                name: 'brands',
+                schema: (new SchemaBuilder())
+                    ->add_serial('brand_id', primary: true)
+                    ->add_character('name')
+                    ->build()
+            ),
             id: 'brands',
-            connection: Config::DEFAULT_CONNECTION_ID,
-            schema: (new SchemaBuilder())
-                ->add_serial('brand_id', primary: true)
-                ->add_character('name')
-                ->build(),
             model_class: BrandModel::class,
-            name: 'brands',
+            connection: Config::DEFAULT_CONNECTION_ID,
         );
 
         $this->assertTrue(isset($models['brands']));

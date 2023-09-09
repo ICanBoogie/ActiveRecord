@@ -6,8 +6,26 @@ use function ICanBoogie\singularize;
 use function strrpos;
 use function substr;
 
+/**
+ * @internal
+ *
+ * A table definition, built during configuration.
+ */
 class TableDefinition
 {
+    /**
+     * @param array{
+     *     name: string,
+     *     schema: Schema,
+     *     alias: ?string,
+     *     implements: ?string
+     * } $an_array
+     */
+    public static function __set_state(array $an_array): self
+    {
+        return new self(... $an_array);
+    }
+
     public readonly string $alias;
 
     /**

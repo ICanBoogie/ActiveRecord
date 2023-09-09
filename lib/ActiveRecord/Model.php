@@ -126,7 +126,7 @@ abstract class Model extends Table implements ArrayAccess
 
         $parent = $this->resolve_parent($models);
 
-        parent::__construct($connection, $definition, $parent);
+        parent::__construct($connection, $definition->table, $parent);
 
         $this->resolve_relations();
     }

@@ -22,7 +22,7 @@ final class TransientModelDefinition
         public readonly string $id,
         public Schema $schema,
         public readonly string $model_class,
-        public readonly ?string $name = null,
+        public readonly ?string $table_name = null,
         public readonly ?string $alias = null,
         public readonly ?string $implements = null,
         public readonly string $connection = Config::DEFAULT_CONNECTION_ID,

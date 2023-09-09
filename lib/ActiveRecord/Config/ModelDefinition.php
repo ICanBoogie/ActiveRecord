@@ -2,26 +2,29 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
-use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\Query;
-use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\TableDefinition;
 
+use function ICanBoogie\pluralize;
+use function ICanBoogie\underscore;
+use function str_ends_with;
+use function strlen;
+use function strrpos;
+use function substr;
+
 /**
- * Model configuration, used during configuration.
+ * @internal
+ *
+ * A Model definition, built during configuration.
  */
-final class ModelDefinition extends TableDefinition
+final class ModelDefinition
 {
     /**
      * @param array{
+     *     table: TableDefinition,
      *     id: string,
-     *     connection: string,
-     *     schema: Schema,
      *     model_class: class-string<Model>,
-     *     name: ?string,
-     *     alias: ?string,
-     *     implements: ?string,
+     *     connection: string,
      *     association: ?Association
      * } $an_array
      */
@@ -34,20 +37,11 @@ final class ModelDefinition extends TableDefinition
      * @param class-string<Model> $model_class
      */
     public function __construct(
+        public readonly TableDefinition $table,
         public readonly string $id,
-        public readonly string $connection,
-        Schema $schema,
         public readonly string $model_class,
-        ?string $name = null,
-        ?string $alias = null,
-        ?string $implements = null,
+        public readonly string $connection,
         public readonly ?Association $association = null,
     ) {
-        parent::__construct(
-            name: $name ?? $id,
-            schema: $schema,
-            alias: $alias,
-            implements: $implements
-        );
     }
 }

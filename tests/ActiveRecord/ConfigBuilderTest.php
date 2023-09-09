@@ -40,7 +40,7 @@ final class ConfigBuilderTest extends TestCase
             )
             ->build();
 
-        $schema = $config->models['articles']->schema;
+        $schema = $config->models['articles']->table->schema;
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
@@ -65,7 +65,7 @@ final class ConfigBuilderTest extends TestCase
             )
             ->build();
 
-        $schema = $config->models['articles']->schema;
+        $schema = $config->models['articles']->table->schema;
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);

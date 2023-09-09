@@ -141,12 +141,15 @@ final class ModelTest extends TestCase
             $connection,
             $models,
             new Config\ModelDefinition(
-                'nodes',
-                connection: 'primary',
-                schema: (new SchemaBuilder())
-                    ->add_serial('id', primary: true)
-                    ->build(),
+                table: new ActiveRecord\TableDefinition(
+                    name: 'nodes',
+                    schema: (new SchemaBuilder())
+                        ->add_serial('id', primary: true)
+                        ->build()
+                ),
+                id: 'nodes',
                 model_class: NodeModel::class,
+                connection: 'primary',
             )
         ) extends Model {
             protected static string $activerecord_class = SampleRecord::class; // @phpstan-ignore-line
@@ -586,13 +589,16 @@ EOT
 
         $models = new ModelCollection($this->connections, [
             $model_id => new Config\ModelDefinition(
+                table: new ActiveRecord\TableDefinition(
+                    name: $model_id,
+                    schema: (new SchemaBuilder())
+                        ->add_serial('nid', primary: true)
+                        ->add_character('title')
+                        ->build(),
+                ),
                 id: $model_id,
-                connection: Config::DEFAULT_CONNECTION_ID,
-                schema: (new SchemaBuilder())
-                    ->add_serial('nid', primary: true)
-                    ->add_character('title')
-                    ->build(),
                 model_class: NodeModel::class,
+                connection: Config::DEFAULT_CONNECTION_ID,
             )
         ]);
 
@@ -635,16 +641,20 @@ EOT
 
     public function test_custom_query(): void
     {
+        $id = uniqid();
         $model = new class(
             $this->connections['primary'],
             $this->models,
             new ModelDefinition(
-                id: uniqid(),
-                connection: Config::DEFAULT_CONNECTION_ID,
-                schema: (new SchemaBuilder())
-                    ->add_serial('id', primary: true)
-                    ->build(),
+                table: new ActiveRecord\TableDefinition(
+                    name: $id,
+                    schema: (new SchemaBuilder())
+                        ->add_serial('id', primary: true)
+                        ->build()
+                ),
+                id: $id,
                 model_class: NodeModel::class,
+                connection: Config::DEFAULT_CONNECTION_ID,
             )
         ) extends Model {
             protected static string $activerecord_class = SampleRecord::class;
