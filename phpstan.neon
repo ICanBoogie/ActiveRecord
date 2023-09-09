@@ -5,6 +5,6 @@ parameters:
   ignoreErrors:
   - "#get_.*is unused#"
   - "#ActiveRecord but does not specify its types#"
-  - "#with generic class ICanBoogie\\\\ActiveRecord does not specify its types#"
-  - "#with generic class .+Model does not specify its types#"
-  - "#with generic class .+Model but does not specify its types#"
+  - "#generic class .+ActiveRecord does not specify its types#"
+  - "#generic class .+Model does not specify its types#"
+  - "#generic class .+Model but does not specify its types#"

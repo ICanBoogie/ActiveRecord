@@ -9,5 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class CommentModel extends Model
 {
-    protected static string $activerecord_class = Comment::class;
+    public const activerecord_class = Comment::class;
 }

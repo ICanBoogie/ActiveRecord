@@ -10,5 +10,5 @@ use Test\ICanBoogie\Acme\HasMany\Physician;
  */
 class PatientModel extends Model
 {
-    protected static string $activerecord_class = Patient::class;
+    public const activerecord_class = Patient::class;
 }

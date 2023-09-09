@@ -9,5 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class PhysicianModel extends Model
 {
-    protected static string $activerecord_class = Physician::class;
+    public const activerecord_class = Physician::class;
 }

@@ -9,5 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class UpdateModel extends Model
 {
-    protected static string $activerecord_class = Update::class;
+    public const activerecord_class = Update::class;
 }

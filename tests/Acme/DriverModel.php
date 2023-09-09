@@ -9,5 +9,5 @@ use ICanBoogie\ActiveRecord\Model;
  */
 class DriverModel extends Model
 {
-    protected static string $activerecord_class = Driver::class;
+    public const activerecord_class = Driver::class;
 }

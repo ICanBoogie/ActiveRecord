@@ -10,7 +10,7 @@ use ICanBoogie\ActiveRecord\TableDefinition;
  *
  * A Model definition, built during configuration.
  */
-final class ModelDefinition
+class ModelDefinition
 {
     /**
      * @param array{

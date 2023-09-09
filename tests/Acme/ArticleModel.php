@@ -7,7 +7,7 @@ use ICanBoogie\ActiveRecord\Query;
 
 class ArticleModel extends NodeModel
 {
-    protected static string $activerecord_class = Article::class;
+    public const activerecord_class = Article::class;
 
     /**
      * @used-by Model::scope

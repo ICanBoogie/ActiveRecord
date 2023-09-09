@@ -70,25 +70,18 @@ abstract class Model extends Table implements ArrayAccess
      * @return class-string<TValue>
      */
     public static function get_activerecord_class(): string {
-        return static::$activerecord_class; // @phpstan-ignore-line
+        return static::activerecord_class;
     }
 
     /**
      * @var class-string<TValue>
      */
-    protected static string $activerecord_class = ActiveRecord::class;
-
-    /**
-     * @return class-string<Query<TValue>>
-     */
-    public static function get_query_class(): string {
-        return static::$query_class;
-    }
+    public const activerecord_class = ActiveRecord::class;
 
     /**
      * @var class-string<Query<TValue>>
      */
-    protected static string $query_class = Query::class;
+    public const query_class = Query::class;
 
     /**
      * The relations of this model to other models.
@@ -111,9 +104,7 @@ abstract class Model extends Table implements ArrayAccess
         public readonly ModelProvider $models,
         private readonly ModelDefinition $definition
     ) {
-        if (static::$activerecord_class === ActiveRecord::class) { // @phpstan-ignore-line
-            throw new LogicException("The property \$activerecord_class must be overridden");
-        }
+        ActiveRecord\Config\Assert::model_activerecord($this::class);
 
         $this->relations = new RelationCollection($this, $this->definition->association);
 
@@ -141,7 +132,7 @@ abstract class Model extends Table implements ArrayAccess
     public function __call($method, $arguments)
     {
         if (
-            method_exists(static::$query_class, $method)
+            method_exists(static::query_class, $method)
             || str_starts_with($method, 'filter_by_')
             || method_exists($this, 'scope_' . $method)
         ) {
@@ -293,7 +284,7 @@ abstract class Model extends Table implements ArrayAccess
      */
     public function query(...$conditions_and_args): Query
     {
-        $class = static::$query_class;
+        $class = static::query_class;
         $query = new $class($this);
 
         if ($conditions_and_args) {
@@ -479,7 +470,8 @@ abstract class Model extends Table implements ArrayAccess
      */
     public function new(array $properties = []): ActiveRecord
     {
-        $class = static::$activerecord_class;
+        /** @var class-string<ActiveRecord> $class */
+        $class = static::activerecord_class;
 
         return $properties ? $class::from($properties, [ $this ]) : new $class($this);
     }

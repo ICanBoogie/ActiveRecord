@@ -25,6 +25,7 @@ use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\ScopeNotDefined;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
+use LogicException;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
@@ -79,6 +80,30 @@ final class ModelTest extends TestCase
         $this->nodes = $models->model_for_class(NodeModel::class);
         $this->model_records_count = 3;
         $this->counts_model = $counts;
+    }
+
+    public function test_fail_on_inherited_activerecord_class_from_model(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageMatches("/needs to override the constant activerecord_class with a class that extends ICanBoogie\\\ActiveRecord/");
+
+        new class(
+            $this->connections['primary'],
+            $this->models,
+            $this->createStub(ModelDefinition::class),
+        ) extends Model {};
+    }
+
+    public function test_fail_on_inherited_activerecord_class_from_other(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageMatches("/needs to override the constant activerecord_class with a class that extends Test\\\ICanBoogie\\\Acme\\\Node/");
+
+        new class(
+            $this->connections['primary'],
+            $this->models,
+            $this->createStub(ModelDefinition::class),
+        ) extends NodeModel {};
     }
 
     /**
@@ -589,8 +614,8 @@ EOT
                 connection: Config::DEFAULT_CONNECTION_ID,
             )
         ) extends Model {
-            protected static string $activerecord_class = SampleRecord::class;
-            protected static string $query_class = CustomQuery::class;
+            public const activerecord_class = SampleRecord::class;
+            public const query_class = CustomQuery::class;
         };
 
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));
@@ -601,13 +626,12 @@ EOT
     public function test_query(): void
     {
         $model = $this->articles;
+        $query = $model->query("1 = 1");
 
-        $this->assertInstanceOf(Query::class, $query1 = $model->query());
-        $this->assertInstanceOf(Query::class, $query2 = $model->query("1 = 1"));
         $this->assertSame(
             'SELECT * FROM `myprefix_articles` `article`' .
             ' INNER JOIN `myprefix_nodes` `node` USING(`nid`) WHERE (1 = 1)',
-            (string)$query2
+            (string) $query
         );
     }
 }
