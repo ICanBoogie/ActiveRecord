@@ -82,6 +82,7 @@ final class Fixtures
                         ->add_integer('rating', size: Integer::SIZE_TINY, null: true),
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many(Comment::class, foreign_key: 'nid')
+                        ->has_many(Comment::class, foreign_key: 'nid', as: 'article_comments') // testing 'as'
                 ),
                 'comments' => $config->add_model(
                     model_class: CommentModel::class,

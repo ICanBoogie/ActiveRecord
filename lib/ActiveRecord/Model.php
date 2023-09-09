@@ -115,13 +115,11 @@ abstract class Model extends Table implements ArrayAccess
             throw new LogicException("The property \$activerecord_class must be overridden");
         }
 
-        $this->relations = new RelationCollection($this);
+        $this->relations = new RelationCollection($this, $this->definition->association);
 
         $parent = $this->resolve_parent($models);
 
         parent::__construct($connection, $definition->table, $parent);
-
-        $this->apply_associations($definition->association);
     }
 
     private function resolve_parent(ModelProvider $models): ?Model
@@ -133,78 +131,6 @@ abstract class Model extends Table implements ArrayAccess
         }
 
         return $models->model_for_class($parent_class);
-    }
-
-    /**
-     * Resolves relations with other models.
-     */
-    private function apply_associations(?ActiveRecord\Config\Association $association): void
-    {
-        if (!$association) {
-            return;
-        }
-
-        # belongs_to
-
-        foreach ($association->belongs_to as $r) {
-            $this->belongs_to(
-                related: $r->associate,
-                local_key: $r->local_key,
-                foreign_key: $r->foreign_key,
-                as: $r->as,
-            );
-        }
-
-        # has_many
-
-        foreach ($association->has_many as $r) {
-            $this->has_many(
-                related: $r->associate,
-                foreign_key: $r->foreign_key,
-                as: $r->as,
-                through: $r->through,
-            );
-        }
-    }
-
-    /**
-     * @param class-string<Model> $related
-     */
-    public function belongs_to(
-        string $related,
-        string $local_key,
-        string $foreign_key,
-        string $as,
-    ): self {
-        $this->relations->belongs_to(
-            related: $related,
-            local_key: $local_key,
-            foreign_key: $foreign_key,
-            as: $as,
-        );
-
-        return $this;
-    }
-
-    /**
-     * @param class-string<Model> $related
-     * @param class-string<Model>|null $through
-     */
-    public function has_many(
-        string $related,
-        string $foreign_key,
-        string $as,
-        ?string $through = null,
-    ): self {
-        $this->relations->has_many(
-            related: $related,
-            local_key: $this->primary,
-            foreign_key: $foreign_key,
-            as: $as,
-            through: $through,
-        );
-
-        return $this;
     }
 
     /**

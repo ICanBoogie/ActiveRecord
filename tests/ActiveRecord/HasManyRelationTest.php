@@ -24,8 +24,8 @@ use Test\ICanBoogie\Fixtures;
 
 final class HasManyRelationTest extends TestCase
 {
-    private Model $articles;
-    private Model $comments;
+    private ArticleModel $articles;
+    private CommentModel $comments;
 
     protected function setUp(): void
     {
@@ -84,7 +84,7 @@ final class HasManyRelationTest extends TestCase
         $this->assertSame($this->comments, $article_comments->model);
     }
 
-    public function test_comments(): void
+    public function test_association_auto(): void
     {
         $comments = $this->articles[1]->comments->all();
 
@@ -95,18 +95,12 @@ final class HasManyRelationTest extends TestCase
         $this->assertEquals("Comment 10", $comments[3]->body);
     }
 
-    public function test_getter_as(): void
+    public function test_association_as(): void
     {
-        $articles = $this->articles;
-        $articles->has_many(
-            related: CommentModel::class,
-            foreign_key: 'nid',
-            as: 'article_comments'
-        );
         $article = $this->articles[1];
-        $article_comments = $article->article_comments;
+        $comments = $article->article_comments;
 
-        $this->assertInstanceOf(Query::class, $article_comments);
-        $this->assertSame($this->comments, $article_comments->model);
+        $this->assertInstanceOf(Query::class, $comments);
+        $this->assertSame($this->comments, $comments->model);
     }
 }

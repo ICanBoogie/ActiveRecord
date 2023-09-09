@@ -26,19 +26,6 @@ final class ModelBelongsToTest extends TestCase
         $brands = $models->model_for_class(BrandModel::class);
         $cars = $models->model_for_class(CarModel::class);
 
-        $cars->belongs_to(
-            related: DriverModel::class,
-            local_key: 'driver_id',
-            foreign_key: 'driver_id',
-            as: 'driver',
-        );
-        $cars->belongs_to(
-            related: BrandModel::class,
-            local_key: 'brand_id',
-            foreign_key: 'brand_id',
-            as: 'brand',
-        );
-
         /* @var $car Car */
         $car = $cars->new([ 'name' => '4two' ]);
         $this->assertInstanceOf(Car::class, $car);

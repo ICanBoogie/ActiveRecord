@@ -41,9 +41,7 @@ abstract class Relation
     ) {
         ActiveRecord\Config\Assert::extends_model($related);
 
-        $activerecord_class = $this->resolve_activerecord_class($owner);
-        $prototype = Prototype::from($activerecord_class);
-
+        $prototype = Prototype::from($this->owner->activerecord_class);
         $this->alter_prototype($prototype, $this->as);
     }
 
@@ -61,27 +59,6 @@ abstract class Relation
     protected function alter_prototype(Prototype $prototype, string $property): void
     {
         $prototype["get_$property"] = $this;
-    }
-
-    /**
-     * Resolve the active record class name from the specified model.
-     *
-     * @throws ActiveRecordClassNotValid
-     *
-     * @return class-string
-     */
-    protected function resolve_activerecord_class(Model $model): string
-    {
-        $activerecord_class = $model->activerecord_class;
-
-        if ($activerecord_class === ActiveRecord::class) {
-            throw new ActiveRecordClassNotValid(
-                $activerecord_class,
-                "The Active Record class cannot be 'ICanBoogie\ActiveRecord' for a relationship."
-            );
-        }
-
-        return $activerecord_class;
     }
 
     /**

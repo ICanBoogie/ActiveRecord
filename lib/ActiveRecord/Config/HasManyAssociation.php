@@ -17,7 +17,7 @@ final class HasManyAssociation
      *     local_key: string,
      *     foreign_key: string,
      *     as: string,
-     *     through: ?string,
+     *     through: ?class-string<Model>,
      * } $an_array
      */
     public static function __set_state(array $an_array): self
@@ -27,6 +27,7 @@ final class HasManyAssociation
 
     /**
      * @param class-string<Model> $associate
+     * @param class-string<Model>|null $through
      */
     public function __construct(
         public readonly string $associate,

@@ -27,6 +27,7 @@ class RelationCollection implements ArrayAccess
      * Relations.
      *
      * @var array<string, Relation>
+     *     Where _key_ is a getter name e.g. 'comments'
      */
     private array $relations;
 
@@ -34,8 +35,36 @@ class RelationCollection implements ArrayAccess
      * @param Model<int|string|string[], ActiveRecord<int|string|string[]>> $model The parent model.
      */
     public function __construct(
-        public readonly Model $model
+        public readonly Model $model,
+        ?ActiveRecord\Config\Association $association,
     ) {
+        $this->apply_association($association);
+    }
+
+    private function apply_association(?ActiveRecord\Config\Association $association): void
+    {
+        if (!$association) {
+            return;
+        }
+
+        foreach ($association->belongs_to as $r) {
+            $this->belongs_to(
+                related: $r->associate,
+                local_key: $r->local_key,
+                foreign_key: $r->foreign_key,
+                as: $r->as,
+            );
+        }
+
+        foreach ($association->has_many as $r) {
+            $this->has_many(
+                related: $r->associate,
+                local_key: $r->local_key,
+                foreign_key: $r->foreign_key,
+                as: $r->as,
+                through: $r->through,
+            );
+        }
     }
 
     /**
@@ -79,6 +108,8 @@ class RelationCollection implements ArrayAccess
 
     /**
      * Adds a {@link BelongsToRelation} relation.
+     *
+     * @param class-string<Model> $related
      */
     public function belongs_to(
         string $related,
@@ -97,6 +128,9 @@ class RelationCollection implements ArrayAccess
 
     /**
      * Adds a {@link HasManyRelation} relation.
+     *
+     * @param class-string<Model> $related
+     * @param class-string<Model>|null $through
      */
     public function has_many(
         string $related,
