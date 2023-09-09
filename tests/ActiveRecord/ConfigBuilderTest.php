@@ -25,14 +25,12 @@ final class ConfigBuilderTest extends TestCase
                 dsn: 'sqlite::memory:',
             )
             ->add_model(
-                id: 'nodes',
                 model_class: NodeModel::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_serial('nid', primary: true)
                     ->add_character('title'),
             )
             ->add_model(
-                id: 'articles',
                 model_class: ArticleModel::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_text('body')
@@ -40,7 +38,7 @@ final class ConfigBuilderTest extends TestCase
             )
             ->build();
 
-        $schema = $config->models['articles']->table->schema;
+        $schema = $config->models[ArticleModel::class]->table->schema;
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
@@ -55,17 +53,11 @@ final class ConfigBuilderTest extends TestCase
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
             )
-            ->add_model(
-                id: 'nodes',
-                model_class: NodeModel::class,
-            )
-            ->add_model(
-                id: 'articles',
-                model_class: ArticleModel::class,
-            )
+            ->add_model(NodeModel::class)
+            ->add_model(ArticleModel::class)
             ->build();
 
-        $schema = $config->models['articles']->table->schema;
+        $schema = $config->models[ArticleModel::class]->table->schema;
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
@@ -83,22 +75,13 @@ final class ConfigBuilderTest extends TestCase
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
             )
-            ->add_model(
-                id: 'physicians',
-                model_class: PhysicianModel::class,
-            )
-            ->add_model(
-                id: 'patients',
-                model_class: PatientModel::class,
-            )
-            ->add_model(
-                id: 'appointments',
-                model_class: AppointmentModel::class,
-            )
+            ->add_model(PhysicianModel::class)
+            ->add_model(PatientModel::class)
+            ->add_model(AppointmentModel::class)
             ->build();
 
-        $ph_def = $config->models['physicians'];
-        $ap_def = $config->models['appointments'];
+        $ph_def = $config->models[PhysicianModel::class];
+        $ap_def = $config->models[AppointmentModel::class];
 
         $this->assertNotNull($ap_def->association);
         $this->assertEquals([

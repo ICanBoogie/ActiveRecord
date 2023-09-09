@@ -17,20 +17,14 @@ namespace ICanBoogie\ActiveRecord;
 interface ModelProvider
 {
     /**
-     * Provides a model for a given identifier.
-     *
-     * @param non-empty-string $id
-     *     A model identifier.
-     *
-     * @throws ModelNotDefined if the model is not defined.
-     */
-    public function model_for_id(string $id): Model;
-
-    /**
      * Provides a model for a given model class.
      *
-     * @param class-string<Model> $class
+     * @template T of Model
+     *
+     * @param class-string<T> $class
      *     The class of the model.
+     *
+     * @phpstan-return T
      *
      * @throws ModelNotDefined if the model is not defined.
      */

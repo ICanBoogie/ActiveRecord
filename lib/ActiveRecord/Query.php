@@ -497,9 +497,9 @@ class Query implements IteratorAggregate
      * @param ?Query<ActiveRecord> $query
      *     A {@link Query} instance, it is rendered as a string and used as a subquery of the `JOIN` clause.
      *     The `$options` parameter can be used to customize the output.
-     * @param ?string $model_id
-     *     A model identifier.
-     * @param ?Model<int|string|string[], ActiveRecord> $model
+     * @param ?class-string<Model> $model_class
+     *     A model class.
+     * @param ?Model $model
      *     A model.
      * @param ?string $mode
      *     Join mode. Default: "INNER"
@@ -507,6 +507,8 @@ class Query implements IteratorAggregate
      *     The alias of the subquery. Default: The query's model alias.
      * @param ?string $on
      *     The column on which to joint is created. Default: The query's model primary key.
+     *
+     * @return $this
      *
      * <pre>
      * <?php
@@ -531,7 +533,7 @@ class Query implements IteratorAggregate
     public function join(
         string $expression = null,
         Query $query = null,
-        string $model_id = null,
+        string $model_class = null,
         Model $model = null,
         string $mode = 'INNER',
         string $as = null,
@@ -549,8 +551,8 @@ class Query implements IteratorAggregate
             return $this;
         }
 
-        if ($model_id) {
-            $model = $this->model->models->model_for_id($model_id);
+        if ($model_class) {
+            $model = $this->model->models->model_for_class($model_class);
         }
 
         if (!$model) {
@@ -669,7 +671,9 @@ class Query implements IteratorAggregate
         }
 
         if (!$target) {
-            throw new InvalidArgumentException("Unable to resolve column `$column` from model {$this->model->id}");
+            $model_class = $this->model::class;
+
+            throw new InvalidArgumentException("Unable to resolve column `$column` from model {$model_class}");
         }
 
         return "ON `$as`.`$column` = `{$target->alias}`.`$column`";

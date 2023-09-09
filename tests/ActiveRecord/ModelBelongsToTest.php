@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Brand;
 use Test\ICanBoogie\Acme\BrandModel;
 use Test\ICanBoogie\Acme\Car;
+use Test\ICanBoogie\Acme\CarModel;
 use Test\ICanBoogie\Acme\Driver;
 use Test\ICanBoogie\Acme\DriverModel;
 use Test\ICanBoogie\Fixtures;
@@ -21,9 +22,9 @@ final class ModelBelongsToTest extends TestCase
 
         $models->install();
 
-        $drivers = $models['drivers'];
-        $brands = $models['brands'];
-        $cars = $models->model_for_id('cars');
+        $drivers = $models->model_for_class(DriverModel::class);
+        $brands = $models->model_for_class(BrandModel::class);
+        $cars = $models->model_for_class(CarModel::class);
 
         $cars->belongs_to(
             related: DriverModel::class,

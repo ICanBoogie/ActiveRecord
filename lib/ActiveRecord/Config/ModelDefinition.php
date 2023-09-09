@@ -15,7 +15,6 @@ final class ModelDefinition
     /**
      * @param array{
      *     table: TableDefinition,
-     *     id: string,
      *     model_class: class-string<Model>,
      *     connection: string,
      *     association: ?Association
@@ -31,7 +30,6 @@ final class ModelDefinition
      */
     public function __construct(
         public readonly TableDefinition $table,
-        public readonly string $id,
         public readonly string $model_class,
         public readonly string $connection,
         public readonly ?Association $association = null,

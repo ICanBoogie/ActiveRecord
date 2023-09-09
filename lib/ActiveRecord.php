@@ -32,8 +32,6 @@ use function is_numeric;
  *
  * @property-read Model $model The model managing the active record.
  * @uses self::get_model()
- * @property-read string $model_id The identifier of the model managing the active record.
- * @uses self::get_model_id()
  * @property-read bool $is_new Whether the record is new or not.
  * @uses self::get_is_new()
  *
@@ -60,20 +58,6 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * Identifier of the model managing the active record.
-     *
-     * Note: Due to a PHP bug (or feature), the visibility of the property MUST NOT be private.
-     * https://bugs.php.net/bug.php?id=40412
-     */
-    private string $model_id;
-
-    protected function get_model_id(): string
-    {
-        return $this->model_id
-            ??= $this->get_model()->id;
-    }
-
-    /**
      * @param ?Model<TKey,static> $model
      *     The model managing the active record. A {@link Model} instance can be specified as well as a model
      *     identifier. If `$model` is null, the model will be resolved with {@link StaticModelResolver} when required.
@@ -82,7 +66,6 @@ abstract class ActiveRecord extends Prototyped
     {
         if ($model) {
             $this->model = $model;
-            $this->model_id = $model->id;
         }
     }
 
@@ -102,8 +85,6 @@ abstract class ActiveRecord extends Prototyped
 
         /** @phpstan-ignore-next-line */
         unset($properties['model']);
-        /** @phpstan-ignore-next-line */
-        unset($properties['model_id']);
 
         foreach (array_keys($properties) as $property) {
             if ($this->$property instanceof self) {
@@ -115,8 +96,7 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * Removes `model` from the output, since `model_id` is good enough to figure which model
-     * is used.
+     * Removes `model` from the output.
      *
      * @return array<string, mixed>
      */
@@ -268,8 +248,9 @@ abstract class ActiveRecord extends Prototyped
     protected function update_primary_key(int|array|string $primary_key): void
     {
         $model = $this->get_model();
+        $model_class = $model::class;
         $property = $model->primary
-            ?? throw new LogicException("Unable to update primary key, model `$model->id` doesn't define one.");
+            ?? throw new LogicException("Unable to update primary key, model `$model_class` doesn't define one.");
 
         $this->$property = $primary_key;
     }
@@ -284,8 +265,9 @@ abstract class ActiveRecord extends Prototyped
     public function delete(): bool
     {
         $model = $this->get_model();
+        $model_class = $model::class;
         $primary = $model->primary
-            ?? throw new LogicException("Unable to delete record, model `$model->id` doesn't have a primary key");
+            ?? throw new LogicException("Unable to delete record, model `$model_class` doesn't have a primary key");
         $key = $this->$primary
             ?? throw new LogicException("Unable to delete record, the primary key is not defined");
 

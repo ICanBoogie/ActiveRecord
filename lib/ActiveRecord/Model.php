@@ -92,11 +92,6 @@ abstract class Model extends Table implements ArrayAccess
     protected static string $query_class = Query::class;
 
     /**
-     * The identifier of the model.
-     */
-    public readonly string $id;
-
-    /**
      * The relations of this model to other models.
      */
     public readonly RelationCollection $relations;
@@ -121,7 +116,6 @@ abstract class Model extends Table implements ArrayAccess
             throw new LogicException("The property \$activerecord_class must be overridden");
         }
 
-        $this->id = $definition->id;
         $this->relations = new RelationCollection($this);
 
         $parent = $this->resolve_parent($models);
@@ -141,26 +135,6 @@ abstract class Model extends Table implements ArrayAccess
 
         return $models->model_for_class($parent_class);
     }
-
-//    // @codeCoverageIgnoreStart
-//    /**
-//     * @return array<string, mixed>
-//     */
-//    public function __debugInfo(): array
-//    {
-//        return [
-//
-//            'id' => $this->id,
-//            'name' => "$this->name ($this->unprefixed_name)",
-//            'parent' => $this->parent ? $this->parent->id . " of " . get_class($this->parent) : null,
-//            'parent_model' => $this->parent_model
-//                ? $this->parent_model->id . " of " . get_class($this->parent_model)
-//                : null,
-//            'relations' => $this->relations
-//
-//        ];
-//    }
-//    // @codeCoverageIgnoreEnd
 
     /**
      * Resolves relations with other models.
@@ -325,7 +299,7 @@ abstract class Model extends Table implements ArrayAccess
 
         if (!$record) {
             throw new RecordNotFound(
-                "Record <q>{$key}</q> does not exists in model <q>{$this->id}</q>.",
+                "Record <q>{$key}</q> does not exist in model <q>{$this->definition->model_class}</q>.",
                 [ $key => null ]
             );
         }
@@ -374,7 +348,7 @@ abstract class Model extends Table implements ArrayAccess
         if ($missing) {
             if (count($missing) > 1) {
                 throw new RecordNotFound(
-                    "Records " . implode(', ', array_keys($missing)) . " do not exists in model <q>{$this->id}</q>.",
+                    "Records " . implode(', ', array_keys($missing)) . " do not exist in model <q>{$this->definition->model_class}</q>.",
                     $records
                 );
             }
@@ -383,7 +357,7 @@ abstract class Model extends Table implements ArrayAccess
             $key = \array_shift($key);
 
             throw new RecordNotFound(
-                "Record <q>{$key}</q> does not exists in model <q>{$this->id}</q>.",
+                "Record <q>{$key}</q> does not exist in model <q>{$this->definition->model_class}</q>.",
                 $records
             );
         }
@@ -414,7 +388,7 @@ abstract class Model extends Table implements ArrayAccess
     public function join(
         string $expression = null,
         Query $query = null,
-        string $model_id = null,
+        string $model_class = null,
         Model $model = null,
         string $mode = 'INNER',
         string $as = null,
@@ -423,7 +397,7 @@ abstract class Model extends Table implements ArrayAccess
         return $this->query()->join(
             expression: $expression,
             query: $query,
-            model_id: $model_id,
+            model_class: $model_class,
             model: $model,
             mode: $mode,
             as: $as,
@@ -524,7 +498,7 @@ abstract class Model extends Table implements ArrayAccess
     {
         try {
             return $this->{'scope_' . $scope_name}(...$scope_args);
-        } catch (MethodNotDefined $e) {
+        } catch (MethodNotDefined) {
             throw new ScopeNotDefined($scope_name, $this);
         }
     }

@@ -18,7 +18,9 @@ use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
 use Test\ICanBoogie\Acme\HasMany\AppointmentModel;
 use Test\ICanBoogie\Acme\HasMany\Patient;
+use Test\ICanBoogie\Acme\HasMany\PatientModel;
 use Test\ICanBoogie\Acme\HasMany\Physician;
+use Test\ICanBoogie\Acme\HasMany\PhysicianModel;
 use Test\ICanBoogie\Fixtures;
 
 use function array_column;
@@ -49,17 +51,17 @@ final class HasManyRelationThroughTest extends TestCase
          * NOTE: Relation and the prototype method are only setup when a model is loaded.
          */
 
-        /** @phpstan-ignore-next-line */
-        $this->physicians = $models->model_for_id('physicians');
-        /** @phpstan-ignore-next-line */
-        $this->patients = $models->model_for_id('patients');
-        /** @phpstan-ignore-next-line */
-        $this->appointments = $models->model_for_id('appointments');
+        $this->physicians = $models->model_for_class(PhysicianModel::class);
+        $this->patients = $models->model_for_class(PatientModel::class);
+        $this->appointments = $models->model_for_class(AppointmentModel::class);
     }
 
     public function test_through_is_set(): void
     {
         $r = $this->physicians->relations;
+
+        $this->assertArrayHasKey('appointments', $r);
+        $this->assertArrayHasKey('patients', $r);
 
         $ra = $r['appointments'];
         assert($ra instanceof HasManyRelation);

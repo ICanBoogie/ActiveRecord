@@ -2,20 +2,13 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Config;
-use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
-use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelAlreadyInstantiated;
 use ICanBoogie\ActiveRecord\ModelCollection;
-use ICanBoogie\ActiveRecord\ModelNotDefined;
-use ICanBoogie\ActiveRecord\SchemaBuilder;
-use ICanBoogie\ActiveRecord\TableDefinition;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
-use Test\ICanBoogie\Acme\BrandModel;
 use Test\ICanBoogie\Acme\CommentModel;
+use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Fixtures;
 
 use function array_keys;
@@ -23,176 +16,137 @@ use function array_keys;
 final class ModelCollectionTest extends TestCase
 {
     private ConnectionCollection $connections;
-    private ModelCollection $models;
+    private ModelCollection $sut;
 
     protected function setUp(): void
     {
-        [ $this->connections, $this->models ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
+        [ $this->connections, $this->sut ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
     }
 
     public function test_get_definitions(): void
     {
-        $models = $this->models;
-        $this->assertIsArray($models->definitions);
-        $this->assertEquals([ 'nodes', 'articles', 'comments' ], array_keys($models->definitions));
+        $expected = [
+            NodeModel::class,
+            ArticleModel::class,
+            CommentModel::class
+        ];
+
+        $actual = array_keys($this->sut->definitions);
+
+        $this->assertEquals($expected, $actual);
     }
 
     public function test_iterator(): void
     {
-        $ids = [];
+        $expected = [
+            NodeModel::class,
+            ArticleModel::class,
+            CommentModel::class
+        ];
 
-        foreach ($this->models->model_iterator() as $id => $get) {
-            $ids[] = $id;
+        $classes = [];
+
+        foreach ($this->sut->model_iterator() as $class => $get) {
+            $classes[] = $class;
             $model = $get();
 
-            $this->assertInstanceOf(Model::class, $model);
-            $this->assertSame($model, $this->models->model_for_id($id));
+            $this->assertSame($model, $this->sut->model_for_class($class));
         }
 
-        $this->assertEquals([ 'nodes', 'articles', 'comments' ], $ids);
+        $this->assertEquals($expected, $classes);
     }
 
-    public function test_model_for_id(): void
+    public function test_model_for_class(): void
     {
-        $actual = $this->models->model_for_id('articles');
+        $classes = [
+            NodeModel::class,
+            ArticleModel::class,
+            CommentModel::class
+        ];
 
-        $this->assertInstanceOf(ArticleModel::class, $actual);
+        foreach ($classes as $class) {
+            $model = $this->sut->model_for_class($class);
+
+            $this->assertSame($class, $model::class);
+        }
+    }
+
+    public function test_model_for_class_should_instantiate_once(): void
+    {
+        $expected = $this->sut->model_for_class(ArticleModel::class);
+        $actual = $this->sut->model_for_class(ArticleModel::class);
+
+        $this->assertSame($actual, $expected);
     }
 
     public function test_model_for_activerecord(): void
     {
-        $actual = $this->models->model_for_activerecord(Article::class);
+        $actual = $this->sut->model_for_activerecord(Article::class);
 
         $this->assertInstanceOf(ArticleModel::class, $actual);
     }
 
     public function test_get_instances(): void
     {
-        $models = $this->models;
-        $this->assertIsArray($models->definitions);
-        $this->assertEquals([], $models->instances);
-        $this->assertInstanceOf(Model::class, $models['nodes']);
-        $this->assertInstanceOf(ArticleModel::class, $models['articles']);
-        $this->assertInstanceOf(CommentModel::class, $models['comments']);
+        $models = $this->sut;
+        $this->assertEmpty($models->instances);
 
-        foreach ($models->instances as $model) {
-            $this->assertInstanceOf(Model::class, $model);
-        }
+        $nodes = $models->model_for_class(NodeModel::class);
+        $articles = $models->model_for_class(ArticleModel::class);
+        $comments = $models->model_for_class(CommentModel::class);
 
-        $this->assertEquals([ 'nodes', 'articles', 'comments' ], array_keys($models->instances));
+        $expected = [
+            NodeModel::class => $nodes,
+            ArticleModel::class => $articles,
+            CommentModel::class => $comments,
+        ];
+
+        $actual = $models->instances;
+
+        $this->assertEquals($expected, $actual);
     }
 
     public function test_get_connections(): void
     {
-        $this->assertSame($this->connections, $this->models->connections);
-    }
-
-    public function test_offset_exists(): void
-    {
-        $models = $this->models;
-        $this->assertTrue(isset($models['articles']));
-        $this->assertFalse(isset($models['undefined']));
-    }
-
-    public function test_offset_set(): void
-    {
-        $models = $this->models;
-        $models['brands'] = $definition = new ModelDefinition(
-            table: new TableDefinition(
-                name: 'brands',
-                schema: (new SchemaBuilder())
-                    ->add_serial('brand_id', primary: true)
-                    ->add_character('name')
-                    ->build()
-            ),
-            id: 'brands',
-            model_class: BrandModel::class,
-            connection: Config::DEFAULT_CONNECTION_ID,
-        );
-
-        $this->assertTrue(isset($models['brands']));
-        $this->assertInstanceOf(Model::class, $models['brands']);
-
-        try {
-            $models['brands'] = $definition;
-
-            $this->fail("Expected ModelAlreadyInstantiated");
-        } catch (ModelAlreadyInstantiated $e) {
-            $this->assertEquals('brands', $e->id);
-        }
-    }
-
-    public function test_should_get_same(): void
-    {
-        $articles = $this->models['articles'];
-        $this->assertSame($articles, $this->models['articles']);
-    }
-
-    public function test_offset_get_undefined(): void
-    {
-        $this->expectException(ModelNotDefined::class);
-        $this->models[uniqid()];
-    }
-
-    public function test_offset_unset(): void
-    {
-        $models = $this->models;
-        unset($models['comments']);
-        $this->assertFalse(isset($models['comments']));
-        $this->assertInstanceOf(Model::class, $models['articles']);
-
-        try {
-            unset($models['articles']);
-
-            $this->fail("Expected ModelAlreadyInstantiated");
-        } catch (ModelAlreadyInstantiated $e) {
-            $this->assertEquals('articles', $e->id);
-        }
+        $this->assertSame($this->connections, $this->sut->connections);
     }
 
     public function test_install(): void
     {
         $this->assertSame([
 
-            "nodes" => false,
-            "articles" => false,
-            "comments" => false,
+            NodeModel::class => false,
+            ArticleModel::class => false,
+            CommentModel::class => false,
 
-        ], $this->models->is_installed());
+        ], $this->sut->is_installed());
 
-        $this->models->install();
+        $this->sut->install();
 
         $this->assertSame([
 
-            "nodes" => true,
-            "articles" => true,
-            "comments" => true,
+            NodeModel::class => true,
+            ArticleModel::class => true,
+            CommentModel::class => true,
 
-        ], $this->models->is_installed());
+        ], $this->sut->is_installed());
 
-        $this->models->install(); // installing twice shouldn't raise any alarm
+        $this->sut->install(); // installing twice shouldn't raise any alarm
     }
 
     public function test_uninstall(): void
     {
-        $this->models->install();
-        $this->models->uninstall();
+        $this->sut->install();
+        $this->sut->uninstall();
 
         $this->assertSame([
 
-            "nodes" => false,
-            "articles" => false,
-            "comments" => false,
+            NodeModel::class => false,
+            ArticleModel::class => false,
+            CommentModel::class => false,
 
-        ], $this->models->is_installed());
+        ], $this->sut->is_installed());
 
-        $this->models->uninstall(); // uninstalling twice shouldn't raise any alarm
-    }
-
-    public function test_class_name(): void
-    {
-        $this->assertInstanceOf(Model::class, $this->models['nodes']);
-        $this->assertInstanceOf(ArticleModel::class, $this->models['articles']);
-        $this->assertInstanceOf(CommentModel::class, $this->models['comments']);
+        $this->sut->uninstall(); // uninstalling twice shouldn't raise any alarm
     }
 }

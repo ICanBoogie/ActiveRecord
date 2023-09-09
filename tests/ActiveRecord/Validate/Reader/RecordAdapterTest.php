@@ -14,6 +14,7 @@ namespace Test\ICanBoogie\ActiveRecord\Validate\Reader;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Fixtures;
 
 /**
@@ -28,7 +29,7 @@ final class RecordAdapterTest extends TestCase
 
         $v = uniqid();
 
-        $record = new Node($models->model_for_id('nodes'));
+        $record = new Node($models->model_for_class(NodeModel::class));
         $record->title = $v;
 
         $reader = new RecordAdapter($record);

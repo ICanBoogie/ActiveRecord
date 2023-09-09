@@ -8,7 +8,9 @@ namespace ICanBoogie\ActiveRecord;
 interface ModelIterator
 {
     /**
-     * @return iterable<string, (callable(): Model)>
+     * @template T of Model
+     *
+     * @return iterable<class-string<T>, (callable(): T)>
      */
     public function model_iterator(): iterable;
 }

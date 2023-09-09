@@ -17,6 +17,7 @@ use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RelationCollection;
 use ICanBoogie\ActiveRecord\RelationNotDefined;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\CommentModel;
 use Test\ICanBoogie\Fixtures;
@@ -31,7 +32,7 @@ final class HasManyRelationTest extends TestCase
         [ , $models ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
 
         $models->install();
-        $this->articles = $articles = $models['articles'];
+        $this->articles = $articles = $models->model_for_class(ArticleModel::class);
 
         for ($i = 1; $i < 4; $i++) {
             $articles->save([
@@ -42,7 +43,7 @@ final class HasManyRelationTest extends TestCase
             ]);
         }
 
-        $this->comments = $comments = $models['comments'];
+        $this->comments = $comments = $models->model_for_class(CommentModel::class);
 
         for ($i = 1; $i < 13; $i++) {
             $comments->save([

@@ -19,11 +19,10 @@ final class TransientModelDefinition
      * @param class-string<Model> $model_class
      */
     public function __construct( // @phpstan-ignore-line
-        public readonly string $id,
         public Schema $schema,
         public readonly string $model_class,
-        public readonly ?string $table_name = null,
-        public readonly ?string $alias = null,
+        public readonly string $table_name,
+        public readonly string $alias,
         public readonly string $connection = Config::DEFAULT_CONNECTION_ID,
     ) {
         Assert::extends_model($this->model_class);

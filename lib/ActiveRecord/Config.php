@@ -21,7 +21,7 @@ final class Config
     /**
      * @param array{
      *     connections: array<string, ConnectionDefinition>,
-     *     models: array<string, ModelDefinition>,
+     *     models: array<class-string<Model>, ModelDefinition>,
      * } $an_array
      */
     public static function __set_state(array $an_array): self
@@ -31,7 +31,8 @@ final class Config
 
     /**
      * @param array<string, ConnectionDefinition> $connections
-     * @param array<string, ModelDefinition> $models
+     *     Where _key_ is an identifier.
+     * @param array<class-string<Model>, ModelDefinition> $models
      */
     public function __construct(
         public readonly array $connections,

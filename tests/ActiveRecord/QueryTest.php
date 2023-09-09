@@ -17,6 +17,10 @@ use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
+use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\NodeModel;
+use Test\ICanBoogie\Acme\SubscriberModel;
+use Test\ICanBoogie\Acme\UpdateModel;
 use Test\ICanBoogie\Fixtures;
 
 use function gmdate;
@@ -27,9 +31,10 @@ use function uniqid;
 final class QueryTest extends TestCase
 {
     private const N = 10;
-    private ModelCollection $models;
-    private Model $nodes;
-    private Model $articles;
+    private NodeModel $nodes;
+    private ArticleModel $articles;
+    private UpdateModel $updates;
+    private SubscriberModel $subscribers;
 
     protected function setUp(): void
     {
@@ -39,9 +44,10 @@ final class QueryTest extends TestCase
 
         $models->install();
 
-        $this->models = $models;
-        $this->nodes = $models['nodes'];
-        $this->articles = $models['articles'];
+        $this->nodes = $models->model_for_class(NodeModel::class);
+        $this->articles = $models->model_for_class(ArticleModel::class);
+        $this->updates = $models->model_for_class(UpdateModel::class);
+        $this->subscribers = $models->model_for_class(SubscriberModel::class);
 
         for ($i = 0; $i < self::N; $i++) {
             $properties = [
@@ -135,10 +141,7 @@ final class QueryTest extends TestCase
 
     public function test_join_with_expression(): void
     {
-        $models = $this->models;
-        $updates = $models['updates'];
-
-        $query = $updates->query()->join(expression: "INNER JOIN madonna USING(madonna_id)");
+        $query = $this->updates->query()->join(expression: "INNER JOIN madonna USING(madonna_id)");
 
         $this->assertEquals(
             [ "INNER JOIN madonna USING(madonna_id)" ],
@@ -148,9 +151,8 @@ final class QueryTest extends TestCase
 
     public function test_join_with_query(): void
     {
-        $models = $this->models;
-        $updates = $models['updates'];
-        $subscribers = $models['subscribers'];
+        $updates = $this->updates;
+        $subscribers = $this->subscribers;
 
         $update_query = $updates
             ->select('subscriber_id, updated_at, update_hash')
@@ -172,9 +174,8 @@ final class QueryTest extends TestCase
 
     public function test_join_with_query_with_args(): void
     {
-        $models = $this->models;
-        $updates = $models['updates'];
-        $subscribers = $models['subscribers'];
+        $updates = $this->updates;
+        $subscribers = $this->subscribers;
         $now = DateTime::now();
 
         $update_query = $updates
@@ -198,9 +199,8 @@ final class QueryTest extends TestCase
 
     public function test_join_with_model(): void
     {
-        $models = $this->models;
-        $updates = $models['updates'];
-        $subscribers = $models['subscribers'];
+        $updates = $this->updates;
+        $subscribers = $this->subscribers;
 
         $actual = (string)$updates->select('update_id, email')->join(model: $subscribers);
 

@@ -22,7 +22,7 @@ hundreds of them.
 
 #### Installation
 
-```bash
+```shell
 composer require icanboogie/activerecord
 ```
 
@@ -181,11 +181,11 @@ use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 
 /**
- * @extends Model<Node>
+ * @extends Model<int, Node>
  */
 class NodeModel extends Model
 {
-    // …
+    protected static string $activerecord_class = Node::class
 }
 
 /**
@@ -195,8 +195,10 @@ class Node extends ActiveRecord
 {
     #[Id, Serial]
     public int $id;
+
     #[Character(80)]
     public string $title;
+
     #[Integer]
     public int $number;
 
@@ -206,19 +208,15 @@ class Node extends ActiveRecord
 $config = (new ActiveRecord\ConfigBuilder())
     ->use_attributes()
     ->add_connection(/*...*/)
-    ->add_model(
-        id: 'nodes',
-        activerecord_class: Node::class,
-        model_class: NodeModel::class,
-    )
+    ->add_model(NodeModel::class)
     ->build();
 
 /* @var $connections ConnectionCollection */
 
-$models = new ModelCollection($cconnections, $config->models);
+$models = new ModelCollection($connections, $config->models);
 $models->install();
 
-$node_model = $models['nodes'];
+$node_model = $models->model_for_class(NodeModel::class);
 
 $node = new Node($node_model);
 //               ^^^^^^^^^^^
@@ -366,19 +364,17 @@ use ICanBoogie\DateTime;
 
 $config
     ->add_model(
-        id: 'nodes',
-        activerecord_class: Node::class,
+        model_class: NodeModel::class,
         schema_builder: fn(SchemaBuilder $b) => $b
             ->add_serial('nid', primary: true)
             ->add_character('title'),
     )
     ->add_model(
-        id: 'articles',
-        activerecord_class: Article::class,
+        model_class: ArticleModel::class,
         schema_builder: fn(SchemaBuilder $b) => $b
             ->add_character('body')
             ->add_date('date'),
-        extends: 'nodes'
+        extends: NodeModel::class,
     );
 
 // …
@@ -404,8 +400,8 @@ properties of its parent model.
 
 /* @var $news \ICanBoogie\ActiveRecord\Model */
 
-echo $news->parent->id;       // nodes
-echo $news->parent_model->id; // contents
+echo $news->parent::class;       // NodeModel
+echo $news->parent_model::class; // ContentModel
 ```
 
 
@@ -1242,15 +1238,16 @@ that did not publish articles are fetched as well.
 ```php
 <?php
 
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+/* @var $articles \ICanBoogie\ActiveRecord\Model */
+/* @var $users \ICanBoogie\ActiveRecord\Model */
 
-$online_article_count = $models['articles']
+$online_article_count = $articles
 ->select('user_id, COUNT(node_id) AS online_article_count')
 ->filter_by_type_and_created_at('articles', new DateTime('-1 year'))
 ->online
 ->group('user_id');
 
-$users = $models['users']
+$users = $users
 ->join(query: $online_article_count, on: 'user_id', mode: 'LEFT')
 ->order('online_article_count DESC');
 ```
@@ -1649,30 +1646,31 @@ to obtain only the online articles in a "music" category:
 ```php
 <?php
 
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+/* @var $taxonomy_terms_nodes \ICanBoogie\ActiveRecord\Model */
+/* @var $articles \ICanBoogie\ActiveRecord\Model */
 
-$taxonomy_query = $models['taxonomy.terms/nodes']
-->join(model_id: 'taxonomy.vocabulary')
-->join(model_id: 'taxonomy_vocabulary/scopes')
-->where([
+$taxonomy_query = $taxonomy_terms_nodes
+    ->join(model_id: 'taxonomy.vocabulary')
+    ->join(model_id: 'taxonomy_vocabulary/scopes')
+    ->where([
 
-    'termslug' => "music",
-    'vocabularyslug' => "category",
-    'constructor' => "articles"
+        'termslug' => "music",
+        'vocabularyslug' => "category",
+        'constructor' => "articles"
 
-])
-->select('nid');
+    ])
+    ->select('nid');
 
-$articles = $models['articles']
-->filter_by_is_online(true)
-->and("nid IN ($taxonomy_query)", $taxonomy_query->conditions_args)
-->all;
+$matches = $articles
+    ->filter_by_is_online(true)
+    ->and("nid IN ($taxonomy_query)", $taxonomy_query->conditions_args)
+    ->all;
 
 # or
 
-$articles = $models['articles']
-->filter_by_is_online_and_nid(true, $taxonomy_query)
-->all;
+$matches = $articles
+    ->filter_by_is_online_and_nid(true, $taxonomy_query)
+    ->all;
 ```
 
 
@@ -1686,12 +1684,12 @@ The records matching a query can be deleted using the `delete()` method:
 ```php
 <?php
 
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+/* @var $nodes \ICanBoogie\ActiveRecord\Model */
 
-$models['nodes']
-->filter_by_is_deleted_and_uid(true, 123)
-->limit(10)
-->delete();
+$nodes
+    ->filter_by_is_deleted_and_uid(true, 123)
+    ->limit(10)
+    ->delete();
 ```
 
 You might need to join tables to decide which record to delete, in which case you might
@@ -1701,12 +1699,12 @@ how to delete the nodes and comments of nodes belonging to user 123 and marked a
 ```php
 <?php
 
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+/* @var $comments \ICanBoogie\ActiveRecord\Model */
 
-$models['comments']
-->filter_by_is_deleted_and_uid(true, 123)
-->join(':nodes')
-->delete('comments, nodes');
+$comments
+    ->filter_by_is_deleted_and_uid(true, 123)
+    ->join(model_id: 'nodes')
+    ->delete('comments, nodes');
 ```
 
 When using `join()` the table associated with the query is used by default. The following
@@ -1715,12 +1713,12 @@ example demonstrates how to delete nodes that lack content:
 ```php
 <?php
 
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+/* @var $nodes \ICanBoogie\ActiveRecord\Model */
 
-$models['nodes']
-->join(model_id: 'contents', mode: 'LEFT')
-->where('content.nid IS NULL')
-->delete();
+$nodes
+    ->join(model_id: 'contents', mode: 'LEFT')
+    ->where('content.nid IS NULL')
+    ->delete();
 ```
 
 
@@ -1870,7 +1868,7 @@ $model->sum('comments_count');
 
 ### Providing your own query
 
-By default the query object is [Query][] instance, but the class of the query can be specified with
+By default, the query object is [Query][] instance, but the class of the query can be specified with
 the `QUERY_CLASS` attribute. This is often used to add features to the query.
 
 
@@ -2127,39 +2125,6 @@ A [ModelNotDefined][] exception is thrown in attempts to obtain a model which is
 
 
 
-#### Checking defined models
-
-The `isset()` function checks if a model is defined.
-
-```php
-<?php
-
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
-
-if (isset($models['nodes']))
-{
-    echo "The model 'node' is defined.\n";
-}
-```
-
-The `definitions` magic property returns the current model definitions. The property is
-_read-only_.
-
-```php
-<?php
-
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
-
-foreach ($models->definitions as $id => $definition)
-{
-    echo "The model '$id' is defined.\n";
-}
-```
-
-
-
-
-
 #### Instantiated models
 
 An array with the instantiated models can be retrieved using the `instances` magic property. The
@@ -2170,9 +2135,9 @@ property is _read-only_.
 
 /* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
 
-foreach ($models->instances as $id => $model)
+foreach ($models->instances as $class => $model)
 {
-    echo "The model '$id' has been instantiated.\n";
+    echo "The model '$class' has been instantiated.\n";
 }
 ```
 
@@ -2193,9 +2158,9 @@ installed, `false` otherwise.
 /* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
 
 $models->install();
-var_dump($models->is_installed()); // [ "nodes" => true, "contents" => true ]
+var_dump($models->is_installed()); // [ "NodeModel" => true, "ContentModel" => true ]
 $models->uninstall();
-var_dump($models->is_installed()); // [ "nodes" => false, "contents" => false ]
+var_dump($models->is_installed()); // [ "NodeModel" => false, "ContentModel" => false ]
 ```
 
 

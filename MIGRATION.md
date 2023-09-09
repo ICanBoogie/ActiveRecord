@@ -17,14 +17,16 @@
 
 ### Backward Incompatible Changes
 
-- `ActiveRecord` is now abstract and requires extension.
+- The `ActiveRecord` and `Model` classes are now abstract and require extension.
+- The `ActiveRecord` class is now defined by the `Model` instead of provided by `ModelDefinition`. The `activerecord_class` directive has been removed.
+- The `Query` class is now defined by the `Model` instead of provided by `ModelDefinition`. The `query_class` directive has been removed.
+- The parent Model is now resolved by PHP inheritance. The `extends` directive has been removed.
+- Models are now identified by their class, the `id` property has been removed.
 - `Table` requires a `Connection` instance in its constructor, the `CONNECTION` attribute is no longer replaced by a `Connection` instance.
 - Replaced attributes arrays to initialize tables and models with objects.
 - Changed `Query::join()` and `Model::join()` signatures to enforce types.
-- The `ActiveRecord` class is now defined by the `Model` instead of provided by `ModelDefinition`. The `activerecord_class` directive has been removed.
-- The `Query` class is now defined by the `Model` instead of provided by `ModelDefinition`. The `query_class` directive has been removed.
-- The parent model is now resolved by PHP inheritance. The `extends` directive has been removed.
 - Removed support for `implements` in `Table`.
+- `ModelCollection` no longer implements `ArrayAccess`, and is read only. Use the `model_for_class()` to obtain a model.
 
 ### Deprecated Features
 

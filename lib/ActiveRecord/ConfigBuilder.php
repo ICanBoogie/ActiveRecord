@@ -39,12 +39,15 @@ use function assert;
 use function class_exists;
 use function get_debug_type;
 use function get_parent_class;
+use function ICanBoogie\pluralize;
 use function ICanBoogie\singularize;
+use function ICanBoogie\underscore;
 use function is_a;
 use function is_string;
 use function preg_match;
 use function sprintf;
 use function str_ends_with;
+use function strrpos;
 use function substr;
 
 final class ConfigBuilder
@@ -89,8 +92,7 @@ final class ConfigBuilder
     }
 
     /**
-     * @return array<string, Association>
-     *     Where _key_ is a model identifier.
+     * @return array<class-string<Model>, Association>
      */
     private function build_associations(): array
     {
@@ -138,7 +140,7 @@ final class ConfigBuilder
                 $association->has_many
             );
 
-            $associations[$owner->id] = new Association(
+            $associations[$model_class] = new Association(
                 belongs_to: $belongs_to,
                 has_many: $has_many,
             );
@@ -162,29 +164,24 @@ final class ConfigBuilder
     /**
      * Builds model configuration from model transient configurations and association configurations.
      *
-     * @param array<string, Association> $associations
-     *     Where _key_ is a model identifier.
+     * @param array<class-string<Model>, Association> $associations
      *
-     * @return array<string, ModelDefinition>
-     *     Where _key_ is a model identifier.
+     * @return array<class-string<Model>, ModelDefinition>
      */
     private function build_models(array $associations): array
     {
         $models = [];
 
-        foreach ($this->transient_model_definitions_by_class as $transient) {
-            $id = $transient->id;
-
-            $models[$id] = new ModelDefinition(
+        foreach ($this->transient_model_definitions_by_class as $class => $transient) {
+            $models[$class] = new ModelDefinition(
                 table: new TableDefinition(
-                    name: $transient->table_name ?? $id,
+                    name: $transient->table_name,
                     schema: $transient->schema,
                     alias: $transient->alias,
                 ),
-                id: $id,
                 model_class: $transient->model_class,
                 connection: $transient->connection,
-                association: $associations[$id] ?? null,
+                association: $associations[$class] ?? null,
             );
         }
 
@@ -220,7 +217,7 @@ final class ConfigBuilder
             );
 
         $as = $association->as
-            ?? singularize($associate->id);
+            ?? singularize($associate->alias);
 
         return new BelongsToAssociation(
             $associate->model_class,
@@ -237,7 +234,7 @@ final class ConfigBuilder
         $related = $this->model_definition_for_activerecord($association->associate);
         $local_key = $association->local_key ?? $owner->schema->primary;
         $foreign_key = $association->foreign_key;
-        $as = $association->as ?? $related->id;
+        $as = $association->as ?? pluralize($related->alias);
 
         if ($association->through) {
             $foreign_key ??= $related->schema->primary;
@@ -331,9 +328,8 @@ final class ConfigBuilder
      * @param (Closure(SchemaBuilder $schema): SchemaBuilder)|null $schema_builder
      */
     public function add_model( // @phpstan-ignore-line
-        string $id,
         string $model_class,
-        string|null $name = null,
+        string|null $table_name = null,
         string|null $alias = null,
         Closure $schema_builder = null,
         Closure $association_builder = null,
@@ -383,16 +379,28 @@ final class ConfigBuilder
 
         // transient model
 
+        $table_name ??= self::resolve_table_name($activerecord_class);
+
         $this->transient_model_definitions_by_class[$model_class] = new TransientModelDefinition(
-            id: $id,
             schema: $schema,
             model_class: $model_class,
-            table_name: $name,
-            alias: $alias,
+            table_name: $table_name,
+            alias: $alias ?? singularize($table_name),
             connection: $connection,
         );
 
         return $this;
+    }
+
+    /**
+     * @param class-string<ActiveRecord> $activerecord_class
+     */
+    private static function resolve_table_name(string $activerecord_class): string
+    {
+        $pos = strrpos($activerecord_class, '\\');
+        $base = substr($activerecord_class, $pos + 1);
+
+        return pluralize(underscore($base));
     }
 
     /**

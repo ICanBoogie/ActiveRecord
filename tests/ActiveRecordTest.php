@@ -19,6 +19,7 @@ use ICanBoogie\ActiveRecord\StaticModelResolver;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\ActiveRecordTest\Sample;
 use Test\ICanBoogie\ActiveRecordTest\ValidateCase;
 
@@ -36,7 +37,7 @@ final class ActiveRecordTest extends TestCase
     {
         [ , $models ] = Fixtures::only_models([ 'nodes' ]);
 
-        $this->model = $models->model_for_id('nodes');
+        $this->model = $models->model_for_class(NodeModel::class);
     }
 
     public function test_should_use_provided_model(): void
@@ -57,7 +58,6 @@ final class ActiveRecordTest extends TestCase
         $record = new Node();
 
         $this->assertSame($this->model, $record->model);
-        $this->assertSame($this->model->id, $record->model_id);
     }
 
     public function test_sleep_should_remove_model(): void

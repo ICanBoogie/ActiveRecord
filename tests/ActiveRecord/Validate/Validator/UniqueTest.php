@@ -16,6 +16,7 @@ use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\Context;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Fixtures;
 
 /**
@@ -39,7 +40,7 @@ final class UniqueTest extends TestCase
         [ , $models ] = Fixtures::only_models([ 'nodes' ]);
 
         $models->install();
-        $model = $models['nodes'];
+        $model = $models->model_for_class(NodeModel::class);
 
         $record = new Node($model);
         $record->title = $title = 'A title';

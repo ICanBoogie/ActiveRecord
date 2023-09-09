@@ -25,12 +25,11 @@ use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\ScopeNotDefined;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
-use ICanBoogie\PropertyNotWritable;
-use ICanBoogie\Prototype\MethodNotDefined;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
+use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\CountModel;
 use Test\ICanBoogie\Acme\CustomQuery;
-use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Acme\SampleRecord;
 use Test\ICanBoogie\Fixtures;
@@ -43,9 +42,10 @@ final class ModelTest extends TestCase
 
     private ConnectionCollection $connections;
     private ModelCollection $models;
-    private Model $model;
+    private NodeModel $nodes;
+    private ArticleModel $articles;
+    private CountModel $counts_model;
     private int $model_records_count;
-    private Model $counts_model;
 
     protected function setUp(): void
     {
@@ -63,33 +63,22 @@ final class ModelTest extends TestCase
         $models = $this->models;
         $models->install();
 
-        $nodes = $models['articles'];
-        $nodes->save([ 'title' => 'Madonna', 'body' => uniqid(), 'date' => '1958-08-16' ]);
-        $nodes->save([ 'title' => 'Lady Gaga', 'body' => uniqid(), 'date' => '1986-03-28' ]);
-        $nodes->save([ 'title' => 'Cat Power', 'body' => uniqid(), 'date' => '1972-01-21' ]);
+        $articles = $models->model_for_class(ArticleModel::class);
+        $articles->save([ 'title' => 'Madonna', 'body' => uniqid(), 'date' => '1958-08-16' ]);
+        $articles->save([ 'title' => 'Lady Gaga', 'body' => uniqid(), 'date' => '1986-03-28' ]);
+        $articles->save([ 'title' => 'Cat Power', 'body' => uniqid(), 'date' => '1972-01-21' ]);
 
-        $counts = $models['counts'];
+        $counts = $models->model_for_class(CountModel::class);
         $names = explode('|', 'one|two|three|four');
 
         foreach ($names as $name) {
             $counts->save([ 'name' => $name, 'date' => DateTime::now() ]);
         }
 
-        $this->model = $nodes;
+        $this->articles = $articles;
+        $this->nodes = $models->model_for_class(NodeModel::class);
         $this->model_records_count = 3;
         $this->counts_model = $counts;
-    }
-
-    /**
-     * @dataProvider provide_get_model
-     *
-     * @param class-string $class
-     */
-    public function test_get_model(string $id, string $class): void
-    {
-        $actual = $this->models->model_for_id($id);
-
-        $this->assertInstanceOf($class, $actual);
     }
 
     /**
@@ -107,55 +96,20 @@ final class ModelTest extends TestCase
         ];
     }
 
-    public function test_call_undefined_method(): void
-    {
-        $this->expectException(MethodNotDefined::class);
-        $this->models['nodes']->undefined_method();
-    }
-
     public function test_should_instantiate_model(): void
     {
         $models = $this->models;
-        $model = $models['nodes'];
+        $model = $this->nodes;
 
         $this->assertSame($models, $model->models);
         $this->assertSame($this->connections['primary'], $model->connection);
-        $this->assertSame('nodes', $model->id);
         $this->assertSame(self::PREFIX . '_' . 'nodes', $model->name);
         $this->assertSame('nodes', $model->unprefixed_name);
     }
 
     public function test_get_parent(): void
     {
-        $models = $this->models;
-        $this->assertSame($models['nodes'], $models['articles']->parent);
-    }
-
-    public function test_should_default_id_from_name(): void
-    {
-        [ $connections, $models ] = Fixtures::only_models([]);
-
-        $connection = $connections->connection_for_id(Config::DEFAULT_CONNECTION_ID);
-
-        $model = new class (
-            $connection,
-            $models,
-            new Config\ModelDefinition(
-                table: new ActiveRecord\TableDefinition(
-                    name: 'nodes',
-                    schema: (new SchemaBuilder())
-                        ->add_serial('id', primary: true)
-                        ->build()
-                ),
-                id: 'nodes',
-                model_class: NodeModel::class,
-                connection: 'primary',
-            )
-        ) extends Model {
-            protected static string $activerecord_class = SampleRecord::class; // @phpstan-ignore-line
-        };
-
-        $this->assertEquals('nodes', $model->id);
+        $this->assertSame($this->nodes, $this->articles->parent);
     }
 
     public function test_should_throw_not_found_when_record_does_not_exists(): void
@@ -163,7 +117,7 @@ final class ModelTest extends TestCase
         $id = rand();
 
         try {
-            $this->models['nodes']->find($id);
+            $this->nodes->find($id);
             $this->fail("Expected RecordNotFound");
         } catch (RecordNotFound $e) {
             $this->assertSame([ $id => null ], $e->records);
@@ -173,7 +127,7 @@ final class ModelTest extends TestCase
     public function test_should_throw_not_found_when_one_record_does_not_exists(): void
     {
         $id = rand();
-        $model = $this->models['nodes'];
+        $model = $this->nodes;
         $model->save([ 'title' => uniqid() ]);
         $model->save([ 'title' => uniqid() ]);
 
@@ -198,7 +152,7 @@ final class ModelTest extends TestCase
         $id2 = rand();
         $id3 = rand();
 
-        $model = $this->models['nodes'];
+        $model = $this->nodes;
 
         try {
             $model->find($id1, $id2, $id3);
@@ -219,7 +173,7 @@ final class ModelTest extends TestCase
 
     public function test_find_one(): void
     {
-        $model = $this->models['articles'];
+        $model = $this->articles;
         $id = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
         $this->assertNotEmpty($id);
 
@@ -230,7 +184,7 @@ final class ModelTest extends TestCase
 
     public function test_find_many(): void
     {
-        $model = $this->models['articles'];
+        $model = $this->articles;
         $id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
         $id2 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
         $id3 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
@@ -253,7 +207,7 @@ final class ModelTest extends TestCase
 
     public function test_find_many_with_an_array(): void
     {
-        $model = $this->models['articles'];
+        $model = $this->articles;
         $id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
         $id2 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
         $id3 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
@@ -276,7 +230,7 @@ final class ModelTest extends TestCase
 
     public function test_offsets(): void
     {
-        $model = $this->models['nodes'];
+        $model = $this->nodes;
         $this->assertFalse(isset($model[uniqid()]));
         $id = $model->save([ 'title' => uniqid() ]);
         $this->assertTrue(isset($model[$id]));
@@ -293,7 +247,7 @@ final class ModelTest extends TestCase
 
     public function test_new_record(): void
     {
-        $model = $this->models['articles'];
+        $model = $this->articles;
         $title = 'Title ' . uniqid();
         $record = $model->new([ 'title' => $title ]);
 
@@ -302,39 +256,19 @@ final class ModelTest extends TestCase
         $this->assertSame($model, $record->model);
     }
 
-    /**
-     * @dataProvider provide_test_readonly_properties
-     */
-    public function test_readonly_properties(string $property): void
-    {
-        $this->expectException(PropertyNotWritable::class);
-        $this->model->$property = null;
-    }
-
-    /**
-     * @return array<array{ string }>
-     */
-    public static function provide_test_readonly_properties(): array
-    {
-        $properties = 'exists count all one';
-        return array_map(function ($v) {
-            return (array)$v;
-        }, explode(' ', $properties));
-    }
-
     public function test_get_exists(): void
     {
-        $this->assertTrue($this->model->exists);
+        $this->assertTrue($this->articles->exists);
     }
 
     public function test_get_count(): void
     {
-        $this->assertEquals($this->model_records_count, $this->model->count);
+        $this->assertEquals($this->model_records_count, $this->articles->count);
     }
 
     public function test_get_all(): void
     {
-        $all = $this->model->all;
+        $all = $this->articles->all;
         $this->assertIsArray($all);
         $this->assertCount($this->model_records_count, $all);
         $this->assertContainsOnlyInstancesOf(ActiveRecord::class, $all);
@@ -342,7 +276,7 @@ final class ModelTest extends TestCase
 
     public function test_get_one(): void
     {
-        $one = $this->model->one;
+        $one = $this->articles->one;
         $this->assertInstanceOf(ActiveRecord::class, $one);
     }
 
@@ -353,7 +287,7 @@ final class ModelTest extends TestCase
      */
     public function test_initiate_query(string $method, array $args): void
     {
-        $this->assertInstanceOf(Query::class, $this->model->$method(...$args));
+        $this->assertInstanceOf(Query::class, $this->articles->$method(...$args));
     }
 
     /**
@@ -376,7 +310,7 @@ final class ModelTest extends TestCase
 
     public function test_has_scope(): void
     {
-        $model = $this->models['articles'];
+        $model = $this->articles;
 
         $this->assertTrue($model->has_scope('ordered'));
         $this->assertFalse($model->has_scope(uniqid()));
@@ -384,7 +318,7 @@ final class ModelTest extends TestCase
 
     public function test_scope_as_property(): void
     {
-        $a = $this->model;
+        $a = $this->articles;
         $q = $a->ordered;
         $this->assertInstanceOf(Query::class, $q);
 
@@ -395,7 +329,7 @@ final class ModelTest extends TestCase
 
     public function test_scope_as_method(): void
     {
-        $a = $this->model;
+        $a = $this->articles;
         $q = $a->ordered(1);
         $this->assertInstanceOf(Query::class, $q);
 
@@ -407,13 +341,13 @@ final class ModelTest extends TestCase
     public function test_scope_not_defined(): void
     {
         $this->expectException(ScopeNotDefined::class);
-        $this->model->scope('undefined' . uniqid());
+        $this->articles->scope('undefined' . uniqid());
     }
 
     public function test_scope_not_defined_from_query(): void
     {
         $this->expectException(ScopeNotDefined::class);
-        $this->model->ordered->undefined_scope();
+        $this->articles->ordered->undefined_scope();
     }
 
     /*
@@ -487,7 +421,7 @@ final class ModelTest extends TestCase
      */
     public function test_querying($callback, $expected): void
     {
-        $this->assertSame($expected, (string)$callback($this->model));
+        $this->assertSame($expected, (string)$callback($this->articles));
     }
 
     /**
@@ -585,25 +519,24 @@ EOT
 
     public function test_activerecord_cache(): void
     {
-        $model_id = 't' . uniqid();
+        $name = 't' . uniqid();
 
         $models = new ModelCollection($this->connections, [
-            $model_id => new Config\ModelDefinition(
+            new Config\ModelDefinition(
                 table: new ActiveRecord\TableDefinition(
-                    name: $model_id,
+                    name: $name,
                     schema: (new SchemaBuilder())
                         ->add_serial('nid', primary: true)
                         ->add_character('title')
                         ->build(),
                 ),
-                id: $model_id,
                 model_class: NodeModel::class,
                 connection: Config::DEFAULT_CONNECTION_ID,
             )
         ]);
 
         $models->install();
-        $model = $models[$model_id];
+        $model = $models->model_for_class(NodeModel::class);
 
         foreach ([ 'one', 'two', 'three', 'four' ] as $value) {
             $model->save([ 'title' => $value ]);
@@ -652,7 +585,6 @@ EOT
                         ->add_serial('id', primary: true)
                         ->build()
                 ),
-                id: $id,
                 model_class: NodeModel::class,
                 connection: Config::DEFAULT_CONNECTION_ID,
             )
@@ -668,7 +600,7 @@ EOT
 
     public function test_query(): void
     {
-        $model = $this->model;
+        $model = $this->articles;
 
         $this->assertInstanceOf(Query::class, $query1 = $model->query());
         $this->assertInstanceOf(Query::class, $query2 = $model->query("1 = 1"));

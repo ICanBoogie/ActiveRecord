@@ -11,7 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ArrayAccess;
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\ModelDefinition;
@@ -19,18 +18,13 @@ use LogicException;
 use RuntimeException;
 use Throwable;
 
-use function array_keys;
-use function get_debug_type;
-
 /**
  * Model collection.
  *
- * @property-read array<string, array> $definitions
- * @property-read array<string, Model> $instances
- *
- * @implements ArrayAccess<string, Model>
+ * @property-read array<string, ModelDefinition> $definitions
+ * @property-read array<class-string<Model>, Model> $instances
  */
-class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, ModelIterator
+class ModelCollection implements ModelProvider, ModelResolver, ModelIterator
 {
     /**
      * @uses get_instances
@@ -42,12 +36,12 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     /**
      * Instantiated models.
      *
-     * @var array<string, Model>
+     * @var array<class-string<Model>, Model>
      */
     private array $instances = [];
 
     /**
-     * @return array<string, Model>
+     * @return array<class-string<Model>, Model>
      */
     private function get_instances(): array
     {
@@ -57,7 +51,7 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     /**
      * Models definitions.
      *
-     * @var array<string, ModelDefinition>
+     * @var array<class-string<Model>, ModelDefinition>
      */
     private array $definitions = [];
 
@@ -70,42 +64,44 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     }
 
     /**
-     * @param array<string, ModelDefinition> $definitions
-     *     Where _key_ is a model identifier.
+     * @param ModelDefinition[] $definitions
      */
     public function __construct(
         public readonly ConnectionProvider $connections,
-        array $definitions = []
+        iterable $definitions,
     ) {
-        foreach ($definitions as $id => $definition) {
-            $this[$id] = $definition;
+        foreach ($definitions as $definition) {
+            assert($definition instanceof ModelDefinition);
+
+            $this->definitions[$definition->model_class] = $definition;
         }
     }
 
     public function model_iterator(): iterable
     {
-        foreach (array_keys($this->definitions) as $id) {
-            yield $id => fn() => $this->model_for_id($id);
+        foreach ($this->definitions as $definition) {
+            yield $definition->model_class => fn() => $this->model_for_class($definition->model_class);
         }
-    }
-
-    /**
-     * @return Model<int|string, ActiveRecord>
-     */
-    public function model_for_id(string $id): Model
-    {
-        return $this->offsetGet($id);
     }
 
     public function model_for_class(string $class): Model
     {
-        foreach ($this->definitions as $id => $definition) {
-            if ($class === $definition->model_class) {
-                return $this->model_for_id($id);
-            }
-        }
+        return $this->instances[$class] ??= $this->instantiate_model($class);
+    }
 
-        throw new RuntimeException("Unable to find model for class '$class'");
+    /**
+     * @param class-string<Model> $class
+     */
+    private function instantiate_model(string $class): Model
+    {
+        $definition = $this->definitions[$class]
+            ?? throw new LogicException("No definition for model '$class'");
+
+        return new $class(
+            $this->connections->connection_for_id($definition->connection),
+            $this,
+            $definition
+        );
     }
 
     public function model_for_activerecord(string|ActiveRecord $class_or_activerecord): Model
@@ -114,85 +110,16 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
             ? $class_or_activerecord::class
             : $class_or_activerecord;
 
-        foreach ($this->definitions as $id => $definition) {
+        foreach ($this->definitions as $definition) {
             $model_class = $definition->model_class;
             $activerecord_class = $model_class::get_activerecord_class();
 
             if ($class === $activerecord_class) {
-                return $this->model_for_id($id);
+                return $this->model_for_class($model_class);
             }
         }
 
         throw new RuntimeException("Unable to find model for activerecord class '$class'");
-    }
-
-    /**
-     * Checks if a model is defined.
-     *
-     * @param string $offset A Model identifier.
-     */
-    public function offsetExists($offset): bool
-    {
-        return isset($this->definitions[$offset]);
-    }
-
-    /**
-     * Sets the definition of a model.
-     *
-     * @param string $offset A Model identifier.
-     * @param array<string, mixed>|mixed $value A Model definition.
-     *
-     * @throws ModelAlreadyInstantiated in attempt to write a model already instantiated.
-     */
-    public function offsetSet($offset, $value): void
-    {
-        if (!$value instanceof ModelDefinition) {
-            throw new LogicException("Expected ModelConfig instance, given: " . get_debug_type($value));
-        }
-
-        if (isset($this->instances[$offset])) {
-            throw new ModelAlreadyInstantiated($offset);
-        }
-
-        $this->definitions[$offset] = $value;
-    }
-
-    /**
-     * Returns a {@link Model} instance.
-     *
-     * @param string $offset A Model identifier.
-     *
-     * @throws ModelNotDefined when the model is not defined.
-     */
-    public function offsetGet($offset): Model
-    {
-        if (isset($this->instances[$offset])) {
-            return $this->instances[$offset];
-        }
-
-        if (!isset($this->definitions[$offset])) {
-            throw new ModelNotDefined($offset);
-        }
-
-        return $this->instances[$offset] = $this
-            ->instantiate_model($this->definitions[$offset]);
-    }
-
-    /**
-     * Unset the definition of a model.
-     *
-     * @param string $offset Model identifier.
-     *
-     * @throws ModelAlreadyInstantiated in attempt to unset the definition of an already
-     * instantiated model.
-     */
-    public function offsetUnset($offset): void
-    {
-        if (isset($this->instances[$offset])) {
-            throw new ModelAlreadyInstantiated($offset);
-        }
-
-        unset($this->definitions[$offset]);
     }
 
     /**
@@ -202,8 +129,8 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
      */
     public function install(): void
     {
-        foreach (array_keys($this->definitions) as $id) {
-            $model = $this[$id];
+        foreach ($this->model_iterator() as $get) {
+            $model = $get();
 
             if ($model->is_installed()) {
                 continue;
@@ -220,8 +147,8 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
      */
     public function uninstall(): void
     {
-        foreach (array_keys($this->definitions) as $id) {
-            $model = $this[$id];
+        foreach ($this->model_iterator() as $get) {
+            $model = $get();
 
             if (!$model->is_installed()) {
                 continue;
@@ -234,31 +161,18 @@ class ModelCollection implements ArrayAccess, ModelProvider, ModelResolver, Mode
     /**
      * Check if models are installed.
      *
-     * @return array<string, bool> An array of key/value pair where _key_ is a model identifier and
-     * _value_ `true` if the model is installed, `false` otherwise.
+     * @return array<class-string<Model>, bool>
+     *     An array of key/value pair where _key_ is a model class and
+     *     _value_ `true` if the model is installed, `false` otherwise.
      */
     public function is_installed(): array
     {
         $rc = [];
 
-        foreach (array_keys($this->definitions) as $id) {
-            $rc[$id] = $this[$id]->is_installed();
+        foreach ($this->model_iterator() as $class => $get) {
+            $rc[$class] = $get()->is_installed();
         }
 
         return $rc;
-    }
-
-    /**
-     * Instantiate a model with the specified attributes.
-     */
-    private function instantiate_model(ModelDefinition $attributes): Model
-    {
-        $class = $attributes->model_class;
-
-        return new $class(
-            $this->connections->connection_for_id($attributes->connection),
-            $this,
-            $attributes
-        );
     }
 }

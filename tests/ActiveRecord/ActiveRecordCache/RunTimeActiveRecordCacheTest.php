@@ -14,6 +14,7 @@ namespace Test\ICanBoogie\ActiveRecord\ActiveRecordCache;
 use ICanBoogie\ActiveRecord\ActiveRecordCache\RuntimeActiveRecordCache;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
+use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Fixtures;
 
 final class RunTimeActiveRecordCacheTest extends TestCase
@@ -22,7 +23,7 @@ final class RunTimeActiveRecordCacheTest extends TestCase
     {
         [ , $models ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
 
-        $model = $models->model_for_id('articles');
+        $model = $models->model_for_class(ArticleModel::class);
         $primary = $model->primary;
         $key = 123;
 
