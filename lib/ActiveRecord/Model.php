@@ -54,7 +54,6 @@ use function var_dump;
  * @method int sum($column) The method is forwarded to Query::sum().
  * @method array all() The method is forwarded to Query::all().
  * @method ActiveRecord one() The method is forwarded to Query::one().
- * @method ActiveRecord new(array $properties = []) Instantiate a new record.
  *
  * @property-read Model|null $parent Parent model.
  * @property-read array $all Retrieve all the records from the model.
@@ -215,10 +214,6 @@ abstract class Model extends Table implements ArrayAccess
      */
     public function __call($method, $arguments)
     {
-        if ($method == 'new') {
-            return $this->new_record(...$arguments);
-        }
-
         if (
             method_exists(static::$query_class, $method)
             || str_starts_with($method, 'filter_by_')
@@ -556,7 +551,7 @@ abstract class Model extends Table implements ArrayAccess
      *
      * @retrun TValue
      */
-    protected function new_record(array $properties = []): ActiveRecord
+    public function new(array $properties = []): ActiveRecord
     {
         $class = static::$activerecord_class;
 

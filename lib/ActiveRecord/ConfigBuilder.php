@@ -41,12 +41,12 @@ use function get_debug_type;
 use function get_parent_class;
 use function ICanBoogie\pluralize;
 use function ICanBoogie\singularize;
+use function ICanBoogie\trim_suffix;
 use function ICanBoogie\underscore;
 use function is_a;
 use function is_string;
 use function preg_match;
 use function sprintf;
-use function str_ends_with;
 use function strrpos;
 use function substr;
 
@@ -410,9 +410,7 @@ final class ConfigBuilder
      */
     private function resolve_belong_to_accessor(string $local_key): string
     {
-        if (str_ends_with($local_key, '_id')) {
-            $local_key = substr($local_key, 0, -3);
-        }
+        $local_key = trim_suffix($local_key, '_id');
 
         assert($local_key !== '');
 
