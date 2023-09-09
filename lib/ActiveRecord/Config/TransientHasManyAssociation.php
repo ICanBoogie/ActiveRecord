@@ -14,9 +14,9 @@ final class TransientHasManyAssociation
 {
     /**
      * @param class-string<ActiveRecord> $associate
-     *     The associate ActiveRecord class or model identifier.
-     * @param class-string|non-empty-string|null $through
-     *     The pivot ActiveRecord class or model identifier.
+     *     The associate ActiveRecord class.
+     * @param class-string<ActiveRecord>|null $through
+     *     An optional pivot ActiveRecord class.
      */
     public function __construct(
         public readonly string $associate,
@@ -27,7 +27,14 @@ final class TransientHasManyAssociation
     ) {
         is_a($associate, ActiveRecord::class, true)
         or throw new InvalidArgumentException(
-            "Expected the name of a class extending ICanBoogie\ActiveRecord, given: $associate"
+            "Expected the name of a class extending ICanBoogie\ActiveRecord for \$associate, given: $associate"
         );
+
+        if ($through) {
+            is_a($through, ActiveRecord::class, true)
+            or throw new InvalidArgumentException(
+                "Expected the name of a class extending ICanBoogie\ActiveRecord for \$through, given: $through"
+            );
+        }
     }
 }

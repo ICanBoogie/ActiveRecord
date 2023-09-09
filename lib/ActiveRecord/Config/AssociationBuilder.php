@@ -50,11 +50,11 @@ final class AssociationBuilder
 
     /**
      * @param class-string<ActiveRecord> $associate
-     *     The associate ActiveRecord class or model identifier.
+     *     The associate ActiveRecord.
      * @param non-empty-string|null $as
      *     The name of the accessor.
-     * @param class-string|non-empty-string|null $through
-     *     The pivot ActiveRecord class or model identifier.
+     * @param class-string<ActiveRecord>|null $through
+     *     An optional ActiveRecord pivot.
      *
      * @return $this
      */

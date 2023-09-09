@@ -160,7 +160,7 @@ final class Fixtures
                         ->add_character('name'),
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many(Appointment::class, foreign_key: 'physician_id')
-                        ->has_many(Patient::class, through: 'appointments'),
+                        ->has_many(Patient::class, through: Appointment::class),
                 ),
                 'appointments' => $config->add_model(
                     id: 'appointments',
@@ -179,7 +179,7 @@ final class Fixtures
                         ->add_character('name'),
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many(Appointment::class, foreign_key: 'patient_id')
-                        ->has_many(Physician::class, foreign_key: 'patient_id', through: 'appointments'),
+                        ->has_many(Physician::class, foreign_key: 'patient_id', through: Appointment::class),
                 ),
                 default => throw new LogicException("We don't have that model: $id")
             };

@@ -27,5 +27,6 @@ final class TransientModelDefinition
         public readonly ?string $implements = null,
         public readonly string $connection = Config::DEFAULT_CONNECTION_ID,
     ) {
+        Assert::extends_model($this->model_class);
     }
 }

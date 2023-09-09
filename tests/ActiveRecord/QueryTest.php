@@ -35,7 +35,7 @@ final class QueryTest extends TestCase
     {
         parent::setUp();
 
-        [ , $models ] = Fixtures::only_models([ 'nodes', 'articles', 'subscribers', 'updates' ]);
+        [ , $models ] = Fixtures::only_models([ 'nodes', 'comments', 'articles', 'subscribers', 'updates' ]);
 
         $models->install();
 
