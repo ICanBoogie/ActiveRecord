@@ -5,9 +5,7 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ModelCollection;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Node;
-use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Fixtures;
 
 final class ModelExtendTest extends TestCase

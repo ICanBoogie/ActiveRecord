@@ -18,13 +18,12 @@ use ICanBoogie\ActiveRecord\RelationCollection;
 use ICanBoogie\ActiveRecord\RelationNotDefined;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Fixtures;
 
 final class HasManyRelationTest extends TestCase
 {
-    private ArticleModel $articles;
+    private Model $articles;
     private Model $comments;
 
     protected function setUp(): void

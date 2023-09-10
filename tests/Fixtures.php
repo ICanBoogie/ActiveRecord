@@ -12,29 +12,18 @@ use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use LogicException;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\ArticleQuery;
 use Test\ICanBoogie\Acme\Brand;
-use Test\ICanBoogie\Acme\BrandModel;
 use Test\ICanBoogie\Acme\Car;
-use Test\ICanBoogie\Acme\CarModel;
 use Test\ICanBoogie\Acme\Comment;
-use Test\ICanBoogie\Acme\CommentModel;
 use Test\ICanBoogie\Acme\Count;
-use Test\ICanBoogie\Acme\CountModel;
 use Test\ICanBoogie\Acme\Driver;
-use Test\ICanBoogie\Acme\DriverModel;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
-use Test\ICanBoogie\Acme\HasMany\AppointmentModel;
 use Test\ICanBoogie\Acme\HasMany\Patient;
-use Test\ICanBoogie\Acme\HasMany\PatientModel;
 use Test\ICanBoogie\Acme\HasMany\Physician;
-use Test\ICanBoogie\Acme\HasMany\PhysicianModel;
 use Test\ICanBoogie\Acme\Node;
-use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Acme\Subscriber;
-use Test\ICanBoogie\Acme\SubscriberModel;
 use Test\ICanBoogie\Acme\Update;
-use Test\ICanBoogie\Acme\UpdateModel;
 
 final class Fixtures
 {
@@ -80,7 +69,7 @@ final class Fixtures
                 ),
                 'articles' => $config->add_model(
                     activerecord_class: Article::class,
-                    model_class: ArticleModel::class,
+                    query_class: ArticleQuery::class,
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_character('body')
                         ->add_datetime('date', default: DateTime::CURRENT_TIMESTAMP)

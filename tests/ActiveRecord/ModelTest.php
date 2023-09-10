@@ -28,7 +28,6 @@ use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Count;
 use Test\ICanBoogie\Acme\CustomQuery;
 use Test\ICanBoogie\Acme\Node;
@@ -44,7 +43,7 @@ final class ModelTest extends TestCase
     private ConnectionCollection $connections;
     private ModelCollection $models;
     private Model $nodes;
-    private ArticleModel $articles;
+    private Model $articles;
     private Model $counts_model;
     private int $model_records_count;
 
@@ -307,48 +306,6 @@ final class ModelTest extends TestCase
             [ 'offset', [ '12' ] ]
 
         ];
-    }
-
-    public function test_has_scope(): void
-    {
-        $model = $this->articles;
-
-        $this->assertTrue($model->has_scope('ordered'));
-        $this->assertFalse($model->has_scope(uniqid()));
-    }
-
-    public function test_scope_as_property(): void
-    {
-        $a = $this->articles;
-        $q = $a->ordered;
-        $this->assertInstanceOf(Query::class, $q);
-
-        $record = $q->one;
-        $this->assertInstanceOf(ActiveRecord::class, $record);
-        $this->assertEquals('Lady Gaga', $record->title);
-    }
-
-    public function test_scope_as_method(): void
-    {
-        $a = $this->articles;
-        $q = $a->ordered(1);
-        $this->assertInstanceOf(Query::class, $q);
-
-        $record = $q->one;
-        $this->assertInstanceOf(ActiveRecord::class, $record);
-        $this->assertEquals('Madonna', $record->title);
-    }
-
-    public function test_scope_not_defined(): void
-    {
-        $this->expectException(ScopeNotDefined::class);
-        $this->articles->scope('undefined' . uniqid());
-    }
-
-    public function test_scope_not_defined_from_query(): void
-    {
-        $this->expectException(ScopeNotDefined::class);
-        $this->articles->ordered->undefined_scope();
     }
 
     /*
