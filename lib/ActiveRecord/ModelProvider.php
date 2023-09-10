@@ -11,22 +11,21 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord;
+
 /**
  * Provides models.
  */
 interface ModelProvider
 {
     /**
-     * Provides a model for a given model class.
+     * Returns the Model for an ActiveRecord.
      *
-     * @template T of Model
+     * @template T of ActiveRecord
      *
-     * @param class-string<T> $class
-     *     The class of the model.
+     * @param class-string<T> $activerecord_class
      *
-     * @phpstan-return T
-     *
-     * @throws ModelNotDefined if the model is not defined.
+     * @phpstan-return Model<int|string|string[], T>
      */
-    public function model_for_class(string $class): Model;
+    public function model_for_record(string $activerecord_class): Model;
 }

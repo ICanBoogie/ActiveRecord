@@ -26,10 +26,10 @@ use ICanBoogie\ActiveRecord\ScopeNotDefined;
 use ICanBoogie\ActiveRecord\TableDefinition;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
-use LogicException;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\Count;
 use Test\ICanBoogie\Acme\CountModel;
 use Test\ICanBoogie\Acme\CustomQuery;
 use Test\ICanBoogie\Acme\Node;
@@ -66,12 +66,12 @@ final class ModelTest extends TestCase
         $models = $this->models;
         $models->install();
 
-        $articles = $models->model_for_class(ArticleModel::class);
+        $articles = $models->model_for_record(Article::class);
         $articles->save([ 'title' => 'Madonna', 'body' => uniqid(), 'date' => '1958-08-16' ]);
         $articles->save([ 'title' => 'Lady Gaga', 'body' => uniqid(), 'date' => '1986-03-28' ]);
         $articles->save([ 'title' => 'Cat Power', 'body' => uniqid(), 'date' => '1972-01-21' ]);
 
-        $counts = $models->model_for_class(CountModel::class);
+        $counts = $models->model_for_record(Count::class);
         $names = explode('|', 'one|two|three|four');
 
         foreach ($names as $name) {
@@ -79,7 +79,7 @@ final class ModelTest extends TestCase
         }
 
         $this->articles = $articles;
-        $this->nodes = $models->model_for_class(NodeModel::class);
+        $this->nodes = $models->model_for_record(Node::class);
         $this->model_records_count = 3;
         $this->counts_model = $counts;
     }
@@ -448,7 +448,7 @@ EOT
 
             [
                 function (Model $m) {
-                    return $m->join(expression: 'INNER JOIN other USING(nid)');
+                    return $m->query()->join(expression: 'INNER JOIN other USING(nid)');
                 },
                 <<<EOT
 SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) INNER JOIN other USING(nid)
@@ -525,7 +525,7 @@ EOT
         $name = 't' . uniqid();
 
         $models = new ModelCollection($this->connections, [
-            new Config\ModelDefinition(
+            Node::class => new Config\ModelDefinition(
                 table: new TableDefinition(
                     name: $name,
                     schema: (new SchemaBuilder())
@@ -540,7 +540,7 @@ EOT
         ]);
 
         $models->install();
-        $model = $models->model_for_class(NodeModel::class);
+        $model = $models->model_for_record(Node::class);
 
         foreach ([ 'one', 'two', 'three', 'four' ] as $value) {
             $model->save([ 'title' => $value ]);

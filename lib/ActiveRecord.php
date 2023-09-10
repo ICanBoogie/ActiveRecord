@@ -14,7 +14,7 @@ namespace ICanBoogie;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
-use ICanBoogie\ActiveRecord\StaticModelResolver;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\Validate\ValidationErrors;
 use LogicException;
 use ReflectionException;
@@ -54,13 +54,13 @@ abstract class ActiveRecord extends Prototyped
     protected function get_model(): Model
     {
         return $this->model
-            ??= StaticModelResolver::model_for_activerecord($this::class);
+            ??= StaticModelProvider::model_for_record($this::class);
     }
 
     /**
      * @param ?Model<TKey,static> $model
      *     The model managing the active record. A {@link Model} instance can be specified as well as a model
-     *     identifier. If `$model` is null, the model will be resolved with {@link StaticModelResolver} when required.
+     *     identifier. If `$model` is null, the model will be resolved with {@link StaticModelProvider} when required.
      */
     public function __construct(Model $model = null)
     {

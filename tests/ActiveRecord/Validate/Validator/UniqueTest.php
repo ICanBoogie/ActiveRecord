@@ -40,7 +40,7 @@ final class UniqueTest extends TestCase
         [ , $models ] = Fixtures::only_models([ 'nodes' ]);
 
         $models->install();
-        $model = $models->model_for_class(NodeModel::class);
+        $model = $models->model_for_record(Node::class);
 
         $record = new Node($model);
         $record->title = $title = 'A title';

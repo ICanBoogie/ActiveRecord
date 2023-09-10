@@ -12,11 +12,11 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\HasManyRelation;
-use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RelationCollection;
 use ICanBoogie\ActiveRecord\RelationNotDefined;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\CommentModel;
@@ -32,7 +32,7 @@ final class HasManyRelationTest extends TestCase
         [ , $models ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
 
         $models->install();
-        $this->articles = $articles = $models->model_for_class(ArticleModel::class);
+        $this->articles = $articles = $models->model_for_record(Article::class);
 
         for ($i = 1; $i < 4; $i++) {
             $articles->save([
@@ -43,7 +43,7 @@ final class HasManyRelationTest extends TestCase
             ]);
         }
 
-        $this->comments = $comments = $models->model_for_class(CommentModel::class);
+        $this->comments = $comments = $models->model_for_record(Comment::class);
 
         for ($i = 1; $i < 13; $i++) {
             $comments->save([
@@ -64,7 +64,7 @@ final class HasManyRelationTest extends TestCase
         $this->assertInstanceOf(HasManyRelation::class, $relation);
         $this->assertSame('comments', $relation->as);
         $this->assertSame($this->articles, $relation->owner);
-        $this->assertSame(CommentModel::class, $relation->related);
+        $this->assertSame(Comment::class, $relation->related);
         $this->assertSame('nid', $relation->local_key);
         $this->assertSame('nid', $relation->foreign_key);
     }

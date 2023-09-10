@@ -25,8 +25,8 @@ abstract class Relation
     /**
      * @param Model $owner
      *     The parent model of the relation.
-     * @param class-string<Model> $related
-     *     The class of the related Model.
+     * @param class-string<ActiveRecord> $related
+     *     The class of the related ActiveRecord.
      * @param string $local_key
      *     The name of the column on the owner model.
      * @param string $foreign_key
@@ -39,8 +39,6 @@ abstract class Relation
         public readonly string $foreign_key,
         public readonly string $as,
     ) {
-        ActiveRecord\Config\Assert::extends_model($related);
-
         $prototype = Prototype::from($this->owner->activerecord_class);
         $this->alter_prototype($prototype, $this->as);
     }
@@ -74,20 +72,20 @@ abstract class Relation
     /**
      * Resolve the related model.
      */
-    protected function resolve_related(): Model
+    protected function resolve_related_model(): Model
     {
-        return $this->ensure_model($this->related);
+        return $this->model_for_activerecord($this->related);
     }
 
     /**
-     * @param Model|class-string<Model> $model_or_class
+     * @template T of ActiveRecord
+     *
+     * @param class-string<T> $activerecord_class
+     *
+     * @return Model<T>
      */
-    protected function ensure_model(Model|string $model_or_class): Model
+    protected function model_for_activerecord(string $activerecord_class): Model
     {
-        if ($model_or_class instanceof Model) {
-            return $model_or_class;
-        }
-
-        return $this->owner->models->model_for_class($model_or_class);
+        return $this->owner->models->model_for_record($activerecord_class);
     }
 }

@@ -216,7 +216,7 @@ $config = (new ActiveRecord\ConfigBuilder())
 $models = new ModelCollection($connections, $config->models);
 $models->install();
 
-$node_model = $models->model_for_class(NodeModel::class);
+$node_model = $models->model_for_record(Node::class);
 
 $node = new Node($node_model);
 //               ^^^^^^^^^^^
@@ -1242,14 +1242,15 @@ that did not publish articles are fetched as well.
 /* @var $users \ICanBoogie\ActiveRecord\Model */
 
 $online_article_count = $articles
-->select('user_id, COUNT(node_id) AS online_article_count')
-->filter_by_type_and_created_at('articles', new DateTime('-1 year'))
-->online
-->group('user_id');
+    ->select('user_id, COUNT(node_id) AS online_article_count')
+    ->filter_by_type_and_created_at('articles', new DateTime('-1 year'))
+    ->online
+    ->group('user_id');
 
 $users = $users
-->join(query: $online_article_count, on: 'user_id', mode: 'LEFT')
-->order('online_article_count DESC');
+    ->query()
+    ->join(query: $online_article_count, on: 'user_id', mode: 'LEFT')
+    ->order('online_article_count DESC');
 ```
 
 
@@ -1275,11 +1276,8 @@ The column character ":" is used to distinguish a model identifier from a raw fr
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 /* @var $contents_model \ICanBoogie\ActiveRecord\Model */
 
-$model->join(model: $contents_model);
-# or
-$model->join(model_id: 'contents');
-
-$model->join(model_id: 'contents', mode: 'LEFT', as: 'cnt');
+$model->query()->join(with: ContentRecord::class);
+$model->query()->join(with: ContentRecord::class, mode: 'LEFT', as: 'cnt');
 ```
 
 > **Note:** If a model identifier is provided, the model collection associated with the
@@ -1299,7 +1297,7 @@ final SQL statement.
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->join(expression: 'INNER JOIN `contents` USING(`nid`)');
+$model->query()->join(expression: 'INNER JOIN `contents` USING(`nid`)');
 ```
 
 
@@ -1561,7 +1559,7 @@ Of course, all query methods can be combined:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->filter_by_firstname('Ryan')->join(':content')->where('YEAR(date) = 2011')->count;
+$model->filter_by_firstname('Ryan')->join(with: Content::class)->where('YEAR(date) = 2011')->count;
 ```
 
 The `count()` method returns an array with the number of recond for each value of a field:
@@ -1618,7 +1616,7 @@ Of course, all query methods can be combined:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->filter_by_category('Toys')->join(':content')->where('YEAR(date) = 2011')->average('price');
+$model->filter_by_category('Toys')->join(with: Content::class)->where('YEAR(date) = 2011')->average('price');
 ```
 
 
@@ -1650,8 +1648,9 @@ to obtain only the online articles in a "music" category:
 /* @var $articles \ICanBoogie\ActiveRecord\Model */
 
 $taxonomy_query = $taxonomy_terms_nodes
-    ->join(model_id: 'taxonomy.vocabulary')
-    ->join(model_id: 'taxonomy_vocabulary/scopes')
+    ->query()
+    ->join(with: Vocabulary::class)
+    ->join(with: VocabularyScope::class)
     ->where([
 
         'termslug' => "music",
@@ -1703,7 +1702,7 @@ how to delete the nodes and comments of nodes belonging to user 123 and marked a
 
 $comments
     ->filter_by_is_deleted_and_uid(true, 123)
-    ->join(model_id: 'nodes')
+    ->join(with: Node::class)
     ->delete('comments, nodes');
 ```
 
@@ -1716,7 +1715,8 @@ example demonstrates how to delete nodes that lack content:
 /* @var $nodes \ICanBoogie\ActiveRecord\Model */
 
 $nodes
-    ->join(model_id: 'contents', mode: 'LEFT')
+    ->query()
+    ->join(with: Content::class, mode: 'LEFT')
     ->where('content.nid IS NULL')
     ->delete();
 ```
@@ -1813,9 +1813,9 @@ Joins:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->join(query: $subquery, on: 'nid');
-$model->join(model_id: 'contents');
-$model->join(expression: 'INNER JOIN contents USING(nid)');
+$model->query()->join(query: $subquery, on: 'nid');
+$model->query()->join(with: Content::class);
+$model->query()->join(expression: 'INNER JOIN contents USING(nid)');
 ```
 
 Retrieving data:

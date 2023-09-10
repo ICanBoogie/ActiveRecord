@@ -104,13 +104,13 @@ abstract class Model extends Table implements ArrayAccess
 
     private function resolve_parent(ModelProvider $models): ?Model
     {
-        $parent_class = get_parent_class($this);
+        $parent_class = get_parent_class($this->activerecord_class);
 
-        if ($parent_class === Model::class) {
+        if ($parent_class === ActiveRecord::class) {
             return null;
         }
 
-        return $models->model_for_class($parent_class);
+        return $models->model_for_record($parent_class);
     }
 
     /**
@@ -281,29 +281,6 @@ abstract class Model extends Table implements ArrayAccess
         }
 
         return $query;
-    }
-
-    /**
-     * @deprecated Use `$model->query()->join()` instead.
-     */
-    public function join(
-        string $expression = null,
-        Query $query = null,
-        string $model_class = null,
-        Model $model = null,
-        string $mode = 'INNER',
-        string $as = null,
-        string $on = null,
-    ): Query {
-        return $this->query()->join(
-            expression: $expression,
-            query: $query,
-            model_class: $model_class,
-            model: $model,
-            mode: $mode,
-            as: $as,
-            on: $on,
-        );
     }
 
     /**

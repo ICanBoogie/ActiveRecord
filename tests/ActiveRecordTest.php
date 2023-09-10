@@ -13,9 +13,9 @@ namespace Test\ICanBoogie;
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelResolver;
+use ICanBoogie\ActiveRecord\ModelProvider;
 use ICanBoogie\ActiveRecord\RecordNotValid;
-use ICanBoogie\ActiveRecord\StaticModelResolver;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Node;
@@ -37,7 +37,7 @@ final class ActiveRecordTest extends TestCase
     {
         [ , $models ] = Fixtures::only_models([ 'nodes' ]);
 
-        $this->model = $models->model_for_class(NodeModel::class);
+        $this->model = $models->model_for_record(Node::class);
     }
 
     public function test_should_use_provided_model(): void
@@ -48,12 +48,12 @@ final class ActiveRecordTest extends TestCase
 
     public function test_model_is_resolved_with_resolver(): void
     {
-        $resolver = $this->createMock(ModelResolver::class);
-        $resolver->method('model_for_activerecord')
+        $resolver = $this->createMock(ModelProvider::class);
+        $resolver->method('model_for_record')
             ->with(Node::class)
             ->willReturn($this->model);
 
-        StaticModelResolver::define(fn() => $resolver);
+        StaticModelProvider::define(fn() => $resolver);
 
         $record = new Node();
 

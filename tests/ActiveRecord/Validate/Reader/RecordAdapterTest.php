@@ -29,7 +29,7 @@ final class RecordAdapterTest extends TestCase
 
         $v = uniqid();
 
-        $record = new Node($models->model_for_class(NodeModel::class));
+        $record = new Node($models->model_for_record(Node::class));
         $record->title = $v;
 
         $reader = new RecordAdapter($record);

@@ -17,6 +17,7 @@ use ICanBoogie\Prototype\MethodNotDefined;
 use ICanBoogie\PrototypeTrait;
 use InvalidArgumentException;
 use IteratorAggregate;
+use JetBrains\PhpStorm\Deprecated;
 use LogicException;
 use ReflectionClass;
 use ReflectionMethod;
@@ -497,15 +498,16 @@ class Query implements IteratorAggregate
      * @param ?Query<ActiveRecord> $query
      *     A {@link Query} instance, it is rendered as a string and used as a subquery of the `JOIN` clause.
      *     The `$options` parameter can be used to customize the output.
+     * @param ?class-string<ActiveRecord> $with
      * @param ?class-string<Model> $model_class
      *     A model class.
      * @param ?Model $model
      *     A model.
-     * @param ?string $mode
+     * @param ?non-empty-string $mode
      *     Join mode. Default: "INNER"
-     * @param ?string $as
+     * @param ?non-empty-string $as
      *     The alias of the subquery. Default: The query's model alias.
-     * @param ?string $on
+     * @param ?non-empty-string $on
      *     The column on which to joint is created. Default: The query's model primary key.
      *
      * @return $this
@@ -533,8 +535,7 @@ class Query implements IteratorAggregate
     public function join(
         string $expression = null,
         Query $query = null,
-        string $model_class = null,
-        Model $model = null,
+        string $with = null,
         string $mode = 'INNER',
         string $as = null,
         string $on = null,
@@ -551,17 +552,15 @@ class Query implements IteratorAggregate
             return $this;
         }
 
-        if ($model_class) {
-            $model = $this->model->models->model_for_class($model_class);
+        if ($with) {
+            $model = $this->model->models->model_for_record($with);
+
+            $this->join_with_model($model, mode: $mode, as: $as, on: $on);
+
+            return $this;
         }
 
-        if (!$model) {
-            throw new LogicException("One of [ expression, query, model_id, model ] needs to be defined");
-        }
-
-        $this->join_with_model($model, mode: $mode, as: $as, on: $on);
-
-        return $this;
+        throw new LogicException("One of [ expression, query, record ] needs to be defined");
     }
 
     /**

@@ -3,8 +3,8 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelResolver;
-use ICanBoogie\ActiveRecord\StaticModelResolver;
+use ICanBoogie\ActiveRecord\ModelProvider;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 
@@ -12,7 +12,7 @@ final class StaticModelResolverTest extends TestCase
 {
     public function test_defined(): void
     {
-        $actual = StaticModelResolver::defined();
+        $actual = StaticModelProvider::defined();
 
         $this->assertNotNull($actual);
     }
@@ -23,15 +23,15 @@ final class StaticModelResolverTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $resolver = $this->createMock(ModelResolver::class);
+        $resolver = $this->createMock(ModelProvider::class);
         $resolver
-            ->method('model_for_activerecord')
+            ->method('model_for_record')
             ->with(Article::class)
             ->willReturn($model);
 
-        StaticModelResolver::define(fn() => $resolver);
+        StaticModelProvider::define(fn() => $resolver);
 
-        $actual = StaticModelResolver::model_for_activerecord(Article::class);
+        $actual = StaticModelProvider::model_for_record(Article::class);
 
         $this->assertSame($model, $actual);
     }

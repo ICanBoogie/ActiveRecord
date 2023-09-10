@@ -11,75 +11,70 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use Closure;
+use ICanBoogie\ActiveRecord;
+use LogicException;
+
 /**
  * Provides a {@link Model} instance.
  */
-class StaticModelProvider
+final class StaticModelProvider
 {
     /**
-     * @var callable|null {@link Model} provider
+     * @var (Closure(): ModelProvider)|null
      */
-    private static $provider;
+    private static Closure|null $proxy = null;
 
     /**
-     * Defines the {@link Model} provider.
+     * Defines {@link Model} resolver proxy.
      *
-     * @param callable $provider
+     * @param (callable(): ModelProvider) $proxy
      *
-     * @return callable|null The previous provider, or `null` if none was defined.
+     * @return (callable(): ModelProvider)|null The previous proxy, or `null` if none was defined.
      */
-    public static function define(callable $provider): ?callable
+    public static function define(callable $proxy): ?callable
     {
-        $previous = self::$provider;
+        $previous = self::$proxy;
 
-        self::$provider = $provider;
+        self::$proxy = $proxy(...);
 
         return $previous;
     }
 
     /**
-     * Returns the current provider.
+     * Returns the current resolver proxy.
      *
-     * @return callable|null
+     * @return (callable(): ModelProvider)|null
      */
     public static function defined(): ?callable
     {
-        return self::$provider;
+        return self::$proxy;
     }
 
     /**
-     * Undefine the provider.
+     * Undefines the resolver proxy.
      */
     public static function undefine(): void
     {
-        self::$provider = null;
+        self::$proxy = null;
     }
 
     /**
-     * Returns a {@link Model} instance using the provider.
+     * Returns the Model for an ActiveRecord.
      *
-     * @param string $id Model identifier.
+     * @template T of ActiveRecord
      *
-     * @return Model
+     * @param class-string<T> $activerecord_class
      *
-     * @throws ModelNotDefined if the model cannot be provided.
-     */
-    public static function provide(string $id): Model
+     * @phpstan-return Model<int|string|string[], T>
+     **/
+    public static function model_for_record(string $activerecord_class): Model
     {
-        $provider = self::$provider;
-
-        if (!$provider) {
-            throw new \LogicException(
-                "No provider is defined yet. Please define one with `StaticModelProvider::define(\$provider)`."
+        $proxy = self::$proxy
+            ?? throw new LogicException(
+                "No resolver proxy is defined yet. Please define one with `StaticModelProvider::define()`."
             );
-        }
 
-        $model = $provider($id);
-
-        if (!$model) {
-            throw new ModelNotDefined($id);
-        }
-
-        return $model;
+        return $proxy()->model_for_record($activerecord_class);
     }
 }

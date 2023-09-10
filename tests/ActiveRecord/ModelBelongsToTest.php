@@ -22,9 +22,9 @@ final class ModelBelongsToTest extends TestCase
 
         $models->install();
 
-        $drivers = $models->model_for_class(DriverModel::class);
-        $brands = $models->model_for_class(BrandModel::class);
-        $cars = $models->model_for_class(CarModel::class);
+        $drivers = $models->model_for_record(Driver::class);
+        $brands = $models->model_for_record(Brand::class);
+        $cars = $models->model_for_record(Car::class);
 
         /* @var $car Car */
         $car = $cars->new([ 'name' => '4two' ]);

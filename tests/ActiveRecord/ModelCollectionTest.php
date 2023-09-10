@@ -6,9 +6,8 @@ use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ModelCollection;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\ArticleModel;
-use Test\ICanBoogie\Acme\CommentModel;
-use Test\ICanBoogie\Acme\NodeModel;
+use Test\ICanBoogie\Acme\Comment;
+use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Fixtures;
 
 use function array_keys;
@@ -26,9 +25,9 @@ final class ModelCollectionTest extends TestCase
     public function test_get_definitions(): void
     {
         $expected = [
-            NodeModel::class,
-            ArticleModel::class,
-            CommentModel::class
+            Node::class,
+            Article::class,
+            Comment::class
         ];
 
         $actual = array_keys($this->sut->definitions);
@@ -39,9 +38,9 @@ final class ModelCollectionTest extends TestCase
     public function test_iterator(): void
     {
         $expected = [
-            NodeModel::class,
-            ArticleModel::class,
-            CommentModel::class
+            Node::class,
+            Article::class,
+            Comment::class
         ];
 
         $classes = [];
@@ -50,7 +49,7 @@ final class ModelCollectionTest extends TestCase
             $classes[] = $class;
             $model = $get();
 
-            $this->assertSame($model, $this->sut->model_for_class($class));
+            $this->assertSame($model, $this->sut->model_for_record($class));
         }
 
         $this->assertEquals($expected, $classes);
@@ -59,31 +58,24 @@ final class ModelCollectionTest extends TestCase
     public function test_model_for_class(): void
     {
         $classes = [
-            NodeModel::class,
-            ArticleModel::class,
-            CommentModel::class
+            Node::class,
+            Article::class,
+            Comment::class
         ];
 
         foreach ($classes as $class) {
-            $model = $this->sut->model_for_class($class);
+            $model = $this->sut->model_for_record($class);
 
-            $this->assertSame($class, $model::class);
+            $this->assertSame($class, $model->activerecord_class);
         }
     }
 
     public function test_model_for_class_should_instantiate_once(): void
     {
-        $expected = $this->sut->model_for_class(ArticleModel::class);
-        $actual = $this->sut->model_for_class(ArticleModel::class);
+        $expected = $this->sut->model_for_record(Article::class);
+        $actual = $this->sut->model_for_record(Article::class);
 
         $this->assertSame($actual, $expected);
-    }
-
-    public function test_model_for_activerecord(): void
-    {
-        $actual = $this->sut->model_for_activerecord(Article::class);
-
-        $this->assertInstanceOf(ArticleModel::class, $actual);
     }
 
     public function test_get_instances(): void
@@ -91,14 +83,14 @@ final class ModelCollectionTest extends TestCase
         $models = $this->sut;
         $this->assertEmpty($models->instances);
 
-        $nodes = $models->model_for_class(NodeModel::class);
-        $articles = $models->model_for_class(ArticleModel::class);
-        $comments = $models->model_for_class(CommentModel::class);
+        $nodes = $models->model_for_record(Node::class);
+        $articles = $models->model_for_record(Article::class);
+        $comments = $models->model_for_record(Comment::class);
 
         $expected = [
-            NodeModel::class => $nodes,
-            ArticleModel::class => $articles,
-            CommentModel::class => $comments,
+            Node::class => $nodes,
+            Article::class => $articles,
+            Comment::class => $comments,
         ];
 
         $actual = $models->instances;
@@ -115,9 +107,9 @@ final class ModelCollectionTest extends TestCase
     {
         $this->assertSame([
 
-            NodeModel::class => false,
-            ArticleModel::class => false,
-            CommentModel::class => false,
+            Node::class => false,
+            Article::class => false,
+            Comment::class => false,
 
         ], $this->sut->is_installed());
 
@@ -125,9 +117,9 @@ final class ModelCollectionTest extends TestCase
 
         $this->assertSame([
 
-            NodeModel::class => true,
-            ArticleModel::class => true,
-            CommentModel::class => true,
+            Node::class => true,
+            Article::class => true,
+            Comment::class => true,
 
         ], $this->sut->is_installed());
 
@@ -141,9 +133,9 @@ final class ModelCollectionTest extends TestCase
 
         $this->assertSame([
 
-            NodeModel::class => false,
-            ArticleModel::class => false,
-            CommentModel::class => false,
+            Node::class => false,
+            Article::class => false,
+            Comment::class => false,
 
         ], $this->sut->is_installed());
 

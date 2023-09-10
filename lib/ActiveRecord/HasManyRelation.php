@@ -25,8 +25,8 @@ class HasManyRelation extends Relation
     /**
      * @inheritdoc
      *
-     * @param class-string<Model>|null $through
-     *     A Model used as pivot.
+     * @param class-string<ActiveRecord>|null $through
+     *     The ActiveRecord used as pivot.
      */
     public function __construct(
         Model $owner,
@@ -36,10 +36,6 @@ class HasManyRelation extends Relation
         string $as,
         public readonly ?string $through = null,
     ) {
-        if ($through) {
-            ActiveRecord\Config\Assert::extends_model($through);
-        }
-
         parent::__construct(
             owner: $owner,
             related: $related,
@@ -61,12 +57,12 @@ class HasManyRelation extends Relation
         }
 
         return $this
-            ->resolve_related()
+            ->resolve_related_model()
             ->where([ $this->foreign_key => $record->{$this->local_key} ]);
     }
 
     /**
-     * @param class-string<Model> $through
+     * @param class-string<ActiveRecord> $through
      *
      * @return Query<ActiveRecord>
      *
@@ -78,13 +74,13 @@ class HasManyRelation extends Relation
         // $related === $r2_model
 
         $owner = $this->owner;
-        $related = $this->resolve_related();
-        $through_model = $this->ensure_model($through);
+        $related = $this->resolve_related_model();
+        $through_model = $this->model_for_activerecord($through);
         $r = $through_model->relations;
-        $r1 = $r->find(fn(Relation $r) => $r->related === $this->owner::class);
-        $r2 = $r->find(fn(Relation $r) => $r->related === $related::class)
+        $r1 = $r->find(fn(Relation $r) => $r->related === $this->owner->activerecord_class);
+        $r2 = $r->find(fn(Relation $r) => $r->related === $related->activerecord_class)
             ?? throw new LogicException("Unable to find related model for " . $related::class);
-        $r2_model = $this->ensure_model($r2->related);
+        $r2_model = $this->model_for_activerecord($r2->related);
 
         $q = $related->select("`{alias}`.*");
         // Because of the select, we need to set the mode otherwise an array would be

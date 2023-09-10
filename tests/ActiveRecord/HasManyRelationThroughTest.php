@@ -16,11 +16,8 @@ use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
-use Test\ICanBoogie\Acme\HasMany\AppointmentModel;
 use Test\ICanBoogie\Acme\HasMany\Patient;
-use Test\ICanBoogie\Acme\HasMany\PatientModel;
 use Test\ICanBoogie\Acme\HasMany\Physician;
-use Test\ICanBoogie\Acme\HasMany\PhysicianModel;
 use Test\ICanBoogie\Fixtures;
 
 use function array_column;
@@ -51,9 +48,9 @@ final class HasManyRelationThroughTest extends TestCase
          * NOTE: Relation and the prototype method are only setup when a model is loaded.
          */
 
-        $this->physicians = $models->model_for_class(PhysicianModel::class);
-        $this->patients = $models->model_for_class(PatientModel::class);
-        $this->appointments = $models->model_for_class(AppointmentModel::class);
+        $this->physicians = $models->model_for_record(Physician::class);
+        $this->patients = $models->model_for_record(Patient::class);
+        $this->appointments = $models->model_for_record(Appointment::class);
     }
 
     public function test_through_is_set(): void
@@ -77,7 +74,7 @@ final class HasManyRelationThroughTest extends TestCase
         $this->assertEquals('patients', $rp->as);
         $this->assertEquals('ph_id', $rp->local_key);
         $this->assertEquals('pa_id', $rp->foreign_key);
-        $this->assertEquals(AppointmentModel::class, $rp->through);
+        $this->assertEquals(Appointment::class, $rp->through);
     }
 
     public function test_physician_has_many_appointments(): void
