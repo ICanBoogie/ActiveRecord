@@ -532,6 +532,16 @@ EOT
         $model[1];
     }
 
+    public function test_regular_query(): void
+    {
+        $model = $this->nodes;
+        $query = $model->query();
+
+        $this->assertSame($model, $query->model);
+        // The method creates a new query
+        $this->assertNotSame($query, $model->query());
+    }
+
     public function test_custom_query(): void
     {
         $id = uniqid();
@@ -556,17 +566,5 @@ EOT
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));
         $this->assertInstanceOf(CustomQuery::class, $query2 = $model->query());
         $this->assertNotSame($query1, $query2);
-    }
-
-    public function test_query(): void
-    {
-        $model = $this->articles;
-        $query = $model->query("1 = 1");
-
-        $this->assertSame(
-            'SELECT * FROM `myprefix_articles` `article`' .
-            ' INNER JOIN `myprefix_nodes` `node` USING(`nid`) WHERE (1 = 1)',
-            (string)$query
-        );
     }
 }
