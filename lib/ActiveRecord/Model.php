@@ -115,17 +115,13 @@ class Model extends Table implements ArrayAccess
     }
 
     /**
-     * Handles query methods, dynamic filters, scopes, and relations.
+     * Handles query methods, dynamic filters, and relations.
      *
      * @inheritdoc
      */
     public function __call($method, $arguments)
     {
-        if (
-            method_exists($this->query_class, $method)
-            || str_starts_with($method, 'filter_by_')
-            || method_exists($this, 'scope_' . $method)
-        ) {
+        if (method_exists($this->query_class, $method) || str_starts_with($method, 'filter_by_')) {
             return $this->query()->$method(...$arguments);
         }
 
@@ -134,20 +130,6 @@ class Model extends Table implements ArrayAccess
         }
 
         return parent::__call($method, $arguments);
-    }
-
-    /**
-     * Overrides the method to handle scopes.
-     */
-    public function __get($property)
-    {
-        $method = 'scope_' . $property;
-
-        if (method_exists($this, $method)) {
-            return $this->$method($this->query());
-        }
-
-        return parent::__get($property);
     }
 
     /**
@@ -345,41 +327,6 @@ class Model extends Table implements ArrayAccess
     protected function get_one(): ActiveRecord
     {
         return $this->one();
-    }
-
-    /**
-     * Checks if the model has a given scope.
-     *
-     * Scopes are defined using method with the "scope_" prefix. As an example, the `visible`
-     * scope can be defined by implementing the `scope_visible` method.
-     *
-     * @param string $name Scope name.
-     *
-     * @return bool
-     */
-    public function has_scope(string $name): bool
-    {
-        return method_exists($this, 'scope_' . $name);
-    }
-
-    /**
-     * Invokes a given scope.
-     *
-     * @param string $scope_name Name of the scope to apply to the query.
-     * @param array $scope_args Arguments to forward to the scope method. The first argument must
-     * be a {@link Query} instance.
-     *
-     * @return Query<TValue>
-     * @throws ScopeNotDefined when the specified scope is not defined.
-     *
-     */
-    public function scope(string $scope_name, array $scope_args = []): Query
-    {
-        try {
-            return $this->{'scope_' . $scope_name}(...$scope_args);
-        } catch (MethodNotDefined) {
-            throw new ScopeNotDefined($scope_name, $this);
-        }
     }
 
     /**

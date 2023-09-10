@@ -1764,10 +1764,10 @@ $model->where([ '!order_count' => [ 1, 2, 3 ] ]); # NOT
 $model->filter_by_nid(1);
 $model->filter_by_site_id_and_language(1, 'fr');
 
-# Scopes
+# Query extensions
 
-$model->visible;
-$model->own->visible->ordered;
+$model->query()->visible;
+$model->query()->own->visible->ordered;
 ```
 
 Grouping and ordering:

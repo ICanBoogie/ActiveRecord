@@ -21,10 +21,11 @@
 - Models are now identified by their ActiveRecord, the `id` property has been removed.
 - `Table` requires a `Connection` instance in its constructor, the `CONNECTION` attribute is no longer replaced by a `Connection` instance.
 - Replaced attributes arrays to initialize tables and models with objects.
+- `ModelCollection` no longer implements `ArrayAccess`, and is read only. Use the `model_for_record()` to obtain a model.
 - Removed `Model::join()`.
 - Removed support for `implements` in `Table`.
 - Removed `get_model()`
-- `ModelCollection` no longer implements `ArrayAccess`, and is read only. Use the `model_for_record()` to obtain a model.
+- Removed the notion of scopes on Model, they are better replaced with Query extensions.
 
 ### Deprecated Features
 

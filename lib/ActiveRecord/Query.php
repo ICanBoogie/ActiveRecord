@@ -52,8 +52,7 @@ use const PHP_INT_MAX;
  * @property-read Model $model The target model of the query.
  * @property-read array $joints The joints collection from {@link join()}.
  * @property-read array $joints_args The arguments to the joints.
- * @property-read array $conditions The conditions collected from {@link where()}, {@link and()},
- * `filter_by_*`, and scopes.
+ * @property-read array $conditions The collected conditions.
  * @property-read array $conditions_args The arguments to the conditions.
  * @property-read array $having_args The arguments to the `HAVING` clause.
  * @property-read array $args Returns the arguments to the query.
@@ -106,7 +105,7 @@ class Query implements IteratorAggregate
     }
 
     /**
-     * The conditions collected from {@link where()}, {@link and()}, `filter_by_*`, and scopes.
+     * Collected conditions.
      *
      * @var array
      * @uses get_conditions
@@ -221,22 +220,6 @@ class Query implements IteratorAggregate
     }
 
     /**
-     * Adds support for model's scopes.
-     *
-     * @inheritdoc
-     */
-    public function __get($property)
-    {
-        $scopes = $this->get_model_scope();
-
-        if (\in_array($property, $scopes)) {
-            return $this->model->scope($property, [ $this ]);
-        }
-
-        return self::accessor_get($property);
-    }
-
-    /**
      * Override the method to handle magic 'filter_by_' methods.
      *
      * @inheritdoc
@@ -249,14 +232,6 @@ class Query implements IteratorAggregate
 
         if (\strpos($method, 'filter_by_') === 0) {
             return $this->dynamic_filter(substr($method, 10), $arguments); // 10 is for: strlen('filter_by_')
-        }
-
-        $scopes = $this->get_model_scope();
-
-        if (\in_array($method, $scopes)) {
-            \array_unshift($arguments, $this);
-
-            return $this->model->scope($method, $arguments);
         }
 
         try {
@@ -432,48 +407,6 @@ class Query implements IteratorAggregate
     private function resolve_statement(string $statement): string
     {
         return $this->model->resolve_statement($statement);
-    }
-
-    /**
-     * Cache available scopes by model class.
-     *
-     * @var array
-     */
-    private static $scopes_by_classes = [];
-
-    /**
-     * Return the available scopes for a model class.
-     *
-     * The method uses reflexion to find the scopes, the result is cached.
-     *
-     * @return array
-     *
-     * @throws \ReflectionException
-     */
-    private function get_model_scope()
-    {
-        $class = get_class($this->model);
-
-        if (isset(self::$scopes_by_classes[$class])) {
-            return self::$scopes_by_classes[$class];
-        }
-
-        $reflexion = new ReflectionClass($class);
-        $methods = $reflexion->getMethods(ReflectionMethod::IS_PROTECTED);
-
-        $scopes = [];
-
-        foreach ($methods as $method) {
-            $name = $method->name;
-
-            if (!str_starts_with($name, 'scope_')) {
-                continue;
-            }
-
-            $scopes[] = substr($name, 6);
-        }
-
-        return self::$scopes_by_classes[$class] = $scopes;
     }
 
     /**

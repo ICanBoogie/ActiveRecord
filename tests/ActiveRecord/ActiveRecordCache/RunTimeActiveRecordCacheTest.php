@@ -14,7 +14,6 @@ namespace Test\ICanBoogie\ActiveRecord\ActiveRecordCache;
 use ICanBoogie\ActiveRecord\ActiveRecordCache\RuntimeActiveRecordCache;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Fixtures;
 
 final class RunTimeActiveRecordCacheTest extends TestCase

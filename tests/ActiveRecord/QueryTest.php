@@ -16,7 +16,7 @@ use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\ArticleQuery;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\Subscriber;
 use Test\ICanBoogie\Acme\Update;
@@ -31,7 +31,7 @@ final class QueryTest extends TestCase
 {
     private const N = 10;
     private Model $nodes;
-    private ArticleModel $articles;
+    private Model $articles;
     private Model $updates;
     private Model $subscribers;
 
@@ -217,6 +217,23 @@ final class QueryTest extends TestCase
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` LEFT JOIN `subscribers` AS `sub` USING(`subscriber_id`)",
             (string)$updates->select('update_id, email')->join(with: Subscriber::class, mode: 'LEFT', as: 'sub')
+        );
+    }
+
+    public function test_query_extension(): void
+    {
+        $query = $this->articles->query();
+
+        $this->assertInstanceOf(ArticleQuery::class, $query);
+
+        $this->assertEquals(
+            "SELECT * FROM `articles` `article` INNER JOIN `nodes` `node` USING(`nid`) ORDER BY date DESC",
+            $query->ordered
+        );
+
+        $this->assertEquals(
+            "SELECT * FROM `articles` `article` INNER JOIN `nodes` `node` USING(`nid`) ORDER BY date ASC",
+            $query->ordered(1)
         );
     }
 }
