@@ -71,7 +71,7 @@ class Model extends Table implements ArrayAccess
     /**
      * @var class-string<Query<TValue>>
      */
-    public const query_class = Query::class;
+    public readonly string $query_class;
 
     /**
      * The relations of this model to other models.
@@ -95,6 +95,7 @@ class Model extends Table implements ArrayAccess
         private readonly ModelDefinition $definition
     ) {
         $this->activerecord_class = $this->definition->activerecord_class; // @phpstan-ignore-line
+        $this->query_class = $this->definition->query_class;
         $this->relations = new RelationCollection($this, $this->definition->association);
 
         $parent = $this->resolve_parent($models);
@@ -121,7 +122,7 @@ class Model extends Table implements ArrayAccess
     public function __call($method, $arguments)
     {
         if (
-            method_exists(static::query_class, $method)
+            method_exists($this->query_class, $method)
             || str_starts_with($method, 'filter_by_')
             || method_exists($this, 'scope_' . $method)
         ) {
@@ -273,7 +274,7 @@ class Model extends Table implements ArrayAccess
      */
     public function query(...$conditions_and_args): Query
     {
-        $class = static::query_class;
+        $class = $this->query_class;
         $query = new $class($this);
 
         if ($conditions_and_args) {

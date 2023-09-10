@@ -8,3 +8,4 @@ parameters:
   - "#generic class .+ActiveRecord does not specify its types#"
   - "#generic class .+Model does not specify its types#"
   - "#generic class .+Model but does not specify its types#"
+  - "#generic class .+Query but does not specify its types#"

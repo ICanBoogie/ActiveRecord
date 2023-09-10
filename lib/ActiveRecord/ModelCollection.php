@@ -51,10 +51,6 @@ class ModelCollection implements ModelProvider, ModelIterator
         public readonly ConnectionProvider $connections,
         public readonly array $definitions,
     ) {
-        foreach ($definitions as $activerecord_class => $definition) {
-            ActiveRecord\Config\Assert::extends_activerecord($activerecord_class);
-            ActiveRecord\Config\Assert::extends_activerecord($definition->activerecord_class);
-        }
     }
 
     public function model_for_record(string $activerecord_class): Model
