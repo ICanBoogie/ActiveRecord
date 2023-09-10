@@ -250,20 +250,13 @@ class Model extends Table implements ArrayAccess
     }
 
     /**
-     * @param mixed ...$conditions_and_args
+     * Returns a new query.
      *
      * @return Query<TValue>
      */
-    public function query(...$conditions_and_args): Query
+    public function query(): Query
     {
-        $class = $this->query_class;
-        $query = new $class($this);
-
-        if ($conditions_and_args) {
-            $query->where(...$conditions_and_args);
-        }
-
-        return $query;
+        return new $this->query_class($this);
     }
 
     /**
