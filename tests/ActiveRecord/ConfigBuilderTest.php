@@ -15,6 +15,7 @@ use Test\ICanBoogie\Acme\HasMany\Patient;
 use Test\ICanBoogie\Acme\HasMany\PatientModel;
 use Test\ICanBoogie\Acme\HasMany\Physician;
 use Test\ICanBoogie\Acme\HasMany\PhysicianModel;
+use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Fixtures;
 use Test\ICanBoogie\SetStateHelper;
@@ -29,12 +30,14 @@ final class ConfigBuilderTest extends TestCase
                 dsn: 'sqlite::memory:',
             )
             ->add_model(
+                activerecord_class: Node::class,
                 model_class: NodeModel::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_serial('nid', primary: true)
                     ->add_character('title'),
             )
             ->add_model(
+                activerecord_class: Article::class,
                 model_class: ArticleModel::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_text('body')
@@ -57,8 +60,8 @@ final class ConfigBuilderTest extends TestCase
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
             )
-            ->add_model(NodeModel::class)
-            ->add_model(ArticleModel::class)
+            ->add_model(Node::class)
+            ->add_model(Article::class)
             ->build();
 
         $schema = $config->models[Article::class]->table->schema;
@@ -79,9 +82,9 @@ final class ConfigBuilderTest extends TestCase
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
             )
-            ->add_model(PhysicianModel::class)
-            ->add_model(PatientModel::class)
-            ->add_model(AppointmentModel::class)
+            ->add_model(Physician::class)
+            ->add_model(Patient::class)
+            ->add_model(Appointment::class)
             ->build();
 
         $ph_def = $config->models[Physician::class];

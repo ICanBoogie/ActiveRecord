@@ -311,22 +311,20 @@ final class ConfigBuilder
     }
 
     /**
+     * @param class-string<ActiveRecord> $activerecord_class
      * @param class-string<Model> $model_class
      * @param (Closure(SchemaBuilder $schema): SchemaBuilder)|null $schema_builder
      */
     public function add_model( // @phpstan-ignore-line
-        string $model_class,
-        string|null $table_name = null,
-        string|null $alias = null,
+        string $activerecord_class,
+        string $model_class = Model::class,
+        ?string $table_name = null,
+        ?string $alias = null,
         Closure $schema_builder = null,
         Closure $association_builder = null,
         string $connection = Config::DEFAULT_CONNECTION_ID,
     ): self {
-        Assert::extends_model($model_class);
-
-        $activerecord_class = ActiveRecord\Model\Record::resolve_activerecord_class($model_class);
-
-        //
+        Assert::extends_activerecord($activerecord_class);
 
         [ $inner_schema_builder, $inner_association_builder ] = $this->create_builders($activerecord_class);
 
