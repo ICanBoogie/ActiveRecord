@@ -53,7 +53,6 @@ class ModelCollection implements ModelProvider, ModelIterator
     ) {
         foreach ($definitions as $activerecord_class => $definition) {
             ActiveRecord\Config\Assert::extends_activerecord($activerecord_class);
-            ActiveRecord\Config\Assert::extends_model($definition->model_class);
             ActiveRecord\Config\Assert::extends_activerecord($definition->activerecord_class);
         }
     }

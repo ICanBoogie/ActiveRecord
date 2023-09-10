@@ -11,17 +11,15 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Node;
-use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Acme\Subscriber;
-use Test\ICanBoogie\Acme\SubscriberModel;
 use Test\ICanBoogie\Acme\Update;
-use Test\ICanBoogie\Acme\UpdateModel;
 use Test\ICanBoogie\Fixtures;
 
 use function gmdate;
@@ -32,10 +30,10 @@ use function uniqid;
 final class QueryTest extends TestCase
 {
     private const N = 10;
-    private NodeModel $nodes;
+    private Model $nodes;
     private ArticleModel $articles;
-    private UpdateModel $updates;
-    private SubscriberModel $subscribers;
+    private Model $updates;
+    private Model $subscribers;
 
     protected function setUp(): void
     {

@@ -61,7 +61,7 @@ use function method_exists;
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
  */
 #[AllowDynamicProperties]
-abstract class Model extends Table implements ArrayAccess
+class Model extends Table implements ArrayAccess
 {
     /**
      * @var class-string<TValue>

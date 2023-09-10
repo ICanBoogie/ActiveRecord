@@ -30,10 +30,8 @@ use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
 use Test\ICanBoogie\Acme\Count;
-use Test\ICanBoogie\Acme\CountModel;
 use Test\ICanBoogie\Acme\CustomQuery;
 use Test\ICanBoogie\Acme\Node;
-use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Acme\SampleRecord;
 use Test\ICanBoogie\Fixtures;
 
@@ -45,9 +43,9 @@ final class ModelTest extends TestCase
 
     private ConnectionCollection $connections;
     private ModelCollection $models;
-    private NodeModel $nodes;
+    private Model $nodes;
     private ArticleModel $articles;
-    private CountModel $counts_model;
+    private Model $counts_model;
     private int $model_records_count;
 
     protected function setUp(): void
@@ -533,7 +531,7 @@ EOT
                         ->add_character('title')
                         ->build(),
                 ),
-                model_class: NodeModel::class,
+                model_class: Model::class,
                 activerecord_class: Node::class,
                 connection: Config::DEFAULT_CONNECTION_ID,
             )
@@ -589,7 +587,7 @@ EOT
                         ->add_serial('id', primary: true)
                         ->build()
                 ),
-                model_class: NodeModel::class,
+                model_class: Model::class,
                 activerecord_class: SampleRecord::class,
                 connection: Config::DEFAULT_CONNECTION_ID,
             )
