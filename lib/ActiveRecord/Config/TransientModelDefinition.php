@@ -18,11 +18,13 @@ final class TransientModelDefinition
     /**
      * @param class-string<Model> $model_class
      * @param class-string<ActiveRecord> $activerecord_class
+     * @param class-string<Query> $query_class
      */
-    public function __construct( // @phpstan-ignore-line
+    public function __construct(
         public Schema $schema,
         public readonly string $model_class,
         public readonly string $activerecord_class,
+        public readonly string $query_class,
         public readonly string $table_name,
         public readonly string $alias,
         public readonly string $connection = Config::DEFAULT_CONNECTION_ID,

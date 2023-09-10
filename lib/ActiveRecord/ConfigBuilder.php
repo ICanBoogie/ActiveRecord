@@ -181,6 +181,7 @@ final class ConfigBuilder
                 ),
                 model_class: $transient->model_class,
                 activerecord_class: $transient->activerecord_class,
+                query_class: $transient->query_class,
                 connection: $transient->connection,
                 association: $associations[$activerecord_class] ?? null,
             );
@@ -313,11 +314,13 @@ final class ConfigBuilder
     /**
      * @param class-string<ActiveRecord> $activerecord_class
      * @param class-string<Model> $model_class
+     * @param class-string<Query> $query_class
      * @param (Closure(SchemaBuilder $schema): SchemaBuilder)|null $schema_builder
      */
     public function add_model( // @phpstan-ignore-line
         string $activerecord_class,
         string $model_class = Model::class,
+        string $query_class = Query::class,
         ?string $table_name = null,
         ?string $alias = null,
         Closure $schema_builder = null,
@@ -366,6 +369,7 @@ final class ConfigBuilder
             schema: $schema,
             model_class: $model_class,
             activerecord_class: $activerecord_class,
+            query_class: $query_class,
             table_name: $table_name,
             alias: $alias ?? singularize($table_name),
             connection: $connection,

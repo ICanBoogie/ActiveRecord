@@ -533,6 +533,7 @@ EOT
                 ),
                 model_class: Model::class,
                 activerecord_class: Node::class,
+                query_class: Query::class,
                 connection: Config::DEFAULT_CONNECTION_ID,
             )
         ]);
@@ -589,10 +590,10 @@ EOT
                 ),
                 model_class: Model::class,
                 activerecord_class: SampleRecord::class,
+                query_class: CustomQuery::class,
                 connection: Config::DEFAULT_CONNECTION_ID,
             )
         ) extends Model {
-            public const query_class = CustomQuery::class;
         };
 
         $this->assertInstanceOf(CustomQuery::class, $query1 = $model->where('1 = 1'));
@@ -608,7 +609,7 @@ EOT
         $this->assertSame(
             'SELECT * FROM `myprefix_articles` `article`' .
             ' INNER JOIN `myprefix_nodes` `node` USING(`nid`) WHERE (1 = 1)',
-            (string) $query
+            (string)$query
         );
     }
 }
