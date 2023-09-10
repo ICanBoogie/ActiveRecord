@@ -42,7 +42,7 @@ final class HasManyRelationThroughTest extends TestCase
 
     protected function setUp(): void
     {
-        [ , $models ] = Fixtures::only_models([ 'physicians', 'appointments', 'patients' ]);
+        $models = Fixtures::only_models('physicians', 'appointments', 'patients');
 
         /*
          * NOTE: Relation and the prototype method are only setup when a model is loaded.

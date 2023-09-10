@@ -37,7 +37,7 @@ final class UniqueTest extends TestCase
 
     public function test_unique(): void
     {
-        [ , $models ] = Fixtures::only_models([ 'nodes' ]);
+        $models = Fixtures::only_models('nodes');
 
         $models->install();
         $model = $models->model_for_record(Node::class);

@@ -28,24 +28,19 @@ use Test\ICanBoogie\Acme\Update;
 final class Fixtures
 {
     /**
-     * @param string[] $model_ids
-     *     An array of model identifiers.
-     *
-     * @return array{ ConnectionCollection, ModelCollection }
+     * @param string ...$model_ids
+     *     Model identifiers.
      */
-    public static function only_models(array $model_ids): array
+    public static function only_models(string ...$model_ids): ModelCollection
     {
         $config = self::with_models(
             self::with_main_connection(new ConfigBuilder()),
             $model_ids
         )->build();
 
-        return [
+        $connections = new ConnectionCollection($config->connections);
 
-            $connections = new ConnectionCollection($config->connections),
-            new ModelCollection($connections, $config->models),
-
-        ];
+        return new ModelCollection($connections, $config->models);
     }
 
     public static function with_main_connection(ConfigBuilder $builder): ConfigBuilder
