@@ -25,7 +25,7 @@ final class RecordAdapterTest extends TestCase
 {
     public function test_adapter(): void
     {
-        [ , $models ] = Fixtures::only_models([ 'nodes' ]);
+        $models = Fixtures::only_models('nodes');
 
         $v = uniqid();
 

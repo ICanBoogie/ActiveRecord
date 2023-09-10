@@ -12,6 +12,7 @@
 - Added `SchemaBuilder` to build schema using a fluent API.
 - Added `through` option for `has_may` relationship.
 - Added a config builder.
+- The static methods `ActiveRecord::query()` and `where()` can be used to create a query directly from an ActiveRecord.
 
 ### Backward Incompatible Changes
 

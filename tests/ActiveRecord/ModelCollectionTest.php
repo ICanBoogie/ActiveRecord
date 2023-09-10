@@ -14,12 +14,11 @@ use function array_keys;
 
 final class ModelCollectionTest extends TestCase
 {
-    private ConnectionCollection $connections;
     private ModelCollection $sut;
 
     protected function setUp(): void
     {
-        [ $this->connections, $this->sut ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
+        $this->sut = Fixtures::only_models('nodes', 'articles', 'comments');
     }
 
     public function test_get_definitions(): void
@@ -96,11 +95,6 @@ final class ModelCollectionTest extends TestCase
         $actual = $models->instances;
 
         $this->assertEquals($expected, $actual);
-    }
-
-    public function test_get_connections(): void
-    {
-        $this->assertSame($this->connections, $this->sut->connections);
     }
 
     public function test_install(): void

@@ -28,7 +28,7 @@ final class HasManyRelationTest extends TestCase
 
     protected function setUp(): void
     {
-        [ , $models ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
+        $models = Fixtures::only_models('nodes', 'articles', 'comments');
 
         $models->install();
         $this->articles = $articles = $models->model_for_record(Article::class);

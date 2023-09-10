@@ -12,6 +12,7 @@
 namespace ICanBoogie;
 
 use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
@@ -40,6 +41,32 @@ use function is_numeric;
 abstract class ActiveRecord extends Prototyped
 {
     public const SAVE_SKIP_VALIDATION = 'skip_validation';
+
+    /**
+     * Returns a new query.
+     *
+     * @return Query<static>
+     *
+     * @uses Model::query()
+     */
+    final public static function query(): Query
+    {
+        return StaticModelProvider::model_for_record(static::class)->query();
+    }
+
+    /**
+     * Returns a new query with the WHERE clause initialized with the provided conditions and arguments.
+     *
+     * @param mixed ...$conditions_and_args
+     *
+     * @return Query<static>
+     *
+     * @uses Query::where()
+     */
+    final public static function where(...$conditions_and_args): Query
+    {
+        return self::query()->where(...$conditions_and_args);
+    }
 
     /**
      * Model managing the active record.

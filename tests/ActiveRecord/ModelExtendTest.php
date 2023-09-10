@@ -14,8 +14,7 @@ final class ModelExtendTest extends TestCase
 
     protected function setUp(): void
     {
-        [ , $this->models ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
-
+        $this->models = Fixtures::only_models('nodes', 'articles', 'comments');
         $this->models->install();
     }
 

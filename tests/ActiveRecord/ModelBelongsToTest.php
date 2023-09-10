@@ -18,7 +18,7 @@ final class ModelBelongsToTest extends TestCase
 {
     public function test_belongs_to(): void
     {
-        [ , $models ] = Fixtures::only_models([ 'drivers', 'brands', 'cars' ]);
+        $models = Fixtures::only_models('drivers', 'brands', 'cars');
 
         $models->install();
 
