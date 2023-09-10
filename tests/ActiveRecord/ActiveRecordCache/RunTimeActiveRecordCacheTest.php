@@ -23,7 +23,7 @@ final class RunTimeActiveRecordCacheTest extends TestCase
     {
         [ , $models ] = Fixtures::only_models([ 'nodes', 'articles', 'comments' ]);
 
-        $model = $models->model_for_class(ArticleModel::class);
+        $model = $models->model_for_record(Article::class);
         $primary = $model->primary;
         $key = 123;
 

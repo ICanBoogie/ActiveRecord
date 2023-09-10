@@ -24,9 +24,10 @@
 - Models are now identified by their class, the `id` property has been removed.
 - `Table` requires a `Connection` instance in its constructor, the `CONNECTION` attribute is no longer replaced by a `Connection` instance.
 - Replaced attributes arrays to initialize tables and models with objects.
-- Changed `Query::join()` and `Model::join()` signatures to enforce types.
+- Removed `Model::join()`.
 - Removed support for `implements` in `Table`.
-- `ModelCollection` no longer implements `ArrayAccess`, and is read only. Use the `model_for_class()` to obtain a model.
+- Removed `get_model()`
+- `ModelCollection` no longer implements `ArrayAccess`, and is read only. Use the `model_for_record()` to obtain a model.
 
 ### Deprecated Features
 

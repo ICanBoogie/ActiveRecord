@@ -60,12 +60,12 @@ final class ConfigBuilder
     private array $connections = [];
 
     /**
-     * @var array<class-string<Model>, TransientModelDefinition>
+     * @var array<class-string<ActiveRecord>, TransientModelDefinition>
      */
-    private array $transient_model_definitions_by_class = [];
+    private array $model_definitions = [];
 
     /**
-     * @var array<class-string<Model>, TransientAssociation>
+     * @var array<class-string<ActiveRecord>, TransientAssociation>
      *     Where _key_ is a model identifier.
      */
     private array $association = [];
@@ -82,7 +82,7 @@ final class ConfigBuilder
 
     private function validate_models(): void
     {
-        foreach ($this->transient_model_definitions_by_class as $definition) {
+        foreach ($this->model_definitions as $definition) {
             if (empty($this->connections[$definition->connection])) {
                 throw new InvalidConfig("Model '$definition->model_class' uses connection '$definition->connection', but it is not configured.");
             }
@@ -92,11 +92,11 @@ final class ConfigBuilder
     }
 
     /**
-     * @return array<class-string<Model>, Association>
+     * @return array<class-string<ActiveRecord>, Association>
      */
     private function build_associations(): array
     {
-        foreach ($this->transient_model_definitions_by_class as $definition) {
+        foreach ($this->model_definitions as $definition) {
             $parent = $this->resolve_parent_definition($definition);
 
             if (!$parent) {
@@ -127,8 +127,8 @@ final class ConfigBuilder
 
         $associations = [];
 
-        foreach ($this->association as $model_class => $association) {
-            $owner = $this->transient_model_definitions_by_class[$model_class];
+        foreach ($this->association as $activerecord_class => $association) {
+            $owner = $this->model_definitions[$activerecord_class];
 
             $belongs_to = array_map(
                 fn(TransientBelongsToAssociation $a): BelongsToAssociation => $this->resolve_belongs_to($owner, $a),
@@ -140,7 +140,7 @@ final class ConfigBuilder
                 $association->has_many
             );
 
-            $associations[$model_class] = new Association(
+            $associations[$activerecord_class] = new Association(
                 belongs_to: $belongs_to,
                 has_many: $has_many,
             );
@@ -151,29 +151,29 @@ final class ConfigBuilder
 
     private function resolve_parent_definition(TransientModelDefinition $definition): ?TransientModelDefinition
     {
-        $parent_class = get_parent_class($definition->model_class);
+        $parent_class = get_parent_class($definition->activerecord_class);
 
-        if ($parent_class === Model::class) {
+        if ($parent_class === ActiveRecord::class) {
             return null;
         }
 
-        return $this->transient_model_definitions_by_class[$parent_class]
-            ?? throw new LogicException("The model '$definition->model_class' extends '$parent_class' but there's no definition for it");
+        return $this->model_definitions[$parent_class]
+            ?? throw new LogicException("The '$definition->activerecord_class' extends '$parent_class' but there's no definition for it");
     }
 
     /**
      * Builds model configuration from model transient configurations and association configurations.
      *
-     * @param array<class-string<Model>, Association> $associations
+     * @param array<class-string<ActiveRecord>, Association> $associations
      *
-     * @return array<class-string<Model>, ModelDefinition>
+     * @return array<class-string<ActiveRecord>, ModelDefinition>
      */
     private function build_models(array $associations): array
     {
         $models = [];
 
-        foreach ($this->transient_model_definitions_by_class as $class => $transient) {
-            $models[$class] = new ModelDefinition(
+        foreach ($this->model_definitions as $activerecord_class => $transient) {
+            $models[$activerecord_class] = new ModelDefinition(
                 table: new TableDefinition(
                     name: $transient->table_name,
                     schema: $transient->schema,
@@ -182,7 +182,7 @@ final class ConfigBuilder
                 model_class: $transient->model_class,
                 activerecord_class: $transient->activerecord_class,
                 connection: $transient->connection,
-                association: $associations[$class] ?? null,
+                association: $associations[$activerecord_class] ?? null,
             );
         }
 
@@ -202,7 +202,7 @@ final class ConfigBuilder
         TransientModelDefinition $owner,
         TransientBelongsToAssociation $association
     ): BelongsToAssociation {
-        $associate = $this->model_definition_for_activerecord($association->associate);
+        $associate = $this->model_definitions[$association->associate];
         $foreign_key = $associate->schema->primary;
 
         if (!is_string($foreign_key)) {
@@ -221,7 +221,7 @@ final class ConfigBuilder
             ?? singularize($associate->alias);
 
         return new BelongsToAssociation(
-            $associate->model_class,
+            $associate->activerecord_class,
             $local_key,
             $foreign_key,
             $as,
@@ -232,7 +232,7 @@ final class ConfigBuilder
         TransientModelDefinition $owner,
         TransientHasManyAssociation $association
     ): HasManyAssociation {
-        $related = $this->model_definition_for_activerecord($association->associate);
+        $related = $this->model_definitions[$association->associate];
         $local_key = $association->local_key ?? $owner->schema->primary;
         $foreign_key = $association->foreign_key;
         $as = $association->as ?? pluralize($related->alias);
@@ -262,25 +262,16 @@ final class ConfigBuilder
         $through = null;
 
         if ($association->through) {
-            $through = $this->model_definition_for_activerecord($association->through);
+            $through = $this->model_definitions[$association->through];
         }
 
         return new HasManyAssociation(
-            $related->model_class,
+            $related->activerecord_class,
             $local_key,
             $foreign_key,
             $as,
-            $through?->model_class,
+            $through?->activerecord_class,
         );
-    }
-
-    private function model_definition_for_activerecord(string $activerecord_class): TransientModelDefinition
-    {
-        $model_class = $this->model_class_by_active_record_class[$activerecord_class]
-            ?? throw new LogicException("No model defined for ActiveRecord class '$activerecord_class'");
-
-        return $this->transient_model_definitions_by_class[$model_class]
-            ?? throw new LogicException("No model defined for Model class '$model_class'");
     }
 
     /**
@@ -320,11 +311,6 @@ final class ConfigBuilder
     }
 
     /**
-     * @var array<class-string<ActiveRecord>, class-string<Model>>
-     */
-    private array $model_class_by_active_record_class = []; // @phpstan-ignore-line
-
-    /**
      * @param class-string<Model> $model_class
      * @param (Closure(SchemaBuilder $schema): SchemaBuilder)|null $schema_builder
      */
@@ -339,8 +325,6 @@ final class ConfigBuilder
         Assert::extends_model($model_class);
 
         $activerecord_class = ActiveRecord\Model\Record::resolve_activerecord_class($model_class);
-
-        $this->model_class_by_active_record_class[$activerecord_class] = $model_class;
 
         //
 
@@ -374,13 +358,13 @@ final class ConfigBuilder
             $association_builder($inner_association_builder);
         }
 
-        $this->association[$model_class] = $inner_association_builder->build();
+        $this->association[$activerecord_class] = $inner_association_builder->build();
 
         // transient model
 
         $table_name ??= self::resolve_table_name($activerecord_class);
 
-        $this->transient_model_definitions_by_class[$model_class] = new TransientModelDefinition(
+        $this->model_definitions[$activerecord_class] = new TransientModelDefinition(
             schema: $schema,
             model_class: $model_class,
             activerecord_class: $activerecord_class,

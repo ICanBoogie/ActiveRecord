@@ -7,9 +7,13 @@ use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\HasMany\Appointment;
 use Test\ICanBoogie\Acme\HasMany\AppointmentModel;
+use Test\ICanBoogie\Acme\HasMany\Patient;
 use Test\ICanBoogie\Acme\HasMany\PatientModel;
+use Test\ICanBoogie\Acme\HasMany\Physician;
 use Test\ICanBoogie\Acme\HasMany\PhysicianModel;
 use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Fixtures;
@@ -38,7 +42,7 @@ final class ConfigBuilderTest extends TestCase
             )
             ->build();
 
-        $schema = $config->models[ArticleModel::class]->table->schema;
+        $schema = $config->models[Article::class]->table->schema;
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
@@ -57,7 +61,7 @@ final class ConfigBuilderTest extends TestCase
             ->add_model(ArticleModel::class)
             ->build();
 
-        $schema = $config->models[ArticleModel::class]->table->schema;
+        $schema = $config->models[Article::class]->table->schema;
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
@@ -80,17 +84,17 @@ final class ConfigBuilderTest extends TestCase
             ->add_model(AppointmentModel::class)
             ->build();
 
-        $ph_def = $config->models[PhysicianModel::class];
-        $ap_def = $config->models[AppointmentModel::class];
+        $ph_def = $config->models[Physician::class];
+        $ap_def = $config->models[Appointment::class];
 
         $this->assertNotNull($ap_def->association);
         $this->assertEquals([
-            new Config\BelongsToAssociation(PhysicianModel::class, 'physician_id', 'ph_id', 'physician'),
-            new Config\BelongsToAssociation(PatientModel::class, 'patient_id', 'pa_id', 'patient'),
+            new Config\BelongsToAssociation(Physician::class, 'physician_id', 'ph_id', 'physician'),
+            new Config\BelongsToAssociation(Patient::class, 'patient_id', 'pa_id', 'patient'),
         ], $ap_def->association->belongs_to);
         $this->assertEquals([
-            new Config\HasManyAssociation(AppointmentModel::class, 'ph_id', 'physician_id', 'appointments', null),
-            new Config\HasManyAssociation(PatientModel::class, 'ph_id', 'pa_id', 'patients', AppointmentModel::class),
+            new Config\HasManyAssociation(Appointment::class, 'ph_id', 'physician_id', 'appointments', null),
+            new Config\HasManyAssociation(Patient::class, 'ph_id', 'pa_id', 'patients', Appointment::class),
         ], $ph_def->association->has_many);
     }
 

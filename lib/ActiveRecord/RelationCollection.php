@@ -20,6 +20,7 @@ use ICanBoogie\OffsetNotWritable;
  * Relation collection of a model.
  *
  * @implements ArrayAccess<string, Relation>
+ *     Where _key_ is a getter name e.g. 'comments'
  */
 class RelationCollection implements ArrayAccess
 {
@@ -31,9 +32,6 @@ class RelationCollection implements ArrayAccess
      */
     private array $relations;
 
-    /**
-     * @param Model<int|string|string[], ActiveRecord<int|string|string[]>> $model The parent model.
-     */
     public function __construct(
         public readonly Model $model,
         ?ActiveRecord\Config\Association $association,
@@ -109,7 +107,7 @@ class RelationCollection implements ArrayAccess
     /**
      * Adds a {@link BelongsToRelation} relation.
      *
-     * @param class-string<Model> $related
+     * @param class-string<ActiveRecord> $related
      */
     public function belongs_to(
         string $related,
@@ -129,8 +127,8 @@ class RelationCollection implements ArrayAccess
     /**
      * Adds a {@link HasManyRelation} relation.
      *
-     * @param class-string<Model> $related
-     * @param class-string<Model>|null $through
+     * @param class-string<ActiveRecord> $related
+     * @param class-string<ActiveRecord>|null $through
      */
     public function has_many(
         string $related,

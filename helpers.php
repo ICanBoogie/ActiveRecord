@@ -12,20 +12,6 @@
 namespace ICanBoogie\ActiveRecord;
 
 /**
- * Returns a given model.
- *
- * @param string $id Model identifier.
- *
- * @return Model
- *
- * @throws ModelNotDefined if the model cannot be found.
- */
-function get_model(string $id): Model
-{
-	return StaticModelProvider::provide($id);
-}
-
-/**
  * Extract the charset and collate from a charset/collate union.
  *
  * @param string $charset_and_collate

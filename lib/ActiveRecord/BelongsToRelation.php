@@ -40,7 +40,7 @@ class BelongsToRelation extends Relation
             throw new LogicException("Unable to establish relation, '$local_key' is empty.");
         }
 
-        return $this->resolve_related()[$id];
+        return $this->resolve_related_model()[$id];
     }
 
     /**

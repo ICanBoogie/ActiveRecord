@@ -17,6 +17,7 @@ final class TransientModelDefinition
 {
     /**
      * @param class-string<Model> $model_class
+     * @param class-string<ActiveRecord> $activerecord_class
      */
     public function __construct( // @phpstan-ignore-line
         public Schema $schema,

@@ -11,15 +11,16 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleModel;
+use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\NodeModel;
+use Test\ICanBoogie\Acme\Subscriber;
 use Test\ICanBoogie\Acme\SubscriberModel;
+use Test\ICanBoogie\Acme\Update;
 use Test\ICanBoogie\Acme\UpdateModel;
 use Test\ICanBoogie\Fixtures;
 
@@ -44,10 +45,10 @@ final class QueryTest extends TestCase
 
         $models->install();
 
-        $this->nodes = $models->model_for_class(NodeModel::class);
-        $this->articles = $models->model_for_class(ArticleModel::class);
-        $this->updates = $models->model_for_class(UpdateModel::class);
-        $this->subscribers = $models->model_for_class(SubscriberModel::class);
+        $this->nodes = $models->model_for_record(Node::class);
+        $this->articles = $models->model_for_record(Article::class);
+        $this->updates = $models->model_for_record(Update::class);
+        $this->subscribers = $models->model_for_record(Subscriber::class);
 
         for ($i = 0; $i < self::N; $i++) {
             $properties = [
@@ -159,6 +160,7 @@ final class QueryTest extends TestCase
             ->order('updated_at DESC');
 
         $subscriber_query = $subscribers
+            ->query()
             ->join(query: $update_query, on: 'subscriber_id')
             ->group("`{alias}`.subscriber_id");
 
@@ -184,6 +186,7 @@ final class QueryTest extends TestCase
             ->order('updated_at DESC');
 
         $subscriber_query = $subscribers
+            ->query()
             ->join(query: $update_query, on: 'subscriber_id')
             ->filter_by_email('person@example.com')
             ->group("`{alias}`.subscriber_id");
@@ -200,9 +203,8 @@ final class QueryTest extends TestCase
     public function test_join_with_model(): void
     {
         $updates = $this->updates;
-        $subscribers = $this->subscribers;
 
-        $actual = (string)$updates->select('update_id, email')->join(model: $subscribers);
+        $actual = (string)$updates->select('update_id, email')->join(with: Subscriber::class);
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `subscriber` USING(`subscriber_id`)",
@@ -211,12 +213,12 @@ final class QueryTest extends TestCase
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `sub` USING(`subscriber_id`)",
-            (string)$updates->select('update_id, email')->join(model: $subscribers, as: 'sub')
+            (string)$updates->select('update_id, email')->join(with: Subscriber::class, as: 'sub')
         );
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` LEFT JOIN `subscribers` AS `sub` USING(`subscriber_id`)",
-            (string)$updates->select('update_id, email')->join(model: $subscribers, mode: 'LEFT', as: 'sub')
+            (string)$updates->select('update_id, email')->join(with: Subscriber::class, mode: 'LEFT', as: 'sub')
         );
     }
 }
