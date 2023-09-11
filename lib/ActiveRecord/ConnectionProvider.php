@@ -19,9 +19,11 @@ interface ConnectionProvider
     /**
      * Provides a connection for a given identifier.
      *
-     * @param string $id Connection identifier
+     * @param non-empty-string $id
+     *     A connection identifier.
      *
-     * @throws ConnectionNotDefined if the connection is not defined.
+     * @throws ConnectionNotDefined
+     * @throws ConnectionNotEstablished
      */
     public function connection_for_id(string $id): Connection;
 }

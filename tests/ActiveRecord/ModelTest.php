@@ -101,7 +101,7 @@ final class ModelTest extends TestCase
         $model = $this->nodes;
 
         $this->assertSame($models, $model->models);
-        $this->assertSame($this->connections['primary'], $model->connection);
+        $this->assertSame($this->connections->connection_for_id('primary'), $model->connection);
         $this->assertSame(self::PREFIX . '_' . 'nodes', $model->name);
         $this->assertSame('nodes', $model->unprefixed_name);
     }
@@ -545,7 +545,7 @@ EOT
     {
         $id = uniqid();
         $model = new class(
-            $this->connections['primary'],
+            $this->connections->connection_for_id('primary'),
             $this->models,
             new ModelDefinition(
                 table: new TableDefinition(

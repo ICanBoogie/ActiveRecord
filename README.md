@@ -1900,61 +1900,21 @@ interface and use the method `connection_for_id()`.
 ```php
 <?php
 
+use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 
 $connections = new ConnectionCollection([
 
-    'one' => [
-
-        'dsn' => 'sqlite::memory:'
-    ],
-
-    'bad' => [
-
-        'dsn' => 'mysql:dbname=bad_database' . uniqid()
-    ]
+    new ConnectionDefinition(id: 'read', dsn: 'sqlite::memory:'),
+    new ConnectionDefinition(id: 'write', dsn: 'mysql:dbname=my_database'),
 
 ]);
 
-$connection = $connections->connection_for_id('one');
+$connection = $connections->connection_for_id('read');
 ```
 
-Or after:
-
-```php
-<?php
-
-$connections['two'] = [
-
-    'dsn' => 'mysql:dbname=example',
-    'username' => 'root',
-    'password' => 'root'
-
-];
-```
-
-You can modify a connection definition until it is established. A [ConnectionAlreadyEstablished][]
-exception is thrown in attempt to modify the definition of an already established connection.
-
-
-
-
-
-#### Obtaining a database connection
-
-[ConnectionCollection][] instances are used as arrays. For instance, this is how you obtain a [Connection][]
-instance, which represents a database connection:
-
-```php
-<?php
-
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
-
-$one = $connections['one'];
-```
-
-Database connections are created on demand, so that you can define a hundred of them and they
-will only be established when needed.
+Database connections are created on demand, you can define a hundred of them, but they
+are only established when needed.
 
 A [ConnectionNotDefined][] exception is thrown in attempt to obtain a connection
 that is not defined.
@@ -1965,31 +1925,14 @@ that is not defined.
 
 #### Checking defined connections
 
-Because [ConnectionCollection][] instances are used as arrays, the `isset()` function is used to check
-if a connection is defined.
-
 ```php
 <?php
 
 /* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
 
-if (isset($connections['one']))
+if (isset($connections->definitions['one']))
 {
     echo "The connection 'one' is defined.\n";
-}
-```
-
-The `definitions` magic property returns the current connection definitions. The property is
-_read-only_.
-
-```php
-<?php
-
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
-
-foreach ($connections->definitions as $id => $definition)
-{
-    echo "The connection '$id' is defined.\n";
 }
 ```
 
