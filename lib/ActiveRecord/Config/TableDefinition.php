@@ -1,6 +1,8 @@
 <?php
 
-namespace ICanBoogie\ActiveRecord;
+namespace ICanBoogie\ActiveRecord\Config;
+
+use ICanBoogie\ActiveRecord\Schema;
 
 use function ICanBoogie\singularize;
 use function strrpos;

@@ -15,6 +15,7 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ActiveRecordCache;
 use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\Config\ModelDefinition;
+use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\Model;
@@ -22,8 +23,6 @@ use ICanBoogie\ActiveRecord\ModelCollection;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
-use ICanBoogie\ActiveRecord\ScopeNotDefined;
-use ICanBoogie\ActiveRecord\TableDefinition;
 use ICanBoogie\DateTime;
 use ICanBoogie\OffsetNotWritable;
 use PHPUnit\Framework\TestCase;
@@ -481,7 +480,7 @@ EOT
 
         $models = new ModelCollection($this->connections, [
             Node::class => new Config\ModelDefinition(
-                table: new TableDefinition(
+                table: new Config\TableDefinition(
                     name: $name,
                     schema: (new SchemaBuilder())
                         ->add_serial('nid', primary: true)
