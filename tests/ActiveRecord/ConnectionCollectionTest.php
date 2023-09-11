@@ -53,22 +53,27 @@ final class ConnectionCollectionTest extends TestCase
 
     public function test_iterator(): void
     {
-        $connections = $this->connections;
-        $names = [];
+        $connections = new ConnectionCollection([
+            new ConnectionDefinition(id: 'one', dsn: 'sqlite::memory:'),
+            new ConnectionDefinition(id: 'two', dsn: 'sqlite::memory:'),
+        ]);
 
-        foreach ($connections as $id => $definition) {
-            $names[] = $id;
+        $actual = [];
+
+        foreach ($connections->connection_iterator() as $id => $defined) {
+            $actual[$id] = $defined->established;
+
+            $this->assertEquals($id, $defined->connect()->id);
         }
 
-        $this->assertEmpty($names);
-        $connection = $connections->connection_for_id('one');
+        $this->assertEquals([ 'one' => false, 'two' => false ], $actual);
 
-        foreach ($connections as $id => $c) {
-            $names[] = $id;
-            $this->assertSame($connection, $c);
+        $actual = [];
+
+        foreach ($connections->connection_iterator() as $id => $defined) {
+            $actual[$id] = $defined->established;
         }
 
-        $this->assertCount(1, $names);
-        $this->assertEquals([ 'one' ], $names);
+        $this->assertEquals([ 'one' => true, 'two' => true ], $actual);
     }
 }

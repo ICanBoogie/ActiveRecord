@@ -11,30 +11,16 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ArrayIterator;
-use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
-use IteratorAggregate;
 use PDOException;
-use Traversable;
 
 use function ICanBoogie\iterable_to_dictionary;
 
 /**
- * Connection collection.
- *
- * @property-read Connection[] $established Established connections.
- *
- * @implements IteratorAggregate<string, Connection>
+ * A collection of connections.
  */
-class ConnectionCollection implements IteratorAggregate, ConnectionProvider
+class ConnectionCollection implements ConnectionProvider, ConnectionIterator
 {
-    /**
-     * @uses get_definitions
-     * @uses get_established
-     */
-    use AccessorTrait;
-
     /**
      * @var array<non-empty-string, ConnectionDefinition>
      *     Where _key_ is a connection identifier.
@@ -50,19 +36,11 @@ class ConnectionCollection implements IteratorAggregate, ConnectionProvider
     private array $established = [];
 
     /**
-     * @return array<string, Connection>
-     */
-    private function get_established(): array
-    {
-        return $this->established;
-    }
-
-    /**
      * @param ConnectionDefinition[] $definitions
      */
     public function __construct(iterable $definitions)
     {
-        $this->definitions = iterable_to_dictionary($definitions, fn (ConnectionDefinition $d) => $d->id);
+        $this->definitions = iterable_to_dictionary($definitions, fn(ConnectionDefinition $d) => $d->id);
     }
 
     public function connection_for_id(string $id): Connection
@@ -90,13 +68,14 @@ class ConnectionCollection implements IteratorAggregate, ConnectionProvider
         }
     }
 
-    /**
-     * Returns an iterator for established connections.
-     *
-     * @return Traversable<string, Connection>
-     */
-    public function getIterator(): Traversable
+    public function connection_iterator(): iterable
     {
-        return new ArrayIterator($this->established);
+        foreach ($this->definitions as $id => $definition) {
+            yield $id => new DefinedConnection(
+                $definition,
+                isset($this->established[$id]),
+                $this
+            );
+        }
     }
 }
