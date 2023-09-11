@@ -12,11 +12,11 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
+use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\Table;
-use ICanBoogie\ActiveRecord\TableDefinition;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 

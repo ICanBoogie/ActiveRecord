@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use ICanBoogie\Prototyped;
 use InvalidArgumentException;
 use LogicException;

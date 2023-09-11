@@ -5,7 +5,6 @@ namespace ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
-use ICanBoogie\ActiveRecord\TableDefinition;
 
 /**
  * @internal
