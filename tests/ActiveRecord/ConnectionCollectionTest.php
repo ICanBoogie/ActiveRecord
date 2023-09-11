@@ -12,12 +12,8 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
-use ICanBoogie\ActiveRecord\Connection;
-use ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
-use ICanBoogie\ActiveRecord\ConnectionNotDefined;
 use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 use function uniqid;
@@ -29,118 +25,30 @@ final class ConnectionCollectionTest extends TestCase
     protected function setUp(): void
     {
         $this->connections = new ConnectionCollection([
-            'one' => new ConnectionDefinition(id: 'one', dsn: 'sqlite::memory:'),
-            'bad' => new ConnectionDefinition(id: 'bad', dsn: 'mysql:dbname=bad_database' . uniqid()),
+            new ConnectionDefinition(id: 'one', dsn: 'sqlite::memory:'),
+            new ConnectionDefinition(id: 'bad', dsn: 'mysql:dbname=bad_database' . uniqid()),
         ]);
     }
 
     public function test_connection_for_id(): void
     {
-        $actual = $this->connections->connection_for_id('one');
+        $get = $this->connections->connection_for_id(...);
+        $actual = $get('one');
 
-        $this->assertInstanceOf(Connection::class, $actual);
         $this->assertSame('one', $actual->id);
+        $this->assertSame($actual, $get('one'));
     }
 
-    public function test_should_get_definitions(): void
+    public function test_definitions_are_indexed_by_id(): void
     {
-        $names = [];
-
-        foreach ($this->connections->definitions as $name => $definition) {
-            $names[] = $name;
-        }
-
-        $this->assertEquals([ 'one', 'bad' ], $names);
+        $this->assertEquals([ 'one', 'bad' ], array_keys($this->connections->definitions));
     }
 
-    public function test_should_get_connection(): void
-    {
-        $connection = $this->connections['one'];
-        $this->assertInstanceOf(Connection::class, $connection);
-    }
-
-    /**
-     * @depends test_should_get_connection
-     */
-    public function test_should_throw_an_exception_on_setting_established_connection(): void
-    {
-        $this->assertInstanceOf(Connection::class, $this->connections['one']);
-        $this->expectException(ConnectionAlreadyEstablished::class);
-        $this->connections['one'] = [ 'dsn' => 'sqlite::memory:' ];
-    }
-
-    public function test_should_throw_an_exception_on_getting_undefined_connection(): void
-    {
-        $this->expectException(ConnectionNotDefined::class);
-        $this->connections['undefined'];
-    }
-
-    public function test_should_set_connection_while_it_is_not_established(): void
-    {
-        $this->connections['two'] = new ConnectionDefinition('two', 'sqlite::memory:');
-
-        $this->assertInstanceOf(Connection::class, $this->connections['two']);
-    }
-
-    public function test_should_throw_an_exception_on_setting_invalid_connection(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->connections['invalid'] = [
-
-            'd_s_n' => 'sqlite::memory:'
-        ];
-    }
-
-    public function test_should_unset_connection_definition(): void
-    {
-        $this->connections['two'] = new ConnectionDefinition('two', 'sqlite::memory:');
-
-        unset($this->connections['two']);
-
-        $this->assertFalse(isset($this->connections['two']));
-    }
-
-    /**
-     * @depends test_should_get_connection
-     */
-    public function test_should_throw_exception_on_unsetting_established_connection(): void
-    {
-        $this->connections['one'];
-        $this->expectException(ConnectionAlreadyEstablished::class);
-        unset($this->connections['one']);
-    }
-
-    public function testConnectionNotDefined(): void
-    {
-        $this->expectException(ConnectionNotDefined::class);
-        $this->connections['two'];
-    }
-
-    public function testConnectionNotEstablished(): void
+    public function test_should_fail_to_establish_connection(): void
     {
         $this->expectException(ConnectionNotEstablished::class);
-        $this->connections['bad'];
-    }
 
-    public function test_get_established(): void
-    {
-        $connections = new ConnectionCollection([
-
-            'one' => new ConnectionDefinition('one', 'sqlite::memory:'),
-            'two' => new ConnectionDefinition('two', 'sqlite::memory:'),
-
-        ]);
-
-        $this->assertEmpty($connections->established);
-
-        $connection = $connections['one'];
-        $this->assertSame($connection, $connections['one']);
-
-        $this->assertSame([
-
-            'one' => $connection
-
-        ], $connections->established);
+        $this->connections->connection_for_id('bad');
     }
 
     public function test_iterator(): void
@@ -149,11 +57,11 @@ final class ConnectionCollectionTest extends TestCase
         $names = [];
 
         foreach ($connections as $id => $definition) {
-            $name[] = $id;
+            $names[] = $id;
         }
 
         $this->assertEmpty($names);
-        $connection = $connections['one'];
+        $connection = $connections->connection_for_id('one');
 
         foreach ($connections as $id => $c) {
             $names[] = $id;
