@@ -11,7 +11,6 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\ConnectionAlreadyEstablished;
 use ICanBoogie\ActiveRecord\ConnectionNotDefined;
 use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
 use ICanBoogie\ActiveRecord\Exception;
@@ -46,7 +45,6 @@ final class ExceptionTest extends TestCase
 
             [ ConnectionNotDefined::class, [ 'connection-name' ] ],
             [ ConnectionNotEstablished::class, [ 'connection-name', 'message' ] ],
-            [ ConnectionAlreadyEstablished::class, [ 'connection-name' ] ],
 
             [ RecordNotFound::class, [ "message", [] ] ],
 
