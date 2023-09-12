@@ -14,8 +14,6 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ConnectionNotDefined;
 use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
 use ICanBoogie\ActiveRecord\Exception;
-use ICanBoogie\ActiveRecord\ModelAlreadyInstantiated;
-use ICanBoogie\ActiveRecord\ModelNotDefined;
 use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\StatementNotValid;
 use ICanBoogie\ActiveRecord\UnableToSetFetchMode;
@@ -47,9 +45,6 @@ final class ExceptionTest extends TestCase
             [ ConnectionNotEstablished::class, [ 'connection-name', 'message' ] ],
 
             [ RecordNotFound::class, [ "message", [] ] ],
-
-            [ ModelNotDefined::class, [ 'model-name' ] ],
-            [ ModelAlreadyInstantiated::class, [ 'model-name' ] ],
 
             [ StatementNotValid::class, [ 'statement' ] ],
             [ UnableToSetFetchMode::class, [ 'mode' ] ]

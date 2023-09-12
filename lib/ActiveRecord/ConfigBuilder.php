@@ -56,7 +56,7 @@ final class ConfigBuilder
     private const REGEXP_TIMEZONE = '/^[-+]\d{2}:\d{2}$/';
 
     /**
-     * @var array<string, ConnectionDefinition>
+     * @var array<non-empty-string, ConnectionDefinition>
      */
     private array $connections = [];
 
@@ -277,6 +277,14 @@ final class ConfigBuilder
     }
 
     /**
+     * @param non-empty-string $id
+     * @param non-empty-string $dsn
+     * @param non-empty-string|null $username
+     * @param non-empty-string|null $password
+     * @param non-empty-string|null $table_name_prefix
+     * @param non-empty-string $charset_and_collate
+     * @param non-empty-string $time_zone
+     *
      * @return $this
      */
     public function add_connection(
@@ -316,7 +324,10 @@ final class ConfigBuilder
      * @param class-string<ActiveRecord> $activerecord_class
      * @param class-string<Model> $model_class
      * @param class-string<Query> $query_class
-     * @param (Closure(SchemaBuilder $schema): SchemaBuilder)|null $schema_builder
+     * @param non-empty-string|null $alias
+     * @param (Closure(SchemaBuilder): SchemaBuilder)|null $schema_builder
+     * @param (Closure(AssociationBuilder): AssociationBuilder)|null $association_builder
+     * @param non-empty-string $connection
      */
     public function add_model( // @phpstan-ignore-line
         string $activerecord_class,
@@ -381,6 +392,8 @@ final class ConfigBuilder
 
     /**
      * @param class-string<ActiveRecord> $activerecord_class
+     *
+     * @return non-empty-string
      */
     private static function resolve_table_name(string $activerecord_class): string
     {

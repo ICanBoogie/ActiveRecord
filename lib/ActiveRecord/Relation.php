@@ -27,9 +27,9 @@ abstract class Relation
      *     The parent model of the relation.
      * @param class-string<ActiveRecord> $related
      *     The class of the related ActiveRecord.
-     * @param string $local_key
+     * @param non-empty-string $local_key
      *     The name of the column on the owner model.
-     * @param string $foreign_key
+     * @param non-empty-string $foreign_key
      *     The name of the column on the foreign model.
      */
     public function __construct(
@@ -82,7 +82,7 @@ abstract class Relation
      *
      * @param class-string<T> $activerecord_class
      *
-     * @return Model<T>
+     * @return Model<int|non-empty-string|non-empty-string[], T>
      */
     protected function model_for_activerecord(string $activerecord_class): Model
     {

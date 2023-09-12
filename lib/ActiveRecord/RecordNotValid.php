@@ -11,7 +11,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\Validate\ValidationErrors;
 use LogicException;
@@ -19,36 +18,17 @@ use Throwable;
 
 /**
  * Exception thrown when the validation of a record failed.
- *
- * @property-read ActiveRecord $record
- * @property-read ValidationErrors $errors
  */
 class RecordNotValid extends LogicException implements Exception
 {
-    /**
-     * @uses get_record
-     * @uses get_errors
-     */
-    use AccessorTrait;
-
     public const DEFAULT_MESSAGE = "The record is not valid.";
 
-    private function get_record(): ActiveRecord
-    {
-        return $this->record;
-    }
-
-    private function get_errors(): ValidationErrors
-    {
-        return $this->errors;
-    }
-
     public function __construct(
-        private ActiveRecord $record,
-        private ValidationErrors $errors,
+        public readonly ActiveRecord $record,
+        public readonly ValidationErrors $errors,
         Throwable $previous = null
     ) {
-        parent::__construct($this->format_message($errors), 500, $previous);
+        parent::__construct($this->format_message($errors), 0, $previous);
     }
 
     private function format_message(ValidationErrors $errors): string

@@ -11,37 +11,17 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use LogicException;
 use Throwable;
 
 /**
  * Exception thrown in attempt to obtain a scope that is not defined.
- *
- * @property-read string $scope_name
- * @property-read Model $model
  */
 class ScopeNotDefined extends LogicException implements Exception
 {
-    /**
-     * @uses get_scope_name
-     * @uses get_model
-     */
-    use AccessorTrait;
-
-    private function get_scope_name(): string
-    {
-        return $this->scope_name;
-    }
-
-    private function get_model(): Model
-    {
-        return $this->model;
-    }
-
     public function __construct(
-        private string $scope_name,
-        private Model $model,
+        public readonly string $scope_name,
+        public readonly Model $model,
         Throwable $previous = null
     ) {
         parent::__construct($this->format_message($scope_name, $model), 0, $previous);

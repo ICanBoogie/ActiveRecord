@@ -23,8 +23,8 @@ use Throwable;
 class RecordNotFound extends LogicException implements Exception
 {
     /**
-     * @param array<int, ActiveRecord|false> $records
-     *     Where _key_ is a primary key and _value_ an ActiveRecord or `false`.
+     * @param array<int|non-empty-string, ?ActiveRecord> $records
+     *     Where _key_ is a primary key.
      */
     public function __construct(
         string $message,

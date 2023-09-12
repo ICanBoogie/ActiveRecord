@@ -27,7 +27,7 @@ class Schema
     /**
      * @param array{
      *     columns: non-empty-array<non-empty-string, Column>,
-     *     primary: non-empty-string|non-empty-string[]|null,
+     *     primary: non-empty-string|non-empty-array<non-empty-string>|null,
      *     indexes: array<Index>,
      *  } $an_array
      */
@@ -38,7 +38,7 @@ class Schema
 
     /**
      * @param non-empty-array<non-empty-string, Column> $columns
-     * @param non-empty-string|non-empty-string[]|null $primary
+     * @param non-empty-string|non-empty-array<non-empty-string>|null $primary
      * @param array<Index> $indexes
      */
     public function __construct(
@@ -72,6 +72,8 @@ class Schema
      * Whether the schema has a column.
      *
      * Prefer using this method than `isset(schema->columns[$name])`.
+     *
+     * @param non-empty-string $name
      */
     public function has_column(string $name): bool
     {

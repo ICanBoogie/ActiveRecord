@@ -11,49 +11,23 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\OffsetNotDefined;
 use Throwable;
 
 /**
  * Exception thrown in attempt to obtain a relation that is not defined.
- *
- * @property-read string $relation_name Name of the undefined relation.
- * @property-read RelationCollection $collection Relation collection.
  */
 class RelationNotDefined extends OffsetNotDefined implements Exception
 {
     /**
-     * @uses get_relation_name
-     * @uses get_collection
+     * @param non-empty-string $relation_name
+     *     Name of the undefined relation.
      */
-    use AccessorTrait;
-
-    /**
-     * Name of the undefined relation.
-     */
-    private string $relation_name;
-
-    private function get_relation_name(): string
-    {
-        return $this->relation_name;
-    }
-
-    private RelationCollection $collection;
-
-    private function get_collection(): RelationCollection
-    {
-        return $this->collection;
-    }
-
     public function __construct(
-        string $relation_name,
-        RelationCollection $collection,
+        public readonly string $relation_name,
+        public readonly RelationCollection $collection,
         Throwable $previous = null
     ) {
-        $this->relation_name = $relation_name;
-        $this->collection = $collection;
-
         parent::__construct([ $relation_name, $collection ], $previous);
     }
 }

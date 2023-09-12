@@ -21,7 +21,7 @@ final class Config
 
     /**
      * @param array{
-     *     connections: array<string, ConnectionDefinition>,
+     *     connections: array<non-empty-string, ConnectionDefinition>,
      *     models: array<class-string<ActiveRecord>, ModelDefinition>,
      * } $an_array
      */
@@ -31,7 +31,7 @@ final class Config
     }
 
     /**
-     * @param array<string, ConnectionDefinition> $connections
+     * @param array<non-empty-string, ConnectionDefinition> $connections
      *     Where _key_ is an identifier.
      * @param array<class-string<ActiveRecord>, ModelDefinition> $models
      */

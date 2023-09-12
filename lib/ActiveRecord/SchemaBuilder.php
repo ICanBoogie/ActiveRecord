@@ -85,7 +85,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
-     * @param Integer::SIZE_* $size
+     * @phpstan-param Integer::SIZE_* $size
      *
      * @return $this
      *
@@ -148,6 +148,8 @@ final class SchemaBuilder
      * @param non-empty-string $col_name
      *
      * @return $this
+     *
+     * @see add_decimal
      */
     public function add_float(
         string $col_name,

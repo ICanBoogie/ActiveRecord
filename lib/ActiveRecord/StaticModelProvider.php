@@ -66,7 +66,7 @@ final class StaticModelProvider
      *
      * @param class-string<T> $activerecord_class
      *
-     * @phpstan-return Model<int|string|string[], T>
+     * @phpstan-return Model<int|non-empty-string|non-empty-string[], T>
      **/
     public static function model_for_record(string $activerecord_class): Model
     {

@@ -11,11 +11,13 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
+use ICanBoogie\ActiveRecord\StatementNotValid;
 use ICanBoogie\ActiveRecord\Table;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -31,7 +33,7 @@ final class TableTest extends TestCase
     {
         $this->connection = $connection = new Connection(
             new ConnectionDefinition(
-                id: '',
+                id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
                 table_name_prefix: 'prefix'
             )
@@ -160,5 +162,20 @@ final class TableTest extends TestCase
             'SELECT * FROM prefix_testing WHERE __multicolumn_primary__p1_p2 = 1',
             $table->resolve_statement($statement)
         );
+    }
+
+    public function test_drop(): void
+    {
+        $this->assertTrue($this->animals->is_installed());
+
+        $this->animals->drop();
+        $this->assertFalse($this->animals->is_installed());
+
+        // Should be fine with the `if_exists` option.
+        $this->animals->drop(if_exists: true);
+
+        // Should fail because the table doesn't exist.
+        $this->expectException(StatementNotValid::class);
+        $this->animals->drop();
     }
 }

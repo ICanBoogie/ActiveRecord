@@ -11,49 +11,27 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
+use Throwable;
 
 use function ICanBoogie\format;
 
 /**
  * Exception thrown when the fetch mode of a statement fails to be set.
- *
- * @property-read int $mode Requested fetch mode.
  */
 class UnableToSetFetchMode extends \RuntimeException implements Exception
 {
     /**
-     * @uses get_mode
-     */
-    use AccessorTrait;
-
-    /**
-     * @var mixed
-     */
-    private $mode;
-
-    /**
-     * @return mixed
-     */
-    private function get_mode()
-    {
-        return $this->mode;
-    }
-
-    /**
      * @param mixed $mode
      */
-    public function __construct($mode, string $message = null, int $code = 500, \Throwable $previous = null)
-    {
-        $this->mode = $mode;
-
-        parent::__construct($message ?: $this->format_message($mode), $code, $previous);
+    public function __construct(
+        public readonly mixed $mode,
+        string $message = null,
+        Throwable $previous = null
+    ) {
+        parent::__construct($message ?? $this->format_message($mode), 0, $previous);
     }
 
-    /**
-     * @param mixed $mode
-     */
-    private function format_message($mode): string
+    private function format_message(mixed $mode): string
     {
         return format("Unable to set fetch mode: %mode", [ 'mode' => $mode ]);
     }
