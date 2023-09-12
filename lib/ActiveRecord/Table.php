@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use AllowDynamicProperties;
 use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use ICanBoogie\Prototyped;
 use InvalidArgumentException;
@@ -26,35 +27,31 @@ use function array_keys;
 use function array_merge;
 use function array_values;
 use function count;
-use function ICanBoogie\singularize;
 use function implode;
 use function is_array;
 use function is_numeric;
-use function strrpos;
+use function is_string;
 use function strtr;
-use function substr;
 
 /**
  * A representation of a database table.
  *
  * @property-read Schema $extended_schema The extended schema of the table.
  */
-#[\AllowDynamicProperties]
+#[AllowDynamicProperties]
 class Table extends Prototyped
 {
     /**
-     * The parent is used when the table is in a hierarchy, which is the case if the table
-     * extends another table.
-     */
-    public readonly ?self $parent;
-
-    /**
      * Name of the table, without the prefix defined by the connection.
+     *
+     * @var non-empty-string
      */
     public readonly string $unprefixed_name;
 
     /**
      * Name of the table, including the prefix defined by the connection.
+     *
+     * @var non-empty-string
      */
     public readonly string $name;
 
@@ -63,6 +60,8 @@ class Table extends Prototyped
      * or automatically created.
      *
      * The "{primary}" placeholder used in queries is replaced by the properties value.
+     *
+     * @var non-empty-string
      */
     public readonly string $alias;
     public readonly Schema $schema;
@@ -133,16 +132,12 @@ class Table extends Prototyped
     public function __construct(
         public readonly Connection $connection,
         TableDefinition $definition,
-        self $parent = null
+        public readonly ?self $parent = null,
     ) {
-        $this->parent = $parent;
-        $this->unprefixed_name = $definition->name
-            ?? throw new LogicException("The NAME attribute is required");
+        $this->unprefixed_name = $definition->name;
         $this->name = $connection->table_name_prefix . $this->unprefixed_name;
-        $this->alias = $definition->alias
-            ?? $this->make_alias($this->unprefixed_name);
-        $this->schema = $definition->schema
-            ?? throw new LogicException("The SCHEMA attribute is required");
+        $this->alias = $definition->alias;
+        $this->schema = $definition->schema;
         $this->primary = $this->schema->primary;
 
         unset($this->update_join);
@@ -154,32 +149,15 @@ class Table extends Prototyped
      *
      * The statement is resolved using the resolve_statement() method and prepared.
      *
-     * @param string $query
-     * @param array $args
-     * @param array $options
-     *
-     * @return Statement
+     * @param non-empty-string $query
+     * @param array<mixed> $args
+     * @param array<non-empty-string, mixed> $options
      */
     public function __invoke(string $query, array $args = [], array $options = []): Statement
     {
         $statement = $this->prepare($query, $options);
 
         return $statement($args);
-    }
-
-    /**
-     * Makes an alias out of an unprefixed table name.
-     */
-    private function make_alias(string $unprefixed_name): string
-    {
-        $alias = $unprefixed_name;
-        $pos = strrpos($alias, '_');
-
-        if ($pos !== false) {
-            $alias = substr($alias, $pos + 1);
-        }
-
-        return singularize($alias);
     }
 
     /*
@@ -212,8 +190,6 @@ class Table extends Prototyped
 
     /**
      * Checks whether the table is installed.
-     *
-     * @return bool `true` if the table exists, `false` otherwise.
      */
     public function is_installed(): bool
     {
@@ -232,7 +208,7 @@ class Table extends Prototyped
      * - `{self_and_related}`: The escaped name of the table and the possible JOIN clauses.
      *
      * Note: If the table has a multi-column primary keys `{primary}` is replaced by
-     * `__multicolumn_primary__<concatened_columns>` where `<concatened_columns>` is a the columns
+     * `__multicolumn_primary__<concatenated_columns>` where `<concatenated_columns>` is a the columns
      * concatenated with an underscore ("_") as separator. For instance, if a table primary key is
      * made of columns "p1" and "p2", `{primary}` is replaced by `__multicolumn_primary__p1_p2`.
      * It's not very helpful, but we still have to decide what to do with this.
@@ -289,13 +265,11 @@ class Table extends Prototyped
      *
      * The statement is prepared by the {@link prepare()} method before it is executed.
      *
-     * @param string $query
+     * @param non-empty-string $query
      * @param array<int|string, mixed> $args
-     * @param array $options
-     *
-     * @return mixed
+     * @param array<string, mixed> $options
      */
-    public function execute(string $query, array $args = [], array $options = [])
+    public function execute(string $query, array $args = [], array $options = []): Statement
     {
         $statement = $this->prepare($query, $options);
 
@@ -305,10 +279,9 @@ class Table extends Prototyped
     /**
      * Filters mass assignment values.
      *
-     * @param array $values
-     * @param bool|false $extended
+     * @param array<non-empty-string, mixed> $values
      *
-     * @return array
+     * @return array{ mixed[], array<non-empty-string, non-empty-string>, non-empty-string[] }
      */
     private function filter_values(array $values, bool $extended = false): array
     {
@@ -332,15 +305,12 @@ class Table extends Prototyped
     /**
      * Saves values.
      *
-     * @param array $values
-     * @param mixed|null $id
-     * @param array $options
-     *
-     * @return mixed
+     * @param array<string, mixed> $values
+     * @param array<string, mixed> $options
      *
      * @throws Throwable
      */
-    public function save(array $values, $id = null, array $options = [])
+    public function save(array $values, mixed $id = null, array $options = []): mixed
     {
         if ($id) {
             return $this->update($values, $id) ? $id : false;
@@ -350,15 +320,12 @@ class Table extends Prototyped
     }
 
     /**
-     * @param array $values
-     * @param null $id
-     * @param array $options
+     * @param array<string, mixed> $values
+     * @param array<string, mixed> $options
      *
      * @return bool|int|null|string
-     *
-     * @throws \Exception
      */
-    private function save_callback(array $values, $id = null, array $options = [])
+    private function save_callback(array $values, mixed $id = null, array $options = []): mixed
     {
         if ($id) {
             $this->update($values, $id);
@@ -372,6 +339,7 @@ class Table extends Prototyped
             $parent_id = $this->parent->save_callback($values, null, $options)
                 ?: throw new \Exception("Parent save failed: {$this->parent->name} returning {$parent_id}.");
 
+            assert(is_string($this->primary));
             assert(is_numeric($parent_id));
 
             $values[$this->primary] = $parent_id;
@@ -601,33 +569,25 @@ class Table extends Prototyped
     public function truncate()
     {
         if ($this->connection->driver_name == 'sqlite') {
-            $rc = $this->execute('delete from {self}');
+            $rc = $this->execute('DELETE FROM `{self}`');
 
             $this->execute('vacuum');
 
             return $rc;
         }
 
-        return $this->execute('truncate table `{self}`');
+        return $this->execute('TRUNCATE TABLE `{self}`');
     }
 
     /**
      * Drops table.
      *
-     * @param array $options
-     *
-     * @return mixed
+     * @throws StatementNotValid when the table cannot be dropped.
      */
-    public function drop(array $options = [])
+    public function drop(bool $if_exists = false): void
     {
-        $query = 'DROP TABLE ';
+        $query = 'DROP TABLE' . ($if_exists ? ' IF EXISTS ' : '') . ' `{self}`';
 
-        if (!empty($options['if exists'])) {
-            $query .= 'if exists ';
-        }
-
-        $query .= '`{self}`';
-
-        return $this->execute($query);
+        $this->execute($query);
     }
 }

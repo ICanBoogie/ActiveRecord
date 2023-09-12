@@ -17,9 +17,9 @@ class TableDefinition
 {
     /**
      * @param array{
-     *     name: string,
+     *     name: non-empty-string,
      *     schema: Schema,
-     *     alias: ?string,
+     *     alias: ?non-empty-string,
      * } $an_array
      */
     public static function __set_state(array $an_array): self
@@ -27,11 +27,16 @@ class TableDefinition
         return new self(... $an_array);
     }
 
+    /**
+     * @var non-empty-string
+     */
     public readonly string $alias;
 
     /**
-     * @param string $name
+     * @param non-empty-string $name
      *     Unprefixed name of the table.
+     * @param non-empty-string|null $alias
+     *     The alias for that table.
      * @param Schema $schema
      *     Schema of the table.
      */
@@ -43,6 +48,11 @@ class TableDefinition
         $this->alias = $alias ?? $this->make_alias($this->name);
     }
 
+    /**
+     * @param non-empty-string $name
+     *
+     * @return non-empty-string
+     */
     private function make_alias(string $name): string
     {
         $pos = strrpos($name, '_');

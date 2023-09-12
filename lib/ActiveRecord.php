@@ -102,7 +102,7 @@ abstract class ActiveRecord extends Prototyped
      * Properties whose value are instances of the {@link ActiveRecord} class are removed from the
      * exported properties.
      *
-     * @return array<string, mixed>
+     * @return array<non-empty-string, mixed>
      *
      * @throws ReflectionException
      */
@@ -125,7 +125,7 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Removes `model` from the output.
      *
-     * @return array<string, mixed>
+     * @return array<non-empty-string, mixed>
      */
     public function __debugInfo(): array
     {
@@ -249,10 +249,10 @@ abstract class ActiveRecord extends Prototyped
      * Unless it's an acceptable value for a column, columns with `null` values are discarded.
      * This way, we don't have to define every property before saving our active record.
      *
-     * @param array<string, mixed> $properties
+     * @param array<non-empty-string, mixed> $properties
      * @param Schema $schema The model's extended schema.
      *
-     * @return array<string, mixed> The altered persistent properties
+     * @return array<non-empty-string, mixed> The altered persistent properties
      */
     protected function alter_persistent_properties(array $properties, Schema $schema): array
     {
@@ -270,7 +270,7 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Updates primary key.
      *
-     * @param int|string[]|string $primary_key
+     * @param int|non-empty-string|non-empty-array<non-empty-string> $primary_key
      */
     protected function update_primary_key(int|array|string $primary_key): void
     {

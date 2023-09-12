@@ -20,19 +20,24 @@ use ICanBoogie\Prototype\MethodNotDefined;
 
 use function array_combine;
 use function array_fill;
+use function array_fill_keys;
 use function array_keys;
+use function array_shift;
 use function count;
 use function func_get_args;
 use function get_parent_class;
 use function implode;
 use function is_array;
 use function is_callable;
+use function is_int;
+use function is_integer;
 use function method_exists;
+use function sprintf;
 
 /**
  * Base class for activerecord models.
  *
- * @template TKey of int|string|string[]
+ * @template TKey of int|non-empty-string|non-empty-string[]
  * @template TValue of ActiveRecord
  *
  * @implements ArrayAccess<TKey, TValue>
@@ -183,7 +188,7 @@ class Model extends Table implements ArrayAccess
 
         if (!$record) {
             throw new RecordNotFound(
-                "Record <q>{$key}</q> does not exist in model <q>{$this->definition->model_class}</q>.",
+                "Record <q>{$key}</q> does not exist in model <q>{$this->activerecord_class}</q>.",
                 [ $key => null ]
             );
         }
@@ -196,16 +201,15 @@ class Model extends Table implements ArrayAccess
     /**
      * Finds many records.
      *
-     * @param array<TKey> $keys
+     * @param array<int|non-empty-string> $keys
      *
-     * @return TValue[]
+     * @return array<int|non-empty-string, TValue>
      */
     private function find_many(array $keys): array
     {
-        $records = array_combine($keys, array_fill(0, count($keys), null));
-        $missing = $records;
+        $records = $missing = array_fill_keys($keys, null);
 
-        foreach ($records as $key => $dummy) {
+        foreach ($keys as $key) {
             $record = $this->activerecord_cache->retrieve($key);
 
             if (!$record) {
@@ -218,6 +222,9 @@ class Model extends Table implements ArrayAccess
 
         if ($missing) {
             $primary = $this->primary;
+
+            assert(is_string($primary));
+
             $query_records = $this->where([ $primary => array_keys($missing) ])->all;
 
             foreach ($query_records as $record) {
@@ -229,19 +236,25 @@ class Model extends Table implements ArrayAccess
             }
         }
 
+        /** @var array<int|non-empty-string, TValue> $records */
+
         if ($missing) {
             if (count($missing) > 1) {
                 throw new RecordNotFound(
-                    "Records " . implode(', ', array_keys($missing)) . " do not exist in model <q>{$this->definition->model_class}</q>.",
+                    sprintf(
+                        "Records `%s` do not exist for `%s`",
+                        implode('`, `', array_keys($missing)),
+                        $this->activerecord_class
+                    ),
                     $records
                 );
             }
 
             $key = array_keys($missing);
-            $key = \array_shift($key);
+            $key = array_shift($key);
 
             throw new RecordNotFound(
-                "Record <q>{$key}</q> does not exist in model <q>{$this->definition->model_class}</q>.",
+                "Record `$key` does not exist for `$this->activerecord_class`",
                 $records
             );
         }
@@ -262,16 +275,14 @@ class Model extends Table implements ArrayAccess
     /**
      * Because records are cached, we need to remove the record from the cache when it is saved,
      * so that loading the record again returns the updated record, not the one in the cache.
-     *
-     * @inheritdoc
      */
-    public function save(array $properties, $key = null, array $options = [])
+    public function save(array $values, mixed $id = null, array $options = []): mixed
     {
-        if ($key) {
-            $this->activerecord_cache->eliminate($key);
+        if ($id) {
+            $this->activerecord_cache->eliminate($id);
         }
 
-        return parent::save($properties, $key, $options);
+        return parent::save($values, $id, $options);
     }
 
     /**
@@ -315,7 +326,7 @@ class Model extends Table implements ArrayAccess
     /**
      * Returns the first record of the model.
      *
-     * @return TValue
+     * @phpstan-return TValue
      */
     protected function get_one(): ActiveRecord
     {

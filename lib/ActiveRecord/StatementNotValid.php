@@ -11,81 +11,46 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use PDOException;
 use RuntimeException;
 
 use function array_pad;
+use function is_array;
 use function json_encode;
 use function sprintf;
 
 /**
  * Exception thrown in attempt to execute a statement that is not valid.
- *
- * @property-read string $statement The invalid statement.
- * @property-read array $args The arguments of the statement.
- * @property-read PDOException|null $original The original exception.
  */
 class StatementNotValid extends RuntimeException implements Exception
 {
     /**
-     * @uses get_statement
-     * @uses get_args
-     * @uses get_original
-     */
-    use AccessorTrait;
-
-    /**
      * @var string
      */
-    private $statement;
-
-    private function get_statement(): string
-    {
-        return $this->statement;
-    }
+    public readonly string $statement;
 
     /**
-     * @var array<string, mixed>
+     * @var array<mixed>
      */
-    private $args;
+    public readonly array $args;
 
     /**
-     * @return array<string, mixed>
+     * @param array{ string, array<mixed> }|string $statement
      */
-    private function get_args(): array
-    {
-        return $this->args;
-    }
-
-    /**
-     * @var PDOException|null
-     */
-    private $original;
-
-    private function get_original(): ?PDOException
-    {
-        return $this->original;
-    }
-
-    /**
-     * @param array|string $statement
-     * @param int $code
-     * @param PDOException|null $original
-     */
-    public function __construct($statement, int $code = 500, PDOException $original = null)
-    {
+    public function __construct(
+        $statement,
+        public readonly ?PDOException $original = null
+    ) {
         $args = [];
 
-        if (\is_array($statement)) {
+        if (is_array($statement)) {
             [ $statement, $args ] = $statement;
         }
 
         $this->statement = $statement;
         $this->args = $args;
-        $this->original = $original;
 
-        parent::__construct($this->format_message($statement, $args, $original), $code);
+        parent::__construct($this->format_message($statement, $args, $original));
     }
 
     private function format_message(string $statement, array $args, PDOException $previous = null): string

@@ -108,6 +108,9 @@ class RelationCollection implements ArrayAccess
      * Adds a {@link BelongsToRelation} relation.
      *
      * @param class-string<ActiveRecord> $related
+     * @param non-empty-string $local_key
+     * @param non-empty-string $foreign_key
+     * @param non-empty-string $as
      */
     public function belongs_to(
         string $related,
@@ -128,6 +131,9 @@ class RelationCollection implements ArrayAccess
      * Adds a {@link HasManyRelation} relation.
      *
      * @param class-string<ActiveRecord> $related
+     * @param non-empty-string $local_key
+     * @param non-empty-string $foreign_key
+     * @param non-empty-string $as
      * @param class-string<ActiveRecord>|null $through
      */
     public function has_many(

@@ -103,7 +103,7 @@ final class Statement
 
             return $this->pdo_statement->execute($params);
         } catch (PDOException $e) {
-            throw new StatementNotValid([ $this, $params ], 500, $e);
+            throw new StatementNotValid([ $this, $params ], original: $e);
         }
     }
 

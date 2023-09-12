@@ -45,6 +45,8 @@ class Connection
      * If set to "dev", all table names will be named like "dev_nodes", "dev_contents", etc.
      * This is a convenient way of creating a namespace for tables in a shared database.
      * By default, the prefix is the empty string, that is there is not prefix.
+     *
+     * @var non-empty-string
      */
     public readonly string $table_name_prefix;
 
@@ -211,7 +213,7 @@ class Connection
         try {
             $statement = $this->pdo->prepare($statement, $options);
         } catch (PDOException $e) {
-            throw new StatementNotValid($statement, 500, $e);
+            throw new StatementNotValid($statement, $e);
         }
 
         if (isset($options['mode'])) {
@@ -262,7 +264,7 @@ class Connection
 
             return $this->pdo->exec($statement);
         } catch (PDOException $e) {
-            throw new StatementNotValid($statement, 500, $e);
+            throw new StatementNotValid($statement, $e);
         }
     }
 

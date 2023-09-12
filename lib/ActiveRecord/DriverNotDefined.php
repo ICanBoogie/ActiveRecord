@@ -23,17 +23,11 @@ use Throwable;
 class DriverNotDefined extends LogicException implements Exception
 {
     /**
-     * @uses get_driver_name
+     * @param non-empty-string $driver_name
+     * @param non-empty-string|null $message
      */
-    use AccessorTrait;
-
-    private function get_driver_name(): string
-    {
-        return $this->driver_name;
-    }
-
     public function __construct(
-        private string $driver_name,
+        public readonly string $driver_name,
         string $message = null,
         Throwable $previous = null
     ) {
