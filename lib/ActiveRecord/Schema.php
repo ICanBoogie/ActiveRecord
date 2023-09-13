@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Index;
 use InvalidArgumentException;
@@ -34,6 +35,16 @@ class Schema
     public static function __set_state(array $an_array): self
     {
         return new self(...$an_array);
+    }
+
+    /**
+     * @param class-string<ActiveRecord> $activerecord_class
+     */
+    public static function from(string $activerecord_class): self
+    {
+        return (new SchemaBuilder())
+            ->use_record($activerecord_class)
+            ->build();
     }
 
     /**

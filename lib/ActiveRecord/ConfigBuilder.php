@@ -26,28 +26,19 @@ use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientBelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
-use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Integer;
-use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use InvalidArgumentException;
 use LogicException;
-use olvlvl\ComposerAttributeCollector\Attributes;
-use olvlvl\ComposerAttributeCollector\TargetClass;
-use olvlvl\ComposerAttributeCollector\TargetProperty;
 
 use function array_map;
 use function assert;
-use function class_exists;
 use function get_debug_type;
 use function get_parent_class;
 use function ICanBoogie\pluralize;
 use function ICanBoogie\singularize;
-use function ICanBoogie\trim_suffix;
 use function ICanBoogie\underscore;
-use function is_a;
 use function is_string;
 use function preg_match;
-use function sprintf;
 use function strrpos;
 use function substr;
 
@@ -84,9 +75,9 @@ final class ConfigBuilder
     private function validate_models(): void
     {
         foreach ($this->model_definitions as $definition) {
-            if (empty($this->connections[$definition->connection])) {
-                throw new InvalidConfig("Model '$definition->model_class' uses connection '$definition->connection', but it is not configured.");
-            }
+            $this->connections[$definition->connection] ?? throw new InvalidConfig(
+                "$definition->activerecord_class uses connection '$definition->connection', but it is not configured"
+            );
 
             $this->resolve_parent_definition($definition);
         }
@@ -159,7 +150,9 @@ final class ConfigBuilder
         }
 
         return $this->model_definitions[$parent_class]
-            ?? throw new LogicException("The '$definition->activerecord_class' extends '$parent_class' but there's no definition for it");
+            ?? throw new LogicException(
+                "The '$definition->activerecord_class' extends '$parent_class' but there's no definition for it"
+            );
     }
 
     /**
@@ -191,6 +184,9 @@ final class ConfigBuilder
         return $models;
     }
 
+    /**
+     * @return non-empty-string|null
+     */
     private function try_key(mixed $key, TransientModelDefinition $on): ?string
     {
         if (!is_string($key)) {
@@ -324,6 +320,7 @@ final class ConfigBuilder
      * @param class-string<ActiveRecord> $activerecord_class
      * @param class-string<Model> $model_class
      * @param class-string<Query> $query_class
+     * @param non-empty-string|null $table_name
      * @param non-empty-string|null $alias
      * @param (Closure(SchemaBuilder): SchemaBuilder)|null $schema_builder
      * @param (Closure(AssociationBuilder): AssociationBuilder)|null $association_builder
@@ -348,24 +345,13 @@ final class ConfigBuilder
         if ($schema_builder) {
             $schema_builder($inner_schema_builder);
         } elseif ($this->use_attributes && $inner_schema_builder->is_empty()) {
-            throw new LogicException("the config is built using attributes but there's no schema for '$activerecord_class'");
+            throw new LogicException("The Schema built from `$activerecord_class` attributes is empty");
         }
-
-        $schema = $inner_schema_builder->build();
 
         // association
 
-        foreach ($schema->columns as $local_key => $column) {
-            if (!$column instanceof BelongsTo) {
-                continue;
-            }
-
-            $inner_association_builder->belongs_to(
-                associate: $column->associate,
-                local_key: $local_key,
-                as: $column->as ?? $this->resolve_belong_to_accessor($local_key),
-            );
-        }
+        $schema = $inner_schema_builder->build();
+        $inner_association_builder->use_schema($schema);
 
         if ($association_builder) {
             $association_builder($inner_association_builder);
@@ -403,20 +389,6 @@ final class ConfigBuilder
         return pluralize(underscore($base));
     }
 
-    /**
-     * @param non-empty-string $local_key
-     *
-     * @return non-empty-string
-     */
-    private function resolve_belong_to_accessor(string $local_key): string
-    {
-        $local_key = trim_suffix($local_key, '_id');
-
-        assert($local_key !== '');
-
-        return $local_key;
-    }
-
     private bool $use_attributes = false;
 
     /**
@@ -424,22 +396,15 @@ final class ConfigBuilder
      */
     public function use_attributes(): self
     {
-        if (!class_exists(Attributes::class)) {
-            throw new LogicException(
-                sprintf(
-                    "unable to load %s, is the package olvlvl/composer-attribute-collector activated?",
-                    Attributes::class
-                )
-            );
-        }
-
         $this->use_attributes = true;
 
         return $this;
     }
 
     /**
-     * Creates a schema builder and an association builder, if attributes are enabled they are configured using them.
+     * Creates a schema builder and an association builder.
+     *
+     * If attributes are enabled they are configured using the attributes on the ActiveRecord.
      *
      * @param class-string<ActiveRecord> $activerecord_class
      *
@@ -451,38 +416,10 @@ final class ConfigBuilder
         $association_builder = new AssociationBuilder();
 
         if ($this->use_attributes) {
-            [ $class_targets, $target_properties ] = $this->find_attribute_targets($activerecord_class);
-
-            $class_attributes = array_map(fn(TargetClass $t) => $t->attribute, $class_targets);
-            $property_attributes = array_map(fn(TargetProperty $t) => [ $t->attribute, $t->name ], $target_properties);
-
-            $schema_builder->from_attributes($class_attributes, $property_attributes);
-            $association_builder->from_attributes($class_attributes);
+            $schema_builder->use_record($activerecord_class);
+            $association_builder->use_record($activerecord_class);
         }
 
         return [ $schema_builder, $association_builder ];
-    }
-
-    /**
-     * @param class-string<ActiveRecord> $activerecord_class
-     *
-     * @return array{
-     *     TargetClass<SchemaAttribute>[],
-     *     TargetProperty<SchemaAttribute>[],
-     * }
-     */
-    private function find_attribute_targets(string $activerecord_class): array
-    {
-        $predicate = fn(string $attribute, string $class): bool =>
-            is_a($attribute, SchemaAttribute::class, true)
-            && $class === $activerecord_class;
-
-        /** @var TargetClass<SchemaAttribute>[] $target_classes */
-        $target_classes = Attributes::filterTargetClasses($predicate);
-
-        /** @var TargetProperty<SchemaAttribute>[] $target_properties */
-        $target_properties = Attributes::filterTargetProperties($predicate);
-
-        return [ $target_classes, $target_properties ];
     }
 }

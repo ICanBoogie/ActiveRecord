@@ -8,6 +8,7 @@ use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
+use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
 use Test\ICanBoogie\Acme\HasMany\Patient;
 use Test\ICanBoogie\Acme\HasMany\Physician;
@@ -55,6 +56,7 @@ final class ConfigBuilderTest extends TestCase
             )
             ->add_model(Node::class)
             ->add_model(Article::class)
+            ->add_model(Comment::class)
             ->build();
 
         $schema = $config->models[Article::class]->table->schema;

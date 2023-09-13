@@ -20,6 +20,8 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Timestamp;
 use LogicException;
+use ReflectionAttribute;
+use ReflectionClass;
 
 use function is_string;
 
@@ -454,30 +456,33 @@ final class SchemaBuilder
     }
 
     /**
-     * @param SchemaAttribute[] $class_attributes
-     * @param array{ SchemaAttribute, non-empty-string }[] $property_attributes
+     * @internal
+     *
+     * @param class-string<ActiveRecord> $activerecord_class
      *
      * @return $this
      */
-    public function from_attributes(
-        array $class_attributes,
-        array $property_attributes,
-    ): self {
-        foreach ($property_attributes as [ $attribute, $name ]) {
-            if ($attribute instanceof Id) {
-                $this->primary[] = $name;
+    public function use_record(string $activerecord_class): self
+    {
+        $class = new ReflectionClass($activerecord_class);
 
-                continue;
-            }
-
-            if ($attribute instanceof Column) {
-                $this->columns[$name] = $attribute;
-            }
+        foreach ($class->getAttributes(Index::class) as $attribute) {
+            $this->indexes[] = $attribute->newInstance();
         }
 
-        foreach ($class_attributes as $attribute) {
-            if ($attribute instanceof Index) {
-                $this->indexes[] = $attribute;
+        foreach ($class->getProperties() as $property) {
+            foreach ($property->getAttributes(SchemaAttribute::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                $attribute = $attribute->newInstance();
+
+                if ($attribute instanceof Id) {
+                    $this->primary[] = $property->name;
+
+                    continue;
+                }
+
+                if ($attribute instanceof Column) {
+                    $this->columns[$property->name] = $attribute;
+                }
             }
         }
 

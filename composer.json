@@ -22,10 +22,7 @@
     "source": "https://github.com/ICanBoogie/ActiveRecord"
   },
   "config": {
-    "sort-packages": true,
-    "allow-plugins": {
-      "olvlvl/composer-attribute-collector": true
-    }
+    "sort-packages": true
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -40,7 +37,6 @@
   },
   "require-dev": {
     "ext-pdo_mysql": "*",
-    "olvlvl/composer-attribute-collector": "^2.0",
     "phpstan/phpstan": "^1.10",
     "phpunit/phpunit": "^10.2"
   },
@@ -56,20 +52,6 @@
   "autoload-dev": {
     "psr-4": {
       "Test\\ICanBoogie\\": "tests"
-    },
-    "files": [
-      "vendor/attributes.php"
-    ]
-  },
-  "extra": {
-    "composer-attribute-collector": {
-      "include": [
-        "lib",
-        "tests"
-      ],
-      "exclude": [
-        "tests/sandox"
-      ]
     }
   }
 }

@@ -12,7 +12,6 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use Exception;
-use ICanBoogie\ActiveRecord\Article;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Statement;
@@ -54,7 +53,7 @@ final class StatementTest extends TestCase
 
     /**
      * Query statements are always prepared, so if the preparation fails a StatementNotValid
-     * expection is thrown with the only the statement string and not the arguments,
+     * exception is thrown with the statement string and not the arguments,
      * which are applied later when the preparation is successful.
      *
      */
