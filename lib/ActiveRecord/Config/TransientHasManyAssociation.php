@@ -20,7 +20,6 @@ final class TransientHasManyAssociation
      */
     public function __construct(
         public readonly string $associate,
-        public readonly ?string $local_key,
         public readonly ?string $foreign_key,
         public readonly ?string $as,
         public readonly ?string $through,

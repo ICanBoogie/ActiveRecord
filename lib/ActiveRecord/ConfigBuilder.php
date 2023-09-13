@@ -39,6 +39,7 @@ use function ICanBoogie\singularize;
 use function ICanBoogie\underscore;
 use function is_string;
 use function preg_match;
+use function strlen;
 use function strrpos;
 use function substr;
 
@@ -230,8 +231,13 @@ final class ConfigBuilder
         TransientModelDefinition $owner,
         TransientHasManyAssociation $association
     ): HasManyAssociation {
+        if (!is_string($owner->schema->primary)) {
+            throw new InvalidConfig(
+                "Unable to create 'has many' association, primary key of model '$owner->activerecord_class' is not a string."
+            );
+        }
+
         $related = $this->model_definitions[$association->associate];
-        $local_key = $association->local_key ?? $owner->schema->primary;
         $foreign_key = $association->foreign_key;
         $as = $association->as ?? pluralize($related->alias);
 
@@ -245,12 +251,6 @@ final class ConfigBuilder
             "Don't know how to resolve foreign key on `$owner->activerecord_class` for association has_many($related->model_class)"
         );
 
-        if (!is_string($local_key)) {
-            throw new InvalidConfig(
-                "Unable to create 'has many' association, primary key of model '$owner->activerecord_class' is not a string."
-            );
-        }
-
         if (!is_string($foreign_key)) {
             throw new InvalidConfig(
                 "Unable to create 'has many' association, primary key of model '$related->activerecord_class' is not a string."
@@ -263,12 +263,13 @@ final class ConfigBuilder
             $through = $this->model_definitions[$association->through];
         }
 
+        assert(strlen($as) > 1);
+
         return new HasManyAssociation(
-            $related->activerecord_class,
-            $local_key,
-            $foreign_key,
-            $as,
-            $through?->activerecord_class,
+            associate: $related->activerecord_class,
+            foreign_key: $foreign_key,
+            as: $as,
+            through: $through?->activerecord_class,
         );
     }
 

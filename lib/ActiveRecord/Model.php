@@ -101,11 +101,12 @@ class Model extends Table implements ArrayAccess
     ) {
         $this->activerecord_class = $this->definition->activerecord_class; // @phpstan-ignore-line
         $this->query_class = $this->definition->query_class;
-        $this->relations = new RelationCollection($this, $this->definition->association);
 
         $parent = $this->resolve_parent($models);
 
         parent::__construct($connection, $definition->table, $parent);
+
+        $this->relations = new RelationCollection($this, $this->definition->association);
     }
 
     private function resolve_parent(ModelProvider $models): ?Model
@@ -116,7 +117,7 @@ class Model extends Table implements ArrayAccess
             return null;
         }
 
-        return $models->model_for_record($parent_class);
+        return $models->model_for_record($parent_class); // @phpstan-ignore-line
     }
 
     /**
