@@ -16,6 +16,7 @@ use LogicException;
 use PDO;
 
 use function ICanBoogie\pluralize;
+use function is_string;
 
 /**
  * Representation of a has_many relation.
@@ -31,15 +32,16 @@ class HasManyRelation extends Relation
     public function __construct(
         Model $owner,
         string $related,
-        string $local_key,
         string $foreign_key,
         string $as,
         public readonly ?string $through = null,
     ) {
+        assert(is_string($owner->primary));
+
         parent::__construct(
             owner: $owner,
             related: $related,
-            local_key: $local_key,
+            local_key: $owner->primary,
             foreign_key: $foreign_key,
             as: $as,
         );

@@ -14,9 +14,8 @@ final class HasManyAssociation
     /**
      * @param array{
      *     associate: class-string<ActiveRecord>,
-     *     local_key: string,
-     *     foreign_key: string,
-     *     as: string,
+     *     foreign_key: non-empty-string,
+     *     as: non-empty-string,
      *     through: ?class-string<ActiveRecord>,
      * } $an_array
      */
@@ -27,11 +26,12 @@ final class HasManyAssociation
 
     /**
      * @param class-string<ActiveRecord> $associate
+     * @param non-empty-string $foreign_key
+     * @param non-empty-string $as
      * @param class-string<ActiveRecord>|null $through
      */
     public function __construct(
         public readonly string $associate,
-        public readonly string $local_key,
         public readonly string $foreign_key,
         public readonly string $as,
         public readonly string|null $through,

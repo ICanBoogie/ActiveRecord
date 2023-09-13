@@ -16,6 +16,8 @@ use Closure;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\OffsetNotWritable;
 
+use function is_string;
+
 /**
  * Relation collection of a model.
  *
@@ -57,7 +59,6 @@ class RelationCollection implements ArrayAccess
         foreach ($association->has_many as $r) {
             $this->has_many(
                 related: $r->associate,
-                local_key: $r->local_key,
                 foreign_key: $r->foreign_key,
                 as: $r->as,
                 through: $r->through,
@@ -131,22 +132,21 @@ class RelationCollection implements ArrayAccess
      * Adds a {@link HasManyRelation} relation.
      *
      * @param class-string<ActiveRecord> $related
-     * @param non-empty-string $local_key
      * @param non-empty-string $foreign_key
      * @param non-empty-string $as
      * @param class-string<ActiveRecord>|null $through
      */
     public function has_many(
         string $related,
-        string $local_key,
         string $foreign_key,
         string $as,
         ?string $through = null,
     ): void {
+        assert(is_string($this->model->primary));
+
         $this->relations[$as] = new HasManyRelation(
             owner: $this->model,
             related: $related,
-            local_key: $local_key,
             foreign_key: $foreign_key,
             as: $as,
             through: $through,
