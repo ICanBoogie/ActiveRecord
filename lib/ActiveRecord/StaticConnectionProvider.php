@@ -22,53 +22,58 @@ final class StaticConnectionProvider
     /**
      * @var (Closure(): ConnectionProvider)|null
      */
-    private static Closure|null $proxy = null;
+    private static ?Closure $factory = null;
+    private static ?ConnectionProvider $provider = null;
 
     /**
-     * Defines {@link Connection} resolver proxy.
+     * Defines the {@link ConnectionProvider} factory.
      *
-     * @param (callable(): ConnectionProvider) $proxy
+     * @param (callable(): ConnectionProvider) $factory
+     *     The factory is invoked once: the first time {@link connection_for_id} is invoked.
      *
-     * @return (callable(): ConnectionProvider)|null The previous proxy, or `null` if none was defined.
+     * @return (callable(): ConnectionProvider)|null
+     *     The previous factory, or `null` if none was defined.
      */
-    public static function define(callable $proxy): ?callable
+    public static function define(callable $factory): ?callable
     {
-        $previous = self::$proxy;
+        $previous = self::$factory;
 
-        self::$proxy = $proxy(...);
+        self::$factory = $factory(...);
+        self::$provider = null;
 
         return $previous;
     }
 
     /**
-     * Returns the current resolver proxy.
+     * Returns the current {@link ConnectionProvider} factory.
      *
      * @return (callable(): ConnectionProvider)|null
      */
     public static function defined(): ?callable
     {
-        return self::$proxy;
+        return self::$factory;
     }
 
     /**
-     * Undefines the resolver proxy.
+     * Undefines the {@link ConnectionProvider} factory.
      */
     public static function undefine(): void
     {
-        self::$proxy = null;
+        self::$factory = null;
+        self::$provider = null;
     }
 
     /**
-     * @param string $id
-     *     Connection identifier.
+     * @param non-empty-string $id
+     *     A connection identifier.
      */
     public static function connection_for_id(string $id): Connection
     {
-        $proxy = self::$proxy
+        $factory = self::$factory
             ?? throw new LogicException(
-                "No proxy defined yet. Please define one with `StaticConnectionProvider::define()`."
+                "No factory defined yet. Please define one with `StaticConnectionProvider::define()`"
             );
 
-        return $proxy()->connection_for_id($id);
+        return (self::$provider ??= $factory())->connection_for_id($id);
     }
 }
