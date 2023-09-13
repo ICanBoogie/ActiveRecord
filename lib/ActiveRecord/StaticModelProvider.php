@@ -23,40 +23,46 @@ final class StaticModelProvider
     /**
      * @var (Closure(): ModelProvider)|null
      */
-    private static Closure|null $proxy = null;
+    private static ?Closure $factory = null;
+
+    private static ?ModelProvider $provider = null;
 
     /**
-     * Defines {@link Model} resolver proxy.
+     * Defines the {@link ModelProvider} factory.
      *
-     * @param (callable(): ModelProvider) $proxy
+     * @param (callable(): ModelProvider) $factory
+     *     The factory is invoked once: the first time {@link model_for_record} is invoked.
      *
-     * @return (callable(): ModelProvider)|null The previous proxy, or `null` if none was defined.
+     * @return (callable(): ModelProvider)|null
+     *     The previous factory, or `null` if none was defined.
      */
-    public static function define(callable $proxy): ?callable
+    public static function define(callable $factory): ?callable
     {
-        $previous = self::$proxy;
+        $previous = self::$factory;
 
-        self::$proxy = $proxy(...);
+        self::$factory = $factory(...);
+        self::$provider = null;
 
         return $previous;
     }
 
     /**
-     * Returns the current resolver proxy.
+     * Returns the current {@link ModelProvider} factory.
      *
      * @return (callable(): ModelProvider)|null
      */
     public static function defined(): ?callable
     {
-        return self::$proxy;
+        return self::$factory;
     }
 
     /**
-     * Undefines the resolver proxy.
+     * Undefines the {@link ModelProvider} factory.
      */
     public static function undefine(): void
     {
-        self::$proxy = null;
+        self::$factory = null;
+        self::$provider = null;
     }
 
     /**
@@ -70,11 +76,11 @@ final class StaticModelProvider
      **/
     public static function model_for_record(string $activerecord_class): Model
     {
-        $proxy = self::$proxy
+        $factory = self::$factory
             ?? throw new LogicException(
-                "No resolver proxy is defined yet. Please define one with `StaticModelProvider::define()`."
+                "No factory defined yet. Please define one with `StaticModelProvider::define()`"
             );
 
-        return $proxy()->model_for_record($activerecord_class);
+        return (self::$provider ??= $factory())->model_for_record($activerecord_class);
     }
 }
