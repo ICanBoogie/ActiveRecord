@@ -12,9 +12,13 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Location;
+use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\SetStateHelper;
+
+use function var_dump;
 
 final class SchemaTest extends TestCase
 {
@@ -135,10 +139,7 @@ final class SchemaTest extends TestCase
         $this->assertEquals($expected, $schema->filter_values($values));
     }
 
-    /**
-     * @return array[]
-     */
-    public static function provide_test_filter(): array
+    public static function provide_test_filter(): array // @phpstan-ignore-line
     {
         return [
 
@@ -168,5 +169,12 @@ final class SchemaTest extends TestCase
             ]
 
         ];
+    }
+
+    public function test_from(): void
+    {
+        $actual = Schema::from(Node::class);
+
+        $this->assertNotNull($actual);
     }
 }

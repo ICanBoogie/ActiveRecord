@@ -5,11 +5,8 @@ namespace Test\ICanBoogie\ActiveRecord;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Brand;
-use Test\ICanBoogie\Acme\BrandModel;
 use Test\ICanBoogie\Acme\Car;
-use Test\ICanBoogie\Acme\CarModel;
 use Test\ICanBoogie\Acme\Driver;
-use Test\ICanBoogie\Acme\DriverModel;
 use Test\ICanBoogie\Fixtures;
 
 use function is_int;

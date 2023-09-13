@@ -3,8 +3,15 @@
 namespace ICanBoogie\ActiveRecord\Config;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\HasMany;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
+use ReflectionClass;
+
+use function assert;
+use function ICanBoogie\trim_suffix;
+use function printf;
+use function strlen;
 
 final class AssociationBuilder
 {
@@ -77,17 +84,20 @@ final class AssociationBuilder
     }
 
     /**
-     * @param SchemaAttribute[] $class_attributes
+     * @internal
+     *
+     * @param class-string<ActiveRecord> $activerecord_class
      *
      * @return $this
      */
-    public function from_attributes(array $class_attributes): self
+    public function use_record(string $activerecord_class): self
     {
-        foreach ($class_attributes as $attribute) {
-            if (!$attribute instanceof HasMany) {
-                continue;
-            }
+        $class = new ReflectionClass($activerecord_class);
 
+        foreach ($class->getAttributes(HasMany::class) as $attribute) {
+            $attribute = $attribute->newInstance();
+
+            /** @var HasMany $attribute */
             $this->has_many(
                 associate: $attribute->associate,
                 foreign_key: $attribute->foreign_key,
@@ -96,6 +106,44 @@ final class AssociationBuilder
             );
         }
 
+        // note: belongs_to is configured with a schema.
+
         return $this;
+    }
+
+    /**
+     * @internal
+     *
+     * @return $this
+     */
+    public function use_schema(ActiveRecord\Schema $schema): self
+    {
+        foreach ($schema->columns as $local_key => $column) {
+            if (!$column instanceof BelongsTo) {
+                continue;
+            }
+
+            $this->belongs_to(
+                associate: $column->associate,
+                local_key: $local_key,
+                as: $column->as ?? $this->resolve_belong_to_accessor($local_key),
+            );
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param non-empty-string $local_key
+     *
+     * @return non-empty-string
+     */
+    private function resolve_belong_to_accessor(string $local_key): string
+    {
+        $local_key = trim_suffix($local_key, '_id');
+
+        assert($local_key !== '');
+
+        return $local_key;
     }
 }
