@@ -12,6 +12,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Index;
 use InvalidArgumentException;
@@ -101,5 +102,18 @@ class Schema
     public function filter_values(array $values): array
     {
         return array_intersect_key($values, $this->columns);
+    }
+
+    /**
+     * @return iterable<non-empty-string, BelongsTo>
+     *     Where _key_ is the name of a column.
+     */
+    public function belongs_to_iterator(): iterable
+    {
+        foreach ($this->columns as $name => $column) {
+            if ($column instanceof BelongsTo) {
+                yield $name => $column;
+            }
+        }
     }
 }

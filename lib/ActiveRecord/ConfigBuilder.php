@@ -23,9 +23,9 @@ use ICanBoogie\ActiveRecord\Config\InvalidConfig;
 use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use ICanBoogie\ActiveRecord\Config\TransientAssociation;
-use ICanBoogie\ActiveRecord\Config\TransientBelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use InvalidArgumentException;
 use LogicException;
@@ -122,10 +122,12 @@ final class ConfigBuilder
         foreach ($this->association as $activerecord_class => $association) {
             $owner = $this->model_definitions[$activerecord_class];
 
-            $belongs_to = array_map(
-                fn(TransientBelongsToAssociation $a): BelongsToAssociation => $this->resolve_belongs_to($owner, $a),
-                $association->belongs_to
-            );
+            $belongs_to = [];
+
+            foreach ($owner->schema->belongs_to_iterator() as $name => $column) {
+                /** @var BelongsTo $column */
+                $belongs_to[] = $this->resolve_belongs_to($name, $column);
+            }
 
             $has_many = array_map(
                 fn(TransientHasManyAssociation $a): HasManyAssociation => $this->resolve_has_many($owner, $a),
@@ -193,30 +195,28 @@ final class ConfigBuilder
             return null;
         }
 
+        assert(strlen($key) > 1);
+
         return $on->schema->has_column($key) ? $key : null;
     }
 
-    private function resolve_belongs_to(
-        TransientModelDefinition $owner,
-        TransientBelongsToAssociation $association
-    ): BelongsToAssociation {
-        $associate = $this->model_definitions[$association->associate];
+    /**
+     * @param non-empty-string $local_key
+     */
+    private function resolve_belongs_to(string $local_key, Schema\BelongsTo $column): BelongsToAssociation
+    {
+        $associate = $this->model_definitions[$column->associate];
         $foreign_key = $associate->schema->primary;
 
         if (!is_string($foreign_key)) {
             throw new InvalidConfig(
-                "Unable to create 'belongs to' association, primary key of model '$associate->model_class' is not a string."
+                "Unable to create 'belongs to' association, primary key of `$associate->activerecord_class` is not a string."
             );
         }
 
-        $local_key = $association->local_key
-            ?? $this->try_key($foreign_key, $owner)
-            ?? throw new LogicException(
-                "Don't know how to resolve local key on '$owner->model_class' for association belongs_to($associate->model_class)"
-            );
+        $as = $column->as ?? singularize($associate->alias);
 
-        $as = $association->as
-            ?? singularize($associate->alias);
+        assert(strlen($as) > 0);
 
         return new BelongsToAssociation(
             $associate->activerecord_class,
@@ -242,18 +242,18 @@ final class ConfigBuilder
         }
 
         $foreign_key or throw new InvalidConfig(
-            "Don't know how to resolve foreign key on '$owner->model_class' for association has_many($related->model_class)"
+            "Don't know how to resolve foreign key on `$owner->activerecord_class` for association has_many($related->model_class)"
         );
 
         if (!is_string($local_key)) {
             throw new InvalidConfig(
-                "Unable to create 'has many' association, primary key of model '$owner->model_class' is not a string."
+                "Unable to create 'has many' association, primary key of model '$owner->activerecord_class' is not a string."
             );
         }
 
         if (!is_string($foreign_key)) {
             throw new InvalidConfig(
-                "Unable to create 'has many' association, primary key of model '$related->model_class' is not a string."
+                "Unable to create 'has many' association, primary key of model '$related->activerecord_class' is not a string."
             );
         }
 
@@ -351,7 +351,6 @@ final class ConfigBuilder
         // association
 
         $schema = $inner_schema_builder->build();
-        $inner_association_builder->use_schema($schema);
 
         if ($association_builder) {
             $association_builder($inner_association_builder);
@@ -369,7 +368,7 @@ final class ConfigBuilder
             activerecord_class: $activerecord_class,
             query_class: $query_class,
             table_name: $table_name,
-            alias: $alias ?? singularize($table_name),
+            alias: $alias ?? singularize($table_name), // @phpstan-ignore-line
             connection: $connection,
         );
 
@@ -386,7 +385,7 @@ final class ConfigBuilder
         $pos = strrpos($activerecord_class, '\\');
         $base = substr($activerecord_class, $pos + 1);
 
-        return pluralize(underscore($base));
+        return pluralize(underscore($base)); // @phpstan-ignore-line
     }
 
     private bool $use_attributes = false;
