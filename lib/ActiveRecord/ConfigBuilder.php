@@ -25,19 +25,19 @@ use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
-use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use InvalidArgumentException;
 use LogicException;
+use Throwable;
 
-use function array_map;
 use function assert;
-use function get_debug_type;
 use function get_parent_class;
 use function ICanBoogie\pluralize;
 use function ICanBoogie\singularize;
+use function ICanBoogie\trim_suffix;
 use function ICanBoogie\underscore;
 use function is_string;
+use function json_encode;
 use function preg_match;
 use function strlen;
 use function strrpos;
@@ -46,6 +46,7 @@ use function substr;
 final class ConfigBuilder
 {
     private const REGEXP_TIMEZONE = '/^[-+]\d{2}:\d{2}$/';
+    public const ID_SUFFIX = '_id';
 
     /**
      * @var array<non-empty-string, ConnectionDefinition>
@@ -76,7 +77,7 @@ final class ConfigBuilder
     private function validate_models(): void
     {
         foreach ($this->model_definitions as $definition) {
-            $this->connections[$definition->connection] ?? throw new InvalidConfig(
+                $this->connections[$definition->connection] ?? throw new InvalidConfig(
                 "$definition->activerecord_class uses connection '$definition->connection', but it is not configured"
             );
 
@@ -101,8 +102,8 @@ final class ConfigBuilder
 
             if (!is_string($primary)) {
                 throw new InvalidConfig(
-                    "Model '$definition->model_class' cannot extend '$parent->model_class',"
-                    . " the primary key is not a string, given: " . get_debug_type($primary)
+                    "$definition->activerecord_class cannot extend $parent->activerecord_class,"
+                    . " the primary key is not a column, given: " . json_encode($primary)
                 );
             }
 
@@ -126,14 +127,28 @@ final class ConfigBuilder
             $belongs_to = [];
 
             foreach ($owner->schema->belongs_to_iterator() as $name => $column) {
-                /** @var BelongsTo $column */
-                $belongs_to[] = $this->resolve_belongs_to($name, $column);
+                try {
+                    $belongs_to[] = $this->resolve_belongs_to($name, $column);
+                } catch (Throwable $e) {
+                    throw new InvalidConfig(
+                        "Unable to apply $owner->activerecord_class::belongs_to($column->associate::$name)",
+                        previous: $e
+                    );
+                }
             }
 
-            $has_many = array_map(
-                fn(TransientHasManyAssociation $a): HasManyAssociation => $this->resolve_has_many($owner, $a),
-                $association->has_many
-            );
+            $has_many = [];
+
+            foreach ($association->has_many as $item) {
+                try {
+                    $has_many[] = $this->resolve_has_many($owner, $item);
+                } catch (Throwable $e) {
+                    throw new InvalidConfig(
+                        "Unable to apply $owner->activerecord_class::has_may($item->associate::$item->foreign_key)",
+                        previous: $e
+                    );
+                }
+            }
 
             $associations[$activerecord_class] = new Association(
                 belongs_to: $belongs_to,
@@ -153,8 +168,8 @@ final class ConfigBuilder
         }
 
         return $this->model_definitions[$parent_class]
-            ?? throw new LogicException(
-                "The '$definition->activerecord_class' extends '$parent_class' but there's no definition for it"
+            ?? throw new InvalidConfig(
+                "$definition->activerecord_class extends $parent_class but there's no definition for it"
             );
     }
 
@@ -206,16 +221,17 @@ final class ConfigBuilder
      */
     private function resolve_belongs_to(string $local_key, Schema\BelongsTo $column): BelongsToAssociation
     {
-        $associate = $this->model_definitions[$column->associate];
-        $foreign_key = $associate->schema->primary;
+        $associate = $this->model_definitions[$column->associate]
+            ?? throw new InvalidConfig("$column->associate is not defined");
 
-        if (!is_string($foreign_key)) {
-            throw new InvalidConfig(
-                "Unable to create 'belongs to' association, primary key of `$associate->activerecord_class` is not a string."
+        $associate->schema->has_single_column_primary
+            or throw new InvalidConfig(
+                "The primary key of $associate->activerecord_class is not a single column"
             );
-        }
 
-        $as = $column->as ?? singularize($associate->alias);
+        $foreign_key = $associate->schema->primary;
+        assert(is_string($foreign_key));
+        $as = $column->as ?? trim_suffix($local_key, self::ID_SUFFIX);
 
         assert(strlen($as) > 0);
 
@@ -231,11 +247,10 @@ final class ConfigBuilder
         TransientModelDefinition $owner,
         TransientHasManyAssociation $association
     ): HasManyAssociation {
-        if (!is_string($owner->schema->primary)) {
-            throw new InvalidConfig(
-                "Unable to create 'has many' association, primary key of model '$owner->activerecord_class' is not a string."
+        $owner->schema->has_single_column_primary
+            or throw new InvalidConfig(
+                "The primary key of $owner->activerecord_class is not a single column"
             );
-        }
 
         $related = $this->model_definitions[$association->associate];
         $foreign_key = $association->foreign_key;
@@ -247,15 +262,8 @@ final class ConfigBuilder
             $foreign_key ??= $this->try_key($owner->schema->primary, $related);
         }
 
-        $foreign_key or throw new InvalidConfig(
-            "Don't know how to resolve foreign key on `$owner->activerecord_class` for association has_many($related->model_class)"
-        );
-
-        if (!is_string($foreign_key)) {
-            throw new InvalidConfig(
-                "Unable to create 'has many' association, primary key of model '$related->activerecord_class' is not a string."
-            );
-        }
+        $foreign_key or throw new InvalidConfig("Unable to resolve the foreign key");
+        is_string($foreign_key) or throw new InvalidConfig("The foreign key is not a single column");
 
         $through = null;
 

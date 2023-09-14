@@ -3,10 +3,22 @@
 namespace Test\ICanBoogie\Acme;
 
 use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Schema\Character;
+use ICanBoogie\ActiveRecord\Schema\HasMany;
+use ICanBoogie\ActiveRecord\Schema\Id;
+use ICanBoogie\ActiveRecord\Schema\Index;
+use ICanBoogie\ActiveRecord\Schema\Serial;
 
 /**
- * @extends ActiveRecord<int>
+ * @property-read ActiveRecord\Query<Person> $people
  */
-class Equipment extends ActiveRecord
+#[Index('category_id')]
+#[HasMany(Person::class, through: PersonEquipment::class)]
+final class Equipment extends ActiveRecord
 {
+    #[Id, Serial]
+    public int $equipment_id;
+
+    #[Character]
+    public string $name;
 }

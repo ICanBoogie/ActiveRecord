@@ -19,6 +19,8 @@ use InvalidArgumentException;
 
 use function array_intersect_key;
 use function get_debug_type;
+use function is_array;
+use function is_string;
 use function sprintf;
 
 /**
@@ -35,6 +37,9 @@ class Schema
      */
     public static function __set_state(array $an_array): self
     {
+        unset($an_array['has_single_column_primary']); // @phpstan-ignore-line
+        unset($an_array['has_multi_column_primary']); // @phpstan-ignore-line
+
         return new self(...$an_array);
     }
 
@@ -47,6 +52,9 @@ class Schema
             ->use_record($activerecord_class)
             ->build();
     }
+
+    public readonly bool $has_single_column_primary;
+    public readonly bool $has_multi_column_primary;
 
     /**
      * @param non-empty-array<non-empty-string, Column> $columns
@@ -78,6 +86,9 @@ class Schema
                     )
                 );
         }
+
+        $this->has_single_column_primary = is_string($this->primary);
+        $this->has_multi_column_primary = is_array($this->primary);
     }
 
     /**
