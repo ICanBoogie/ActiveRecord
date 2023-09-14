@@ -12,13 +12,11 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Schema;
-use ICanBoogie\ActiveRecord\SchemaBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Location;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\SetStateHelper;
-
-use function var_dump;
 
 final class SchemaTest extends TestCase
 {
@@ -30,6 +28,45 @@ final class SchemaTest extends TestCase
 
         $this->assertTrue($schema->has_column('id'));
         $this->assertEquals($id, $schema->columns['id']);
+    }
+
+    #[DataProvider("has_column_primary")]
+    public function test_has_column_primary(
+        Schema $sut,
+        bool $expected_has_single_column_primary,
+        bool $expected_has_multi_column_primary
+    ): void {
+        $this->assertEquals($expected_has_single_column_primary, $sut->has_single_column_primary);
+        $this->assertEquals($expected_has_multi_column_primary, $sut->has_multi_column_primary);
+    }
+
+    // @phpstan-ignore-next-line
+    public static function has_column_primary(): array
+    {
+        return [
+            [
+                new Schema([
+                    'id' => new Schema\Serial(),
+                ]),
+                false,
+                false,
+            ],
+            [
+                new Schema([
+                    'id' => new Schema\Serial(),
+                ], primary: 'id'),
+                true,
+                false,
+            ],
+            [
+                new Schema([
+                    'a' => new Schema\Character(),
+                    'b' => new Schema\Character(),
+                ], primary: [ 'a', 'b' ]),
+                false,
+                true,
+            ],
+        ];
     }
 
     public function test_export(): void

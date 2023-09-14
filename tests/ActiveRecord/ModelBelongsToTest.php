@@ -2,18 +2,28 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\Config;
+use ICanBoogie\ActiveRecord\ConfigBuilder;
+use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\ModelCollection;
 use LogicException;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Brand;
 use Test\ICanBoogie\Acme\Car;
+use Test\ICanBoogie\Acme\DanceSession;
 use Test\ICanBoogie\Acme\Driver;
+use Test\ICanBoogie\Acme\Equipment;
+use Test\ICanBoogie\Acme\Person;
+use Test\ICanBoogie\Acme\PersonEquipment;
+use Test\ICanBoogie\Acme\Skill;
 use Test\ICanBoogie\Fixtures;
 
 use function is_int;
 
 final class ModelBelongsToTest extends TestCase
 {
-    public function test_belongs_to(): void
+    public function test_belongs_to_runtime(): void
     {
         $models = Fixtures::only_models('drivers', 'brands', 'cars');
 
@@ -67,5 +77,29 @@ final class ModelBelongsToTest extends TestCase
 
         $car->driver = $driver;
         $this->assertEquals($driver->driver_id, $car->driver_id);
+    }
+
+    #[Test]
+    public function getter_is_created_from_the_column_name_without_id_suffix(): void
+    {
+        $config = (new ConfigBuilder())
+            ->use_attributes()
+            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
+            ->add_model(activerecord_class: Skill::class)
+            ->add_model(activerecord_class: DanceSession::class)
+            ->add_model(activerecord_class: Equipment::class)
+            ->add_model(activerecord_class: Person::class)
+            ->add_model(activerecord_class: PersonEquipment::class)
+            ->build();
+
+        $connections = new ConnectionCollection($config->connections);
+        $models = new ModelCollection($connections, $config->models);
+
+        $people = $models->model_for_record(Person::class);
+
+        $this->assertArrayHasKey('dance_session', $people->relations);
+        $this->assertArrayHasKey('hire_skill', $people->relations);
+        $this->assertArrayHasKey('summon_skill', $people->relations);
+        $this->assertArrayHasKey('teach_skill', $people->relations);
     }
 }
