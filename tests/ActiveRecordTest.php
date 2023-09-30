@@ -52,7 +52,7 @@ final class ActiveRecordTest extends TestCase
             ->with(Node::class)
             ->willReturn($this->model);
 
-        StaticModelProvider::define(fn() => $resolver);
+        StaticModelProvider::set(fn() => $resolver);
 
         $record = new Node();
 

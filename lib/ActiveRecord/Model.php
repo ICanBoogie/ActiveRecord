@@ -16,10 +16,7 @@ use ArrayAccess;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\OffsetNotWritable;
-use ICanBoogie\Prototype\MethodNotDefined;
 
-use function array_combine;
-use function array_fill;
 use function array_fill_keys;
 use function array_keys;
 use function array_shift;
@@ -29,8 +26,6 @@ use function get_parent_class;
 use function implode;
 use function is_array;
 use function is_callable;
-use function is_int;
-use function is_integer;
 use function method_exists;
 use function sprintf;
 

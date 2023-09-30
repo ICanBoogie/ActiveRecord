@@ -13,12 +13,12 @@ final class ActiveRecordStaticTest extends TestCase
     {
         $models = Fixtures::only_models('nodes');
 
-        StaticModelProvider::define(fn() => $models);
+        StaticModelProvider::set(fn() => $models);
     }
 
     protected function tearDown(): void
     {
-        StaticModelProvider::undefine();
+        StaticModelProvider::unset();
     }
 
     #[Test]

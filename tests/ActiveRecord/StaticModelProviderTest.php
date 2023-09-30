@@ -2,19 +2,27 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
+use Exception;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelProvider;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 
-final class StaticModelResolverTest extends TestCase
+final class StaticModelProviderTest extends TestCase
 {
-    public function test_defined(): void
+    public function test_set_get_unset(): void
     {
-        $actual = StaticModelProvider::defined();
+        $factory = fn() => throw new Exception();
+        StaticModelProvider::set($factory);
 
-        $this->assertNotNull($actual);
+        $actual = StaticModelProvider::get();
+        $this->assertSame($actual, $factory);
+
+        StaticModelProvider::unset();
+
+        $actual = StaticModelProvider::get();
+        $this->assertNull($actual);
     }
 
     public function test_model_for_activerecord(): void
@@ -29,10 +37,18 @@ final class StaticModelResolverTest extends TestCase
             ->with(Article::class)
             ->willReturn($model);
 
-        StaticModelProvider::define(fn() => $resolver);
+        StaticModelProvider::set(static function() use (&$n, $resolver) {
+            $n++;
+            return $resolver;
+        });
 
         $actual = StaticModelProvider::model_for_record(Article::class);
 
         $this->assertSame($model, $actual);
+        $this->assertEquals(1, $n);
+
+        // Assert the factory is only once
+        StaticModelProvider::model_for_record(Article::class);
+        $this->assertEquals(1, $n);
     }
 }

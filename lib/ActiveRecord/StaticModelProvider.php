@@ -28,7 +28,7 @@ final class StaticModelProvider
     private static ?ModelProvider $provider = null;
 
     /**
-     * Defines the {@link ModelProvider} factory.
+     * Sets the {@link ModelProvider} factory.
      *
      * @param (callable(): ModelProvider) $factory
      *     The factory is invoked once: the first time {@link model_for_record} is invoked.
@@ -36,7 +36,7 @@ final class StaticModelProvider
      * @return (callable(): ModelProvider)|null
      *     The previous factory, or `null` if none was defined.
      */
-    public static function define(callable $factory): ?callable
+    public static function set(callable $factory): ?callable
     {
         $previous = self::$factory;
 
@@ -51,15 +51,15 @@ final class StaticModelProvider
      *
      * @return (callable(): ModelProvider)|null
      */
-    public static function defined(): ?callable
+    public static function get(): ?callable
     {
         return self::$factory;
     }
 
     /**
-     * Undefines the {@link ModelProvider} factory.
+     * Unset the {@link ModelProvider} factory.
      */
-    public static function undefine(): void
+    public static function unset(): void
     {
         self::$factory = null;
         self::$provider = null;
