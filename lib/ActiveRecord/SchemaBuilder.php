@@ -44,7 +44,10 @@ final class SchemaBuilder
 
     public function build(): Schema
     {
-        assert(count($this->columns) > 0);
+        $columns = $this->columns;
+        assert(count($columns) > 0);
+
+        $this->assert_indexes();
 
         $primary = match (count($this->primary)) {
             0 => null,
@@ -53,10 +56,29 @@ final class SchemaBuilder
         };
 
         return new Schema(
-            columns: $this->columns,
+            columns: $columns,
             primary: $primary,
             indexes: $this->indexes
         );
+    }
+
+    /**
+     * Asserts that the columns used by the indexes exist.
+     */
+    private function assert_indexes(): void
+    {
+        foreach ($this->indexes as $index) {
+            $columns = $index->columns;
+
+            if (is_string($columns)) {
+                $columns = [ $columns ];
+            }
+
+            foreach ($columns as $column) {
+                $this->columns[$column]
+                    ?? throw new LogicException("Column used by index is not defined: $column");
+            }
+        }
     }
 
     /**
@@ -87,6 +109,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
+     *
      * @phpstan-param Integer::SIZE_* $size
      *
      * @return $this
@@ -397,7 +420,7 @@ final class SchemaBuilder
      * @param non-empty-string $col_name
      * @param class-string<ActiveRecord> $associate
      *     The local key i.e. column name.
-     * @param positive-int $size
+     * @param Integer::SIZE_* $size
      * @param non-empty-string|null $as
      *
      * @return $this
@@ -441,26 +464,17 @@ final class SchemaBuilder
         bool $unique = false,
         ?string $name = null
     ): self {
-        if (is_string($columns)) {
-            $columns = [ $columns ];
-        }
-
-        foreach ($columns as $column) {
-            $this->columns[$column] ??
-                throw new LogicException("Column used by index is not defined: $column");
-        }
-
         $this->indexes[] = new Index($columns, $unique, $name);
 
         return $this;
     }
 
     /**
-     * @internal
-     *
      * @param class-string<ActiveRecord> $activerecord_class
      *
      * @return $this
+     * @internal
+     *
      */
     public function use_record(string $activerecord_class): self
     {
@@ -471,7 +485,17 @@ final class SchemaBuilder
         }
 
         foreach ($class->getProperties() as $property) {
-            foreach ($property->getAttributes(SchemaAttribute::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+            // We only want the columns for this record, not its parent.
+            if ($property->getDeclaringClass()->name !== $activerecord_class) {
+                continue;
+            }
+
+            foreach (
+                $property->getAttributes(
+                    SchemaAttribute::class,
+                    ReflectionAttribute::IS_INSTANCEOF
+                ) as $attribute
+            ) {
                 $attribute = $attribute->newInstance();
 
                 if ($attribute instanceof Id) {

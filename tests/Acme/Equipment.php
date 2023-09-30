@@ -6,13 +6,11 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\HasMany;
 use ICanBoogie\ActiveRecord\Schema\Id;
-use ICanBoogie\ActiveRecord\Schema\Index;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 
 /**
  * @property-read ActiveRecord\Query<Person> $people
  */
-#[Index('category_id')]
 #[HasMany(Person::class, through: PersonEquipment::class)]
 final class Equipment extends ActiveRecord
 {
