@@ -25,14 +25,14 @@ final class ConfigBuilderTest extends TestCase
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
             )
-            ->add_model(
-                activerecord_class: Node::class,
+            ->add_record(
+                record_class: Node::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_serial('nid', primary: true)
                     ->add_character('title'),
             )
-            ->add_model(
-                activerecord_class: Article::class,
+            ->add_record(
+                record_class: Article::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
                     ->add_text('body')
                     ->add_datetime('date'),
@@ -54,9 +54,9 @@ final class ConfigBuilderTest extends TestCase
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
             )
-            ->add_model(Node::class)
-            ->add_model(Article::class)
-            ->add_model(Comment::class)
+            ->add_record(Node::class)
+            ->add_record(Article::class)
+            ->add_record(Comment::class)
             ->build();
 
         $schema = $config->models[Article::class]->table->schema;
@@ -77,9 +77,9 @@ final class ConfigBuilderTest extends TestCase
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
             )
-            ->add_model(Physician::class)
-            ->add_model(Patient::class)
-            ->add_model(Appointment::class)
+            ->add_record(Physician::class)
+            ->add_record(Patient::class)
+            ->add_record(Appointment::class)
             ->build();
 
         $ph_def = $config->models[Physician::class];

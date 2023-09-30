@@ -85,11 +85,11 @@ final class ModelBelongsToTest extends TestCase
         $config = (new ConfigBuilder())
             ->use_attributes()
             ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
-            ->add_model(activerecord_class: Skill::class)
-            ->add_model(activerecord_class: DanceSession::class)
-            ->add_model(activerecord_class: Equipment::class)
-            ->add_model(activerecord_class: Person::class)
-            ->add_model(activerecord_class: PersonEquipment::class)
+            ->add_record(record_class: Skill::class)
+            ->add_record(record_class: DanceSession::class)
+            ->add_record(record_class: Equipment::class)
+            ->add_record(record_class: Person::class)
+            ->add_record(record_class: PersonEquipment::class)
             ->build();
 
         $connections = new ConnectionCollection($config->connections);
