@@ -282,6 +282,8 @@ final class ConfigBuilder
     }
 
     /**
+     * Adds a connection definition.
+     *
      * @param non-empty-string $id
      * @param non-empty-string $dsn
      * @param non-empty-string|null $username
@@ -326,7 +328,9 @@ final class ConfigBuilder
     }
 
     /**
-     * @param class-string<ActiveRecord> $activerecord_class
+     * Adds a record definition.
+     *
+     * @param class-string<ActiveRecord> $record_class
      * @param class-string<Model> $model_class
      * @param class-string<Query> $query_class
      * @param non-empty-string|null $table_name
@@ -335,8 +339,8 @@ final class ConfigBuilder
      * @param (Closure(AssociationBuilder): AssociationBuilder)|null $association_builder
      * @param non-empty-string $connection
      */
-    public function add_model( // @phpstan-ignore-line
-        string $activerecord_class,
+    public function add_record(
+        string $record_class,
         string $model_class = Model::class,
         string $query_class = Query::class,
         ?string $table_name = null,
@@ -345,16 +349,16 @@ final class ConfigBuilder
         Closure $association_builder = null,
         string $connection = Config::DEFAULT_CONNECTION_ID,
     ): self {
-        Assert::extends_activerecord($activerecord_class);
+        Assert::extends_activerecord($record_class);
 
-        [ $inner_schema_builder, $inner_association_builder ] = $this->create_builders($activerecord_class);
+        [ $inner_schema_builder, $inner_association_builder ] = $this->create_builders($record_class);
 
         // schema
 
         if ($schema_builder) {
             $schema_builder($inner_schema_builder);
         } elseif ($this->use_attributes && $inner_schema_builder->is_empty()) {
-            throw new LogicException("The Schema built from `$activerecord_class` attributes is empty");
+            throw new LogicException("The Schema built from `$record_class` attributes is empty");
         }
 
         // association
@@ -365,16 +369,16 @@ final class ConfigBuilder
             $association_builder($inner_association_builder);
         }
 
-        $this->association[$activerecord_class] = $inner_association_builder->build();
+        $this->association[$record_class] = $inner_association_builder->build();
 
         // transient model
 
-        $table_name ??= self::resolve_table_name($activerecord_class);
+        $table_name ??= self::resolve_table_name($record_class);
 
-        $this->model_definitions[$activerecord_class] = new TransientModelDefinition(
+        $this->model_definitions[$record_class] = new TransientModelDefinition(
             schema: $schema,
             model_class: $model_class,
-            activerecord_class: $activerecord_class,
+            activerecord_class: $record_class,
             query_class: $query_class,
             table_name: $table_name,
             alias: $alias ?? singularize($table_name), // @phpstan-ignore-line

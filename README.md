@@ -208,7 +208,7 @@ class Node extends ActiveRecord
 $config = (new ActiveRecord\ConfigBuilder())
     ->use_attributes()
     ->add_connection(/*...*/)
-    ->add_model(NodeModel::class)
+    ->add_record(NodeModel::class)
     ->build();
 
 /* @var $connections ConnectionCollection */
@@ -363,18 +363,17 @@ use ICanBoogie\DateTime;
 /* @var ConfigBuilder $config */
 
 $config
-    ->add_model(
-        model_class: NodeModel::class,
+    ->add_record(
+        record_class: Node::class,
         schema_builder: fn(SchemaBuilder $b) => $b
             ->add_serial('nid', primary: true)
             ->add_character('title'),
     )
-    ->add_model(
-        model_class: ArticleModel::class,
+    ->add_record(
+        record_class: Article::class,
         schema_builder: fn(SchemaBuilder $b) => $b
             ->add_character('body')
             ->add_date('date'),
-        extends: NodeModel::class,
     );
 
 // …
