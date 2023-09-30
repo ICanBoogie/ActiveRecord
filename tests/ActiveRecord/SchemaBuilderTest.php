@@ -7,6 +7,7 @@ use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use LogicException;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Article;
 
 final class SchemaBuilderTest extends TestCase
 {
@@ -37,19 +38,37 @@ final class SchemaBuilderTest extends TestCase
             ],
             primary: 'nid',
             indexes: [
-                new Schema\Index([ 'is_active' ])
+                new Schema\Index('is_active')
             ],
         );
 
         $this->assertEquals($expected, $actual);
     }
 
-    public function test_fail_on_index_with_undefined_column(): void
+    public function test_use_record(): void
     {
-        $builder = (new SchemaBuilder())->add_boolean('is_active');
+        $expected = (new SchemaBuilder())
+            ->add_text('body')
+            ->add_date('date')
+            ->add_integer('rating', null: true)
+            ->add_index('rating', name: 'idx_rating')
+            ->build();
+
+        $actual = (new SchemaBuilder())
+            ->use_record(Article::class)
+            ->build();
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function test_build_fails_when_index_uses_undefined_column(): void
+    {
+        $builder = (new SchemaBuilder())
+            ->add_boolean('is_active')
+            ->add_index('madonna');
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage("Column used by index is not defined: madonna");
-        $builder->add_index([ 'madonna' ]);
+        $builder->build();
     }
 }
