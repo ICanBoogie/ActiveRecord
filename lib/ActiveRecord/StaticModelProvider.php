@@ -19,15 +19,15 @@ final class StaticModelProvider
     private static ?ModelProvider $provider = null;
 
     /**
-     * Defines the {@link ModelProvider} factory.
+     * Sets the {@see ModelProvider} factory.
      *
      * @param (callable(): ModelProvider) $factory
-     *     The factory is invoked once: the first time {@link model_for_record} is invoked.
+     *     The factory is invoked once: the first time {@see model_for_record} is invoked.
      *
      * @return (callable(): ModelProvider)|null
      *     The previous factory, or `null` if none was defined.
      */
-    public static function define(callable $factory): ?callable
+    public static function set(callable $factory): ?callable
     {
         $previous = self::$factory;
 
@@ -38,19 +38,19 @@ final class StaticModelProvider
     }
 
     /**
-     * Returns the current {@link ModelProvider} factory.
+     * Returns the current {@see ModelProvider} factory.
      *
      * @return (callable(): ModelProvider)|null
      */
-    public static function defined(): ?callable
+    public static function get(): ?callable
     {
         return self::$factory;
     }
 
     /**
-     * Undefines the {@link ModelProvider} factory.
+     * Unset the {@see ModelProvider} factory.
      */
-    public static function undefine(): void
+    public static function reset(): void
     {
         self::$factory = null;
         self::$provider = null;
@@ -69,7 +69,7 @@ final class StaticModelProvider
     {
         $factory = self::$factory
             ?? throw new LogicException(
-                "No factory defined yet. Please define one with `StaticModelProvider::define()`"
+                "No factory defined yet. Please define one with `StaticModelProvider::set()`"
             );
 
         return (self::$provider ??= $factory())->model_for_record($activerecord_class);

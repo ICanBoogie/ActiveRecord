@@ -1984,8 +1984,8 @@ connections) and instantiate them.
 #### Defining models
 
 Model definitions can be specified while creating the [ModelCollection][] instance.
-[ModelCollection][] implements [ModelProvider][], it is recommend to type against the interface and
-use the method `model_for_id()` to retrieve models from the collection.
+[ModelCollection][] implements [ModelProvider][], it is recommended to type against the interface
+and use the method `model_for_id()` to retrieve models from the collection.
 
 Note: You don't have to create the [Connection][] instances used by the models, you can use their
 identifier which will get resolved when the model is needed.
@@ -2111,31 +2111,26 @@ var_dump($models->is_installed()); // [ "NodeModel" => false, "ContentModel" => 
 
 #### Model provider
 
-The `get_model()` helper retrieves models using their identifier. It is used by active records to
-retrieve their model when required, and by queries during joins. Models are retrieved using the
-model collection returned by [ModelProvider][].
+`StaticModelProvider::model_for_record()` is used by active records to retrieve their model when
+required, and by queries during joins. Models are retrieved using the model collection returned by
+[ModelProvider][].
 
-The following example demonstrates how to define a model provider:
+The following example demonstrates how to define a factory for a model provider:
 
 ```php
 <?php
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
-use function ICanBoogie\ActiveRecord\get_model;
 
-/* @var $models ActiveRecord\ModelCollection */
+/* @var $provider ActiveRecord\ModelProvider */
 
-StaticModelProvider::define(function($id) use($models) {
+StaticModelProvider::set(fn() => $provider);
 
-    return $models[$id];
-
-});
-
-$nodes = get_model('nodes');
+$nodes = StaticModelProvider::model_for_record(Node::class);
 ```
 
-> **Note:** A `LogicException` is thrown if no provider is defined when `get_model()` require it.
+> **Note:** The factory is invoked once.
 
 
 
