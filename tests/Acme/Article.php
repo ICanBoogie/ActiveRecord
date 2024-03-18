@@ -7,7 +7,6 @@ use ICanBoogie\ActiveRecord\Schema\Index;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Text;
 
-#[Index('rating', name: 'idx_rating')]
 class Article extends Node
 {
     #[Text]
@@ -17,5 +16,6 @@ class Article extends Node
     public string $date;
 
     #[Integer(null: true)]
+    #[Index(name: 'idx_rating')]
     public ?int $rating;
 }

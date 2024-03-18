@@ -14,6 +14,7 @@ use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Decimal;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Index;
+use ICanBoogie\ActiveRecord\Schema\Indexed;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Schema\Serial;
@@ -464,6 +465,8 @@ final class SchemaBuilder
         bool $unique = false,
         ?string $name = null
     ): self {
+        assert(!empty($columns));
+
         $this->indexes[] = new Index($columns, $unique, $name);
 
         return $this;
@@ -481,7 +484,7 @@ final class SchemaBuilder
         $class = new ReflectionClass($activerecord_class);
 
         foreach ($class->getAttributes(Index::class) as $attribute) {
-            $this->indexes[] = $attribute->newInstance();
+            $this->add_index(...$attribute->getArguments());
         }
 
         foreach ($class->getProperties() as $property) {
@@ -506,6 +509,10 @@ final class SchemaBuilder
 
                 if ($attribute instanceof Column) {
                     $this->columns[$property->name] = $attribute;
+                }
+
+                if ($attribute instanceof Index) {
+                    $this->add_index($property->name, $attribute->unique, $attribute->name);
                 }
             }
         }
