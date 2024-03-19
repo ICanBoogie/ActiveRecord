@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Schema;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Boolean extends Integer
+final readonly class Boolean extends Integer
 {
     /**
      * @param array{

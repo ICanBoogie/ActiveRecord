@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Schema;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class DateTime extends Column
+final readonly class DateTime extends Column
 {
     public const NOW = 'NOW';
     public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';

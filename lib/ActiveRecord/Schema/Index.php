@@ -7,8 +7,8 @@ use Attribute;
 /**
  * An index on one or multiple columns.
  */
-#[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-final class Index implements SchemaAttribute
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
+final readonly class Index implements SchemaAttribute
 {
     /**
      * @param array{
@@ -28,9 +28,9 @@ final class Index implements SchemaAttribute
      * @param ?non-empty-string $name
      */
     public function __construct(
-        public readonly array|string $columns,
-        public readonly bool $unique = false,
-        public readonly ?string $name = null
+        public array|string $columns = [],
+        public bool $unique = false,
+        public ?string $name = null
     ) {
     }
 }

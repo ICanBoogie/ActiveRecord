@@ -15,7 +15,7 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 
-final class Config
+final readonly class Config
 {
     public const DEFAULT_CONNECTION_ID = 'primary';
 
@@ -36,8 +36,8 @@ final class Config
      * @param array<class-string<ActiveRecord>, ModelDefinition> $models
      */
     public function __construct(
-        public readonly array $connections,
-        public readonly array $models,
+        public array $connections,
+        public array $models,
     ) {
     }
 }

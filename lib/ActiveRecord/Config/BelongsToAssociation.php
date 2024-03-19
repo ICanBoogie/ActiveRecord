@@ -9,7 +9,7 @@ use ICanBoogie\ActiveRecord;
  *
  * @internal
  */
-final class BelongsToAssociation
+final readonly class BelongsToAssociation
 {
     /**
      * @param array{
@@ -31,10 +31,10 @@ final class BelongsToAssociation
      * @param non-empty-string $as
      */
     public function __construct(
-        public readonly string $associate,
-        public readonly string $local_key,
-        public readonly string $foreign_key,
-        public readonly string $as,
+        public string $associate,
+        public string $local_key,
+        public string $foreign_key,
+        public string $as,
     ) {
     }
 }

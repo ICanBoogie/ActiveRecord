@@ -7,13 +7,13 @@ namespace ICanBoogie\ActiveRecord\Config;
  *
  * @internal
  */
-final class TransientAssociation
+final readonly class TransientAssociation
 {
     /**
      * @param array<TransientHasManyAssociation> $has_many
      */
     public function __construct(
-        public readonly array $has_many,
+        public array $has_many,
     ) {
     }
 }

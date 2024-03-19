@@ -9,6 +9,6 @@ use Attribute;
  * i.e. the primary key in the database.
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Id implements ColumnExtraAttribute
+final readonly class Id implements ColumnExtraAttribute
 {
 }

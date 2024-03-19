@@ -9,7 +9,7 @@ use ICanBoogie\ActiveRecord;
  * Marks a relationship with another model, with the property as reference.
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-final class HasMany implements SchemaAttribute
+final readonly class HasMany implements SchemaAttribute
 {
     /**
      * @param class-string<ActiveRecord> $associate
@@ -22,10 +22,10 @@ final class HasMany implements SchemaAttribute
      *     The name of the accessor, defaults to the associate model's id.
      */
     public function __construct(
-        public readonly string $associate,
-        public readonly ?string $foreign_key = null,
-        public readonly ?string $through = null,
-        public readonly ?string $as = null,
+        public string $associate,
+        public ?string $foreign_key = null,
+        public ?string $through = null,
+        public ?string $as = null,
     ) {
     }
 }

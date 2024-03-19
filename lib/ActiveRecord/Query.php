@@ -11,6 +11,8 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use ArrayIterator;
+use DateTimeInterface;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\DateTime;
 use ICanBoogie\Prototype\MethodNotDefined;
@@ -19,17 +21,30 @@ use InvalidArgumentException;
 use IteratorAggregate;
 use JetBrains\PhpStorm\Deprecated;
 use LogicException;
+use PDO;
 use ReflectionClass;
 use ReflectionMethod;
 use Traversable;
 
+use function array_combine;
+use function array_fill;
+use function array_map;
 use function array_merge;
+use function array_shift;
+use function count;
+use function explode;
+use function func_get_arg;
+use function func_get_args;
+use function func_num_args;
 use function get_class;
+use function implode;
 use function is_array;
+use function is_numeric;
 use function is_string;
 use function preg_replace;
 use function preg_replace_callback;
 use function reset;
+use function strpos;
 use function substr;
 
 use const PHP_INT_MAX;
@@ -230,7 +245,7 @@ class Query implements IteratorAggregate
             return $this->where(...$arguments);
         }
 
-        if (\strpos($method, 'filter_by_') === 0) {
+        if (strpos($method, 'filter_by_') === 0) {
             return $this->dynamic_filter(substr($method, 10), $arguments); // 10 is for: strlen('filter_by_')
         }
 
@@ -288,7 +303,7 @@ class Query implements IteratorAggregate
      */
     private function render_joints(): string
     {
-        return \implode(' ', $this->joints);
+        return implode(' ', $this->joints);
     }
 
     /**
@@ -307,7 +322,7 @@ class Query implements IteratorAggregate
         $conditions = $this->conditions;
 
         if ($conditions) {
-            $query .= ' WHERE ' . \implode(' AND ', $conditions);
+            $query .= ' WHERE ' . implode(' AND ', $conditions);
         }
 
         $group = $this->group;
@@ -343,7 +358,7 @@ class Query implements IteratorAggregate
      */
     private function render_order(array $order): string
     {
-        if (\count($order) == 1) {
+        if (count($order) == 1) {
             $raw = $order[0];
             $rendered = preg_replace(
                 '/-([a-zA-Z0-9_]+)/',
@@ -356,13 +371,13 @@ class Query implements IteratorAggregate
 
         $connection = $this->model->connection;
 
-        $field = \array_shift($order);
+        $field = array_shift($order);
         $field_values = is_array($order[0]) ? $order[0] : $order;
-        $field_values = \array_map(function ($v) use ($connection) {
+        $field_values = array_map(function ($v) use ($connection) {
             return $connection->pdo->quote($v);
         }, $field_values);
 
-        return "ORDER BY FIELD($field, " . \implode(', ', $field_values) . ")";
+        return "ORDER BY FIELD($field, " . implode(', ', $field_values) . ")";
     }
 
     /**
@@ -614,7 +629,7 @@ class Query implements IteratorAggregate
     /**
      * Parse the conditions for the {@link where()} and {@link having()} methods.
      *
-     * {@link \DateTimeInterface} conditions are converted to strings.
+     * {@link DateTimeInterface} conditions are converted to strings.
      *
      * @param $conditions_and_args
      *
@@ -622,7 +637,7 @@ class Query implements IteratorAggregate
      */
     private function deferred_parse_conditions(...$conditions_and_args): array
     {
-        $conditions = \array_shift($conditions_and_args);
+        $conditions = array_shift($conditions_and_args);
         $args = $conditions_and_args;
 
         if (is_array($conditions)) {
@@ -635,7 +650,7 @@ class Query implements IteratorAggregate
 
                     if (is_array($arg)) {
                         foreach ($arg as $value) {
-                            $joined .= ',' . (\is_numeric($value) ? $value : $this->model->quote($value));
+                            $joined .= ',' . (is_numeric($value) ? $value : $this->model->quote($value));
                         }
 
                         $joined = substr($joined, 1);
@@ -674,7 +689,7 @@ class Query implements IteratorAggregate
         }
 
         foreach ($conditions_args as &$value) {
-            if ($value instanceof \DateTimeInterface) {
+            if ($value instanceof DateTimeInterface) {
                 $value = DateTime::from($value)->utc->as_db;
             }
         }
@@ -692,9 +707,9 @@ class Query implements IteratorAggregate
      */
     private function dynamic_filter(string $filter, array $conditions_args = []): self
     {
-        $conditions = \explode('_and_', $filter);
+        $conditions = explode('_and_', $filter);
 
-        return $this->where(\array_combine($conditions, $conditions_args));
+        return $this->where(array_combine($conditions, $conditions_args));
     }
 
     /**
@@ -849,9 +864,9 @@ class Query implements IteratorAggregate
     {
         $offset = null;
 
-        if (\func_num_args() == 2) {
+        if (func_num_args() == 2) {
             $offset = $limit;
-            $limit = \func_get_arg(1);
+            $limit = func_get_arg(1);
         }
 
         $this->offset = (int)$offset;
@@ -921,26 +936,20 @@ class Query implements IteratorAggregate
      *
      * @param mixed ...$mode
      *
-     * @return array
+     * @return array<mixed>
      */
     private function resolve_fetch_mode(...$mode): array
     {
         if ($mode) {
             $args = $mode;
+        } elseif ($this->mode) {
+            $args = $this->mode;
+        } elseif ($this->select) {
+            $args = [ PDO::FETCH_ASSOC ];
+        } elseif ($this->model->activerecord_class) {
+            $args = [ PDO::FETCH_CLASS, $this->model->activerecord_class, [ $this->model ] ];
         } else {
-            if ($this->mode) {
-                $args = $this->mode;
-            } else {
-                if ($this->select) {
-                    $args = [ \PDO::FETCH_ASSOC ];
-                } else {
-                    if ($this->model->activerecord_class) {
-                        $args = [ \PDO::FETCH_CLASS, $this->model->activerecord_class, [ $this->model ] ];
-                    } else {
-                        $args = [ \PDO::FETCH_CLASS, ActiveRecord::class, [ $this->model ] ];
-                    }
-                }
-            }
+            $args = [ PDO::FETCH_CLASS, ActiveRecord::class, [ $this->model ] ];
         }
 
         return $args;
@@ -951,7 +960,7 @@ class Query implements IteratorAggregate
      *
      * @param mixed ...$mode Fetch mode.
      *
-     * @return array
+     * @return array<mixed>
      */
     public function all(...$mode): array
     {
@@ -961,7 +970,7 @@ class Query implements IteratorAggregate
     /**
      * Getter for the {@link $all} magic property.
      *
-     * @return array
+     * @return array<mixed>
      */
     protected function get_all(): array
     {
@@ -983,8 +992,8 @@ class Query implements IteratorAggregate
         $statement = $query->query();
         $args = $query->resolve_fetch_mode(...$mode);
 
-        if (\count($args) > 1 && $args[0] == \PDO::FETCH_CLASS) {
-            \array_shift($args);
+        if (count($args) > 1 && $args[0] == PDO::FETCH_CLASS) {
+            array_shift($args);
 
             $rc = $statement->pdo_statement->fetchObject(...$args);
 
@@ -1016,7 +1025,7 @@ class Query implements IteratorAggregate
      */
     protected function get_pairs(): array
     {
-        return $this->all(\PDO::FETCH_KEY_PAIR);
+        return $this->all(PDO::FETCH_KEY_PAIR);
     }
 
     /**
@@ -1052,8 +1061,8 @@ class Query implements IteratorAggregate
      */
     public function exists($key = null)
     {
-        if ($key !== null && \func_num_args() > 1) {
-            $key = \func_get_args();
+        if ($key !== null && func_num_args() > 1) {
+            $key = func_get_args();
         }
 
         $query = clone $this;
@@ -1077,10 +1086,10 @@ class Query implements IteratorAggregate
             ->select('`{primary}`')
             ->and([ '{primary}' => $key ])
             ->limit(0, 0)
-            ->all(\PDO::FETCH_COLUMN);
+            ->all(PDO::FETCH_COLUMN);
 
         if ($rc && is_array($key)) {
-            $exists = \array_combine($key, \array_fill(0, \count($key), false));
+            $exists = array_combine($key, array_fill(0, count($key), false));
 
             foreach ($rc as $key) {
                 $exists[$key] = true;
@@ -1250,6 +1259,6 @@ class Query implements IteratorAggregate
      */
     public function getIterator(): Traversable
     {
-        return new \ArrayIterator($this->all());
+        return new ArrayIterator($this->all());
     }
 }

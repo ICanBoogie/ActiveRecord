@@ -11,7 +11,7 @@ use ICanBoogie\ActiveRecord\Query;
  *
  * A Model definition, built during configuration.
  */
-class ModelDefinition
+readonly class ModelDefinition
 {
     /**
      * @param array{
@@ -35,12 +35,12 @@ class ModelDefinition
      * @param non-empty-string $connection
      */
     public function __construct(
-        public readonly TableDefinition $table,
-        public readonly string $model_class,
-        public readonly string $activerecord_class,
-        public readonly string $query_class,
-        public readonly string $connection,
-        public readonly ?Association $association = null,
+        public TableDefinition $table,
+        public string $model_class,
+        public string $activerecord_class,
+        public string $query_class,
+        public string $connection,
+        public ?Association $association = null,
     ) {
     }
 }

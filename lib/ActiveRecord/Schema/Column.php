@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Schema;
 /**
  * Base for columns.
  */
-abstract class Column implements SchemaAttribute
+abstract readonly class Column implements SchemaAttribute
 {
     /**
      * @param bool $null
@@ -20,10 +20,10 @@ abstract class Column implements SchemaAttribute
      * @see https://dev.mysql.com/doc/refman/8.0/en/adding-collation.html
      */
     public function __construct(
-        public readonly bool $null = false,
-        public readonly ?string $default = null,
-        public readonly bool $unique = false,
-        public readonly ?string $collate = null,
+        public bool $null = false,
+        public ?string $default = null,
+        public bool $unique = false,
+        public ?string $collate = null,
     ) {
     }
 }

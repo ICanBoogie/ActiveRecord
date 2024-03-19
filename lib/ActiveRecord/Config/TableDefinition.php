@@ -13,7 +13,7 @@ use function substr;
  *
  * A table definition, built during configuration.
  */
-class TableDefinition
+readonly class TableDefinition
 {
     /**
      * @param array{
@@ -30,7 +30,7 @@ class TableDefinition
     /**
      * @var non-empty-string
      */
-    public readonly string $alias;
+    public string $alias;
 
     /**
      * @param non-empty-string $name
@@ -41,8 +41,8 @@ class TableDefinition
      *     Schema of the table.
      */
     public function __construct(
-        public readonly string $name,
-        public readonly Schema $schema,
+        public string $name,
+        public Schema $schema,
         ?string $alias = null,
     ) {
         $this->alias = $alias ?? $this->make_alias($this->name);

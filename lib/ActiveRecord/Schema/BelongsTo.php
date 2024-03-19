@@ -9,7 +9,7 @@ use ICanBoogie\ActiveRecord;
  * Marks a relationship with another model, with the property as reference.
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class BelongsTo extends Integer
+final readonly class BelongsTo extends Integer
 {
     /**
      * @param array{
@@ -39,11 +39,11 @@ final class BelongsTo extends Integer
      *    `article_id` would result is a `article` getter.
      */
     public function __construct( // @phpstan-ignore-line
-        public readonly string $associate,
+        public string $associate,
         int $size = Integer::SIZE_REGULAR,
         bool $null = false,
         bool $unique = false,
-        public readonly ?string $as = null,
+        public ?string $as = null,
     ) {
         parent::__construct(
             size: $size,

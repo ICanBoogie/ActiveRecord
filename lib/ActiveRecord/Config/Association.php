@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Config;
 /**
  * @internal
  */
-final class Association
+final readonly class Association
 {
     /**
      * @param array{
@@ -25,8 +25,8 @@ final class Association
      * @param array<HasManyAssociation> $has_many
      */
     public function __construct(
-        public readonly array $belongs_to,
-        public readonly array $has_many,
+        public array $belongs_to,
+        public array $has_many,
     ) {
     }
 }

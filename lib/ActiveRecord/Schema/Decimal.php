@@ -12,7 +12,7 @@ use Attribute;
  * https://www.postgresql.org/docs/current/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Decimal extends Column
+readonly class Decimal extends Column
 {
     /**
      * @param array{
@@ -48,9 +48,9 @@ class Decimal extends Column
      *     If `true` resulting column type will be `FLOAT` or `DOUBLE` instead of `NUMERIC`, `DECIMAL`, or `REAL`.
      */
     public function __construct(
-        public readonly int $precision,
-        public readonly int $scale = 0,
-        public readonly bool $approximate = false,
+        public int $precision,
+        public int $scale = 0,
+        public bool $approximate = false,
         bool $null = false,
         ?string $default = null,
         bool $unique = false,
