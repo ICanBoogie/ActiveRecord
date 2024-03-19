@@ -8,7 +8,7 @@ use Attribute;
  * Represents an auto-incrementing integer.
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Serial extends Integer
+final readonly class Serial extends Integer
 {
     /**
      * @param array{

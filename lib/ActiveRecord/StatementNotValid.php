@@ -25,48 +25,33 @@ use function sprintf;
 class StatementNotValid extends RuntimeException implements Exception
 {
     /**
-     * @var string
-     */
-    public readonly string $statement;
-
-    /**
-     * @var array<mixed>
-     */
-    public readonly array $args;
-
-    /**
-     * @param array{ string, array<mixed> }|string $statement
+     * @param array<mixed> $args
      */
     public function __construct(
-        $statement,
+        public readonly string $statement,
+        public readonly array $args = [],
         public readonly ?PDOException $original = null
     ) {
-        $args = [];
-
-        if (is_array($statement)) {
-            [ $statement, $args ] = $statement;
-        }
-
-        $this->statement = $statement;
-        $this->args = $args;
-
         parent::__construct($this->format_message($statement, $args, $original));
     }
 
-    private function format_message(string $statement, array $args, PDOException $previous = null): string
+    /**
+     * @param array<mixed> $args
+     */
+    private function format_message(string $statement, array $args, PDOException $original = null): string
     {
-        $message = null;
+        $message = '';
 
-        if ($previous) {
-            $er = array_pad($previous->errorInfo, 3, '');
+        if ($original) {
+            $er = array_pad($original->errorInfo ?? [], 3, '');
 
             $message = sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);
         }
 
         $message .= "`$statement`";
 
-        if ($args) {
-            $message .= " " . ($args ? json_encode($args) : "[]");
+        if (count($args)) {
+            $message .= " " . json_encode($args);
         }
 
         return $message;

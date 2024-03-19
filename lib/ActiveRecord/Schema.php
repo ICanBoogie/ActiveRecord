@@ -26,7 +26,7 @@ use function sprintf;
 /**
  * Schema of a database table.
  */
-class Schema
+readonly class Schema
 {
     /**
      * @param array{
@@ -53,8 +53,8 @@ class Schema
             ->build();
     }
 
-    public readonly bool $has_single_column_primary;
-    public readonly bool $has_multi_column_primary;
+    public bool $has_single_column_primary;
+    public bool $has_multi_column_primary;
 
     /**
      * @param non-empty-array<non-empty-string, Column> $columns
@@ -62,9 +62,9 @@ class Schema
      * @param array<Index> $indexes
      */
     public function __construct(
-        public readonly array $columns,
-        public readonly string|array|null $primary = null,
-        public readonly array $indexes = []
+        public array $columns,
+        public string|array|null $primary = null,
+        public array $indexes = []
     ) {
         foreach ($columns as $name => $column) {
             $column instanceof Column

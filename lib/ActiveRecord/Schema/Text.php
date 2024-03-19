@@ -5,7 +5,7 @@ namespace ICanBoogie\ActiveRecord\Schema;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-final class Text extends Column
+final readonly class Text extends Column
 {
     /**
      * A `TEXT`` with a maximum length of 255 characters.

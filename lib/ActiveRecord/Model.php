@@ -336,7 +336,7 @@ class Model extends Table implements ArrayAccess
      */
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw new OffsetNotWritable([ $offset, $this ]);
+        throw new OffsetNotWritable($offset, $this);
     }
 
     /**

@@ -4,7 +4,7 @@ namespace ICanBoogie\ActiveRecord\Config;
 
 use SensitiveParameter;
 
-final class ConnectionDefinition
+final readonly class ConnectionDefinition
 {
     public const DEFAULT_CHARSET_AND_COLLATE = "utf8/general_ci";
 
@@ -36,15 +36,15 @@ final class ConnectionDefinition
      * @param non-empty-string $time_zone
      */
     public function __construct(
-        public readonly string $id,
-        public readonly string $dsn,
+        public string $id,
+        public string $dsn,
         #[SensitiveParameter]
-        public readonly ?string $username = null,
+        public ?string $username = null,
         #[SensitiveParameter]
-        public readonly ?string $password = null,
-        public readonly ?string $table_name_prefix = null,
-        public readonly string $charset_and_collate = self::DEFAULT_CHARSET_AND_COLLATE,
-        public readonly string $time_zone = self::DEFAULT_TIMEZONE,
+        public ?string $password = null,
+        public ?string $table_name_prefix = null,
+        public string $charset_and_collate = self::DEFAULT_CHARSET_AND_COLLATE,
+        public string $time_zone = self::DEFAULT_TIMEZONE,
     ) {
     }
 }

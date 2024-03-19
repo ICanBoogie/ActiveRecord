@@ -13,7 +13,7 @@ use function in_array;
  * - `TINYINT` is `Integer(size: Integer::SIZE_TINY)` or `Integer(1)`
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Integer extends Column
+readonly class Integer extends Column
 {
     public const SIZE_TINY = 1;
     public const SIZE_SMALL = 2;
@@ -66,9 +66,9 @@ class Integer extends Column
      *     Values are not serial by default.
      */
     public function __construct(
-        public readonly int $size = self::SIZE_REGULAR,
-        public readonly bool $unsigned = false,
-        public readonly bool $serial = false,
+        public int $size = self::SIZE_REGULAR,
+        public bool $unsigned = false,
+        public bool $serial = false,
         bool $null = false,
         bool $unique = false,
         int|string $default = null,

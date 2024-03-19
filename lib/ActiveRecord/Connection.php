@@ -213,7 +213,7 @@ class Connection
         try {
             $statement = $this->pdo->prepare($statement, $options);
         } catch (PDOException $e) {
-            throw new StatementNotValid($statement, $e);
+            throw new StatementNotValid($statement, original: $e);
         }
 
         if (isset($options['mode'])) {
@@ -264,7 +264,7 @@ class Connection
 
             return $this->pdo->exec($statement);
         } catch (PDOException $e) {
-            throw new StatementNotValid($statement, $e);
+            throw new StatementNotValid($statement, original: $e);
         }
     }
 

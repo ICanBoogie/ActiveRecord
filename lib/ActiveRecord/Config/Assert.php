@@ -6,9 +6,6 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use LogicException;
 
-use Test\ICanBoogie\Acme\ArticleModel;
-
-use function get_parent_class;
 use function is_subclass_of;
 
 final class Assert

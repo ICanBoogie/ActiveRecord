@@ -23,20 +23,22 @@ use function microtime;
 /**
  * A database statement.
  *
- * @property-read array $all An array with the matching records.
- * @property-read array $pairs An array of key/value pairs, where _key_ is the value of the first
- * column and _value_ the value of the second column.
- * @property-read mixed $one The first matching record.
- * @property-read string $rc The value of the first column of the first row.
+ * @uses self::get_all()
+ * @property-read array $all
+ *     An array with the matching records.
+ * @uses self::get_pairs()
+ * @property-read array $pairs
+ *     An array of key/value pairs, where _key_ is the value of the first column and _value_ the value of the second
+ *     column.
+ * @uses self::get_one()
+ * @property-read mixed $one
+ *     The first row of the result set (the cursor is closed).
+ * @uses self::get_rc()
+ * @property-read string $rc
+ *     The value of the first column of the first row.
  */
 final class Statement
 {
-    /**
-     * @uses get_once
-     * @uses get_all
-     * @uses get_rc
-     * @uses get_pairs
-     */
     use AccessorTrait;
 
     /**
@@ -49,7 +51,7 @@ final class Statement
     }
 
     /**
-     * Alias of {@link execute()}.
+     * Alias of {@see execute()}.
      *
      * The arguments can be provided as an array or a list of arguments:
      *
@@ -64,17 +66,15 @@ final class Statement
             $args = $args[0];
         }
 
-        if ($this->execute($args) === false) {
-            throw new StatementInvocationFailed($this, $args);
-        }
+        $this->execute($args);
 
         return $this;
     }
 
     /**
-     * Return the {@link queryString} property of the statement.
+     * Return the {@see queryString} property of the statement.
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->pdo_statement->queryString;
     }
@@ -84,11 +84,11 @@ final class Statement
      *
      * The connection queries count is incremented.
      *
-     * @param mixed[]|null $params
+     * @param array<mixed> $params
      *
      * @throws StatementNotValid when the execution of the statement fails.
      */
-    public function execute(array $params = null): bool
+    public function execute(array $params = []): void
     {
         $start = microtime(true);
 
@@ -101,24 +101,25 @@ final class Statement
                 $this->pdo_statement->queryString . ' ' . json_encode($params),
             ];
 
-            return $this->pdo_statement->execute($params);
+            $this->pdo_statement->execute($params);
         } catch (PDOException $e) {
-            throw new StatementNotValid([ $this, $params ], original: $e);
+            throw new StatementNotValid($this->pdo_statement->queryString, args: $params, original: $e);
         }
     }
 
     /**
      * Set the fetch mode for the statement.
      *
+     * @return $this
+     *
      * @throws UnableToSetFetchMode if the mode cannot be set.
      *
-     * @see http://www.php.net/manual/en/pdostatement.setfetchmode.php
+     * @link http://www.php.net/manual/en/pdostatement.setfetchmode.php
      */
-    public function mode(int $mode, string|object|null $className = null, ...$params): Statement
+    public function mode(int $mode, mixed ...$params): self
     {
-        if (!$this->pdo_statement->setFetchMode($mode, $className, $params)) {
-            throw new UnableToSetFetchMode($mode);
-        }
+        $this->pdo_statement->setFetchMode(...func_get_args())
+        or throw new UnableToSetFetchMode($mode);
 
         return $this;
     }
@@ -141,9 +142,9 @@ final class Statement
     }
 
     /**
-     * Alias for `one()`.
+     * Alias for {@see one()}
      */
-    protected function get_one(): mixed
+    private function get_one(): mixed
     {
         return $this->one();
     }
@@ -151,11 +152,9 @@ final class Statement
     /**
      * Fetches the first column of the first row of the result set and closes the cursor.
      *
-     * @return string
-     *
      * @see PDOStatement::fetchColumn()
      */
-    protected function get_rc(): mixed
+    private function get_rc(): mixed
     {
         $rc = $this->pdo_statement->fetchColumn();
 
@@ -165,11 +164,11 @@ final class Statement
     }
 
     /**
-     * Alias for {@link \PDOStatement::fetchAll()}
+     * Alias for {@see PDOStatement::fetchAll()}
      *
      * @param mixed $mode
      *
-     * @return array
+     * @return array<mixed>
      */
     public function all(...$mode): array
     {
@@ -177,9 +176,13 @@ final class Statement
     }
 
     /**
-     * Alias for `all()`.
+     * Alias for {@see all()}.
+     *
+     * @return array<mixed>
+     *
+     * @used-by self
      */
-    protected function get_all(): array
+    private function get_all(): array
     {
         return $this->pdo_statement->fetchAll();
     }
@@ -187,11 +190,14 @@ final class Statement
     /**
      * Alias for `all(\PDO::FETCH_KEY_PAIR`).
      *
-     * @return array An array of key/value pairs, where _key_ is the value of the first
-     * column and _value_ the value of the second column.
+     * @return array<mixed, mixed>
+     *     An array of key/value pairs, where _key_ is the value of the first column and _value_ the value of the
+     *     second column.
+     *
+     * @used-by self
      */
-    protected function get_pairs(): array
+    private function get_pairs(): array
     {
-        return $this->pdo_statement->fetchAll(PDO::FETCH_KEY_PAIR);
+        return $this->all(mode: PDO::FETCH_KEY_PAIR);
     }
 }

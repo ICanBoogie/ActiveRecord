@@ -19,7 +19,11 @@ use ICanBoogie\ActiveRecord\StatementInvocationFailed;
 use ICanBoogie\ActiveRecord\StatementNotValid;
 use PDO;
 use PDOException;
+use PDOStatement;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Article;
+use Throwable;
 
 final class StatementTest extends TestCase
 {
@@ -29,15 +33,12 @@ final class StatementTest extends TestCase
     {
         self::$connection = $connection = new Connection(new ConnectionDefinition('id', 'sqlite::memory:'));
 
-        $connection('CREATE TABLE test (a INTEGER PRIMARY KEY ASC, b INTEGER, c VARCHAR(20))');
-        $connection('INSERT INTO test (b,c) VALUES(1, "one")');
-        $connection('INSERT INTO test (b,c) VALUES(2, "two")');
-        $connection('INSERT INTO test (b,c) VALUES(3, "three")');
-    }
-
-    protected function setUp(): void
-    {
-        $this->markTestSkipped();
+        $connection->exec(<<<SQL
+        CREATE TABLE test (a INTEGER PRIMARY KEY ASC, b INTEGER, c VARCHAR(20));
+        INSERT INTO test (b,c) VALUES(1, "one");
+        INSERT INTO test (b,c) VALUES(2, "two");
+        INSERT INTO test (b,c) VALUES(3, "three");
+        SQL);
     }
 
     public function test_get_statement(): void
@@ -65,12 +66,8 @@ final class StatementTest extends TestCase
         try {
             $statement = $connection($statement, [ 3 ]);
 
-            $this->fail('Expected StatementNotValid excpetion');
-        } catch (Exception $e) {
-            $this->assertInstanceOf(StatementNotValid::class, $e);
-
-            /* @var $e StatementNotValid */
-
+            $this->fail("Expected " . StatementNotValid::class);
+        } catch (StatementNotValid $e) {
             $this->assertInstanceOf(PDOException::class, $e->original);
             $this->assertNull($e->getPrevious());
 
@@ -81,12 +78,14 @@ final class StatementTest extends TestCase
                 'HY000(1) no such column: undefined_column — `SELECT undefined_column FROM test WHERE b = ?`',
                 $e->getMessage()
             );
+        } catch (Throwable $e) {
+            $this->fail("Expected " . StatementNotValid::class . ", got: " . $e::class);
         }
     }
 
     /**
      * Query statements are always prepared, so if the query fails during its execution a
-     * StatementNotValid expection is thrown with the Statement instance and its arguments.
+     * StatementNotValid exception is thrown with the Statement instance and its arguments.
      */
     public function test_invalid_query(): void
     {
@@ -109,7 +108,7 @@ final class StatementTest extends TestCase
             $this->assertSame([ 1, "oneone" ], $e->args);
 
             #
-            # Only test the start and the end of the exception message since the it could
+            # Only test the start and the end of the exception message since it could
             # read "PRIMARY KEY must be unique" or "UNIQUE constraint failed" depending on the
             # SQLite driver or driver version.
             #
@@ -121,7 +120,7 @@ final class StatementTest extends TestCase
 
     /**
      * Exec statements are not prepared, if the execution fails a StatementNotValid
-     * expection is thrown with the only the statement string.
+     * exception is thrown with only the statement string.
      */
     public function test_invalid_exec(): void
     {
@@ -136,23 +135,23 @@ final class StatementTest extends TestCase
             $this->assertInstanceOf(PDOException::class, $e->original);
             $this->assertNull($e->getPrevious());
 
-            $this->assertIsString($e->statement);
             $this->assertEquals($statement, $e->statement);
             $this->assertEmpty($e->args);
             $this->assertEquals(
                 'HY000(1) no such table: undefined_table — `DELETE FROM undefined_table`',
                 $e->getMessage()
             );
-        } catch (Exception $e) {
+        } catch (Throwable) {
             $this->fail('Expected StatementNotValid');
         }
     }
 
-    /**
-     * @requires PHP 5.6.0
-     */
-    public function test_invoke_should_thow_exception_when_execute_returns_false(): void
+    // @phpstan-ignore-next-line
+    #[DataProvider("provide_modes")]
+    public function test_mode(array $arguments): void
     {
+        $this->markTestSkipped("Statement is final");
+
         $arg = uniqid();
 
         $statement = $this
@@ -181,36 +180,25 @@ final class StatementTest extends TestCase
         $this->fail("Expected StatementInvocationFailed");
     }
 
-    /**
-     * @dataProvider provide_modes
-     *
-     * @param $arguments
-     */
-    public function test_mode($arguments): void
+    // @phpstan-ignore-next-line
+    public static function provide_modes(): array
     {
-        $statement = $this
-            ->getMockBuilder(Statement::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'setFetchMode' ])
-            ->getMock();
-        $a = $statement
-            ->expects($this->once())
-            ->method('setFetchMode')
-            ->willReturn(true);
-        $a->with(...$arguments);
+        return [
 
-        /* @var $statement Statement */
-        $this->assertSame($statement, $statement->mode(...$arguments));
+            [ [ PDO::FETCH_ASSOC ] ],
+            [ [ PDO::FETCH_COLUMN, 123 ] ],
+            [ [ PDO::FETCH_LAZY ] ],
+            [ [ PDO::FETCH_CLASS, Article::class ] ],
+
+        ];
     }
 
-    /**
-     * @requires PHP 5.6.0
-     * @dataProvider provide_modes
-     *
-     * @param $arguments
-     */
+    // @phpstan-ignore-next-line
+    #[DataProvider("provide_modes")]
     public function test_fetchAndClose($arguments)
     {
+        $this->markTestSkipped("Statement is final");
+
         $expected = uniqid();
 
         $statement = $this
@@ -222,17 +210,16 @@ final class StatementTest extends TestCase
             ->expects($this->once())
             ->method('fetch')
             ->willReturn($expected);
-        call_user_func_array([ $a, 'with' ], $arguments);
+        $a->with(...$arguments);
 
         /* @var $statement Statement */
         $this->assertSame($expected, call_user_func_array([ $statement, 'one' ], $arguments));
     }
 
-    /**
-     * @requires PHP 5.6.0
-     */
     public function test_get_rc()
     {
+        $this->markTestSkipped("Statement is final");
+
         $expected = uniqid();
 
         $statement = $this
@@ -250,11 +237,10 @@ final class StatementTest extends TestCase
         $this->assertSame($expected, $statement->rc);
     }
 
-    /**
-     * @requires PHP 5.6.0
-     */
     public function test_get_one()
     {
+        $this->markTestSkipped("Statement is final");
+
         $expected = uniqid();
 
         $statement = $this
@@ -272,14 +258,12 @@ final class StatementTest extends TestCase
         $this->assertSame($expected, $statement->one);
     }
 
-    /**
-     * @requires PHP 5.6.0
-     * @dataProvider provide_modes
-     *
-     * @param $arguments
-     */
-    public function test_all($arguments)
+    // @php-stan-ignore-next-line
+    #[DataProvider("provide_modes")]
+    public function test_all($arguments): void
     {
+        $this->markTestSkipped("Statement is final");
+
         $all = [ uniqid(), uniqid() ];
 
         $statement = $this
@@ -297,35 +281,10 @@ final class StatementTest extends TestCase
         $this->assertSame($all, call_user_func_array([ $statement, 'all' ], $arguments));
     }
 
-    public static function provide_modes()
+    public function test_get_all(): void
     {
-//        $model = $this
-//            ->getMockBuilder(Model::class)
-//            ->disableOriginalConstructor()
-//            ->getMock();
+        $this->markTestSkipped("Statement is final");
 
-        return [
-
-            [ [ PDO::FETCH_ASSOC ] ],
-            [ [ PDO::FETCH_COLUMN, 123 ] ],
-            [
-                [
-                    PDO::FETCH_FUNC,
-                    function () {
-                    }
-                ]
-            ],
-            [ [ PDO::FETCH_CLASS, Article::class ] ],
-//            [ [ \PDO::FETCH_CLASS, Article::class, [ $model ] ] ]
-
-        ];
-    }
-
-    /**
-     * @requires PHP 5.6.0
-     */
-    public function test_get_all()
-    {
         $all = [ uniqid(), uniqid() ];
 
         $statement = $this
@@ -342,11 +301,10 @@ final class StatementTest extends TestCase
         $this->assertSame($all, $statement->all);
     }
 
-    /**
-     * @requires PHP 5.6.0
-     */
-    public function test_get_pairs()
+    public function test_get_pairs(): void
     {
+        $this->markTestSkipped("Statement is final");
+
         $pairs = [ 1 => "one", 2 => "tow" ];
 
         $statement = $this

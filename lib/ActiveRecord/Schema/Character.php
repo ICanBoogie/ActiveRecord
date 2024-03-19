@@ -12,7 +12,7 @@ use InvalidArgumentException;
  * - `CHAR(32)` is `Character(32, fixed: true)`
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Character extends Column
+readonly class Character extends Column
 {
     /**
      * @param array{
@@ -37,8 +37,8 @@ class Character extends Column
      *     A truthful `$fixed` will result in `CHAR` column rather than a `VARCHAR`.
      */
     public function __construct(
-        public readonly int $size = 255,
-        public readonly bool $fixed = false,
+        public int $size = 255,
+        public bool $fixed = false,
         bool $null = false,
         ?string $default = null,
         bool $unique = false,

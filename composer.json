@@ -27,7 +27,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": ">=8.1",
+    "php": ">=8.2",
     "ext-pdo": "*",
     "icanboogie/common": "^6.0",
     "icanboogie/datetime": "^6.0",
@@ -38,7 +38,7 @@
   "require-dev": {
     "ext-pdo_mysql": "*",
     "phpstan/phpstan": "^1.10",
-    "phpunit/phpunit": "^10.2"
+    "phpunit/phpunit": "^10.5"
   },
   "autoload": {
     "psr-4": {

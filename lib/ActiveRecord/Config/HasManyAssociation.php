@@ -9,7 +9,7 @@ use ICanBoogie\ActiveRecord;
  *
  * @internal
  */
-final class HasManyAssociation
+final readonly class HasManyAssociation
 {
     /**
      * @param array{
@@ -31,10 +31,10 @@ final class HasManyAssociation
      * @param class-string<ActiveRecord>|null $through
      */
     public function __construct(
-        public readonly string $associate,
-        public readonly string $foreign_key,
-        public readonly string $as,
-        public readonly string|null $through,
+        public string $associate,
+        public string $foreign_key,
+        public string $as,
+        public string|null $through,
     ) {
     }
 }

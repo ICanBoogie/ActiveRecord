@@ -13,7 +13,7 @@ use LogicException;
  * - `BINARY(32)` is `Binary(32, fixed: true)`
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Binary extends Column
+readonly class Binary extends Column
 {
     /**
      * @param array{
@@ -43,8 +43,8 @@ class Binary extends Column
      *     A truthful `$fixed` will result in `BINARY` column rather than a `VARBINARY`.
      */
     public function __construct(
-        public readonly int $size = 255,
-        public readonly bool $fixed = false,
+        public int $size = 255,
+        public bool $fixed = false,
         bool $null = false,
         ?string $default = null,
         bool $unique = false,

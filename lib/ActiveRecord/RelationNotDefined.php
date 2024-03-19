@@ -28,6 +28,6 @@ class RelationNotDefined extends OffsetNotDefined implements Exception
         public readonly RelationCollection $collection,
         Throwable $previous = null
     ) {
-        parent::__construct([ $relation_name, $collection ], $previous);
+        parent::__construct($relation_name, $collection, previous: $previous);
     }
 }

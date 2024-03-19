@@ -10,7 +10,7 @@ use InvalidArgumentException;
  *
  * @internal
  */
-final class TransientHasManyAssociation
+final readonly class TransientHasManyAssociation
 {
     /**
      * @param class-string<ActiveRecord> $associate
@@ -19,10 +19,10 @@ final class TransientHasManyAssociation
      *     An optional pivot ActiveRecord class.
      */
     public function __construct(
-        public readonly string $associate,
-        public readonly ?string $foreign_key,
-        public readonly ?string $as,
-        public readonly ?string $through,
+        public string $associate,
+        public ?string $foreign_key,
+        public ?string $as,
+        public ?string $through,
     ) {
         is_a($associate, ActiveRecord::class, true)
         or throw new InvalidArgumentException(
