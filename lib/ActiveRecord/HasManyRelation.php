@@ -84,7 +84,7 @@ class HasManyRelation extends Relation
             ?? throw new LogicException("Unable to find related model for " . $related::class);
         $r2_model = $this->model_for_activerecord($r2->related);
 
-        $q = $related->select("`{alias}`.*");
+        $q = $related->query()->select("`{alias}`.*");
         // Because of the select, we need to set the mode otherwise an array would be
         // fetched instead of an object.
         $q->mode(PDO::FETCH_CLASS, $related->activerecord_class);

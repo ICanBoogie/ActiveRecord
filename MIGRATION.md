@@ -27,6 +27,8 @@
 - Removed support for `implements` in `Table`.
 - Removed `get_model()`
 - Removed the notion of scopes on Model, they are better replaced with Query extensions.
+- Removed forwarded query methods on the model. Still `query()` and `where()` remain available.
+- The `Model` class no longer implements `ArrayAccess`.
 
 ### Deprecated Features
 
