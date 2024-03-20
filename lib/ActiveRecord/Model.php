@@ -35,24 +35,6 @@ use function sprintf;
  * @template TKey of int|non-empty-string|non-empty-string[]
  * @template TValue of ActiveRecord
  *
- * @implements ArrayAccess<TKey, TValue>
- *
- * @method Query select($expression) The method is forwarded to Query::select().
- * @method Query where($conditions, $conditions_args = null, $_ = null)
- *     The method is forwarded to {@link Query::where}.
- * @method Query group($group) The method is forwarded to Query::group().
- * @method Query order(...$order) The method is forwarded to @link Query::order().
- * @method Query limit($limit, $offset = null) The method is forwarded to Query::limit().
- * @method Query offset($offset) The method is forwarded to Query::offset().
- * @method bool exists($key = null) The method is forwarded to Query::exists().
- * @method mixed count($column = null) The method is forwarded to Query::count().
- * @method string average($column) The method is forwarded to Query::average().
- * @method string maximum($column) The method is forwarded to Query::maximum().
- * @method string minimum($column) The method is forwarded to Query::minimum().
- * @method int sum($column) The method is forwarded to Query::sum().
- * @method array all() The method is forwarded to Query::all().
- * @method ActiveRecord one() The method is forwarded to Query::one().
- *
  * @property-read Model|null $parent Parent model.
  * @property-read array $all Retrieve all the records from the model.
  * @property-read int $count The number of records of the model.
@@ -61,7 +43,7 @@ use function sprintf;
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
  */
 #[AllowDynamicProperties]
-class Model extends Table implements ArrayAccess
+class Model extends Table
 {
     /**
      * @var class-string<TValue>
@@ -122,10 +104,6 @@ class Model extends Table implements ArrayAccess
      */
     public function __call($method, $arguments)
     {
-        if (method_exists($this->query_class, $method) || str_starts_with($method, 'filter_by_')) {
-            return $this->query()->$method(...$arguments);
-        }
-
         if (is_callable([ $this->relations, $method ])) {
             return $this->relations->$method(...$arguments);
         }
@@ -170,7 +148,7 @@ class Model extends Table implements ArrayAccess
      *
      * @param TKey $key
      *
-     * @return TValue
+     * @return ActiveRecord<TValue>
      */
     private function find_one($key): ActiveRecord
     {
@@ -269,6 +247,18 @@ class Model extends Table implements ArrayAccess
     }
 
     /**
+     * Returns a new query with the WHERE clause initialized with the provided conditions and arguments.
+     *
+     * @param ...$conditions_and_args
+     *
+     * @return Query<TValue>
+     */
+    public function where(...$conditions_and_args): Query
+    {
+        return $this->query()->where(...$conditions_and_args);
+    }
+
+    /**
      * Because records are cached, we need to remove the record from the cache when it is saved,
      * so that loading the record again returns the updated record, not the one in the cache.
      */
@@ -291,86 +281,6 @@ class Model extends Table implements ArrayAccess
         $this->activerecord_cache->eliminate($key);
 
         return parent::delete($key);
-    }
-
-    /**
-     * Checks that the SQL table associated with the model exists.
-     */
-    protected function get_exists(): bool
-    {
-        return $this->exists();
-    }
-
-    /**
-     * Returns the number of records of the model.
-     */
-    protected function get_count(): int
-    {
-        return $this->count();
-    }
-
-    /**
-     * Returns all the records of the model.
-     *
-     * @return TValue[]
-     */
-    protected function get_all(): array
-    {
-        return $this->all();
-    }
-
-    /**
-     * Returns the first record of the model.
-     *
-     * @phpstan-return TValue
-     */
-    protected function get_one(): ActiveRecord
-    {
-        return $this->one();
-    }
-
-    /**
-     * @inheritdoc
-     *
-     * @throws OffsetNotWritable when one tries to write an offset.
-     */
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
-        throw new OffsetNotWritable($offset, $this);
-    }
-
-    /**
-     * Alias to {@link exists()}.
-     *
-     * @param int $key ActiveRecord identifier.
-     *
-     * @return bool
-     */
-    public function offsetExists(mixed $key): bool
-    {
-        return $this->exists($key);
-    }
-
-    /**
-     * Alias to {@link delete()}.
-     *
-     * @param int $key ActiveRecord identifier.
-     */
-    public function offsetUnset(mixed $key): void
-    {
-        $this->delete($key);
-    }
-
-    /**
-     * Alias to {@link find()}.
-     *
-     * @param int $key ActiveRecord identifier.
-     *
-     * @return TValue
-     */
-    public function offsetGet(mixed $key): ActiveRecord
-    {
-        return $this->find($key);
     }
 
     /**

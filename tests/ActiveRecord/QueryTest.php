@@ -30,23 +30,24 @@ use function uniqid;
 final class QueryTest extends TestCase
 {
     private const N = 10;
-    private Model $nodes;
-    private Model $articles;
-    private Model $updates;
-    private Model $subscribers;
+    private Query $nodes;
+    private Query $articles;
+    private Query $updates;
+    private Query $subscribers;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-         $models = Fixtures::only_models('nodes', 'comments', 'articles', 'subscribers', 'updates');
+        $models = Fixtures::only_models('nodes', 'comments', 'articles', 'subscribers', 'updates');
 
         $models->install();
+        $articles = $models->model_for_record(Article::class);
 
-        $this->nodes = $models->model_for_record(Node::class);
-        $this->articles = $models->model_for_record(Article::class);
-        $this->updates = $models->model_for_record(Update::class);
-        $this->subscribers = $models->model_for_record(Subscriber::class);
+        $this->nodes = $models->model_for_record(Node::class)->query();
+        $this->articles = $articles->query();
+        $this->updates = $models->model_for_record(Update::class)->query();
+        $this->subscribers = $models->model_for_record(Subscriber::class)->query();
 
         for ($i = 0; $i < self::N; $i++) {
             $properties = [
@@ -58,7 +59,7 @@ final class QueryTest extends TestCase
 
             ];
 
-            $key = $this->articles->save($properties);
+            $key = $articles->save($properties);
         }
     }
 
@@ -115,7 +116,7 @@ final class QueryTest extends TestCase
 
     public function test_conditions(): void
     {
-        $query = new Query($this->articles);
+        $query = $this->articles;
 
         $query->where([ 'title' => 'madonna' ])
             ->filter_by_rating(2)
@@ -140,7 +141,7 @@ final class QueryTest extends TestCase
 
     public function test_join_with_expression(): void
     {
-        $query = $this->updates->query()->join(expression: "INNER JOIN madonna USING(madonna_id)");
+        $query = $this->updates->join(expression: "INNER JOIN madonna USING(madonna_id)");
 
         $this->assertEquals(
             [ "INNER JOIN madonna USING(madonna_id)" ],
@@ -158,7 +159,6 @@ final class QueryTest extends TestCase
             ->order('updated_at DESC');
 
         $subscriber_query = $subscribers
-            ->query()
             ->join(query: $update_query, on: 'subscriber_id')
             ->group("`{alias}`.subscriber_id");
 
@@ -184,7 +184,6 @@ final class QueryTest extends TestCase
             ->order('updated_at DESC');
 
         $subscriber_query = $subscribers
-            ->query()
             ->join(query: $update_query, on: 'subscriber_id')
             ->filter_by_email('person@example.com')
             ->group("`{alias}`.subscriber_id");
@@ -200,29 +199,29 @@ final class QueryTest extends TestCase
 
     public function test_join_with_model(): void
     {
-        $updates = $this->updates;
-
-        $actual = (string)$updates->select('update_id, email')->join(with: Subscriber::class);
+        $q1 = clone $this->updates;
+        $q2 = clone $this->updates;
+        $q3 = clone $this->updates;
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `subscriber` USING(`subscriber_id`)",
-            $actual
+            (string)$q1->select('update_id, email')->join(with: Subscriber::class)
         );
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` INNER JOIN `subscribers` AS `sub` USING(`subscriber_id`)",
-            (string)$updates->select('update_id, email')->join(with: Subscriber::class, as: 'sub')
+            (string)$q2->select('update_id, email')->join(with: Subscriber::class, as: 'sub')
         );
 
         $this->assertEquals(
             "SELECT update_id, email FROM `updates` `update` LEFT JOIN `subscribers` AS `sub` USING(`subscriber_id`)",
-            (string)$updates->select('update_id, email')->join(with: Subscriber::class, mode: 'LEFT', as: 'sub')
+            (string)$q3->select('update_id, email')->join(with: Subscriber::class, mode: 'LEFT', as: 'sub')
         );
     }
 
     public function test_query_extension(): void
     {
-        $query = $this->articles->query();
+        $query = clone $this->articles;
 
         $this->assertInstanceOf(ArticleQuery::class, $query);
 

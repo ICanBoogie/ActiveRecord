@@ -62,10 +62,7 @@ Prototype::configure([
 
             static $validate;
 
-            if (!$validate)
-            {
-                $validate = new ValidateActiveRecord;
-            }
+            $validate ??= new ValidateActiveRecord;
 
             return $validate($record);
 
@@ -640,7 +637,7 @@ record to the database.
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$record = $model[10];
+$record = $model->find(10);
 $record->is_online = false;
 $record->save();
 ```
@@ -691,7 +688,7 @@ The `delete()` method deletes the active record from the database:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$record = $model[190];
+$record = $model->find(190);
 $record->delete();
 ```
 
@@ -751,35 +748,20 @@ to a model managing _nodes_.
 
 ### Retrieving records from the database
 
-To retrieve objects and values from the database several finder methods are provided. Each of these
-methods defines the fragments of the database query. Complex queries can be created without having
+Use the `query()` or `where()` methods to start building a [Query][]. Complex queries can be created without having
 to write any raw SQL.
-
-The methods are:
-
-* where
-* select
-* group
-* having
-* order
-* limit
-* offset
-* join
-
-All of the above methods return a [Query][] instance, allowing you to chain them.
 
 Records can be retrieved in various ways, especially using the `all`, `one`, `pairs` or `rc`
 magic properties. The `find()` method—used to retrieve a single record or a set of records—is the
-most simple of them.
+most straight forward.
 
 
 
 
 
-#### Retrieving a single record
+#### Retrieving records
 
-Retrieving a single record using its primary key is really simple. You can either use the `find()`
-method of the model, or use the model as an array.
+Use a `find()` method to retrieve one or multiple records.
 
 ```php
 <?php
@@ -787,17 +769,7 @@ method of the model, or use the model as an array.
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
 $article = $model->find(10);
-
-# or
-
-$article = $model[10];
 ```
-
-
-
-
-
-#### Retrieving a set of records
 
 Retrieving a set or records using their primary key is really simple too:
 
@@ -826,14 +798,14 @@ to the `records` property of the [RecordNotFound][] exception.
 #### Records caching
 
 Records retrieved using `find()` are cached, they are reused by subsequent calls. This also
-applies to the array notation.
+applies with multiple records.
 
 ```php
 <?php
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$article = $model[12]; // '12' retrieved from database
+$article = $model->find(12); // '12' retrieved from database
 $articles = $model->find(11, 12, 13); // '11' and '13' retrieved from database, '12' is reused.
 ```
 
@@ -868,7 +840,7 @@ use placeholders when you can't trust the source of your inputs:
 $model->where('is_online = ?', $_GET['online']);
 ```
 
-Of course you can use multiple conditions:
+Of course, you can use multiple conditions:
 
 ```php
 <?php
@@ -932,7 +904,7 @@ When conditions are specified as an array it is possible to modify the comparing
 Prefixing a field name with an exclamation mark uses the _not equal_ operator.
 
 The following example demonstrates how to search for records where the `order_count` field is
-different than "2":
+different from "2":
 
 ```php
 <?php
@@ -958,34 +930,6 @@ $model->where([ '!order_count' => [ 1,3,5 ] ]);
 
 ```
 … WHERE `order_count` NOT IN(1, 3, 5)
-```
-
-
-
-
-
-#### Dynamic filters
-
-Conditions can also be specified as methods, prefixed by `filter_by_` and separated by `_and_`:
-
-```php
-<?php
-
-/* @var $model \ICanBoogie\ActiveRecord\Model */
-
-$model->filter_by_slug('creer-nuage-mots-cle');
-$model->filter_by_is_online_and_uid(true, 3);
-```
-
-Is equivalent to:
-
-```php
-<?php
-
-/* @var $model \ICanBoogie\ActiveRecord\Model */
-
-$model->where([ 'slug' => 'creer-nuage-mots-cle' ]);
-$model->where([ 'is_online' => true, 'uid' => 3 ]);
 ```
 
 
@@ -1062,9 +1006,9 @@ date:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->order('created');
+$query->order('created');
 ```
 
 A direction can be specified:
@@ -1072,11 +1016,11 @@ A direction can be specified:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->order('created ASC');
+$query->order('created ASC');
 # or
-$model->order('created DESC');
+$query->order('created DESC');
 ```
 
 Multiple fields can be used while ordering:
@@ -1084,9 +1028,9 @@ Multiple fields can be used while ordering:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->order('created DESC, title');
+$query->order('created DESC, title');
 ```
 
 Records can also be ordered by field:
@@ -1114,9 +1058,9 @@ The following example demonstrates how to retrieve the first record of records g
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->group('date(created)')->order('created');
+$query->group('date(created)')->order('created');
 ```
 
 
@@ -1134,9 +1078,9 @@ month:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->group('date(created)')->having('created > ?', new DateTime('-1 month'))->order('created');
+$query->group('date(created)')->having('created > ?', new DateTime('-1 month'))->order('created');
 ```
 
 
@@ -1150,9 +1094,9 @@ The `limit()` method limits the number of records to retrieve.
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->limit(10); // retrieves the first 10 records
+$query->limit(10); // retrieves the first 10 records
 ```
 
 With two arguments, an offset can be specified:
@@ -1160,9 +1104,9 @@ With two arguments, an offset can be specified:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->limit(5, 10); // retrieves records from the 6th to the 16th
+$query->limit(5, 10); // retrieves records from the 6th to the 16th
 ```
 
 The offset can also be defined using the `offset()` method:
@@ -1170,10 +1114,10 @@ The offset can also be defined using the `offset()` method:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->offset(5); // retrieves records from the 6th to the last
-$model->limit(10)->offset(5);
+$query->offset(5); // retrieves records from the 6th to the last
+$query->limit(10)->offset(5);
 ```
 
 
@@ -1192,9 +1136,9 @@ The following example demonstrates how to get the identifier, creation date and 
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->select('nid, created, title');
+$query->select('nid, created, title');
 ```
 
 Because the `SELECT` string is used _as is_ to build the query, complex SQL statements can be
@@ -1203,9 +1147,9 @@ used:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->select('nid, created, CONCAT_WS(":", title, language)');
+$query->select('nid, created, CONCAT_WS(":", title, language)');
 ```
 
 
@@ -1241,8 +1185,8 @@ that did not publish articles are fetched as well.
 /* @var $users \ICanBoogie\ActiveRecord\Model */
 
 $online_article_count = $articles
+    ->where([ 'type' => 'articles', 'created_at' => new DateTime('-1 year') ])
     ->select('user_id, COUNT(node_id) AS online_article_count')
-    ->filter_by_type_and_created_at('articles', new DateTime('-1 year'))
     ->online
     ->group('user_id');
 
@@ -1342,7 +1286,7 @@ The magic property `all` retrieves the complete result set as an array:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$array = $model->all;
+$array = $model->query()->all;
 $array = $model->visible->order('created DESC')->all;
 ```
 
@@ -1353,7 +1297,7 @@ The `all()` method retrieves the complete result set using a specific fetch mode
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$array = $model->all(\PDO::FETCH_ASSOC);
+$array = $model->query()->all(\PDO::FETCH_ASSOC);
 $array = $model->visible->order('created DESC')->all(\PDO::FETCH_ASSOC);
 ```
 
@@ -1370,7 +1314,7 @@ The `one` magic property retrieves a single record:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$record = $model->one;
+$record = $model->query()->one;
 $record = $model->visible->order('created DESC')->one;
 ```
 
@@ -1381,7 +1325,7 @@ The `one()` method retrieves a single record using a specific fetch mode:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$record = $model->one(\PDO::FETCH_ASSOC);
+$record = $model->query()->one(\PDO::FETCH_ASSOC);
 $record = $model->visible->order('created DESC')->one(\PDO::FETCH_ASSOC);
 ```
 
@@ -1401,7 +1345,7 @@ is the key and the second its value.
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->select('nid, title')->pairs;
+$model->query()->select('nid, title')->pairs;
 ```
 
 Results are similar to the following example:
@@ -1427,7 +1371,7 @@ The `rc` magic property retrieves the first column of the first row.
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$title = $model->select('title')->rc;
+$title = $model->query()->select('title')->rc;
 ```
 
 Note: The number of records to retrieve is automatically limited to 1.
@@ -1446,7 +1390,7 @@ it.
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->select('nid, title')->mode(\PDO::FETCH_NUM);
+$model->query()->select('nid, title')->mode(\PDO::FETCH_NUM);
 ```
 
 The `mode()` method accepts the same arguments as the
@@ -1460,8 +1404,8 @@ with the `all()` and `one()` methods.
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$array = $model->order('created DESC')->all(\PDO::FETCH_ASSOC);
-$record = $model->order('created DESC')->one(\PDO::FETCH_ASSOC);
+$array = $model->query()->order('created DESC')->all(\PDO::FETCH_ASSOC);
+$record = $model->query()->order('created DESC')->one(\PDO::FETCH_ASSOC);
 ```
 
 
@@ -1476,9 +1420,9 @@ but returns `true` when a record is found and `false` otherwise.
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->exists(1);
+$query->exists(1);
 ```
 
 The method accepts multiple identifiers in which case it returns `true` when all the
@@ -1487,11 +1431,11 @@ records exist, `false` when all the record don't exist, and an array otherwise.
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->exists(1, 2, 999);
+$query->exists(1, 2, 999);
 # or
-$model->exists([ 1, 2, 999 ]);
+$query->exists([ 1, 2, 999 ]);
 ```
 
 The method would return the following result if records "1" and "2" exist but not record "999".
@@ -1511,18 +1455,7 @@ exists, `false` otherwise.
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->filter_by_author('Madonna')->exists;
-```
-
-The `exists` magic property of the model is `true` if the modal has at least one record, `false`
-otherwise.
-
-```php
-<?php
-
-/* @var $model \ICanBoogie\ActiveRecord\Model */
-
-$model->exists;
+$model->where([ 'author' => 'Madonna' ])->exists;
 ```
 
 
@@ -1536,9 +1469,9 @@ The `count` magic property is the number of records in a model or matching a que
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->count;
+$query->count;
 ```
 
 Or on a query:
@@ -1548,7 +1481,7 @@ Or on a query:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->filter_by_firstname('Ryan')->count;
+$model->where([ 'firstname' => 'Ryan' ])->count;
 ```
 
 Of course, all query methods can be combined:
@@ -1558,7 +1491,7 @@ Of course, all query methods can be combined:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->filter_by_firstname('Ryan')->join(with: Content::class)->where('YEAR(date) = 2011')->count;
+$model->where([ 'firstname' => 'Ryan' ])->join(with: Content::class)->and('YEAR(date) = 2011')->count;
 ```
 
 The `count()` method returns an array with the number of recond for each value of a field:
@@ -1568,7 +1501,7 @@ The `count()` method returns an array with the number of recond for each value o
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->count('is_online');
+$model->query()->count('is_online');
 ```
 
 ```
@@ -1593,9 +1526,9 @@ All calculation methods work directly on the model:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->average('price');
+$query->average('price');
 ```
 
 And on a query:
@@ -1605,7 +1538,7 @@ And on a query:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->filter_by_category('Toys')->average('price');
+$model->where([ 'category' => 'Toys' ])->average('price');
 ```
 
 Of course, all query methods can be combined:
@@ -1615,7 +1548,7 @@ Of course, all query methods can be combined:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->filter_by_category('Toys')->join(with: Content::class)->where('YEAR(date) = 2011')->average('price');
+$model->where([ 'category' => 'Toys' ])->join(with: Content::class)->and('YEAR(date) = 2011')->average('price');
 ```
 
 
@@ -1647,9 +1580,6 @@ to obtain only the online articles in a "music" category:
 /* @var $articles \ICanBoogie\ActiveRecord\Model */
 
 $taxonomy_query = $taxonomy_terms_nodes
-    ->query()
-    ->join(with: Vocabulary::class)
-    ->join(with: VocabularyScope::class)
     ->where([
 
         'termslug' => "music",
@@ -1657,6 +1587,8 @@ $taxonomy_query = $taxonomy_terms_nodes
         'constructor' => "articles"
 
     ])
+    ->join(with: Vocabulary::class)
+    ->join(with: VocabularyScope::class)
     ->select('nid');
 
 $matches = $articles
@@ -1685,7 +1617,7 @@ The records matching a query can be deleted using the `delete()` method:
 /* @var $nodes \ICanBoogie\ActiveRecord\Model */
 
 $nodes
-    ->filter_by_is_deleted_and_uid(true, 123)
+    ->where([ 'is_deleted' => true, 'uid' => 123 ])
     ->limit(10)
     ->delete();
 ```
@@ -1700,7 +1632,7 @@ how to delete the nodes and comments of nodes belonging to user 123 and marked a
 /* @var $comments \ICanBoogie\ActiveRecord\Model */
 
 $comments
-    ->filter_by_is_deleted_and_uid(true, 123)
+    ->where([ 'is_deleted' => true, 'uid' => 123 ])
     ->join(with: Node::class)
     ->delete('comments, nodes');
 ```
@@ -1733,8 +1665,6 @@ Retrieving records:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$record = $model[10];
-# or
 $record = $model->find(10);
 
 $records = $model->find(10, 15, 19);
@@ -1758,11 +1688,6 @@ $model->where('site_id = 0 OR site_id = ?', 1)->and('language = "" OR language =
 $model->where([ 'order_count' => [ 1, 2, 3 ] ]);
 $model->where([ '!order_count' => [ 1, 2, 3 ] ]); # NOT
 
-# Dynamic filters
-
-$model->filter_by_nid(1);
-$model->filter_by_site_id_and_language(1, 'fr');
-
 # Query extensions
 
 $model->query()->visible;
@@ -1776,8 +1701,8 @@ Grouping and ordering:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->group('date(created)')->order('created');
-$model->group('date(created)')->having('created > ?', new DateTime('-1 month'))->order('created');
+$model->query()->group('date(created)')->order('created');
+$model->query()->group('date(created)')->having('created > ?', new DateTime('-1 month'))->order('created');
 ```
 
 Limits and offsets:
@@ -1785,13 +1710,13 @@ Limits and offsets:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->limit(10); // first 10 records
-$model->limit(5, 10); // 6th to the 16th records
+$query->limit(10); // first 10 records
+$query->limit(5, 10); // 6th to the 16th records
 
-$model->offset(5); // from the 6th to the last
-$model->offset(5)->limit(10);
+$query->offset(5); // from the 6th to the last
+$query->offset(5)->limit(10);
 ```
 
 Fields selection:
@@ -1799,10 +1724,10 @@ Fields selection:
 ```php
 <?php
 
-/* @var $model \ICanBoogie\ActiveRecord\Model */
+/* @var $query \ICanBoogie\ActiveRecord\Query */
 
-$model->select('nid, created, title');
-$model->select('nid, created, CONCAT_WS(":", title, language)');
+$query->select('nid, created, title');
+$query->select('nid, created, CONCAT_WS(":", title, language)');
 ```
 
 Joins:
@@ -1824,12 +1749,12 @@ Retrieving data:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->all;
-$model->order('created DESC')->all(PDO::FETCH_ASSOC);
-$model->order('created DESC')->mode(PDO::FETCH_ASSOC)->all;
-$model->order('created DESC')->one;
-$model->select('nid, title')->pairs;
-$model->select('title')->rc;
+$model->query()->all;
+$model->query()->order('created DESC')->all(PDO::FETCH_ASSOC);
+$model->query()->order('created DESC')->mode(PDO::FETCH_ASSOC)->all;
+$model->query()->order('created DESC')->one;
+$model->query()->select('nid, title')->pairs;
+$model->query()->select('title')->rc;
 ```
 
 Testing object existence:
@@ -1839,9 +1764,9 @@ Testing object existence:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->exists;
-$model->exists(1, 2, 3);
-$model->exists([ 1, 2, 3 ]);
+$model->query()->exists;
+$model->query()->exists(1, 2, 3);
+$model->query()->exists([ 1, 2, 3 ]);
 $model->where('author = ?', 'madonna')->exists;
 ```
 
@@ -1852,13 +1777,12 @@ Calculations:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$model->count;
-$model->count('is_online'); // count is_online = 0 and is_online = 1
-$model->filter_by_is_online(true)->count; // count is_online = 1
-$model->average('score');
-$model->minimum('age');
-$model->maximum('age');
-$model->sum('comments_count');
+$model->query()->count;
+$model->query()->count('is_online'); // count is_online = 0 and is_online = 1
+$model->query()->average('score');
+$model->query()->minimum('age');
+$model->query()->maximum('age');
+$model->query()->sum('comments_count');
 ```
 
 

@@ -36,7 +36,7 @@ final class ModelExtendTest extends TestCase
 
         $this->assertEquals(1, $nid);
 
-        $record = $model[$nid];
+        $record = $model->find($nid);
 
         assert($record instanceof Article);
 

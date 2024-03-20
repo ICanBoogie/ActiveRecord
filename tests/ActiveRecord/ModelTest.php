@@ -24,7 +24,6 @@ use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\DateTime;
-use ICanBoogie\OffsetNotWritable;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Count;
@@ -44,7 +43,6 @@ final class ModelTest extends TestCase
     private Model $nodes;
     private Model $articles;
     private Model $counts_model;
-    private int $model_records_count;
 
     protected function setUp(): void
     {
@@ -76,7 +74,6 @@ final class ModelTest extends TestCase
 
         $this->articles = $articles;
         $this->nodes = $models->model_for_record(Node::class);
-        $this->model_records_count = 3;
         $this->counts_model = $counts;
     }
 
@@ -227,23 +224,6 @@ final class ModelTest extends TestCase
         $this->assertSame($records[$id3], $records2[$id3]);
     }
 
-    public function test_offsets(): void
-    {
-        $model = $this->nodes;
-        $this->assertFalse(isset($model[uniqid()]));
-        $id = $model->save([ 'title' => uniqid() ]);
-        $this->assertTrue(isset($model[$id]));
-        unset($model[$id]);
-        $this->assertFalse(isset($model[$id]));
-
-        try {
-            /** @phpstan-ignore-next-line */
-            $model[$id] = null;
-            $this->fail("Expected OffsetNotWritable");
-        } catch (OffsetNotWritable) {
-        }
-    }
-
     public function test_new_record(): void
     {
         $model = $this->articles;
@@ -255,105 +235,6 @@ final class ModelTest extends TestCase
         $this->assertSame($model, $record->model);
     }
 
-    public function test_get_exists(): void
-    {
-        $this->assertTrue($this->articles->exists);
-    }
-
-    public function test_get_count(): void
-    {
-        $this->assertEquals($this->model_records_count, $this->articles->count);
-    }
-
-    public function test_get_all(): void
-    {
-        $all = $this->articles->all;
-        $this->assertIsArray($all);
-        $this->assertCount($this->model_records_count, $all);
-        $this->assertContainsOnlyInstancesOf(ActiveRecord::class, $all);
-    }
-
-    public function test_get_one(): void
-    {
-        $one = $this->articles->one;
-        $this->assertInstanceOf(ActiveRecord::class, $one);
-    }
-
-    /**
-     * @dataProvider provide_test_initiate_query
-     *
-     * @param string[] $args
-     */
-    public function test_initiate_query(string $method, array $args): void
-    {
-        $this->assertInstanceOf(Query::class, $this->articles->$method(...$args));
-    }
-
-    /**
-     * @return array<array{ string, array{ string } }>
-     */
-    public static function provide_test_initiate_query(): array
-    {
-        return [
-
-            [ 'select', [ 'id, name' ] ],
-            [ 'join', [ 'JOIN some_other_table' ] ],
-            [ 'where', [ '1=1' ] ],
-            [ 'group', [ 'name' ] ],
-            [ 'order', [ 'name' ] ],
-            [ 'limit', [ '12' ] ],
-            [ 'offset', [ '12' ] ]
-
-        ];
-    }
-
-    /*
-     * Record existence
-     */
-
-    /**
-     * `exists()` must return `true` when a record or all the records of a subset exist.
-     */
-    public function test_exists_true(): void
-    {
-        $m = $this->counts_model;
-        $this->assertTrue($m->exists(1));
-        $this->assertTrue($m->exists(1, 2, 3));
-        $this->assertTrue($m->exists([ 1, 2, 3 ]));
-    }
-
-    /**
-     * `exists()` must return `false` when a record or all the records of a subset don't exist.
-     */
-    public function test_exists_false(): void
-    {
-        $m = $this->counts_model;
-        $u = rand(999, 9999);
-
-        $this->assertFalse($m->exists($u));
-        $this->assertFalse($m->exists($u + 1, $u + 2, $u + 3));
-        $this->assertFalse($m->exists([ $u + 1, $u + 2, $u + 3 ]));
-    }
-
-    /**
-     * `exists()` must return an array when some records of a subset don't exist.
-     */
-    public function test_exists_mixed(): void
-    {
-        $m = $this->counts_model;
-        $u = rand(999, 9999);
-        $a = [ 1 => true, $u => false, 3 => true ];
-
-        $this->assertEquals($a, $m->exists(1, $u, 3));
-        $this->assertEquals($a, $m->exists([ 1, $u, 3 ]));
-    }
-
-    public function test_exists_condition(): void
-    {
-        $this->assertTrue($this->counts_model->filter_by_name('one')->exists);
-        $this->assertFalse($this->counts_model->filter_by_name('one ' . uniqid())->exists);
-    }
-
     public function test_cache_should_be_revoked_on_save(): void
     {
         $name1 = uniqid();
@@ -361,117 +242,13 @@ final class ModelTest extends TestCase
 
         $model = $this->counts_model;
         $id = $model->save([ 'name' => $name1, 'date' => DateTime::now() ]);
-        $record = $model[$id];
+        $record = $model->find($id);
         $model->save([ 'name' => $name2 ], $id);
-        $record_now = $model[$id];
+        $record_now = $model->find($id);
 
         $this->assertEquals($name1, $record->name);
         $this->assertEquals($name2, $record_now->name);
         $this->assertNotSame($record, $record_now);
-    }
-
-    /**
-     * @dataProvider provide_test_querying
-     *
-     * @param callable $callback
-     * @param string $expected
-     */
-    public function test_querying($callback, $expected): void
-    {
-        $this->assertSame($expected, (string)$callback($this->articles));
-    }
-
-    /**
-     * @return array[]
-     */
-    public static function provide_test_querying(): array
-    {
-        $p = self::PREFIX;
-        $l = Query::LIMIT_MAX;
-
-        return [
-
-            [
-                function (Model $m) {
-                    return $m->select('nid, UPPER(name)');
-                },
-                <<<EOT
-SELECT nid, UPPER(name) FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`)
-EOT
-            ],
-
-            [
-                function (Model $m) {
-                    return $m->query()->join(expression: 'INNER JOIN other USING(nid)');
-                },
-                <<<EOT
-SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) INNER JOIN other USING(nid)
-EOT
-            ],
-
-            [
-                function (Model $m) {
-                    return $m->where([ 'nid' => 1, 'name' => 'madonna' ]);
-                },
-                <<<EOT
-SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) WHERE (`nid` = ? AND `name` = ?)
-EOT
-            ],
-
-            [
-                function (Model $m) {
-                    return $m->group('name');
-                },
-                <<<EOT
-SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) GROUP BY name
-EOT
-            ],
-
-            [
-                function (Model $m) {
-                    return $m->order('nid');
-                },
-                <<<EOT
-SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) ORDER BY nid
-EOT
-            ],
-
-            [
-                function (Model $m) {
-                    return $m->order('nid', 1, 2, 3);
-                },
-                <<<EOT
-SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) ORDER BY FIELD(nid, '1', '2', '3')
-EOT
-            ],
-
-            [
-                function (Model $m) {
-                    return $m->limit(5);
-                },
-                <<<EOT
-SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5
-EOT
-            ],
-
-            [
-                function (Model $m) {
-                    return $m->limit(5, 10);
-                },
-                <<<EOT
-SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5, 10
-EOT
-            ],
-
-            [
-                function (Model $m) {
-                    return $m->offset(5);
-                },
-                <<<EOT
-SELECT * FROM `{$p}_articles` `article` INNER JOIN `{$p}_nodes` `node` USING(`nid`) LIMIT 5, $l
-EOT
-            ]
-        ];
     }
 
     public function test_activerecord_cache(): void
@@ -506,19 +283,19 @@ EOT
         $this->assertInstanceOf(ActiveRecordCache::class, $activerecord_cache);
 
         for ($i = 1; $i < 5; $i++) {
-            $records[$i] = $model[$i];
+            $records[$i] = $model->find($i);
         }
 
         for ($i = 1; $i < 5; $i++) {
             $this->assertSame($records[$i], $activerecord_cache->retrieve($i));
-            $this->assertSame($records[$i], $model[$i]);
+            $this->assertSame($records[$i], $model->find($i));
         }
 
         $activerecord_cache->clear();
 
         for ($i = 1; $i < 5; $i++) {
             $this->assertNull($activerecord_cache->retrieve($i));
-            $this->assertNotSame($records[$i], $model[$i]);
+            $this->assertNotSame($records[$i], $model->find($i));
         }
 
         #
@@ -528,17 +305,24 @@ EOT
         $records[1]->delete();
         $this->assertNull($activerecord_cache->retrieve(1));
         $this->expectException(RecordNotFound::class);
-        $model[1];
+        $model->find(1);
     }
 
-    public function test_regular_query(): void
-    {
-        $model = $this->nodes;
-        $query = $model->query();
 
-        $this->assertSame($model, $query->model);
-        // The method creates a new query
-        $this->assertNotSame($query, $model->query());
+    public function test_query(): void
+    {
+        $actual = $this->articles->query();
+
+        $this->assertInstanceOf(Query::class, $actual);
+        $this->assertNotSame($actual, $this->articles->query());
+    }
+
+    public function test_where(): void
+    {
+        $actual = $this->articles->where();
+
+        $this->assertInstanceOf(Query::class, $actual);
+        $this->assertNotSame($actual, $this->articles->where());
     }
 
     public function test_custom_query(): void
