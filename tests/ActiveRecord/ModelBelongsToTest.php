@@ -99,9 +99,9 @@ final class ModelBelongsToTest extends TestCase
 
         $people = $models->model_for_record(Person::class);
 
-        $this->assertArrayHasKey('dance_session', $people->relations);
-        $this->assertArrayHasKey('hire_skill', $people->relations);
-        $this->assertArrayHasKey('summon_skill', $people->relations);
-        $this->assertArrayHasKey('teach_skill', $people->relations);
+        $this->assertTrue($people->relations->has('dance_session'));
+        $this->assertTrue($people->relations->has('hire_skill'));
+        $this->assertTrue($people->relations->has('summon_skill'));
+        $this->assertTrue($people->relations->has('teach_skill'));
     }
 }

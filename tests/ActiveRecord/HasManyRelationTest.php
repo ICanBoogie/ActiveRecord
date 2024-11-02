@@ -59,7 +59,7 @@ final class HasManyRelationTest extends TestCase
         $relations = $this->articles->relations;
         $this->assertInstanceOf(RelationCollection::class, $relations);
 
-        $relation = $relations['comments'];
+        $relation = $relations->get('comments');
         $this->assertInstanceOf(HasManyRelation::class, $relation);
         $this->assertSame('comments', $relation->as);
         $this->assertSame($this->articles, $relation->owner);
@@ -71,7 +71,7 @@ final class HasManyRelationTest extends TestCase
     public function test_undefined_relation(): void
     {
         $this->expectException(RelationNotDefined::class);
-        $this->articles->relations['undefined_relation'];
+        $this->articles->relations->get('undefined_relation');
     }
 
     public function test_getter(): void

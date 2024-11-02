@@ -20,16 +20,14 @@ final class RelationNotDefinedTest extends TestCase
     public function test_exception(): void
     {
         $relation_name = uniqid();
-        $collection = $this
-            ->getMockBuilder(RelationCollection::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $relations = new class() extends RelationCollection {
+            public function __construct() {
+            }
+        };
 
-        /* @var $collection RelationCollection */
-
-        $exception = new RelationNotDefined($relation_name, $collection);
+        $exception = new RelationNotDefined($relation_name, $relations);
 
         $this->assertSame($relation_name, $exception->relation_name);
-        $this->assertSame($collection, $exception->collection);
+        $this->assertSame($relations, $exception->collection);
     }
 }
