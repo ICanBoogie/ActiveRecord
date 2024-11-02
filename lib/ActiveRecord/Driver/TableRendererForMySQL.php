@@ -11,15 +11,16 @@ use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Time;
 
-use function implode;
 use function in_array;
-use function is_array;
 
 /**
- * @see https://www.sqlite.org/lang_createtable.html
+ * @link https://www.sqlite.org/lang_createtable.html
  */
 final class TableRendererForMySQL extends TableRenderer
 {
+    use RenderCreateIndexForMySQL;
+    use RenderTableConstraintsForMySQL;
+
     protected function render_column_defs(Schema $schema): array
     {
         $render = [];
@@ -73,71 +74,6 @@ final class TableRendererForMySQL extends TableRenderer
         }
 
         return $default;
-    }
-
-    protected function render_table_constraints(Schema $schema): array
-    {
-        $constraints = [];
-
-        //
-        // PRIMARY KEY
-        //
-        $primary = $schema->primary;
-
-        if (is_array($primary)) {
-            $primary = implode(', ', $primary);
-            $constraints[] = "PRIMARY KEY ($primary)";
-        } elseif (is_string($primary)) {
-            $constraints[] = "PRIMARY KEY ($primary)";
-        }
-
-        //
-        // UNIQUE
-        //
-        foreach ($schema->indexes as $index) {
-            if (!$index->unique || $index->name) {
-                continue;
-            }
-
-            $indexed_columns = is_array($index->columns)
-                ? implode(', ', $index->columns)
-                : $index->columns;
-            $constraints[] = "UNIQUE ($indexed_columns)";
-        }
-
-        return $constraints;
-    }
-
-    protected function render_create_index(Schema $schema, string $prefixed_table_name): string
-    {
-        $create_index = '';
-
-        foreach ($schema->indexes as $index) {
-            $name = $index->name;
-
-            // Unnamed UNIQUE indexes have been added during render_table_constraints()
-            if ($index->unique && !$name) {
-                continue;
-            }
-
-            $unique = $index->unique ? 'UNIQUE ' : '';
-            $columns = $index->columns;
-            if (!$name) {
-                $name = is_array($columns) ? implode('_', $columns) : $columns;
-            }
-            $columns = $this->render_column_list($columns);
-            $create_index .= "CREATE {$unique}INDEX $name ON $prefixed_table_name ($columns);\n";
-        }
-
-        return rtrim($create_index, "\n");
-    }
-
-    /**
-     * @param string|string[] $columns
-     */
-    private function render_column_list(string|array $columns): string
-    {
-        return is_array($columns) ? implode(', ', $columns) : $columns;
     }
 
     protected function render_table_options(): array

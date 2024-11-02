@@ -1,14 +1,5 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ICanBoogie\ActiveRecord\Driver;
 
 use DateTimeInterface;
@@ -94,10 +85,6 @@ abstract class BasicDriver implements Driver
 
     /**
      * Renders the statement to create the specified table.
-     *
-     * @param non-empty-string $table_name
-     *
-     * @return non-empty-string
      */
     abstract protected function render_create_table(string $table_name, Schema $schema): string;
 }

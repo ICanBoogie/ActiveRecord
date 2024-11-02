@@ -20,11 +20,6 @@ use function implode;
 
 abstract class TableRenderer
 {
-    /**
-     * @param non-empty-string $prefixed_table_name
-     *
-     * @return non-empty-string
-     */
     public function render(Schema $schema, string $prefixed_table_name): string
     {
         $column_defs = implode(",\n", $this->render_column_defs($schema));
@@ -54,9 +49,6 @@ abstract class TableRenderer
 
     /**
      * @param Schema $schema
-     * @param non-empty-string $prefixed_table_name
-     *
-     * @return non-empty-string
      */
     abstract protected function render_create_index(Schema $schema, string $prefixed_table_name): string;
 
