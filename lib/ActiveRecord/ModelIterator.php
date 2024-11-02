@@ -10,9 +10,7 @@ use ICanBoogie\ActiveRecord;
 interface ModelIterator
 {
     /**
-     * @template T of ActiveRecord
-     *
-     * @return iterable<class-string<T>, (callable(): Model<scalar|scalar[],T>)>
+     * @return iterable<class-string<ActiveRecord>, ModelAccessor>
      */
     public function model_iterator(): iterable;
 }

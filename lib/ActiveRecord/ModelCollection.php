@@ -1,17 +1,7 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use LogicException;
@@ -19,30 +9,15 @@ use Throwable;
 
 /**
  * Model collection.
- *
- * @property-read array<class-string<ActiveRecord>, Model> $instances
  */
-class ModelCollection implements ModelProvider, ModelIterator
+final class ModelCollection implements ModelProvider, ModelIterator
 {
-    /**
-     * @uses get_instances
-     */
-    use AccessorTrait;
-
     /**
      * Instantiated models.
      *
      * @var array<class-string<ActiveRecord>, Model>
      */
     private array $instances = [];
-
-    /**
-     * @return array<class-string<ActiveRecord>, Model>
-     */
-    private function get_instances(): array
-    {
-        return $this->instances;
-    }
 
     /**
      * @param array<class-string<ActiveRecord>, ModelDefinition> $definitions
@@ -61,8 +36,11 @@ class ModelCollection implements ModelProvider, ModelIterator
     public function model_iterator(): iterable
     {
         foreach ($this->definitions as $activerecord_class => $definition) {
-            // @phpstan-ignore-next-line
-            yield $activerecord_class => fn() => $this->model_for_record($definition->activerecord_class);
+            yield $activerecord_class => new ModelAccessor(
+                $definition,
+                isset($this->instances[$activerecord_class]),
+                $this,
+            );
         }
     }
 
@@ -88,8 +66,8 @@ class ModelCollection implements ModelProvider, ModelIterator
      */
     public function install(): void
     {
-        foreach ($this->model_iterator() as $get) {
-            $model = $get();
+        foreach ($this->model_iterator() as $accessor) {
+            $model = $accessor->get();
 
             if ($model->is_installed()) {
                 continue;
@@ -106,8 +84,8 @@ class ModelCollection implements ModelProvider, ModelIterator
      */
     public function uninstall(): void
     {
-        foreach ($this->model_iterator() as $get) {
-            $model = $get();
+        foreach ($this->model_iterator() as $accessor) {
+            $model = $accessor->get();
 
             if (!$model->is_installed()) {
                 continue;
@@ -120,16 +98,16 @@ class ModelCollection implements ModelProvider, ModelIterator
     /**
      * Check if models are installed.
      *
-     * @return array<class-string<Model>, bool>
-     *     An array of key/value pair where _key_ is a model class and
+     * @return array<class-string<ActiveRecord>, bool>
+     *     An array of key/value pairs where _key_ is a record class and
      *     _value_ `true` if the model is installed, `false` otherwise.
      */
     public function is_installed(): array
     {
         $rc = [];
 
-        foreach ($this->model_iterator() as $activerecord_class => $get) {
-            $rc[$activerecord_class] = $get()->is_installed();
+        foreach ($this->model_iterator() as $activerecord_class => $defined) {
+            $rc[$activerecord_class] = $defined->get()->is_installed();
         }
 
         return $rc;

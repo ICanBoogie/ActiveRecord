@@ -3,6 +3,8 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ModelCollection;
+use LogicException;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Comment;
@@ -43,11 +45,12 @@ final class ModelCollectionTest extends TestCase
 
         $classes = [];
 
-        foreach ($this->sut->model_iterator() as $class => $get) {
-            $classes[] = $class;
-            $model = $get();
+        foreach ($this->sut->model_iterator() as $record_class => $accessor) {
+            $this->assertFalse($accessor->instantiated);
+            $classes[] = $record_class;
+            $model = $accessor->get();
 
-            $this->assertSame($model, $this->sut->model_for_record($class));
+            $this->assertSame($model, $this->sut->model_for_record($record_class));
         }
 
         $this->assertEquals($expected, $classes);
@@ -76,24 +79,11 @@ final class ModelCollectionTest extends TestCase
         $this->assertSame($actual, $expected);
     }
 
-    public function test_get_instances(): void
+    #[Test]
+    public function should_fail_on_invalid_model(): void
     {
-        $models = $this->sut;
-        $this->assertEmpty($models->instances);
-
-        $nodes = $models->model_for_record(Node::class);
-        $articles = $models->model_for_record(Article::class);
-        $comments = $models->model_for_record(Comment::class);
-
-        $expected = [
-            Node::class => $nodes,
-            Article::class => $articles,
-            Comment::class => $comments,
-        ];
-
-        $actual = $models->instances;
-
-        $this->assertEquals($expected, $actual);
+        $this->expectException(LogicException::class);
+        $this->sut->model_for_record(self::class);
     }
 
     public function test_install(): void
