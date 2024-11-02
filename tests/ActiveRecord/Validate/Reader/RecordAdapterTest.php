@@ -12,15 +12,12 @@
 namespace Test\ICanBoogie\ActiveRecord\Validate\Reader;
 
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Node;
-use Test\ICanBoogie\Acme\NodeModel;
 use Test\ICanBoogie\Fixtures;
 
-/**
- * @group validate
- * @small
- */
+#[Group('validate')]
 final class RecordAdapterTest extends TestCase
 {
     public function test_adapter(): void

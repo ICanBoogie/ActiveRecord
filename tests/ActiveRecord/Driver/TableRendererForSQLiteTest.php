@@ -18,6 +18,7 @@ use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Time;
 use ICanBoogie\ActiveRecord\Schema\Timestamp;
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Equipment;
@@ -25,9 +26,7 @@ use Test\ICanBoogie\Acme\Location;
 
 final class TableRendererForSQLiteTest extends TestCase
 {
-    /**
-     * @dataProvider provideRender
-     */
+    #[DataProvider('provideRender')]
     public function test_render(Schema $schema, string $expected): void
     {
         $prefixed_table_name = 'tblSample';

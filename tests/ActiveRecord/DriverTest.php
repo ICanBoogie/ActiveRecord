@@ -17,6 +17,7 @@ use ICanBoogie\ActiveRecord\Driver\MySQLDriver;
 use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Driver;
 use Throwable;
@@ -24,13 +25,12 @@ use Throwable;
 final class DriverTest extends TestCase
 {
     /**
-     * @dataProvider provide_expected
-     *
      * @param class-string<Driver> $driver_class
      * @param string $expected
      *
      * @throws Throwable
      */
+    #[DataProvider('provide_expected')]
     public function test_create_table_and_indexes(
         string $driver_class,
         string $expected,

@@ -14,17 +14,14 @@ namespace Test\ICanBoogie\ActiveRecord\Validate;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Validate\ValidateActiveRecord;
 use ICanBoogie\Validate\ValidationErrors;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group validate
- * @medium
- */
+#[Group('validate')]
 final class ValidateActiveRecordTest extends TestCase
 {
-    /**
-     * @dataProvider provide_test_validate
-     */
+    #[DataProvider('provide_test_validate')]
     public function test_validate(ActiveRecord $record, bool $should_validate): void
     {
         $validate = new ValidateActiveRecord();

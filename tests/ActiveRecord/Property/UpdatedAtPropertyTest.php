@@ -14,13 +14,12 @@ namespace Test\ICanBoogie\ActiveRecord\Property;
 use ICanBoogie\ActiveRecord\UpdatedAtPropertyTest\A;
 use ICanBoogie\ActiveRecord\UpdatedAtPropertyTest\B;
 use ICanBoogie\DateTime;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class UpdatedAtPropertyTest extends TestCase
 {
-    /**
-     * @dataProvider provide_test_property
-     */
+    #[DataProvider('provide_test_property')]
     public function test_property($classname)
     {
         /* @var $r A|B */

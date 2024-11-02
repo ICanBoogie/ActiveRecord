@@ -8,7 +8,7 @@
     "activerecord"
   ],
   "homepage": "https://icanboogie.org/",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "authors": [
     {
       "name": "Olivier Laviale",
@@ -37,8 +37,8 @@
   },
   "require-dev": {
     "ext-pdo_mysql": "*",
-    "phpstan/phpstan": "^1.10",
-    "phpunit/phpunit": "^10.5"
+    "phpstan/phpstan": "^1.12",
+    "phpunit/phpunit": "^11.4"
   },
   "autoload": {
     "psr-4": {

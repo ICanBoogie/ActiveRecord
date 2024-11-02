@@ -4,10 +4,6 @@ PHPUNIT = vendor/bin/phpunit
 
 # do not edit the following lines
 
-.PHONY: usage
-usage:
-	@echo "test:  Runs the test suite.\ndoc:   Creates the documentation.\nclean: Removes the documentation, the dependencies and the Composer files."
-
 vendor:
 	@composer install
 

@@ -15,13 +15,11 @@ use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\ValidationErrors;
 use ICanBoogie\Validate\Validator\Email;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Subscriber;
 
-/**
- * @group validate
- * @small
- */
+#[Group('validate')]
 final class RecordNotValidTest extends TestCase
 {
     public function test_exception(): void

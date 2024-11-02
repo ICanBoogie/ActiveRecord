@@ -161,11 +161,10 @@ final class SchemaTest extends TestCase
     }
 
     /**
-     * @dataProvider provide_test_filter
-     *
      * @param array<non-empty-string, mixed> $values
      * @param array<non-empty-string, mixed> $expected
      */
+    #[DataProvider('provide_test_filter')]
     public function test_filter(array $values, array $expected): void
     {
         $schema = new Schema([

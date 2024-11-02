@@ -4,6 +4,7 @@ namespace Test\ICanBoogie\ActiveRecord\Schema;
 
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\SetStateHelper;
 
@@ -22,9 +23,7 @@ final class SerialTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    /**
-     * @dataProvider provideInstance
-     */
+    #[DataProvider('provideInstance')]
     public function testInstance(Serial $actual, Integer $expected): void
     {
         $this->assertEquals(

@@ -1,4 +1,4 @@
-# Migration
+# CHANGELOG
 
 ## v5.x to v6.0
 

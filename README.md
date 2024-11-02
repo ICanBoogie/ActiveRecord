@@ -1,7 +1,6 @@
 # Active Record
 
 [![Release](https://img.shields.io/packagist/v/ICanBoogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
-[![Code Quality](https://img.shields.io/scrutinizer/g/ICanBoogie/ActiveRecord.svg)](https://scrutinizer-ci.com/g/ICanBoogie/ActiveRecord)
 [![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
 [![Downloads](https://img.shields.io/packagist/dt/icanboogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
 
@@ -1136,28 +1135,22 @@ already instantiated model.
 
 The project is continuously tested by [GitHub actions](https://github.com/ICanBoogie/ActiveRecord/actions).
 
-[![Tests](https://github.com/ICanBoogie/ActiveRecord/workflows/test/badge.svg)](https://github.com/ICanBoogie/ActiveRecord/actions?query=workflow%3Atest)
-[![Static Analysis](https://github.com/ICanBoogie/ActiveRecord/workflows/static-analysis/badge.svg)](https://github.com/ICanBoogie/ActiveRecord/actions?query=workflow%3Astatic-analysis)
-[![Code Style](https://github.com/ICanBoogie/ActiveRecord/workflows/code-style/badge.svg)](https://github.com/ICanBoogie/ActiveRecord/actions?query=workflow%3Acode-style)
+[![Tests](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/test.yml/badge.svg?branch=6.0)](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/test.yml)
+[![Static Analysis](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/static-analysis.yml/badge.svg?branch=6.0)](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/static-analysis.yml)
+[![Code Style](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/code-style.yml/badge.svg?branch=6.0)](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/code-style.yml)
 
 
 
 ## Code of Conduct
 
 This project adheres to a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in
-this project and its community, you are expected to uphold this code.
+this project and its community, you're expected to uphold this code.
 
 
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-
-
-## License
-
-**icanboogie/activerecord** is released under the [BSD3-Clause](LICENSE).
+See [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 
 

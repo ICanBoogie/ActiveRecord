@@ -5,6 +5,7 @@ namespace Test\ICanBoogie\ActiveRecord\Schema;
 use Closure;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use LogicException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\SetStateHelper;
 
@@ -26,9 +27,7 @@ final class IntegerTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    /**
-     * @dataProvider provideInvalid
-     */
+    #[DataProvider('provideInvalid')]
     public function testInvalid(string $message, Closure $new): void
     {
         $this->expectException(LogicException::class);

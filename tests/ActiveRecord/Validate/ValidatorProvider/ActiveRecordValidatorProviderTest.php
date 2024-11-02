@@ -15,17 +15,14 @@ use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\ActiveRecord\Validate\ValidatorProvider\ActiveRecordValidatorProvider;
 use ICanBoogie\Validate\ValidatorProvider\BuiltinValidatorProvider;
 use ICanBoogie\Validate\ValidatorProvider\ValidatorProviderCollection;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group validate
- * @small
- */
+#[Group('validate')]
 final class ActiveRecordValidatorProviderTest extends TestCase
 {
-    /**
-     * @dataProvider provide_test_provider
-     */
+    #[DataProvider('provide_test_provider')]
     public function test_provider(string $alias, string $class): void
     {
         $provider = new ValidatorProviderCollection([

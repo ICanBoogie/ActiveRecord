@@ -9,6 +9,7 @@ use ICanBoogie\ActiveRecord\ModelProviderWithClosure;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use LogicException;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\ActiveRecordTest\Sample;
@@ -17,9 +18,7 @@ use Test\ICanBoogie\ActiveRecordTest\ValidateCase;
 use function serialize;
 use function uniqid;
 
-/**
- * @group record
- */
+#[Group("record")]
 final class ActiveRecordTest extends TestCase
 {
     private Model $model;
@@ -129,9 +128,7 @@ final class ActiveRecordTest extends TestCase
         $record->delete();
     }
 
-    /**
-     * @group validate
-     */
+    #[Group("validate")]
     public function test_validate(): void
     {
         $record = new ValidateCase($this->model);

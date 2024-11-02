@@ -16,17 +16,17 @@ use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
 use ICanBoogie\ActiveRecord\Exception;
 use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\StatementNotValid;
-use ICanBoogie\ActiveRecord\UnableToSetFetchMode;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 final class ExceptionTest extends TestCase
 {
     /**
-     * @dataProvider provide_test_implementing
      *
      * @param array<mixed> $ctor_args
      */
+    #[DataProvider('provide_test_implementing')]
     public function test_implementing(string $classname, array $ctor_args): void
     {
         $r = new ReflectionClass($classname);
