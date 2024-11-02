@@ -1,21 +1,12 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ICanBoogie\ActiveRecord;
 
 use Closure;
 use LogicException;
 
 /**
- * Provides a {@link Connection} instance.
+ * Provides a {@see Connection} instance.
  */
 final class StaticConnectionProvider
 {
@@ -26,7 +17,7 @@ final class StaticConnectionProvider
     private static ?ConnectionProvider $provider = null;
 
     /**
-     * Defines the {@link ConnectionProvider} factory.
+     * Defines the {@see ConnectionProvider} factory.
      *
      * @param (callable(): ConnectionProvider) $factory
      *     The factory is invoked once: the first time {@link connection_for_id} is invoked.
@@ -34,7 +25,7 @@ final class StaticConnectionProvider
      * @return (callable(): ConnectionProvider)|null
      *     The previous factory, or `null` if none was defined.
      */
-    public static function define(callable $factory): ?callable
+    public static function set(callable $factory): ?callable
     {
         $previous = self::$factory;
 
@@ -45,19 +36,19 @@ final class StaticConnectionProvider
     }
 
     /**
-     * Returns the current {@link ConnectionProvider} factory.
+     * Returns the current {@see ConnectionProvider} factory.
      *
      * @return (callable(): ConnectionProvider)|null
      */
-    public static function defined(): ?callable
+    public static function get(): ?callable
     {
         return self::$factory;
     }
 
     /**
-     * Undefines the {@link ConnectionProvider} factory.
+     * Resets the {@see ConnectionProvider} factory.
      */
-    public static function undefine(): void
+    public static function reset(): void
     {
         self::$factory = null;
         self::$provider = null;
@@ -71,7 +62,7 @@ final class StaticConnectionProvider
     {
         $factory = self::$factory
             ?? throw new LogicException(
-                "No factory defined yet. Please define one with `StaticConnectionProvider::define()`"
+                "No factory defined yet. Please define one with `StaticConnectionProvider::set()`"
             );
 
         return (self::$provider ??= $factory())->connection_for_id($id);
