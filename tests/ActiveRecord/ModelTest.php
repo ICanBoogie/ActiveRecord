@@ -12,7 +12,6 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\ActiveRecordCache;
 use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\ActiveRecord\Config\TableDefinition;
@@ -42,7 +41,6 @@ final class ModelTest extends TestCase
     private ModelCollection $models;
     private Model $nodes;
     private Model $articles;
-    private Model $counts_model;
 
     protected function setUp(): void
     {
@@ -74,7 +72,6 @@ final class ModelTest extends TestCase
 
         $this->articles = $articles;
         $this->nodes = $models->model_for_record(Node::class);
-        $this->counts_model = $counts;
     }
 
     /**
@@ -175,7 +172,6 @@ final class ModelTest extends TestCase
 
         $record = $model->find($id);
         $this->assertInstanceOf(Article::class, $record);
-        $this->assertSame($record, $model->find($id));
     }
 
     public function test_find_many(): void
@@ -194,34 +190,6 @@ final class ModelTest extends TestCase
         $this->assertInstanceOf(Article::class, $records[$id1]);
         $this->assertInstanceOf(Article::class, $records[$id2]);
         $this->assertInstanceOf(Article::class, $records[$id3]);
-
-        $records2 = $model->find($id1, $id2, $id3);
-        $this->assertSame($records[$id1], $records2[$id1]);
-        $this->assertSame($records[$id2], $records2[$id2]);
-        $this->assertSame($records[$id3], $records2[$id3]);
-    }
-
-    public function test_find_many_with_an_array(): void
-    {
-        $model = $this->articles;
-        $id1 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
-        $id2 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
-        $id3 = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
-        $this->assertNotEmpty($id1);
-        $this->assertNotEmpty($id2);
-        $this->assertNotEmpty($id3);
-
-        $records = $model->find([ $id1, $id2, $id3 ]);
-
-        $this->assertIsArray($records);
-        $this->assertInstanceOf(Article::class, $records[$id1]);
-        $this->assertInstanceOf(Article::class, $records[$id2]);
-        $this->assertInstanceOf(Article::class, $records[$id3]);
-
-        $records2 = $model->find([ $id1, $id2, $id3 ]);
-        $this->assertSame($records[$id1], $records2[$id1]);
-        $this->assertSame($records[$id2], $records2[$id2]);
-        $this->assertSame($records[$id3], $records2[$id3]);
     }
 
     public function test_new_record(): void
@@ -234,80 +202,6 @@ final class ModelTest extends TestCase
         $this->assertSame($title, $record->title);
         $this->assertSame($model, $record->model);
     }
-
-    public function test_cache_should_be_revoked_on_save(): void
-    {
-        $name1 = uniqid();
-        $name2 = uniqid();
-
-        $model = $this->counts_model;
-        $id = $model->save([ 'name' => $name1, 'date' => DateTime::now() ]);
-        $record = $model->find($id);
-        $model->save([ 'name' => $name2 ], $id);
-        $record_now = $model->find($id);
-
-        $this->assertEquals($name1, $record->name);
-        $this->assertEquals($name2, $record_now->name);
-        $this->assertNotSame($record, $record_now);
-    }
-
-    public function test_activerecord_cache(): void
-    {
-        $name = 't' . uniqid();
-
-        $models = new ModelCollection($this->connections, [
-            Node::class => new Config\ModelDefinition(
-                table: new Config\TableDefinition(
-                    name: $name,
-                    schema: (new SchemaBuilder())
-                        ->add_serial('nid', primary: true)
-                        ->add_character('title')
-                        ->build(),
-                ),
-                model_class: Model::class,
-                activerecord_class: Node::class,
-                query_class: Query::class,
-                connection: Config::DEFAULT_CONNECTION_ID,
-            )
-        ]);
-
-        $models->install();
-        $model = $models->model_for_record(Node::class);
-
-        foreach ([ 'one', 'two', 'three', 'four' ] as $value) {
-            $model->save([ 'title' => $value ]);
-        }
-
-        $activerecord_cache = $model->activerecord_cache;
-
-        $this->assertInstanceOf(ActiveRecordCache::class, $activerecord_cache);
-
-        for ($i = 1; $i < 5; $i++) {
-            $records[$i] = $model->find($i);
-        }
-
-        for ($i = 1; $i < 5; $i++) {
-            $this->assertSame($records[$i], $activerecord_cache->retrieve($i));
-            $this->assertSame($records[$i], $model->find($i));
-        }
-
-        $activerecord_cache->clear();
-
-        for ($i = 1; $i < 5; $i++) {
-            $this->assertNull($activerecord_cache->retrieve($i));
-            $this->assertNotSame($records[$i], $model->find($i));
-        }
-
-        #
-        # A deleted record must not be available in the cache.
-        #
-
-        $records[1]->delete();
-        $this->assertNull($activerecord_cache->retrieve(1));
-        $this->expectException(RecordNotFound::class);
-        $model->find(1);
-    }
-
 
     public function test_query(): void
     {

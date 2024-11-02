@@ -1,14 +1,5 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config;
@@ -20,7 +11,6 @@ use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\StatementNotValid;
 use ICanBoogie\ActiveRecord\Table;
 use PHPUnit\Framework\TestCase;
-use ReflectionMethod;
 
 final class TableTest extends TestCase
 {
@@ -28,6 +18,7 @@ final class TableTest extends TestCase
     private Table $animals;
     private Schema $animals_schema;
     private Table $dogs;
+    private Table $multi_column;
 
     protected function setUp(): void
     {
@@ -63,8 +54,21 @@ final class TableTest extends TestCase
             $this->animals
         );
 
+        $this->multi_column = new Table(
+            $connection,
+            new TableDefinition(
+                name: 'multi_column',
+                schema: (new SchemaBuilder())
+                    ->add_integer('pk_1', primary: true)
+                    ->add_integer('pk_2', primary: true)
+                    ->add_character('title')
+                    ->build()
+            )
+        );
+
         $this->animals->install();
         $this->dogs->install();
+        $this->multi_column->install();
     }
 
     /*
@@ -120,19 +124,15 @@ final class TableTest extends TestCase
     public function test_get_update_join(): void
     {
         $table = $this->dogs;
-        $method = new ReflectionMethod(Table::class, 'lazy_get_update_join');
-        $method->setAccessible(true);
 
-        $this->assertSame(" INNER JOIN `prefix_animals` `animal` USING(`id`)", $method->invoke($table));
+        $this->assertSame(" INNER JOIN `prefix_animals` `animal` USING(`id`)", $table->update_join);
     }
 
     public function test_get_select_join(): void
     {
         $table = $this->dogs;
-        $method = new ReflectionMethod(Table::class, 'lazy_get_select_join');
-        $method->setAccessible(true);
 
-        $this->assertSame("`dog` INNER JOIN `prefix_animals` `animal` USING(`id`)", $method->invoke($table));
+        $this->assertSame("`dog` INNER JOIN `prefix_animals` `animal` USING(`id`)", $table->select_join);
     }
 
     public function test_extended_schema(): void

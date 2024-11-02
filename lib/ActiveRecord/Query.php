@@ -1,21 +1,9 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ICanBoogie\ActiveRecord;
 
-use ArrayIterator;
 use DateTimeInterface;
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\DateTime;
-use ICanBoogie\Prototype\MethodNotDefined;
 use ICanBoogie\PrototypeTrait;
 use InvalidArgumentException;
 use IteratorAggregate;
@@ -23,14 +11,10 @@ use LogicException;
 use PDO;
 use Traversable;
 
-use function array_combine;
-use function array_fill;
 use function array_map;
 use function array_merge;
 use function array_shift;
 use function count;
-use function explode;
-use function func_get_arg;
 use function func_get_args;
 use function func_num_args;
 use function implode;
@@ -39,89 +23,103 @@ use function is_numeric;
 use function is_string;
 use function preg_replace;
 use function reset;
-use function strpos;
 use function substr;
 
 use const PHP_INT_MAX;
 
 /**
- * The class offers many features to compose model queries. Most query related
- * methods of the {@link Model} class create a {@link Query} object that is returned for
- * further specification, such as filters or limits.
- *
- * @method Query and ($conditions, $conditions_args = null, $_ = null) Alias to where().
- *
- * @property-read array $all An array with all the records matching the query.
- * @property-read mixed $one The first record matching the query.
- * @property-read array $pairs An array of key/value pairs.
- * @property-read array $rc The first column of the first row matching the query.
- * @property-read int $count The number of records matching the query.
- * @property-read bool|array $exists `true` if a record matching the query exists, `false`
- * otherwise. If there is multiple records, the property is an array of booleans.
- *
- * @property-read Model $model The target model of the query.
- * @property-read array $joints The joints collection from {@link join()}.
- * @property-read array $joints_args The arguments to the joints.
- * @property-read array $conditions The collected conditions.
- * @property-read array $conditions_args The arguments to the conditions.
- * @property-read array $having_args The arguments to the `HAVING` clause.
- * @property-read array $args Returns the arguments to the query.
- * @property-read Query $prepared Return a prepared query.
- *
  * @template TRecord of ActiveRecord
  *
  * @implements IteratorAggregate<TRecord>
+ *
+ * The class offers many features to compose model queries. Most query-related
+ * methods of the {@see Model} class create a {@see Query} object returned for
+ * further specification, such as filters or limits.
+ *
+ * @see self::get_all()
+ * @property-read array $all An array with all the records matching the query.
+ * @see self::get_one()
+ * @property-read TRecord|array<string>|false $one The first record matching the query.
+ * @see self::get_pairs()
+ * @property-read array $pairs An array of key/value pairs.
+ * @see self::get_rc()
+ * @property-read int|string|false|null $rc The first column of the first row matching the query.
+ * @see self::get_count()
+ * @property-read int $count The number of records matching the query.
+ * @see self::get_exists()
+ * @property-read bool|array $exists `true` if a record matching the query exists, `false`
+ * otherwise. If there are multiple records, the property is an array of booleans.
+ *
+ * @see self::get_joins()
+ * @property-read non-empty-string[] $joins The join collection from {@see join()}.
+ * @see self::get_joins_args()
+ * @property-read mixed[] $joins_args The arguments to the joins.
+ * @see self::get_conditions()
+ * @property-read non-empty-string[] $conditions The collected conditions.
+ * @see self::get_conditions_args()
+ * @property-read mixed[] $conditions_args The arguments to the conditions.
+ * @see self::get_having_args()
+ * @property-read mixed[] $having_args The arguments to the `HAVING` clause.
+ * @see self::get_args()
+ * @property-read mixed[] $args Returns the arguments to the query.
+ * @see self::get_prepared()
+ * @property-read Query<TRecord> $prepared Return a prepared query.
  */
 class Query implements IteratorAggregate
 {
-    use PrototypeTrait {
-        PrototypeTrait::__call as private __prototype_call;
-    }
+    use PrototypeTrait;
 
     public const LIMIT_MAX = PHP_INT_MAX;
 
     /**
      * Part of the `SELECT` clause.
-     *
-     * @var string
      */
-    private $select;
+    private ?string $select = null;
 
     /**
      * `JOIN` clauses.
      *
-     * @var array
-     * @uses get_joints
+     * @var non-empty-string[]
      */
-    private $joints = [];
+    private array $joins = [];
 
-    private function get_joints(): array
+    /**
+     * @return non-empty-string[]
+     *
+     * @see $joins
+     */
+    private function get_joins(): array
     {
-        return $this->joints;
+        return $this->joins;
     }
 
     /**
      * Joints arguments.
      *
-     * @var array
-     * @uses get_joints_args
-     * @uses get_args
+     * @var mixed[]
      */
-    private $joints_args = [];
+    private array $joins_args = [];
 
-    private function get_joints_args(): array
+    /**
+     * @return mixed[]
+     *
+     * @see $joins_args
+     */
+    private function get_joins_args(): array
     {
-        return $this->joints_args;
+        return $this->joins_args;
     }
 
     /**
      * Collected conditions.
      *
-     * @var array
-     * @uses get_conditions
+     * @var non-empty-string[]
      */
-    private $conditions = [];
+    private array $conditions = [];
 
+    /**
+     * @return non-empty-string[]
+     */
     private function get_conditions(): array
     {
         return $this->conditions;
@@ -130,12 +128,13 @@ class Query implements IteratorAggregate
     /**
      * Arguments for the conditions.
      *
-     * @var array
-     * @uses get_conditions_args
-     * @uses get_args
+     * @var mixed[]
      */
-    private $conditions_args = [];
+    private array $conditions_args = [];
 
+    /**
+     * @return mixed[]
+     */
     private function get_conditions_args(): array
     {
         return $this->conditions_args;
@@ -143,112 +142,70 @@ class Query implements IteratorAggregate
 
     /**
      * Part of the `HAVING` clause.
-     *
-     * @var string
      */
-    private $having;
+    private ?string $having = null;
 
     /**
      * Arguments to the `HAVING` clause.
      *
-     * @var array
-     * @uses get_having_args
-     * @uses get_args
+     * @var mixed[]
      */
-    private $having_args = [];
+    private array $having_args = [];
 
+    /**
+     * @return mixed[]
+     */
     private function get_having_args(): array
     {
         return $this->having_args;
     }
 
     /**
-     * Returns the arguments to the query, which include joints arguments, conditions arguments,
+     * Returns the arguments to the query, which include joins arguments, conditions arguments,
      * and _having_ arguments.
      *
-     * @return array
+     * @return mixed[]
      */
     private function get_args(): array
     {
-        return array_merge($this->joints_args, $this->conditions_args, $this->having_args);
+        return array_merge($this->joins_args, $this->conditions_args, $this->having_args);
     }
 
     /**
      * Part of the `GROUP BY` clause.
-     *
-     * @var string
      */
-    private $group;
+    private ?string $group = null;
 
     /**
      * Part of the `ORDER BY` clause.
      *
-     * @var mixed
+     * @var mixed[]
      */
-    private $order;
+    private array $order = [];
 
     /**
      * The number of records the skip before fetching.
-     *
-     * @var int
      */
-    private $offset;
+    private ?int $skip = null;
 
     /**
-     * The maximum number of records to fetch.
-     *
-     * @var int
+     * The maximum number of records to take when fetching.
      */
-    private $limit;
+    private ?int $take = null;
 
     /**
      * Fetch mode.
      *
-     * @var mixed
+     * @var mixed[]
      */
-    private $mode;
+    private array $mode = [];
 
     /**
-     * The target model of the query.
-     *
-     * @var Model
-     * @uses get_model
+     * @param Model<int|non-empty-string, TRecord> $model The model to query.
      */
-    private $model;
-
-    private function get_model(): Model
-    {
-        return $this->model;
-    }
-
-    /**
-     * @param Model $model The model to query.
-     */
-    public function __construct(Model $model)
-    {
-        $this->model = $model;
-    }
-
-    /**
-     * Override the method to handle magic 'filter_by_' methods.
-     *
-     * @inheritdoc
-     */
-    public function __call($method, $arguments)
-    {
-        if ($method === 'and') {
-            return $this->where(...$arguments);
-        }
-
-        if (strpos($method, 'filter_by_') === 0) {
-            return $this->dynamic_filter(substr($method, 10), $arguments); // 10 is for: strlen('filter_by_')
-        }
-
-        try {
-            return self::__prototype_call($method, $arguments);
-        } catch (MethodNotDefined $e) {
-            throw new ScopeNotDefined($method, $this->model, $e);
-        }
+    public function __construct(
+        public readonly Model $model
+    ) {
     }
 
     /*
@@ -276,7 +233,7 @@ class Query implements IteratorAggregate
      */
     private function render_select(): string
     {
-        return 'SELECT ' . ($this->select ? $this->select : '*');
+        return 'SELECT ' . ($this->select ?? '*');
     }
 
     /**
@@ -296,22 +253,20 @@ class Query implements IteratorAggregate
      *
      * @return string
      */
-    private function render_joints(): string
+    private function render_joins(): string
     {
-        return implode(' ', $this->joints);
+        return implode(' ', $this->joins);
     }
 
     /**
      * Render the main body of the query, without the `SELECT` and `FROM` clauses.
-     *
-     * @return string
      */
     private function render_main(): string
     {
         $query = '';
 
-        if ($this->joints) {
-            $query = ' ' . $this->render_joints();
+        if ($this->joins) {
+            $query = ' ' . $this->render_joins();
         }
 
         $conditions = $this->conditions;
@@ -338,11 +293,11 @@ class Query implements IteratorAggregate
             $query .= ' ' . $this->render_order($order);
         }
 
-        $offset = $this->offset;
-        $limit = $this->limit;
+        $skip = $this->skip;
+        $take = $this->take;
 
-        if ($offset || $limit) {
-            $query .= ' ' . $this->render_offset_and_limit($offset, $limit);
+        if ($skip || $take) {
+            $query .= ' ' . $this->render_skip_and_take($skip, $take);
         }
 
         return $query;
@@ -350,11 +305,14 @@ class Query implements IteratorAggregate
 
     /**
      * Render the `ORDER` clause.
+     *
+     * @param mixed[] $order
      */
     private function render_order(array $order): string
     {
         if (count($order) == 1) {
             $raw = $order[0];
+            assert(is_string($raw));
             $rendered = preg_replace(
                 '/-([a-zA-Z0-9_]+)/',
                 '$1 DESC',
@@ -367,9 +325,10 @@ class Query implements IteratorAggregate
         $connection = $this->model->connection;
 
         $field = array_shift($order);
+        assert(is_string($field));
         $field_values = is_array($order[0]) ? $order[0] : $order;
         $field_values = array_map(function ($v) use ($connection) {
-            return $connection->pdo->quote($v);
+            return $connection->quote($v);
         }, $field_values);
 
         return "ORDER BY FIELD($field, " . implode(', ', $field_values) . ")";
@@ -377,24 +336,15 @@ class Query implements IteratorAggregate
 
     /**
      * Render the `LIMIT` and `OFFSET` clauses.
-     *
-     * @param int $offset
-     * @param int $limit
-     *
-     * @return string
      */
-    private function render_offset_and_limit($offset, $limit): string
+    private function render_skip_and_take(?int $skip, ?int $take): string
     {
-        if ($offset && $limit) {
-            return "LIMIT $offset, $limit";
-        } else {
-            if ($offset) {
-                return "LIMIT $offset, " . self::LIMIT_MAX;
-            } else {
-                if ($limit) {
-                    return "LIMIT $limit";
-                }
-            }
+        if ($skip && $take) {
+            return "LIMIT $skip, $take";
+        } elseif ($skip) {
+            return "LIMIT $skip, " . self::LIMIT_MAX;
+        } elseif ($take) {
+            return "LIMIT $take";
         }
 
         return '';
@@ -409,10 +359,6 @@ class Query implements IteratorAggregate
      *
      * Note: Currently, the method simply forwards the statement to the model's
      * resolve_statement() method.
-     *
-     * @param string $statement
-     *
-     * @return string
      */
     private function resolve_statement(string $statement): string
     {
@@ -422,11 +368,11 @@ class Query implements IteratorAggregate
     /**
      * Define the `SELECT` clause.
      *
-     * @param string $expression The expression of the `SELECT` clause. e.g. 'nid, title'.
+     * @param non-empty-string $expression The expression of the `SELECT` clause. e.g. 'nid, title'.
      *
      * @return $this
      */
-    public function select($expression): self
+    public function select(string $expression): static
     {
         $this->select = $expression;
 
@@ -436,17 +382,13 @@ class Query implements IteratorAggregate
     /**
      * Add a `JOIN` clause.
      *
-     * @param ?string $expression
+     * @param ?non-empty-string $expression
      *     A raw `JOIN` clause.
      * @param ?Query<ActiveRecord> $query
-     *     A {@link Query} instance, it is rendered as a string and used as a subquery of the `JOIN` clause.
+     *     A {@link execute} instance, it is rendered as a string and used as a subquery of the `JOIN` clause.
      *     The `$options` parameter can be used to customize the output.
      * @param ?class-string<ActiveRecord> $with
-     * @param ?class-string<Model> $model_class
-     *     A model class.
-     * @param ?Model $model
-     *     A model.
-     * @param ?non-empty-string $mode
+     * @param non-empty-string $mode
      *     Join mode. Default: "INNER"
      * @param ?non-empty-string $as
      *     The alias of the subquery. Default: The query's model alias.
@@ -458,9 +400,9 @@ class Query implements IteratorAggregate
      * <pre>
      * <?php
      *
-     * # using a model identifier
+     * # using an ActiveRecord class.
      *
-     * $query->join(model_id: 'nodes');
+     * $query->join(with: Comment::class);
      *
      * # using a subquery
      *
@@ -482,9 +424,9 @@ class Query implements IteratorAggregate
         string $mode = 'INNER',
         string $as = null,
         string $on = null,
-    ): self {
+    ): static {
         if ($expression) {
-            $this->joints[] = $expression;
+            $this->joins[] = $expression;
 
             return $this;
         }
@@ -498,7 +440,7 @@ class Query implements IteratorAggregate
         if ($with) {
             $model = $this->model->models->model_for_record($with);
 
-            $this->join_with_model($model, mode: $mode, as: $as, on: $on);
+            $this->join_with_model($model, mode: $mode, as: $as, on: $on); // @phpstan-ignore-line
 
             return $this;
         }
@@ -510,11 +452,11 @@ class Query implements IteratorAggregate
      * Join a subquery to the query.
      *
      * @param Query<ActiveRecord> $query
-     * @param string $mode
+     * @param non-empty-string $mode
      *     Join mode. Default: "INNER".
-     * @param ?string $as
+     * @param ?non-empty-string $as
      *     The alias of the subquery. Default: The query's model alias.
-     * @param ?string $on
+     * @param ?non-empty-string $on
      *     The column on which the joint is created. Default: The query's model primary key.
      */
     private function join_with_query(
@@ -536,14 +478,14 @@ class Query implements IteratorAggregate
             $on = ' ' . $on;
         }
 
-        $this->joints[] = "$mode JOIN($query) `$as`{$on}";
-        $this->joints_args = array_merge($this->joints_args, $query->args);
+        $this->joins[] = "$mode JOIN($query) `$as`$on";
+        $this->joins_args = array_merge($this->joins_args, $query->args);
     }
 
     /**
      * Join a model to the query.
      *
-     * @param Model<int|string|string[], ActiveRecord> $model
+     * @param Model<mixed, ActiveRecord> $model
      * @param non-empty-string $mode
      *     Join mode.
      * @param ?non-empty-string $as
@@ -584,7 +526,7 @@ class Query implements IteratorAggregate
             return $primary;
         }) ();
 
-        $this->joints[] = "$mode JOIN `$model->name` AS `$as` USING(`$on`)";
+        $this->joins[] = "$mode JOIN `$model->name` AS `$as` USING(`$on`)";
     }
 
     /**
@@ -592,8 +534,8 @@ class Query implements IteratorAggregate
      *
      * The method tries to determine the best solution between `ON` and `USING`.
      *
-     * @param string $column
-     * @param string $as
+     * @param non-empty-string $column
+     * @param non-empty-string $as
      * @param Query<ActiveRecord> $query
      */
     private function render_join_on(string $column, string $as, Query $query): string
@@ -615,22 +557,22 @@ class Query implements IteratorAggregate
         if (!$target) {
             $model_class = $this->model::class;
 
-            throw new InvalidArgumentException("Unable to resolve column `$column` from model {$model_class}");
+            throw new InvalidArgumentException("Unable to resolve column `$column` from model $model_class");
         }
 
-        return "ON `$as`.`$column` = `{$target->alias}`.`$column`";
+        return "ON `$as`.`$column` = `$target->alias`.`$column`";
     }
 
     /**
-     * Parse the conditions for the {@link where()} and {@link having()} methods.
+     * Parses the conditions for the {@see where()} and {@see having()} methods.
      *
-     * {@link DateTimeInterface} conditions are converted to strings.
+     * {@see DateTimeInterface} conditions are converted to strings.
      *
-     * @param $conditions_and_args
+     * @param mixed ...$conditions_and_args
      *
-     * @return array An array made of the condition string and its arguments.
+     * @return array{ non-empty-string|null, mixed[] } An array made of the condition string and its arguments.
      */
-    private function deferred_parse_conditions(...$conditions_and_args): array
+    private function deferred_parse_conditions(mixed ...$conditions_and_args): array
     {
         $conditions = array_shift($conditions_and_args);
         $args = $conditions_and_args;
@@ -645,7 +587,7 @@ class Query implements IteratorAggregate
 
                     if (is_array($arg)) {
                         foreach ($arg as $value) {
-                            $joined .= ',' . (is_numeric($value) ? $value : $this->model->quote($value));
+                            $joined .= ',' . (is_numeric($value) ? $value : $this->model->connection->quote($value));
                         }
 
                         $joined = substr($joined, 1);
@@ -683,28 +625,10 @@ class Query implements IteratorAggregate
             }
         }
 
-        foreach ($conditions_args as &$value) {
-            if ($value instanceof DateTimeInterface) {
-                $value = DateTime::from($value)->utc->as_db;
-            }
-        }
+        $cast = $this->model->connection->driver->cast_value(...);
+        $conditions_args = array_map($cast, $conditions_args);
 
         return [ $conditions ? '(' . $conditions . ')' : null, $conditions_args ];
-    }
-
-    /**
-     * Handles dynamic filters.
-     *
-     * @param string $filter
-     * @param array $conditions_args
-     *
-     * @return $this
-     */
-    private function dynamic_filter(string $filter, array $conditions_args = []): self
-    {
-        $conditions = explode('_and_', $filter);
-
-        return $this->where(array_combine($conditions, $conditions_args));
     }
 
     /**
@@ -714,7 +638,7 @@ class Query implements IteratorAggregate
      *
      * 1. Pure string conditions
      *
-     * If you'de like to add conditions to your statement, you could just specify them in there,
+     * If you'd like to add conditions to your statement, you could specify them in there,
      * just like `$model->where('order_count = 2');`. This will find all the entries, where the
      * `order_count` field's value is 2.
      *
@@ -750,17 +674,17 @@ class Query implements IteratorAggregate
      *
      * `$model->where([ '!order_id' => [ 123, 456, 789 ]]);`
      *
-     * This will return the orders with the `order_id` different than 123, 456 and 789.
+     * This will return the orders with the `order_id` different from 123, 456 and 789.
      *
-     * `$model->where([ '!order_count' => 2 ];`
+     * `$model->where([ '!order_count' => 2 ]);`
      *
-     * This will return the orders with the `order_count` different than 2.
+     * This will return the orders with the `order_count` different from 2.
      *
      * @param mixed ...$conditions_and_args
      *
      * @return $this
      */
-    public function where(...$conditions_and_args): self
+    public function where(...$conditions_and_args): static
     {
         [ $conditions, $conditions_args ] = $this->deferred_parse_conditions(...$conditions_and_args);
 
@@ -776,15 +700,25 @@ class Query implements IteratorAggregate
     }
 
     /**
+     * @return $this
+     * @see self::where()
+     *
+     */
+    public function and(mixed ...$conditions_and_args): static
+    {
+        return $this->where(...$conditions_and_args);
+    }
+
+    /**
      * Defines the `ORDER` clause.
      *
      * @param string $order_or_field_name The order for the `ORDER` clause e.g.
      * 'weight, date DESC', or field to order with, in which case `$field_values` is required.
-     * @param array $field_values Values of the field specified by `$order_or_field_name`.
+     * @param scalar[]|null $field_values Values of the field specified by `$order_or_field_name`.
      *
      * @return $this
      */
-    public function order($order_or_field_name, $field_values = null)
+    public function order(string $order_or_field_name, mixed $field_values = null): static
     {
         $this->order = func_get_args();
 
@@ -792,13 +726,11 @@ class Query implements IteratorAggregate
     }
 
     /**
-     * Defines the `GROUP` clause.
+     * Defines the `GROUP BY` clause.
      *
-     * @param string $group
-     *
-     * @return $this
+     * @returns $this
      */
-    public function group($group)
+    public function group(string $group): static
     {
         $this->group = $group;
 
@@ -812,9 +744,11 @@ class Query implements IteratorAggregate
      *
      * @return $this
      */
-    public function having(...$conditions_and_args)
+    public function having(...$conditions_and_args): static
     {
-        list($having, $having_args) = $this->deferred_parse_conditions(...$conditions_and_args);
+        [ $having, $having_args ] = $this->deferred_parse_conditions(...$conditions_and_args);
+
+        assert($having !== null);
 
         $this->having = $having;
         $this->having_args = $having_args;
@@ -823,49 +757,25 @@ class Query implements IteratorAggregate
     }
 
     /**
-     * Define the offset of the `LIMIT` clause.
-     *
-     * @param $offset
+     * The number of records to skip before fetching.
      *
      * @return $this
      */
-    public function offset($offset)
+    public function skip(?int $skip): static
     {
-        $this->offset = (int)$offset;
+        $this->skip = $skip;
 
         return $this;
     }
 
     /**
-     * Apply the limit and/or offset to the SQL fired.
-     *
-     * You can use the limit to specify the number of records to be retrieved, ad use the offset to
-     * specify the number of records to skip before starting to return records:
-     *
-     *     $model->limit(10);
-     *
-     * Will return a maximum of 10 clients and because ti specifies no offset it will return the
-     * first 10 in the table:
-     *
-     *     $model->limit(5, 10);
-     *
-     * Will return a maximum of 10 clients beginning with the 5th.
-     *
-     * @param int $limit
+     * The number of records to take while fetching.
      *
      * @return $this
      */
-    public function limit($limit)
+    public function take(?int $take): static
     {
-        $offset = null;
-
-        if (func_num_args() == 2) {
-            $offset = $limit;
-            $limit = func_get_arg(1);
-        }
-
-        $this->offset = (int)$offset;
-        $this->limit = (int)$limit;
+        $this->take = $take;
 
         return $this;
     }
@@ -879,7 +789,7 @@ class Query implements IteratorAggregate
      *
      * @see http://www.php.net/manual/en/pdostatement.setfetchmode.php
      */
-    public function mode(...$mode): self
+    public function mode(...$mode): static
     {
         $this->mode = $mode;
 
@@ -890,9 +800,7 @@ class Query implements IteratorAggregate
      * Prepare the query.
      *
      * We use the connection's prepare() method because the statement has already been resolved
-     * during the __toString() method and we don't want for the statement to be parsed twice.
-     *
-     * @return Statement
+     * during the __toString() method, and we don't want for the statement to be parsed twice.
      */
     private function prepare(): Statement
     {
@@ -901,8 +809,6 @@ class Query implements IteratorAggregate
 
     /**
      * Return a prepared query.
-     *
-     * @return Statement
      */
     protected function get_prepared(): Statement
     {
@@ -911,10 +817,8 @@ class Query implements IteratorAggregate
 
     /**
      * Prepare and executes the query.
-     *
-     * @return Statement
      */
-    public function query(): Statement
+    private function execute(): Statement
     {
         $statement = $this->prepare();
         $statement->execute($this->args);
@@ -929,17 +833,15 @@ class Query implements IteratorAggregate
     /**
      * Resolves fetch mode.
      *
-     * @param mixed ...$mode
-     *
-     * @return array<mixed>
+     * @return array{ 0: PDO::FETCH_*, 1?: mixed, 2?: mixed }
      */
-    private function resolve_fetch_mode(...$mode): array
+    private function resolve_fetch_mode(mixed ...$mode): array
     {
         if ($mode) {
             $args = $mode;
         } elseif ($this->mode) {
             $args = $this->mode;
-        } elseif ($this->select) {
+        } elseif ($this->select ?? null) {
             $args = [ PDO::FETCH_ASSOC ];
         } elseif ($this->model->activerecord_class) {
             $args = [ PDO::FETCH_CLASS, $this->model->activerecord_class, [ $this->model ] ];
@@ -947,6 +849,7 @@ class Query implements IteratorAggregate
             $args = [ PDO::FETCH_CLASS, ActiveRecord::class, [ $this->model ] ];
         }
 
+        // @phpstan-ignore-next-line
         return $args;
     }
 
@@ -959,13 +862,13 @@ class Query implements IteratorAggregate
      */
     public function all(...$mode): array
     {
-        return $this->query()->pdo_statement->fetchAll(...$this->resolve_fetch_mode(...$mode));
+        return $this->execute()->all(...$this->resolve_fetch_mode(...$mode));
     }
 
     /**
-     * Getter for the {@link $all} magic property.
+     * Getter for the {@see $all} magic property.
      *
-     * @return array<mixed>
+     * @return TRecord[]|mixed[]
      */
     protected function get_all(): array
     {
@@ -980,65 +883,44 @@ class Query implements IteratorAggregate
      * @return mixed The return value of this function on success depends on the fetch mode. In
      * all cases, FALSE is returned on failure.
      */
-    public function one(...$mode)
+    public function one(...$mode): mixed
     {
-        $query = clone $this;
-        $query->limit = 1;
-        $statement = $query->query();
-        $args = $query->resolve_fetch_mode(...$mode);
+        $query = (clone $this)->take(1);
 
-        if (count($args) > 1 && $args[0] == PDO::FETCH_CLASS) {
-            array_shift($args);
-
-            $rc = $statement->pdo_statement->fetchObject(...$args);
-
-            $statement->pdo_statement->closeCursor();
-
-            return $rc;
-        }
-
-        return $statement->one(...$args);
+        return $query
+            ->execute()
+            ->mode(...$this->resolve_fetch_mode(...$mode))
+            ->one;
     }
 
     /**
-     * Getter for the {@link $one} magic property.
-     *
-     * @return mixed
-     *
-     * @see one()
+     * @see $one
      */
-    protected function get_one()
+    protected function get_one(): mixed
     {
         return $this->one();
     }
 
     /**
-     * Execute que query and return an array of key/value pairs, where the key is the value of
-     * the first column and the value of the key the value of the second column.
+     * Execute the query and return an array of key/value pairs, where _key_ is the value of
+     * the first column and _value_ the value of the second column.
      *
-     * @return array
+     * @return array<string, string>
+     *
+     * @see $pairs
      */
     protected function get_pairs(): array
     {
+        // @phpstan-ignore-next-line
         return $this->all(PDO::FETCH_KEY_PAIR);
     }
 
     /**
-     * Return the value of the first column of the first row.
-     *
-     * @return mixed
+     * Returns the first column of the first row.
      */
-    protected function get_rc()
+    protected function get_rc(): int|string|false|null
     {
-        $previous_limit = $this->limit;
-
-        $this->limit = 1;
-
-        $statement = $this->query();
-
-        $this->limit = $previous_limit;
-
-        return $statement->rc;
+        return (clone $this)->take(1)->execute()->rc;
     }
 
     /**
@@ -1054,7 +936,7 @@ class Query implements IteratorAggregate
      *
      * @return bool|array
      */
-    public function exists($key = null)
+    public function exists($key = null) // @phpstan-ignore-line
     {
         if ($key !== null && func_num_args() > 1) {
             $key = func_get_args();
@@ -1069,7 +951,7 @@ class Query implements IteratorAggregate
         if ($key === null) {
             return !!$query
                 ->select('1')
-                ->limit(1)
+                ->take(1)
                 ->rc;
         }
 
@@ -1080,11 +962,12 @@ class Query implements IteratorAggregate
         $rc = $query
             ->select('`{primary}`')
             ->and([ '{primary}' => $key ])
-            ->limit(0, 0)
+            ->skip(null)
+            ->take(null)
             ->all(PDO::FETCH_COLUMN);
 
         if ($rc && is_array($key)) {
-            $exists = array_combine($key, array_fill(0, count($key), false));
+            $exists = array_fill_keys($key, false);
 
             foreach ($rc as $key) {
                 $exists[$key] = true;
@@ -1104,27 +987,21 @@ class Query implements IteratorAggregate
         return !empty($rc);
     }
 
-    /**
-     * Getter for the {@link $exists} magic property.
-     *
-     * @return bool|array
-     *
-     * @see exists()
-     */
-    protected function get_exists()
+    protected function get_exists(): bool
     {
+        // @phpstan-ignore-next-line
         return $this->exists();
     }
 
     /**
      * Handle all the computations.
      *
-     * @param string $method
-     * @param string|null $column
+     * @param non-empty-string $method
+     * @param non-empty-string|null $column
      *
-     * @return int|array
+     * @return string|array<string, string>
      */
-    private function compute(string $method, string $column = null)
+    private function compute(string $method, string $column = null): string|array
     {
         $query = 'SELECT ';
 
@@ -1147,25 +1024,29 @@ class Query implements IteratorAggregate
             return $statement->pairs;
         }
 
-        return (int)$statement->rc;
+        // @phpstan-ignore-next-line
+        return $statement->rc;
     }
 
     /**
      * Implement the 'COUNT' computation.
      *
-     * @param string|null $column The name of the column to count.
+     * @param non-empty-string|null $column The name of the column to count.
+     *
+     * @return int|array<non-empty-string, int>
      */
     public function count(string $column = null): int|array
     {
+        // @phpstan-ignore-next-line
         return $this->compute('COUNT', $column);
     }
 
     /**
-     * Getter for the {@link $count} magic property.
+     * @return int|array<non-empty-string, int>
      *
-     * @return int
+     * @see $count
      */
-    protected function get_count(): int
+    protected function get_count(): int|array
     {
         return $this->count();
     }
@@ -1173,71 +1054,65 @@ class Query implements IteratorAggregate
     /**
      * Implement the 'AVG' computation.
      *
-     * @param string $column
-     *
-     * @return int
+     * @param non-empty-string $column
      */
-    public function average(string $column)
+    public function average(string $column): int
     {
+        // @phpstan-ignore-next-line
         return $this->compute('AVG', $column);
     }
 
     /**
      * Implement the 'MIN' computation.
      *
-     * @param string $column
-     *
-     * @return mixed
+     * @param non-empty-string $column
      */
-    public function minimum(string $column)
+    public function minimum(string $column): int|string
     {
+        // @phpstan-ignore-next-line
         return $this->compute('MIN', $column);
     }
 
     /**
      * Implement the 'MAX' computation.
      *
-     * @param string $column
-     *
-     * @return mixed
+     * @param non-empty-string $column
      */
-    public function maximum(string $column)
+    public function maximum(string $column): int|string
     {
+        // @phpstan-ignore-next-line
         return $this->compute('MAX', $column);
     }
 
     /**
      * Implement the 'SUM' computation.
      *
-     * @param string $column
-     *
-     * @return mixed
+     * @param non-empty-string $column
      */
-    public function sum(string $column)
+    public function sum(string $column): int
     {
+        // @phpstan-ignore-next-line
         return $this->compute('SUM', $column);
     }
 
     /**
-     * Delete the records matching the conditions and limits of the query.
+     * Delete the records matching the conditions and range of the query.
      *
-     * @param string $tables When using a JOIN, `$tables` is used to specify the tables in which
+     * @param ?string $tables When using a JOIN, `$tables` is used to specify the tables in which
      * records should be deleted. Default: The alias of queried model, only if at least one join
      * clause has been defined using the {@link join()} method.
-     *
-     * @return bool The result of the operation.
      *
      * @todo-20140901: reflect on join to add the required tables by default, discarding tables
      * joined with the LEFT mode.
      */
-    public function delete($tables = null)
+    public function delete(string $tables = null): Statement
     {
-        if (!$tables && $this->joints) {
+        if (!$tables && $this->joins) {
             $tables = "`{alias}`";
         }
 
         if ($tables) {
-            $query = "DELETE {$tables} FROM {self} AS `{alias}`";
+            $query = "DELETE $tables FROM {self} AS `{alias}`";
         } else {
             $query = "DELETE FROM {self}";
         }
@@ -1247,13 +1122,44 @@ class Query implements IteratorAggregate
         return $this->model->execute($query, $this->args);
     }
 
+    #
+    # Batches
+    #
+
+    public const DEFAULT_BATCH_SIZE = 1000;
+
+    private int $batch_size = self::DEFAULT_BATCH_SIZE;
+
+    public function batch_size(int $batch_size): static
+    {
+        $this->batch_size = $batch_size;
+
+        return $this;
+    }
+
     /**
      * Return an iterator for the query.
-     *
-     * @return Traversable<TRecord>
      */
     public function getIterator(): Traversable
     {
-        return new ArrayIterator($this->all());
+        $skip = $this->skip;
+        $take = $this->batch_size;
+        $query = (clone $this)->take($take);
+
+        do {
+            $all = $query->all();
+
+            foreach ($all as $one) {
+                // @phpstan-ignore-next-line
+                yield $one;
+            }
+
+            if (count($all) < $take) {
+                return;
+            }
+
+            $skip += $take;
+            $query->skip($skip);
+        } while (true);
     }
 }

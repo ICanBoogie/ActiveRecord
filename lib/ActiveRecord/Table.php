@@ -1,22 +1,9 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ICanBoogie\ActiveRecord;
 
-use AllowDynamicProperties;
 use ICanBoogie\ActiveRecord\Config\TableDefinition;
-use ICanBoogie\Prototyped;
-use InvalidArgumentException;
 use LogicException;
-use PDO;
 use Throwable;
 
 use function array_combine;
@@ -35,11 +22,8 @@ use function strtr;
 
 /**
  * A representation of a database table.
- *
- * @property-read Schema $extended_schema The extended schema of the table.
  */
-#[AllowDynamicProperties]
-class Table extends Prototyped
+class Table
 {
     /**
      * Name of the table, without the prefix defined by the connection.
@@ -59,7 +43,7 @@ class Table extends Prototyped
      * Alias for the table's name, which can be defined using the {@link ALIAS} attribute
      * or automatically created.
      *
-     * The "{primary}" placeholder used in queries is replaced by the properties value.
+     * This is the value for the "{primary}" placeholder.
      *
      * @var non-empty-string
      */
@@ -76,18 +60,18 @@ class Table extends Prototyped
     /**
      * SQL fragment for the FROM clause of the query, made of the table's name and alias and those
      * of the hierarchy.
-     *
-     * @var string
      */
-    protected $update_join;
+    public string $update_join;
 
-    protected function lazy_get_update_join(): string
+    public function make_update_join(): string
     {
         $join = '';
         $parent = $this->parent;
 
         while ($parent) {
-            $join .= " INNER JOIN `{$parent->name}` `{$parent->alias}` USING(`{$this->primary}`)";
+            assert(is_string($this->primary));
+
+            $join .= " INNER JOIN `$parent->name` `$parent->alias` USING(`$this->primary`)";
             $parent = $parent->parent;
         }
 
@@ -98,21 +82,21 @@ class Table extends Prototyped
      * SQL fragment for the FROM clause of the query, made of the table's name and alias and those
      * of the related tables, inherited and implemented.
      *
-     * The "{self_and_related}" placeholder used in queries is replaced by the properties value.
-     *
-     * @var string
+     * This is the value for the `{self_and_related}` placeholder.
      */
-    protected $select_join;
+    public string $select_join;
 
-    protected function lazy_get_select_join(): string
+    private function make_select_join(): string
     {
-        return "`{$this->alias}`" . $this->update_join;
+        return "`$this->alias`" . $this->update_join;
     }
+
+    public Schema $extended_schema;
 
     /**
      * Returns the extended schema.
      */
-    protected function lazy_get_extended_schema(): Schema
+    private function make_extended_schema(): Schema
     {
         $table = $this;
         $columns = [];
@@ -139,9 +123,11 @@ class Table extends Prototyped
         $this->alias = $definition->alias;
         $this->schema = $definition->schema;
         $this->primary = $this->schema->primary;
-
-        unset($this->update_join);
-        unset($this->select_join);
+        $this->extended_schema = $this->parent
+            ? $this->make_extended_schema()
+            : $this->schema;
+        $this->update_join = $this->make_update_join();
+        $this->select_join = $this->make_select_join();
     }
 
     /**
@@ -150,12 +136,11 @@ class Table extends Prototyped
      * The statement is resolved using the resolve_statement() method and prepared.
      *
      * @param non-empty-string $query
-     * @param array<mixed> $args
-     * @param array<non-empty-string, mixed> $options
+     * @param mixed[] $args
      */
-    public function __invoke(string $query, array $args = [], array $options = []): Statement
+    public function __invoke(string $query, array $args = []): Statement
     {
-        $statement = $this->prepare($query, $options);
+        $statement = $this->prepare($query);
 
         return $statement($args);
     }
@@ -199,7 +184,7 @@ class Table extends Prototyped
     /**
      * Resolves statement placeholders.
      *
-     * The following placeholder are replaced:
+     * The following placeholders are replaced:
      *
      * - `{alias}`: The alias of the table.
      * - `{prefix}`: The prefix used for the tables of the connection.
@@ -208,9 +193,9 @@ class Table extends Prototyped
      * - `{self_and_related}`: The escaped name of the table and the possible JOIN clauses.
      *
      * Note: If the table has a multi-column primary keys `{primary}` is replaced by
-     * `__multicolumn_primary__<concatenated_columns>` where `<concatenated_columns>` is a the columns
+     * `__multi-column_primary__<concatenated_columns>` where `<concatenated_columns>` is the columns
      * concatenated with an underscore ("_") as separator. For instance, if a table primary key is
-     * made of columns "p1" and "p2", `{primary}` is replaced by `__multicolumn_primary__p1_p2`.
+     * made of columns "p1" and "p2", `{primary}` is replaced by `__multi-column_primary__p1_p2`.
      * It's not very helpful, but we still have to decide what to do with this.
      *
      * @param string $statement The statement to resolve.
@@ -237,27 +222,13 @@ class Table extends Prototyped
      * The statement is resolved by the {@link resolve_statement()} method before the call is
      * forwarded.
      *
-     * @param array<string, mixed> $options
+     * @param non-empty-string $query
      */
-    public function prepare(string $query, array $options = []): Statement
+    public function prepare(string $query): Statement
     {
         $query = $this->resolve_statement($query);
 
-        return $this->connection->prepare($query, $options);
-    }
-
-    /**
-     * @see PDO::quote()
-     */
-    public function quote(string $string, int $type = PDO::PARAM_STR): string
-    {
-        $quoted = $this->connection->pdo->quote($string, $type);
-
-        if ($quoted === false) {
-            throw new InvalidArgumentException("Unsupported quote type: $type");
-        }
-
-        return $quoted;
+        return $this->connection->prepare($query);
     }
 
     /**
@@ -267,11 +238,10 @@ class Table extends Prototyped
      *
      * @param non-empty-string $query
      * @param array<int|string, mixed> $args
-     * @param array<string, mixed> $options
      */
-    public function execute(string $query, array $args = [], array $options = []): Statement
+    public function execute(string $query, array $args = []): Statement
     {
-        $statement = $this->prepare($query, $options);
+        $statement = $this->prepare($query);
 
         return $statement($args);
     }
@@ -562,21 +532,22 @@ class Table extends Prototyped
     /**
      * Truncates table.
      *
-     * @return mixed
-     *
      * @FIXME-20081223: what about extends ?
      */
-    public function truncate()
+    public function truncate(bool $reset_autoincrement = false): void
     {
         if ($this->connection->driver_name == 'sqlite') {
-            $rc = $this->execute('DELETE FROM `{self}`');
-
+            $this->execute("DELETE FROM {self}");
+            if ($reset_autoincrement) {
+                $this->execute("DELETE FROM sqlite_sequence WHERE name = '{self}'");
+            }
             $this->execute('vacuum');
 
-            return $rc;
+            return;
         }
 
-        return $this->execute('TRUNCATE TABLE `{self}`');
+        $this->execute("TRUNCATE TABLE {self}");
+        $this->execute("ALTER TABLE {self} AUTO_INCREMENT = 1");
     }
 
     /**

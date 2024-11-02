@@ -1,19 +1,11 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Test\ICanBoogie;
 
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelProvider;
+use ICanBoogie\ActiveRecord\ModelProviderWithClosure;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use LogicException;
@@ -37,6 +29,31 @@ final class ActiveRecordTest extends TestCase
         $models = Fixtures::only_models('nodes');
 
         $this->model = $models->model_for_record(Node::class);
+        $this->model->install();
+
+        StaticModelProvider::set(fn() => new ModelProviderWithClosure(fn() => $this->model));
+    }
+
+    public function test_query(): void
+    {
+        $actual = Node::query();
+
+        $this->assertSame($this->model, $actual->model);
+    }
+
+    public function test_where(): void
+    {
+        $actual = Node::where([ 'title' => "foo" ]);
+
+        $this->assertSame($this->model, $actual->model);
+        $this->assertSame([ "foo" ], $actual->conditions_args);
+    }
+
+    public function test_get_model(): void
+    {
+        $sut = new Node();
+
+        $this->assertSame($this->model, $sut->model);
     }
 
     public function test_should_use_provided_model(): void

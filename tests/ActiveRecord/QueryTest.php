@@ -1,17 +1,9 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Query;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
@@ -29,9 +21,25 @@ use function uniqid;
 final class QueryTest extends TestCase
 {
     private const N = 10;
+
+    /**
+     * @var Query<Node>
+     */
     private Query $nodes;
+
+    /**
+     * @var Query<Article>
+     */
     private Query $articles;
+
+    /**
+     * @var Query<Update>
+     */
     private Query $updates;
+
+    /**
+     * @var Query<Subscriber>
+     */
     private Query $subscribers;
 
     protected function setUp(): void
@@ -39,6 +47,8 @@ final class QueryTest extends TestCase
         parent::setUp();
 
         $models = Fixtures::only_models('nodes', 'comments', 'articles', 'subscribers', 'updates');
+
+        StaticModelProvider::set(fn() => $models);
 
         $models->install();
         $articles = $models->model_for_record(Article::class);
@@ -48,17 +58,13 @@ final class QueryTest extends TestCase
         $this->updates = $models->model_for_record(Update::class)->query();
         $this->subscribers = $models->model_for_record(Subscriber::class)->query();
 
-        for ($i = 0; $i < self::N; $i++) {
-            $properties = [
-
-                'title' => uniqid('', true),
-                'body' => uniqid('', true),
+        for ($i = 1; $i < self::N + 1; $i++) {
+            $articles->save([
+                'title' => "TITLE $i",
+                'body' => "BODY $i",
                 'date' => gmdate('Y-m-d H:i:s', time() + 60 * rand(1, 3600)),
                 'rating' => rand(0, 5),
-
-            ];
-
-            $key = $articles->save($properties);
+            ]);
         }
     }
 
@@ -73,6 +79,18 @@ final class QueryTest extends TestCase
 
         $this->assertIsArray($all);
         $this->assertCount(self::N, $all);
+    }
+
+    public function test_rc(): void
+    {
+        $actual = $this->articles->select('title')->rc;
+        $this->assertEquals("TITLE 1", $actual);
+
+        $actual = $this->articles->select('nid')->rc;
+        $this->assertEquals("1", $actual);
+
+        $actual = $this->articles->where([ 'nid' => 'foo' ])->rc;
+        $this->assertFalse($actual);
     }
 
     public function test_order(): void
@@ -118,7 +136,7 @@ final class QueryTest extends TestCase
         $query = $this->articles;
 
         $query->where([ 'title' => 'madonna' ])
-            ->filter_by_rating(2)
+            ->and([ 'rating' => 2 ])
             ->and('YEAR(date) = ?', 1958);
 
         $this->assertSame([
@@ -144,7 +162,7 @@ final class QueryTest extends TestCase
 
         $this->assertEquals(
             [ "INNER JOIN madonna USING(madonna_id)" ],
-            $query->joints
+            $query->joins
         );
     }
 
@@ -163,7 +181,7 @@ final class QueryTest extends TestCase
 
         $this->assertEquals(
             [ "INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` ORDER BY updated_at DESC) `update` USING(`subscriber_id`)" ],
-            $subscriber_query->joints
+            $subscriber_query->joins
         );
         $this->assertEquals(
             "SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` ORDER BY updated_at DESC) `update` USING(`subscriber_id`) GROUP BY `subscriber`.subscriber_id",
@@ -184,14 +202,14 @@ final class QueryTest extends TestCase
 
         $subscriber_query = $subscribers
             ->join(query: $update_query, on: 'subscriber_id')
-            ->filter_by_email('person@example.com')
+            ->where([ 'email' => 'person@example.com' ])
             ->group("`{alias}`.subscriber_id");
 
         $this->assertEquals(
             "SELECT * FROM `subscribers` `subscriber` INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM `updates` `update` WHERE (updated_at < ?) ORDER BY updated_at DESC) `update` USING(`subscriber_id`) WHERE (`email` = ?) GROUP BY `subscriber`.subscriber_id",
             (string)$subscriber_query
         );
-        $this->assertSame([ $now->utc->as_db ], $subscriber_query->joints_args);
+        $this->assertSame([ $now->utc->as_db ], $subscriber_query->joins_args);
         $this->assertSame([ 'person@example.com' ], $subscriber_query->conditions_args);
         $this->assertSame([ $now->utc->as_db, 'person@example.com' ], $subscriber_query->args);
     }
@@ -233,5 +251,28 @@ final class QueryTest extends TestCase
             "SELECT * FROM `articles` `article` INNER JOIN `nodes` `node` USING(`nid`) ORDER BY date ASC",
             $query->ordered(1)
         );
+    }
+
+    public function test_iterator(): void
+    {
+        // Need to start from zero.
+        $this->nodes->model->truncate(reset_autoincrement: true);
+
+        for ($i = 1; $i < 101; ++$i) {
+            $node = new Node();
+            $node->title = "node $i";
+            $node->save();
+        }
+
+        $i = 31;
+        $c = 0;
+
+        foreach (Node::query()->batch_size(10)->skip(31) as $node) {
+            $c++;
+            $i++;
+            $this->assertEquals("node $i", $node->title);
+        }
+
+        $this->assertEquals(100 - 31, $c);
     }
 }
