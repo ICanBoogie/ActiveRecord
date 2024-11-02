@@ -30,7 +30,7 @@
     "php": ">=8.2",
     "ext-pdo": "*",
     "icanboogie/common": "^6.0",
-    "icanboogie/datetime": "^6.0",
+    "icanboogie/datetime": "^3.0",
     "icanboogie/inflector": "^2.2",
     "icanboogie/prototype": "^6.0",
     "icanboogie/validate": "^6.0"
