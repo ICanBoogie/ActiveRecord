@@ -20,6 +20,10 @@ final class SchemaBuilderTest extends TestCase
             ->add_decimal('rating_avg', 5, null: true)
             ->add_character('country', size: 2, fixed: true)
             ->add_character('title')
+            ->add_binary('binary1', size: 31, null: true, unique: true)
+            ->add_binary('binary2', size: 32, fixed: true)
+            ->add_blob('blob1', size: Schema\Blob::SIZE_LONG, null: true, unique: true)
+            ->add_blob('blob2')
             ->add_text('body')
             ->add_datetime('date', default: DateTime::CURRENT_TIMESTAMP)
             ->add_index('is_active')
@@ -33,6 +37,10 @@ final class SchemaBuilderTest extends TestCase
                 'rating_avg' => new Schema\Decimal(5, null: true),
                 'country' => new Schema\Character(2, fixed: true),
                 'title' => new Schema\Character(),
+                'binary1' => new Schema\Binary(size: 31, null: true, unique: true),
+                'binary2' => new Schema\Binary(size: 32, fixed: true),
+                'blob1' => new Schema\Blob(size: Schema\Blob::SIZE_LONG, null: true, unique: true),
+                'blob2' => new Schema\Blob(),
                 'body' => new Schema\Text(),
                 'date' => new DateTime(default: DateTime::CURRENT_TIMESTAMP)
             ],
