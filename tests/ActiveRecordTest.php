@@ -56,6 +56,24 @@ final class ActiveRecordTest extends TestCase
         $this->assertSame($this->model, $sut->model);
     }
 
+    public function test_save(): void
+    {
+        $sut = new Node();
+        $sut->title = "madonna";
+        $sut->save();
+
+        $nid = $sut->nid;
+
+        $this->assertNotNull($nid);
+        $this->assertEquals($nid, $sut->primary_key_value);
+
+        $sut->title = "madonna 2";
+        $sut->save();
+
+        $this->assertEquals($nid, $sut->nid);
+        $this->assertEquals($nid, $sut->primary_key_value);
+    }
+
     public function test_should_use_provided_model(): void
     {
         $record = new Node($this->model);

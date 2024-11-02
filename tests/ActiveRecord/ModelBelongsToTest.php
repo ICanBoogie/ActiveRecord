@@ -57,13 +57,15 @@ final class ModelBelongsToTest extends TestCase
 
         $driver = $drivers->new([ 'name' => 'Madonna' ]);
         $this->assertInstanceOf(Driver::class, $driver);
-        $driver_id = $driver->save();
+        $driver->save();
+        $driver_id = $driver->driver_id;
 
         # brand
 
         $brand = $brands->new([ 'name' => 'Smart' ]);
         $this->assertInstanceOf(Brand::class, $brand);
-        $brand_id = $brand->save();
+        $brand->save();
+        $brand_id = $brand->brand_id;
 
         assert(is_int($driver_id));
         assert(is_int($brand_id));

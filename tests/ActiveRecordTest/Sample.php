@@ -4,8 +4,6 @@ namespace Test\ICanBoogie\ActiveRecordTest;
 
 use ICanBoogie\ActiveRecord;
 
-use function is_int;
-
 /**
  * Sample active record test case.
  *
@@ -34,15 +32,5 @@ final class Sample extends ActiveRecord
             'reverse' => strrev($this->reverse)
 
         ]);
-    }
-
-    /**
-     * @param int|string|string[] $primary_key
-     */
-    protected function update_primary_key(int|array|string $primary_key): void
-    {
-        assert(is_int($primary_key));
-
-        $this->id = $primary_key;
     }
 }

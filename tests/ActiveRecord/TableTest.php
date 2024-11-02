@@ -10,6 +10,7 @@ use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\StatementNotValid;
 use ICanBoogie\ActiveRecord\Table;
+use LogicException;
 use PHPUnit\Framework\TestCase;
 
 final class TableTest extends TestCase
@@ -177,5 +178,68 @@ final class TableTest extends TestCase
         // Should fail because the table doesn't exist.
         $this->expectException(StatementNotValid::class);
         $this->animals->drop();
+    }
+
+    //
+    // Multi-column tests
+    //
+
+    public function test_insert_fails_when_values_is_empty(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage("No values to insert");
+        $this->multi_column->insert([]); // @phpstan-ignore-line
+    }
+
+    public function test_insert_multi_column(): void
+    {
+        $values = [ 'pk_1' => 1, 'pk_2' => 1, 'title' => "One" ];
+        $this->multi_column->insert($values);
+        $actual = $this->multi_column
+            ->execute("SELECT * FROM {self} WHERE pk_1 = 1 AND pk_2 = 1")
+            ->as_assoc
+            ->one;
+        $this->assertEquals($values, $actual);
+
+        // should fail because of unique constraint
+        $this->expectException(StatementNotValid::class);
+        $this->multi_column->insert($values);
+    }
+
+    public function test_inserting_existing_multi_column_fails(): void
+    {
+        $values = [ 'pk_1' => 1, 'pk_2' => 1, 'title' => "One" ];
+        $this->multi_column->insert($values);
+
+        // should fail because of unique constraint
+        $this->expectException(StatementNotValid::class);
+        $this->multi_column->insert($values);
+    }
+
+    public function test_inserting_ignore_existing_multi_column(): void
+    {
+        $values = [ 'pk_1' => 1, 'pk_2' => 1, 'title' => "One" ];
+        $this->multi_column->insert($values);
+        $updated_values = [ 'title' => "One Updated" ] + $values;
+        $this->multi_column->insert($updated_values, ignore: true);
+        $actual = $this->multi_column
+            ->execute("SELECT * FROM {self} WHERE pk_1 = 1 AND pk_2 = 1")
+            ->as_assoc
+            ->one;
+        $this->assertEquals($values, $actual);
+    }
+
+    public function test_upsert_multi_column(): void
+    {
+        $values = [ 'pk_1' => 1, 'pk_2' => 1, 'title' => "One" ];
+        $this->multi_column->insert($values);
+        $updated_values = [ 'title' => "One Updated" ] + $values;
+        $this->multi_column->insert($updated_values, upsert: true);
+
+        $actual = $this->multi_column
+            ->execute("SELECT * FROM {self} WHERE pk_1 = 1 AND pk_2 = 1")
+            ->as_assoc
+            ->one;
+        $this->assertEquals($updated_values, $actual);
     }
 }

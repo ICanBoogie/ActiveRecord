@@ -4,6 +4,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use LogicException;
+use RuntimeException;
 use Throwable;
 
 use function array_combine;
@@ -249,9 +250,9 @@ class Table
     /**
      * Filters mass assignment values.
      *
-     * @param array<non-empty-string, mixed> $values
+     * @param array<string, mixed> $values
      *
-     * @return array{ mixed[], array<non-empty-string, non-empty-string>, non-empty-string[] }
+     * @return array{ array<int|string|null>, array<string, string>, array<string> }
      */
     private function filter_values(array $values, bool $extended = false): array
     {
@@ -280,10 +281,14 @@ class Table
      *
      * @throws Throwable
      */
-    public function save(array $values, mixed $id = null, array $options = []): mixed
+    public function save(array $values, int $id = null, array $options = []): int|false
     {
+        // TODO: If we have a parent, we should do the changes in a transaction.
+
         if ($id) {
-            return $this->update($values, $id) ? $id : false;
+            $this->update($values, $id);
+
+            return $id;
         }
 
         return $this->save_callback($values, $id, $options);
@@ -292,11 +297,11 @@ class Table
     /**
      * @param array<string, mixed> $values
      * @param array<string, mixed> $options
-     *
-     * @return bool|int|null|string
      */
-    private function save_callback(array $values, mixed $id = null, array $options = []): mixed
+    private function save_callback(array $values, int $id = null, array $options = []): int
     {
+        assert(count($values) > 0);
+
         if ($id) {
             $this->update($values, $id);
 
@@ -306,8 +311,10 @@ class Table
         $parent_id = 0;
 
         if ($this->parent) {
-            $parent_id = $this->parent->save_callback($values, null, $options)
-                ?: throw new \Exception("Parent save failed: {$this->parent->name} returning {$parent_id}.");
+            $parent_id = $this->parent->save_callback($values, options: $options)
+                ?: throw new RuntimeException(
+                    "Parent save failed: {$this->parent->name} returning $parent_id"
+                );
 
             assert(is_string($this->primary));
             assert(is_numeric($parent_id));
@@ -322,20 +329,20 @@ class Table
         // FIXME: ALL THIS NEED REWRITE !
 
         if ($holders) {
-            // faire attention à l'id, si l'on revient du parent qui a inséré, on doit insérer aussi, avec son id
+            // If we have a parent, its primary key values must be used.
 
             if ($driver_name === 'mysql') {
-//                if ($parent_id && empty($holders[$this->primary])) {
-//                    $filtered[] = $parent_id;
-//                    $holders[] = '`{primary}` = ?';
-//                }
+                if ($parent_id && empty($holders[$this->primary])) {
+                    $filtered[] = $parent_id;
+                    $holders[] = '`{primary}` = ?';
+                }
 
                 $statement = 'INSERT INTO `{self}` SET ' . implode(', ', $holders);
                 $statement = $this->prepare($statement);
 
-                $rc = $statement->execute($filtered);
+                $statement->execute($filtered);
             } elseif ($driver_name === 'sqlite') {
-                $rc = $this->insert($values, $options);
+                $this->insert($values);
             } else {
                 throw new LogicException("Don't know what to do with $driver_name");
             }
@@ -355,80 +362,64 @@ class Table
             $statement = "INSERT INTO `{self}` ($identifiers) VALUES ($placeholders)";
             $statement = $this->prepare($statement);
 
-            $rc = $statement->execute($filtered);
-        } else {
-            $rc = true;
+            $statement->execute($filtered);
         }
 
         if ($parent_id) {
             return $parent_id;
         }
 
-        if (!$rc) {
-            return false;
-        }
-
-        return $this->connection->pdo->lastInsertId();
+        return $this->connection->last_insert_id;
     }
 
     /**
      * Inserts values into the table.
      *
-     * @param array $values The values to insert.
-     * @param array $options The following options can be used:
-     * - `ignore`: Ignore duplicate errors.
-     * - `on duplicate`: specifies the column to update on duplicate, and the values to update
-     * them. If `true` the `$values` array is used, after the primary keys has been removed.
-     *
-     * @return mixed
+     * @param non-empty-array<mixed> $values The values to insert.
+     * @param bool $ignore Optional value to ignore insert errors.
+     * @param bool $upsert Optional value to update the row if there's a matching primary key.
      */
-    public function insert(array $values, array $options = [])
+    public function insert(array $values, bool $ignore = false, bool $upsert = false): void
     {
         [ $values, $holders, $identifiers ] = $this->filter_values($values);
 
         if (!$values) {
-            return null;
+            throw new LogicException("No values to insert");
         }
 
         $driver_name = $this->connection->driver_name;
 
-        $on_duplicate = $options['on duplicate'] ?? null;
-
         if ($driver_name == 'mysql') {
             $query = 'INSERT';
 
-            if (!empty($options['ignore'])) {
+            if ($ignore) {
                 $query .= ' IGNORE ';
             }
 
             $query .= ' INTO `{self}` SET ' . implode(', ', $holders);
 
-            if ($on_duplicate) {
-                if ($on_duplicate === true) {
-                    #
-                    # if 'on duplicate' is true, we use the same input values, but we take care of
-                    # removing the primary key and its corresponding value
-                    #
+            if ($upsert) {
+                #
+                # We use the same input values, but we take care of
+                # removing the primary key and its corresponding value
+                #
 
-                    $update_values = array_combine(array_keys($holders), $values);
-                    $update_holders = $holders;
+                $update_values = array_combine(array_keys($holders), $values);
+                $update_holders = $holders;
 
-                    $primary = $this->primary;
+                $primary = $this->primary;
 
-                    if (is_array($primary)) {
-                        $flip = array_flip($primary);
+                if (is_array($primary)) {
+                    $flip = array_flip($primary);
 
-                        $update_holders = array_diff_key($update_holders, $flip);
-                        $update_values = array_diff_key($update_values, $flip);
-                    } else {
-                        unset($update_holders[$primary]);
-                        unset($update_values[$primary]);
-                    }
-
-                    $update_values = array_values($update_values);
+                    $update_holders = array_diff_key($update_holders, $flip);
+                    $update_values = array_diff_key($update_values, $flip);
                 } else {
-                    [ $update_values, $update_holders ] = $this->filter_values($on_duplicate);
+                    unset($update_holders[$primary]);
+                    unset($update_values[$primary]);
                 }
+
+                $update_values = array_values($update_values);
 
                 $query .= ' ON DUPLICATE KEY UPDATE ' . implode(', ', $update_holders);
 
@@ -437,14 +428,17 @@ class Table
         } elseif ($driver_name == 'sqlite') {
             $holders = array_fill(0, count($identifiers), '?');
 
-            $query = 'INSERT' . ($on_duplicate ? ' OR REPLACE' : '')
+            $query = 'INSERT'
+                . ($ignore | $upsert ? ' OR' : '')
+                . ($ignore ? ' IGNORE' : '')
+                . ($upsert ? ' REPLACE' : '')
                 . ' INTO `{self}` (' . implode(', ', $identifiers) . ')'
                 . ' VALUES (' . implode(', ', $holders) . ')';
         } else {
             throw new LogicException("Unsupported drive: $driver_name.");
         }
 
-        return $this->execute($query, $values);
+        $this->execute($query, $values);
     }
 
     /**
@@ -453,12 +447,9 @@ class Table
      * Even if the entry is spread over multiple tables, all the tables are updated in a single
      * step.
      *
-     * @param array $values
-     * @param mixed $key
-     *
-     * @return bool
+     * @param array<string, mixed> $values
      */
-    public function update(array $values, $key)
+    public function update(array $values, int|string $key): void
     {
         #
         # SQLite doesn't support UPDATE with INNER JOIN.
@@ -466,7 +457,6 @@ class Table
 
         if ($this->connection->driver_name == 'sqlite') {
             $table = $this;
-            $rc = true;
 
             while ($table) {
                 [ $table_values, $holders ] = $table->filter_values($values);
@@ -475,17 +465,13 @@ class Table
                     $query = 'UPDATE `{self}` SET ' . implode(', ', $holders) . ' WHERE `{primary}` = ?';
                     $table_values[] = $key;
 
-                    $rc = $table->execute($query, $table_values);
-
-                    if (!$rc) {
-                        return $rc;
-                    }
+                    $table->execute($query, $table_values);
                 }
 
                 $table = $table->parent;
             }
 
-            return $rc;
+            return;
         }
 
         [ $values, $holders ] = $this->filter_values($values, true);
@@ -493,40 +479,34 @@ class Table
         $query = "UPDATE `{self}` $this->update_join  SET " . implode(', ', $holders) . ' WHERE `{primary}` = ?';
         $values[] = $key;
 
-        return $this->execute($query, $values);
+        $this->execute($query, $values);
     }
 
     /**
      * Deletes a record.
      *
-     * @param mixed $key Identifier of the record.
-     *
-     * @return bool
+     * @param int|string|array<int|string> $key
      */
-    public function delete($key)
+    public function delete(int|string|array $key): void
     {
-        if ($this->parent) {
-            $this->parent->delete($key);
-        }
+        $this->parent?->delete($key);
 
-        $where = 'where ';
+        $where = 'WHERE ';
 
         if (is_array($this->primary)) {
             $parts = [];
 
             foreach ($this->primary as $identifier) {
-                $parts[] = '`' . $identifier . '` = ?';
+                $parts[] = "`$identifier` = ?";
             }
 
-            $where .= implode(' and ', $parts);
+            $where .= implode(' AND ', $parts);
         } else {
             $where .= '`{primary}` = ?';
         }
 
         $statement = $this->prepare('DELETE FROM `{self}` ' . $where);
         $statement((array)$key);
-
-        return !!$statement->pdo_statement->rowCount();
     }
 
     /**

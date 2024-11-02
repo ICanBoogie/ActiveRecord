@@ -6,6 +6,7 @@ use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
+use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\Validate\ValidationErrors;
 use LogicException;
@@ -14,7 +15,6 @@ use Throwable;
 
 use function array_keys;
 use function is_array;
-use function is_numeric;
 
 /**
  * Active Record facilitates the creation and use of business objects whose data require persistent
@@ -22,17 +22,17 @@ use function is_numeric;
  *
  * @method ValidationErrors validate() Validate the active record, returns an array of errors.
  *
+ * @see self::get_model()
  * @property-read Model $model The model managing the active record.
- * @uses self::get_model()
+ * @see self::get_is_new()
  * @property-read bool $is_new Whether the record is new or not.
- * @uses self::get_is_new()
+ * @see self::get_primary_key_value()
+ * @property-read TKey $primary_key_value The value of the primary key.
  *
- * @template TKey of int|string|string[]
+ * @template TKey of int|non-empty-string|non-empty-array<non-empty-string>
  */
 abstract class ActiveRecord extends Prototyped
 {
-    public const SAVE_SKIP_VALIDATION = 'skip_validation';
-
     /**
      * Returns a new query.
      *
@@ -76,7 +76,28 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * @param ?Model<TKey,static> $model
+     * @return mixed&TKey
+     */
+    protected function get_primary_key_value(): mixed
+    {
+        $model = $this->get_model();
+        $primary = $model->extended_schema->primary;
+
+        if (is_array($primary)) {
+            $actual = [];
+
+            foreach ($primary as $property) {
+                $actual[] = $this->$property;
+            }
+
+            return $actual;
+        }
+
+        return $this->$primary;
+    }
+
+    /**
+     * @param ?Model<TKey, static> $model
      *     The model managing the active record. A {@link Model} instance can be specified as well as a model
      *     identifier. If `$model` is null, the model will be resolved with {@link StaticModelProvider} when required.
      */
@@ -150,22 +171,22 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Saves the active record using its model.
      *
-     * @param array<string, mixed> $options Save options.
-     *
-     * @return bool|int|mixed Primary key value of the active record, or a boolean if the primary key
-     * is not a serial.
-     *
      * @throws Throwable
      */
-    public function save(array $options = []): mixed
+    public function save(bool $skip_validation = false): void
     {
-        if (empty($options[self::SAVE_SKIP_VALIDATION])) {
+        if (!$skip_validation) {
             $this->assert_is_valid();
         }
 
         $model = $this->get_model();
         $schema = $model->extended_schema;
+        // @phpstan-ignore-next-line
         $properties = $this->alter_persistent_properties($this->to_array(), $schema);
+
+        if (count($properties) == 0) {
+            throw new LogicException("No properties to save");
+        }
 
         #
         # Multi-column primary key
@@ -174,7 +195,9 @@ abstract class ActiveRecord extends Prototyped
         $primary = $model->primary;
 
         if (is_array($primary)) {
-            return $model->insert($properties, [ 'on duplicate' => true ]);
+            $model->insert($properties, upsert: true);
+
+            return;
         }
 
         #
@@ -183,9 +206,11 @@ abstract class ActiveRecord extends Prototyped
 
         if (
             !$model->parent && $primary && isset($properties[$primary])
-            && !$model->extended_schema->columns[$primary]->auto_increment
+            && !$model->extended_schema->columns[$primary] instanceof Serial
         ) {
-            return $model->insert($properties, [ 'on duplicate' => true ]);
+            $model->insert($properties, upsert: true);
+
+            return;
         }
 
         #
@@ -206,8 +231,6 @@ abstract class ActiveRecord extends Prototyped
         if ($id === null) {
             $this->$primary = $rc;
         }
-
-        return (int) $rc;
     }
 
     /**
@@ -254,21 +277,6 @@ abstract class ActiveRecord extends Prototyped
         }
 
         return $properties;
-    }
-
-    /**
-     * Updates primary key.
-     *
-     * @param int|non-empty-string|non-empty-array<non-empty-string> $primary_key
-     */
-    protected function update_primary_key(int|array|string $primary_key): void
-    {
-        $model = $this->get_model();
-        $model_class = $model::class;
-        $property = $model->primary
-            ?? throw new LogicException("Unable to update primary key, model `$model_class` doesn't define one.");
-
-        $this->$property = $primary_key;
     }
 
     /**
