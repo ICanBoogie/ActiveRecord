@@ -82,7 +82,7 @@ final class SchemaBuilder
     }
 
     /**
-     * Whether the builder is empty i.e. no column is defined yet.
+     * Whether the builder is empty, i.e., no column is defined yet.
      */
     public function is_empty(): bool
     {
@@ -192,7 +192,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
-     * @param positive-int $size
+     * @phpstan-param Integer::SIZE_* $size
      *
      * @return $this
      *
@@ -216,7 +216,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
-     * @param positive-int $size
+     * @phpstan-param Integer::SIZE_* $size
      *
      * @return $this
      *
@@ -367,7 +367,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
-     * @param Blob::SIZE_* $size
+     * @phpstan-param Blob::SIZE_* $size
      *
      * @return $this
      *
@@ -390,7 +390,7 @@ final class SchemaBuilder
 
     /**
      * @param non-empty-string $col_name
-     * @param Text::SIZE_* $size
+     * @phpstan-param Text::SIZE_* $size
      * @param non-empty-string|null $collate
      *
      * @return $this
@@ -420,7 +420,7 @@ final class SchemaBuilder
      * @param non-empty-string $col_name
      * @param class-string<ActiveRecord> $associate
      *     The local key i.e. column name.
-     * @param Integer::SIZE_* $size
+     * @phpstan-param Integer::SIZE_* $size
      * @param non-empty-string|null $as
      *
      * @return $this
@@ -450,8 +450,9 @@ final class SchemaBuilder
      * Adds an index on one or multiple columns.
      *
      * @param non-empty-string|non-empty-array<non-empty-string> $columns
-     *     Identifiers of the columns making the unique index.
+     *     Column names used by the index.
      * @param non-empty-string|null $name
+     *     Name of the index.
      *
      * @return $this
      *
@@ -473,8 +474,8 @@ final class SchemaBuilder
      * @param class-string<ActiveRecord> $activerecord_class
      *
      * @return $this
-     * @internal
      *
+     * @internal
      */
     public function use_record(string $activerecord_class): self
     {
@@ -499,12 +500,14 @@ final class SchemaBuilder
                 $attribute = $attribute->newInstance();
 
                 if ($attribute instanceof Id) {
+                    // @phpstan-ignore-next-line
                     $this->primary[] = $property->name;
 
                     continue;
                 }
 
                 if ($attribute instanceof Column) {
+                    // @phpstan-ignore-next-line
                     $this->columns[$property->name] = $attribute;
                 }
             }

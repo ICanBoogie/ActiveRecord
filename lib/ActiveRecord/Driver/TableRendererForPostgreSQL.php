@@ -14,18 +14,16 @@ use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Time;
-
 use InvalidArgumentException;
 
 use function implode;
 use function in_array;
 use function is_array;
-use function PHPUnit\Framework\matches;
 
 /**
  * @see https://www.sqlite.org/lang_createtable.html
  */
-class TableRendererForPostgreSQL extends TableRenderer
+final class TableRendererForPostgreSQL extends TableRenderer
 {
     protected function render_column_defs(Schema $schema): array
     {

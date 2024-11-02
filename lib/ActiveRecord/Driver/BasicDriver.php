@@ -21,12 +21,12 @@ use ICanBoogie\DateTime;
 /**
  * Basic connection driver.
  *
- * @property-read Connection $connection
+ * @property-read Connection $connection {@see self::get_connection}
  */
 abstract class BasicDriver implements Driver
 {
     /**
-     * @uses get_connection
+     * @see get_connection
      */
     use AccessorTrait;
 
@@ -53,7 +53,7 @@ abstract class BasicDriver implements Driver
      */
     public function quote_string(string $string): string
     {
-        return $this->connection->pdo->quote($string);
+        return $this->connection->quote($string);
     }
 
     /**
@@ -67,7 +67,7 @@ abstract class BasicDriver implements Driver
     /**
      * @inheritDoc
      */
-    public function cast_value(mixed $value, string $type = null): mixed
+    public function cast_value(mixed $value, string $type = null): int|string|null
     {
         if ($value instanceof DateTimeInterface) {
             return DateTime::from($value)->utc->as_db;
@@ -81,6 +81,7 @@ abstract class BasicDriver implements Driver
             return 1;
         }
 
+        /** @var string */
         return $value;
     }
 

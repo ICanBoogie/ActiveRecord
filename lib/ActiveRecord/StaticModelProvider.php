@@ -48,7 +48,7 @@ final class StaticModelProvider
     }
 
     /**
-     * Unset the {@see ModelProvider} factory.
+     * Unsets the {@see ModelProvider} factory.
      */
     public static function reset(): void
     {
@@ -73,5 +73,10 @@ final class StaticModelProvider
             );
 
         return (self::$provider ??= $factory())->model_for_record($activerecord_class);
+    }
+
+    /** @codeCoverageIgnore */
+    private function __construct()
+    {
     }
 }

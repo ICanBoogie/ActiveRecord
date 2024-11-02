@@ -60,6 +60,7 @@ readonly class TableDefinition
             ? substr($name, $pos + 1)
             : $name;
 
+        /** @var non-empty-string */
         return singularize($alias);
     }
 }

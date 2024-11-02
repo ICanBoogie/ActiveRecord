@@ -12,30 +12,21 @@
 namespace ICanBoogie\ActiveRecord\Validate\Reader;
 
 use Error;
-use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\PropertyNotDefined;
 use ICanBoogie\Validate\Reader\AbstractAdapter;
 
-/**
- * Read values from an {@link ActiveRecord} instance.
- *
- * @property-read ActiveRecord $record
- */
 class RecordAdapter extends AbstractAdapter
 {
     /**
-     * @uses get_record
+     * Read values from an {@link ActiveRecord} instance.
      */
-    use AccessorTrait;
-
-    protected function get_record(): ActiveRecord
-    {
-        return $this->source;
-    }
+    public readonly ActiveRecord $record;
 
     public function __construct(ActiveRecord $source)
     {
+        $this->record = $source;
+
         parent::__construct($source);
     }
 
@@ -46,7 +37,7 @@ class RecordAdapter extends AbstractAdapter
     {
         try {
             return $this->source->$name;
-        } catch (PropertyNotDefined | Error $e) {
+        } catch (PropertyNotDefined | Error $e) { // @phpstan-ignore-line
             return null;
         }
     }

@@ -15,12 +15,11 @@ use PDOException;
 use RuntimeException;
 
 use function array_pad;
-use function is_array;
 use function json_encode;
 use function sprintf;
 
 /**
- * Exception thrown in attempt to execute a statement that is not valid.
+ * Exception thrown in an attempt to execute a statement that is not valid.
  */
 class StatementNotValid extends RuntimeException implements Exception
 {

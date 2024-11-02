@@ -22,7 +22,7 @@ use function ICanBoogie\iterable_to_dictionary;
 class ConnectionCollection implements ConnectionProvider, ConnectionIterator
 {
     /**
-     * @var array<non-empty-string, ConnectionDefinition>
+     * @var array<string, ConnectionDefinition>
      *     Where _key_ is a connection identifier.
      */
     public readonly array $definitions;
@@ -30,7 +30,7 @@ class ConnectionCollection implements ConnectionProvider, ConnectionIterator
     /**
      * Established connections.
      *
-     * @var array<non-empty-string, Connection>
+     * @var array<string, Connection>
      *     Where _key_ is a connection identifier.
      */
     private array $established = [];
@@ -40,6 +40,7 @@ class ConnectionCollection implements ConnectionProvider, ConnectionIterator
      */
     public function __construct(iterable $definitions)
     {
+        // @phpstan-ignore-next-line
         $this->definitions = iterable_to_dictionary($definitions, fn(ConnectionDefinition $d) => $d->id);
     }
 

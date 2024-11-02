@@ -24,7 +24,7 @@ final readonly class Serial extends Integer
 
     public function __construct(
         int $size = parent::SIZE_REGULAR,
-    ){
+    ) {
         parent::__construct(
             size: $size,
             unsigned: true,

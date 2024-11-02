@@ -68,23 +68,25 @@ readonly class Schema
     ) {
         foreach ($columns as $name => $column) {
             $column instanceof Column
-                or throw new InvalidArgumentException(
-                    sprintf("Expected %s for column %s, given: %s",
-                        Column::class,
-                        $name,
-                        get_debug_type($column)
-                    )
-                );
+            or throw new InvalidArgumentException(
+                sprintf(
+                    "Expected %s for column %s, given: %s",
+                    Column::class,
+                    $name,
+                    get_debug_type($column)
+                )
+            );
         }
 
         foreach ($indexes as $index) {
             $index instanceof Index
-                or throw new InvalidArgumentException(
-                    sprintf("Expected %s, given: %s",
-                        Index::class,
-                        get_debug_type($index)
-                    )
-                );
+            or throw new InvalidArgumentException(
+                sprintf(
+                    "Expected %s, given: %s",
+                    Index::class,
+                    get_debug_type($index)
+                )
+            );
         }
 
         $this->has_single_column_primary = is_string($this->primary);
@@ -106,9 +108,9 @@ readonly class Schema
     /**
      * Discards key/value pairs where _key_ is not a column identifier.
      *
-     * @param array<non-empty-string, mixed> $values
+     * @param array<string, mixed> $values
      *
-     * @return array<non-empty-string, mixed>
+     * @return array<string, mixed>
      */
     public function filter_values(array $values): array
     {

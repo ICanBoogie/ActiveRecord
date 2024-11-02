@@ -12,9 +12,9 @@ final readonly class Index implements SchemaAttribute
 {
     /**
      * @param array{
-     *     columns: non-empty-string|non-empty-array<non-empty-string>,
+     *     columns: string|string[],
      *     unique: bool,
-     *     name: ?non-empty-string
+     *     name: ?string
      * } $an_array
      */
     public static function __set_state(array $an_array): self
@@ -23,9 +23,8 @@ final readonly class Index implements SchemaAttribute
     }
 
     /**
-     * @param non-empty-string|non-empty-array<non-empty-string> $columns
+     * @param string|string[] $columns
      *     Identifiers of the columns making the unique index.
-     * @param ?non-empty-string $name
      */
     public function __construct(
         public array|string $columns = [],

@@ -11,6 +11,7 @@
 
 namespace ICanBoogie\ActiveRecord;
 
+use RuntimeException;
 use Throwable;
 
 use function ICanBoogie\format;
@@ -18,17 +19,17 @@ use function ICanBoogie\format;
 /**
  * Exception thrown when the fetch mode of a statement fails to be set.
  */
-class UnableToSetFetchMode extends \RuntimeException implements Exception
+class UnableToSetFetchMode extends RuntimeException implements Exception
 {
     /**
-     * @param mixed $mode
+     * @param mixed[] $mode
      */
     public function __construct(
-        public readonly mixed $mode,
+        public readonly array $mode,
         string $message = null,
         Throwable $previous = null
     ) {
-        parent::__construct($message ?? $this->format_message($mode), 0, $previous);
+        parent::__construct($message ?? $this->format_message($mode), previous: $previous);
     }
 
     private function format_message(mixed $mode): string

@@ -17,13 +17,11 @@ use Throwable;
 
 /**
  * Exception thrown when one or several records cannot be found.
- *
- * @property-read ActiveRecord[] $records
  */
 class RecordNotFound extends LogicException implements Exception
 {
     /**
-     * @param array<int|non-empty-string, ?ActiveRecord> $records
+     * @param array<int|non-empty-string, ActiveRecord|null> $records
      *     Where _key_ is a primary key.
      */
     public function __construct(

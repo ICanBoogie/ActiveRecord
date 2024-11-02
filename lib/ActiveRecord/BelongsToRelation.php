@@ -22,7 +22,7 @@ use function ICanBoogie\singularize;
 /**
  * Representation of a belongs_to relation.
  */
-class BelongsToRelation extends Relation
+final readonly class BelongsToRelation extends Relation
 {
     /**
      * @inheritdoc
@@ -40,6 +40,7 @@ class BelongsToRelation extends Relation
             throw new LogicException("Unable to establish relation, '$local_key' is empty.");
         }
 
+        /** @var ActiveRecord|null */
         return $this->resolve_related_model()->find($id);
     }
 

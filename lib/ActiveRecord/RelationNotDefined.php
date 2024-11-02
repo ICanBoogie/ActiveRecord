@@ -10,10 +10,6 @@ use Throwable;
  */
 class RelationNotDefined extends OffsetNotDefined implements Exception
 {
-    /**
-     * @param non-empty-string $relation_name
-     *     Name of the undefined relation.
-     */
     public function __construct(
         public readonly string $relation_name,
         public readonly RelationCollection $collection,

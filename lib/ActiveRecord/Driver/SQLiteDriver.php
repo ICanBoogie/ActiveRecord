@@ -30,10 +30,10 @@ final class SQLiteDriver extends BasicDriver
     /**
      * @inheritdoc
      */
-    public function table_exists(string $name): bool
+    public function table_exists(string $table_name): bool
     {
         $tables = $this->connection
-            ->query('SELECT name FROM sqlite_master WHERE type = "table" AND name = ?', [ $name ])
+            ->query('SELECT name FROM sqlite_master WHERE type = "table" AND name = ?', [ $table_name ])
             ->all(\PDO::FETCH_COLUMN);
 
         return count($tables) > 0;

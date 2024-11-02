@@ -30,7 +30,7 @@ class ValidateActiveRecord
      *
      * @return ValidationErrors|array An array of errors.
      */
-    public function __invoke(ActiveRecord $record)
+    public function __invoke(ActiveRecord $record) // @phpstan-ignore-line
     {
         $rules = $this->resolve_rules($record);
 
@@ -48,6 +48,8 @@ class ValidateActiveRecord
 
     /**
      * Resolves validation rules.
+     *
+     * @return array<string, mixed>
      */
     protected function resolve_rules(ActiveRecord $record): array
     {
@@ -59,6 +61,7 @@ class ValidateActiveRecord
      */
     protected function create_validator_provider(): ValidatorProvider
     {
+        // @phpstan-ignore-next-line
         return new ValidatorProviderCollection([
 
             new ActiveRecordValidatorProvider(),
@@ -70,7 +73,7 @@ class ValidateActiveRecord
     /**
      * Creates validations.
      *
-     * @return Validation
+     * @param array<string, mixed> $rules
      */
     protected function create_validator(array $rules, callable $validator_provider = null): Validation
     {

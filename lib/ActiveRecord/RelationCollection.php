@@ -94,7 +94,7 @@ class RelationCollection implements ArrayAccess
      */
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw new OffsetNotWritable([ $offset, $this ]);
+        throw new OffsetNotWritable($offset, $this);
     }
 
     /**
@@ -102,7 +102,7 @@ class RelationCollection implements ArrayAccess
      */
     public function offsetUnset(mixed $offset): void
     {
-        throw new OffsetNotWritable([ $offset, $this ]);
+        throw new OffsetNotWritable($offset, $this);
     }
 
     /**

@@ -11,7 +11,6 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\TestCase;

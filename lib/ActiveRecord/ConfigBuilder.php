@@ -77,7 +77,7 @@ final class ConfigBuilder
     private function validate_models(): void
     {
         foreach ($this->model_definitions as $definition) {
-                $this->connections[$definition->connection] ?? throw new InvalidConfig(
+            $this->connections[$definition->connection] ?? throw new InvalidConfig(
                 "$definition->activerecord_class uses connection '$definition->connection', but it is not configured"
             );
 
@@ -225,9 +225,9 @@ final class ConfigBuilder
             ?? throw new InvalidConfig("$column->associate is not defined");
 
         $associate->schema->has_single_column_primary
-            or throw new InvalidConfig(
-                "The primary key of $associate->activerecord_class is not a single column"
-            );
+        or throw new InvalidConfig(
+            "The primary key of $associate->activerecord_class is not a single column"
+        );
 
         $foreign_key = $associate->schema->primary;
         assert(is_string($foreign_key));
@@ -248,9 +248,9 @@ final class ConfigBuilder
         TransientHasManyAssociation $association
     ): HasManyAssociation {
         $owner->schema->has_single_column_primary
-            or throw new InvalidConfig(
-                "The primary key of $owner->activerecord_class is not a single column"
-            );
+        or throw new InvalidConfig(
+            "The primary key of $owner->activerecord_class is not a single column"
+        );
 
         $related = $this->model_definitions[$association->associate];
         $foreign_key = $association->foreign_key;
@@ -416,7 +416,7 @@ final class ConfigBuilder
     /**
      * Creates a schema builder and an association builder.
      *
-     * If attributes are enabled they are configured using the attributes on the ActiveRecord.
+     * If attributes are enabled, they are configured using the attributes on the ActiveRecord.
      *
      * @param class-string<ActiveRecord> $activerecord_class
      *

@@ -2,7 +2,6 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ModelCollection;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;

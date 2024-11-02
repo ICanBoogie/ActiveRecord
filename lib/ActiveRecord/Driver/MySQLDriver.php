@@ -32,11 +32,11 @@ final class MySQLDriver extends BasicDriver
     /**
      * @inheritdoc
      */
-    public function table_exists(string $name): bool
+    public function table_exists(string $table_name): bool
     {
         $tables = $this->connection->query('SHOW TABLES')->all(\PDO::FETCH_COLUMN);
 
-        return \in_array($name, $tables);
+        return \in_array($table_name, $tables);
     }
 
     /**

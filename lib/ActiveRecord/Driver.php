@@ -31,14 +31,12 @@ interface Driver
     /**
      * Casts a value into a database compatible representation.
      *
-     * @param non-empty-string|null $type One of `SchemaColumn::TYPE_*`.
+     * @param string|null $type One of `SchemaColumn::TYPE_*`.
      */
-    public function cast_value(mixed $value, string $type = null): mixed;
+    public function cast_value(mixed $value, string $type = null): int|string|null;
 
     /**
      * Creates a table given a schema.
-     *
-     * @param non-empty-string $table_name
      *
      * @throws Throwable
      */
@@ -47,9 +45,9 @@ interface Driver
     /**
      * Checks if a specified table exists in the database.
      *
-     * @param non-empty-string $name The unprefixed name of the table.
+     * @param string $table_name The unprefixed name of the table.
      */
-    public function table_exists(string $name): bool;
+    public function table_exists(string $table_name): bool;
 
     /**
      * Optimizes the tables of the database.

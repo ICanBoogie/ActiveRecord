@@ -18,7 +18,7 @@ use function is_array;
 /**
  * @see https://www.sqlite.org/lang_createtable.html
  */
-class TableRendererForMySQL extends TableRenderer
+final class TableRendererForMySQL extends TableRenderer
 {
     protected function render_column_defs(Schema $schema): array
     {

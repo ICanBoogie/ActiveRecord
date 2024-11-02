@@ -3,19 +3,14 @@
 namespace ICanBoogie\ActiveRecord\Driver;
 
 use ICanBoogie\ActiveRecord\Schema;
-
-use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Binary;
 use ICanBoogie\ActiveRecord\Schema\Blob;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Column;
-
 use ICanBoogie\ActiveRecord\Schema\Date;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Decimal;
-use ICanBoogie\ActiveRecord\Schema\Integer;
-use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Time;
 use ICanBoogie\ActiveRecord\Schema\Timestamp;
@@ -36,7 +31,7 @@ abstract class TableRenderer
         $table_constraints = implode(",\n", $this->render_table_constraints($schema));
         $sep1 = $table_constraints ? ",\n\n" : "\n";
         $sep2 = $table_constraints ? "\n" : '';
-        $table_options = implode(" ", $this->render_table_options($schema));
+        $table_options = implode(" ", $this->render_table_options());
         $sep3 = $table_options ? " " : "";
         $create_index = $this->render_create_index($schema, $prefixed_table_name);
         $sep4 = $create_index ? "\n\n" : '';

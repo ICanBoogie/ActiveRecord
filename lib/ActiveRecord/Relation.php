@@ -20,11 +20,11 @@ use function explode;
 /**
  * Representation of a relation.
  */
-abstract class Relation
+abstract readonly class Relation
 {
     /**
      * @param Model $owner
-     *     The parent model of the relation.
+     *     The owner of the relation.
      * @param class-string<ActiveRecord> $related
      *     The class of the related ActiveRecord.
      * @param non-empty-string $local_key
@@ -33,11 +33,11 @@ abstract class Relation
      *     The name of the column on the foreign model.
      */
     public function __construct(
-        public readonly Model $owner,
-        public readonly string $related,
-        public readonly string $local_key,
-        public readonly string $foreign_key,
-        public readonly string $as,
+        public Model $owner,
+        public string $related,
+        public string $local_key,
+        public string $foreign_key,
+        public string $as,
     ) {
         $prototype = Prototype::from($this->owner->activerecord_class);
         $this->alter_prototype($prototype, $this->as);

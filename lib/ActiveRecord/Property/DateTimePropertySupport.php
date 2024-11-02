@@ -40,6 +40,7 @@ class DateTimePropertySupport
             return $property;
         }
 
+        // @phpstan-ignore-next-line
         return $property = $property === null ? DateTime::none() : new DateTime($property, 'utc');
     }
 

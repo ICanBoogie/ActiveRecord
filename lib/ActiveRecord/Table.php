@@ -142,7 +142,7 @@ class Table extends Prototyped
 
         unset($this->update_join);
         unset($this->select_join);
-}
+    }
 
     /**
      * Interface to the connection's query() method.

@@ -21,7 +21,7 @@ use function is_string;
 /**
  * Representation of a has_many relation.
  */
-class HasManyRelation extends Relation
+final readonly class HasManyRelation extends Relation
 {
     /**
      * @inheritdoc
@@ -34,7 +34,7 @@ class HasManyRelation extends Relation
         string $related,
         string $foreign_key,
         string $as,
-        public readonly ?string $through = null,
+        public ?string $through = null,
     ) {
         assert(is_string($owner->primary));
 
@@ -79,10 +79,14 @@ class HasManyRelation extends Relation
         $related = $this->resolve_related_model();
         $through_model = $this->model_for_activerecord($through);
         $r = $through_model->relations;
-        $r1 = $r->find(fn(Relation $r) => $r->related === $this->owner->activerecord_class);
+        $r1 = $r->find(fn(Relation $r) => $r->related === $this->owner->activerecord_class)
+            ?? throw new LogicException("Unable to resolve relation: $owner->activerecord_class to $this->related");
         $r2 = $r->find(fn(Relation $r) => $r->related === $related->activerecord_class)
             ?? throw new LogicException("Unable to find related model for " . $related::class);
         $r2_model = $this->model_for_activerecord($r2->related);
+
+        assert(is_string($related->primary));
+        assert(is_string($owner->primary));
 
         $q = $related->query()->select("`{alias}`.*");
         // Because of the select, we need to set the mode otherwise an array would be

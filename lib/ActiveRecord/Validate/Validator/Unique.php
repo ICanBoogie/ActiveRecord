@@ -33,7 +33,7 @@ class Unique extends ValidatorAbstract
     /**
      * @inheritdoc
      */
-    public function validate($value, Context $context)
+    public function validate($value, Context $context): bool
     {
         $column = $context->option(self::OPTION_COLUMN, $context->attribute)
             ?? throw new RuntimeException("Unable to resolve column from context option OPTION_COLUMN");
@@ -41,6 +41,8 @@ class Unique extends ValidatorAbstract
         $model = $record->model;
         $where = [ $column => $value ];
         $primary = $model->primary;
+
+        assert(is_string($primary));
 
         if (!empty($record->$primary)) {
             $where['!' . $primary] = $record->$primary;
@@ -54,7 +56,7 @@ class Unique extends ValidatorAbstract
     /**
      * @inheritdoc
      */
-    protected function get_params_mapping()
+    protected function get_params_mapping() // @phpstan-ignore-line
     {
         return [ self::OPTION_COLUMN ];
     }

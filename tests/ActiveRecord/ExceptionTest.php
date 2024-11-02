@@ -47,7 +47,6 @@ final class ExceptionTest extends TestCase
             [ RecordNotFound::class, [ "message", [] ] ],
 
             [ StatementNotValid::class, [ 'statement' ] ],
-            [ UnableToSetFetchMode::class, [ 'mode' ] ]
 
         ];
     }

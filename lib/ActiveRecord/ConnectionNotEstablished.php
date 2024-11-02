@@ -19,16 +19,11 @@ use Throwable;
  */
 class ConnectionNotEstablished extends RuntimeException implements Exception
 {
-    /**
-     * @param non-empty-string $id
-     *     A connection identifier.
-     * @param non-empty-string $message
-     */
     public function __construct(
         public readonly string $id,
         string $message,
         Throwable $previous = null
     ) {
-        parent::__construct($message, 0, $previous);
+        parent::__construct($message, previous: $previous);
     }
 }

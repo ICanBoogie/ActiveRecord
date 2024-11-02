@@ -28,7 +28,7 @@ class RecordNotValid extends LogicException implements Exception
         public readonly ValidationErrors $errors,
         Throwable $previous = null
     ) {
-        parent::__construct($this->format_message($errors), 0, $previous);
+        parent::__construct($this->format_message($errors), previous: $previous);
     }
 
     private function format_message(ValidationErrors $errors): string
@@ -36,7 +36,9 @@ class RecordNotValid extends LogicException implements Exception
         $message = self::DEFAULT_MESSAGE . "\n";
 
         foreach ($errors as $attribute => $attribute_errors) {
+            // @phpstan-ignore-next-line
             foreach ($attribute_errors as $error) {
+                // @phpstan-ignore-next-line
                 $message .= "\n- $attribute: $error";
             }
         }

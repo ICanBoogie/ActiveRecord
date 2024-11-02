@@ -1,14 +1,5 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ICanBoogie;
 
 use ICanBoogie\ActiveRecord\Model;
@@ -27,7 +18,7 @@ use function is_numeric;
 
 /**
  * Active Record facilitates the creation and use of business objects whose data require persistent
- * storage via database.
+ * storage via a database.
  *
  * @method ValidationErrors validate() Validate the active record, returns an array of errors.
  *
@@ -47,7 +38,7 @@ abstract class ActiveRecord extends Prototyped
      *
      * @return Query<static>
      *
-     * @uses Model::query()
+     * @see Model::query()
      */
     final public static function query(): Query
     {
@@ -61,7 +52,7 @@ abstract class ActiveRecord extends Prototyped
      *
      * @return Query<static>
      *
-     * @uses Query::where()
+     * @see Query::where()
      */
     final public static function where(...$conditions_and_args): Query
     {
@@ -177,7 +168,7 @@ abstract class ActiveRecord extends Prototyped
         $properties = $this->alter_persistent_properties($this->to_array(), $schema);
 
         #
-        # Multipart primary key
+        # Multi-column primary key
         #
 
         $primary = $model->primary;
@@ -198,27 +189,25 @@ abstract class ActiveRecord extends Prototyped
         }
 
         #
-        # Auto-increment primary key
+        # Serial primary key
         #
 
-        $key = null;
+        $id = null;
 
         if (isset($properties[$primary])) {
-            $key = $properties[$primary];
+            $id = $properties[$primary];
             unset($properties[$primary]);
+            assert(is_numeric($id));
         }
 
-        $rc = $model->save($properties, $key);
+        // @phpstan-ignore-next-line
+        $rc = $model->save($properties, $id);
 
-        if (is_numeric($rc)) {
-            $rc = (int)$rc;
+        if ($id === null) {
+            $this->$primary = $rc;
         }
 
-        if ($key === null && $rc) {
-            $this->update_primary_key($rc);
-        }
-
-        return $rc;
+        return (int) $rc;
     }
 
     /**
@@ -285,11 +274,9 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Deletes the active record using its model.
      *
-     * @return bool `true` if the record was deleted, `false` otherwise.
-     *
-     * @throws LogicException in attempt to delete a record from a model which primary key is empty.
+     * @throws LogicException in an attempt to delete a record from a model which primary key is empty.
      */
-    public function delete(): bool
+    public function delete(): void
     {
         $model = $this->get_model();
         $model_class = $model::class;
@@ -298,6 +285,6 @@ abstract class ActiveRecord extends Prototyped
         $key = $this->$primary
             ?? throw new LogicException("Unable to delete record, the primary key is not defined");
 
-        return $model->delete($key);
+        $model->delete($key);
     }
 }

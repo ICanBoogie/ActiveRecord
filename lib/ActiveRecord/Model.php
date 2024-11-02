@@ -36,10 +36,6 @@ use function sprintf;
  * @template TValue of ActiveRecord
  *
  * @property-read Model|null $parent Parent model.
- * @property-read array $all Retrieve all the records from the model.
- * @property-read int $count The number of records of the model.
- * @property-read bool $exists Whether the SQL table associated with the model exists.
- * @property-read ActiveRecord $one Retrieve the first record from the mode.
  * @property ActiveRecordCache $activerecord_cache The cache use to store activerecords.
  */
 #[AllowDynamicProperties]
@@ -118,8 +114,7 @@ class Model extends Table
      *
      * @return TValue|TValue[] A record or a set of records.
      * @throws RecordNotFound when the record, or one or more records of the records
-     * set, could not be found.
-     *
+     * set couldn't be found.
      */
     public function find(mixed $key)
     {
