@@ -61,9 +61,9 @@ final class ConnectionCollectionTest extends TestCase
         $actual = [];
 
         foreach ($connections->connection_iterator() as $id => $defined) {
-            $actual[$id] = $defined->established;
+            $actual[$id] = $defined->instantiated;
 
-            $this->assertEquals($id, $defined->connect()->id);
+            $this->assertEquals($id, $defined->get()->id);
         }
 
         $this->assertEquals([ 'one' => false, 'two' => false ], $actual);
@@ -71,7 +71,7 @@ final class ConnectionCollectionTest extends TestCase
         $actual = [];
 
         foreach ($connections->connection_iterator() as $id => $defined) {
-            $actual[$id] = $defined->established;
+            $actual[$id] = $defined->instantiated;
         }
 
         $this->assertEquals([ 'one' => true, 'two' => true ], $actual);
