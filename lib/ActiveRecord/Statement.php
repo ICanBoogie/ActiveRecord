@@ -18,35 +18,35 @@ use PDOStatement;
 
 use function is_array;
 use function json_encode;
-use function microtime;
 
 /**
  * A database statement.
  *
- * @uses self::get_all()
+ * @see self::get_as_assoc()
+ * @property-read $this $as_assoc
+ *     Equivalent to `mode(PDO::FETCH_ASSOC)`.
+ *
+ * @see self::get_all()
  * @property-read array $all
  *     An array with the matching records.
- * @uses self::get_pairs()
+ * @see self::get_pairs()
  * @property-read array $pairs
  *     An array of key/value pairs, where _key_ is the value of the first column and _value_ the value of the second
  *     column.
- * @uses self::get_one()
+ * @see self::get_one()
  * @property-read mixed $one
  *     The first row of the result set (the cursor is closed).
- * @uses self::get_rc()
- * @property-read string $rc
+ * @see self::get_rc()
+ * @property-read int|string|false|null $rc
  *     The value of the first column of the first row.
  */
 final class Statement
 {
     use AccessorTrait;
 
-    /**
-     * @param PDOStatement<mixed> $pdo_statement
-     */
     public function __construct(
         public readonly PDOStatement $pdo_statement,
-        public readonly Connection $connection
+        private readonly ConnectionTelemetry $telemetry,
     ) {
     }
 
@@ -84,24 +84,17 @@ final class Statement
      *
      * The connection queries count is incremented.
      *
-     * @param array<mixed> $params
+     * @param mixed[] $params
      *
      * @throws StatementNotValid when the execution of the statement fails.
      */
     public function execute(array $params = []): void
     {
-        $start = microtime(true);
-
-        $this->connection->queries_count++;
-
         try {
-            $this->connection->profiling[] = [
-                $start,
-                microtime(true),
-                $this->pdo_statement->queryString . ' ' . json_encode($params),
-            ];
-
-            $this->pdo_statement->execute($params);
+            $this->telemetry->record_execute_duration(
+                statement: $this->pdo_statement->queryString . ' ' . json_encode($params),
+                closure: fn() => $this->pdo_statement->execute($params)
+            );
         } catch (PDOException $e) {
             throw new StatementNotValid($this->pdo_statement->queryString, args: $params, original: $e);
         }
@@ -114,14 +107,20 @@ final class Statement
      *
      * @throws UnableToSetFetchMode if the mode cannot be set.
      *
-     * @link http://www.php.net/manual/en/pdostatement.setfetchmode.php
+     * @see PDOStatement::setFetchMode()
      */
-    public function mode(int $mode, mixed ...$params): self
+    public function mode(int $mode, string $class_name = null, mixed ...$params): self
     {
+        // @phpstan-ignore-next-line
         $this->pdo_statement->setFetchMode(...func_get_args())
-        or throw new UnableToSetFetchMode($mode);
+            ?: throw new UnableToSetFetchMode(func_get_args());
 
         return $this;
+    }
+
+    private function get_as_assoc(): self
+    {
+        return $this->mode(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -134,6 +133,7 @@ final class Statement
         int $cursor_orientation = PDO::FETCH_ORI_NEXT,
         int $cursor_offset = 0
     ): mixed {
+        // @phpstan-ignore-next-line
         $rc = $this->pdo_statement->fetch(...func_get_args());
 
         $this->pdo_statement->closeCursor();
@@ -142,7 +142,7 @@ final class Statement
     }
 
     /**
-     * Alias for {@see one()}
+     * @see $one
      */
     private function get_one(): mixed
     {
@@ -152,9 +152,9 @@ final class Statement
     /**
      * Fetches the first column of the first row of the result set and closes the cursor.
      *
-     * @see PDOStatement::fetchColumn()
+     * @see $rc
      */
-    private function get_rc(): mixed
+    private function get_rc(): int|string|false|null
     {
         $rc = $this->pdo_statement->fetchColumn();
 
@@ -164,23 +164,22 @@ final class Statement
     }
 
     /**
-     * Alias for {@see PDOStatement::fetchAll()}
+     * Returns an array containing all the result-set rows.
      *
-     * @param mixed $mode
+     * @return mixed[]
      *
-     * @return array<mixed>
+     * @see PDOStatement::fetchAll()
      */
-    public function all(...$mode): array
+    public function all(int $mode = PDO::FETCH_DEFAULT, mixed ...$args): array
     {
-        return $this->pdo_statement->fetchAll(...$mode);
+        // @phpstan-ignore-next-line
+        return $this->pdo_statement->fetchAll(...func_get_args());
     }
 
     /**
-     * Alias for {@see all()}.
+     * @return mixed[]
      *
-     * @return array<mixed>
-     *
-     * @used-by self
+     * @see $all
      */
     private function get_all(): array
     {
@@ -188,16 +187,13 @@ final class Statement
     }
 
     /**
-     * Alias for `all(\PDO::FETCH_KEY_PAIR`).
+     * @return array<string, string>
+     *     Where _key_ is the value of the first column and _value_ the value of the second column.
      *
-     * @return array<mixed, mixed>
-     *     An array of key/value pairs, where _key_ is the value of the first column and _value_ the value of the
-     *     second column.
-     *
-     * @used-by self
+     * @see $pairs
      */
     private function get_pairs(): array
     {
-        return $this->all(mode: PDO::FETCH_KEY_PAIR);
+        return $this->pdo_statement->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 }

@@ -1,20 +1,13 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
+use InvalidArgumentException;
 use PDO;
 use PDOException;
+use RuntimeException;
 use Throwable;
 
 use function explode;
@@ -22,11 +15,16 @@ use function strtr;
 
 /**
  * A connection to a database.
+ *
+ * @see self::get_last_insert_id()
+ * @property-read int $last_insert_id
+ *     Returns the ID of the last inserted row, or the last value from a sequence object,
+ *     depending on the underlying driver.
  */
 class Connection
 {
     /**
-     * @uses lazy_get_driver
+     * @see self::get_last_insert_id()
      */
     use AccessorTrait;
 
@@ -45,8 +43,6 @@ class Connection
      * If set to "dev", all table names will be named like "dev_nodes", "dev_contents", etc.
      * This is a convenient way of creating a namespace for tables in a shared database.
      * By default, the prefix is the empty string, that is there is not prefix.
-     *
-     * @var non-empty-string
      */
     public readonly string $table_name_prefix;
 
@@ -69,40 +65,22 @@ class Connection
      * Driver name for the connection.
      */
     public readonly string $driver_name;
+    public readonly Driver $driver;
 
-    private Driver $driver;
-
-    private function lazy_get_driver(): Driver
-    {
-        return $this->resolve_driver($this->driver_name);
-    }
-
-    /**
-     * The number of database queries and executions, used for statistics purpose.
-     */
-    public int $queries_count = 0;
     public readonly PDO $pdo;
-
-    /**
-     * The number of micro seconds spent per request.
-     *
-     * @var array[]
-     */
-    public array $profiling = [];
+    public readonly ConnectionTelemetry $telemetry;
 
     /**
      * Establish a connection to a database.
      *
      * Custom options can be specified using the driver-specific connection options. See
-     * {@link Options}.
+     * {@see Options}.
      *
      * @link http://www.php.net/manual/en/pdo.construct.php
      * @link http://dev.mysql.com/doc/refman/5.5/en/time-zone-support.html
      */
     public function __construct(ConnectionDefinition $definition)
     {
-        unset($this->driver); // to trigger lazy loading
-
         $this->id = $definition->id;
         $dsn = $definition->dsn;
 
@@ -116,20 +94,14 @@ class Connection
 
         $this->timezone = $definition->time_zone;
         $this->driver_name = $this->resolve_driver_name($dsn);
+        $this->driver = $this->resolve_driver($this->driver_name);
+        $this->telemetry = new ConnectionTelemetry($this->id);
 
         $options = $this->make_options();
 
         $this->pdo = new PDO($dsn, $definition->username, $definition->password, $options);
 
         $this->after_connection();
-    }
-
-    /**
-     * Alias to {@link query}.
-     */
-    public function __invoke(mixed ...$args): Statement
-    {
-        return $this->query(...$args);
     }
 
     /**
@@ -143,14 +115,14 @@ class Connection
     /**
      * Resolves driver class.
      *
+     * @return class-string<Driver>
      * @throws DriverNotDefined
      *
-     * @return class-string<Driver>
      */
     private function resolve_driver_class(string $driver_name): string
     {
         return self::DRIVERS_MAPPING[$driver_name]
-            ?? throw new DriverNotDefined($driver_name);
+            ?? throw new DriverNotDefined($driver_name); // @phpstan-ignore-line
     }
 
     /**
@@ -199,43 +171,35 @@ class Connection
      * Overrides the method to resolve the statement before it is prepared, then set its fetch
      * mode and connection.
      *
-     * @param string $statement Query statement.
-     * @param array<string, mixed> $options
-     *
-     * @return Statement The prepared statement.
-     *
      * @throws StatementNotValid if the statement cannot be prepared.
      */
-    public function prepare(string $statement, array $options = []): Statement
+    public function prepare(string $statement): Statement
     {
         $statement = $this->resolve_statement($statement);
 
         try {
-            $statement = $this->pdo->prepare($statement, $options);
+            $statement = $this->pdo->prepare($statement);
         } catch (PDOException $e) {
             throw new StatementNotValid($statement, original: $e);
         }
 
-        if (isset($options['mode'])) {
-            $mode = (array) $options['mode'];
-
-            $statement->setFetchMode(...$mode);
-        }
-
-        return new Statement($statement, $this);
+        return new Statement($statement, $this->telemetry);
     }
 
     /**
-     * Overrides the method in order to prepare (and resolve) the statement and execute it with
+     * Overrides the method to prepare (and resolve) the statement and execute it with
      * the specified arguments and options.
      *
-     * @param array<string|int, mixed> $args
-     * @param array<string, mixed> $options
+     * @param mixed[] $args
      */
-    public function query(string $statement, array $args = [], array $options = []): Statement
+    public function query(string $statement, array $args = []): Statement
     {
-        $statement = $this->prepare($statement, $options);
-        $statement->execute($args);
+        $statement = $this->prepare($statement);
+
+        $this->telemetry->record_execute_duration(
+            $statement,
+            static fn() => $statement->execute($args)
+        );
 
         return $statement;
     }
@@ -243,14 +207,13 @@ class Connection
     /**
      * Executes a statement.
      *
-     * The statement is resolved using the {@link resolve_statement()} method before it is
+     * The statement is resolved using the {@see resolve_statement()} method before it is
      * executed.
      *
-     * The execution of the statement is wrapped in a try/catch block. {@link PDOException} are
-     * caught and {@link StatementNotValid} exception are thrown with additional information
-     * instead.
+     * The execution of the statement is wrapped in a try/catch block.
+     * When a {@see PDOException} is caught, it is wrapped with {@see StatementNotValid}.
      *
-     * Using this method increments the `queries_by_connection` stat.
+     * Using this method increments the `queries_count` stat.
      *
      * @return false|int @FIXME https://github.com/sebastianbergmann/phpunit/issues/4735
      * @throws StatementNotValid if the statement cannot be executed.
@@ -260,12 +223,25 @@ class Connection
         $statement = $this->resolve_statement($statement);
 
         try {
-            $this->queries_count++;
-
-            return $this->pdo->exec($statement);
+            // @phpstan-ignore-next-line
+            return $this->telemetry->record_execute_duration(
+                $statement,
+                fn() => $this->pdo->exec($statement)
+            );
         } catch (PDOException $e) {
             throw new StatementNotValid($statement, original: $e);
         }
+    }
+
+    public function get_last_insert_id(): int
+    {
+        $id = $this->pdo->lastInsertId();
+
+        if ($id === false) {
+            throw new RuntimeException("Unable to retrieve last inserted ID");
+        }
+
+        return (int)$id;
     }
 
     /**
@@ -297,11 +273,18 @@ class Connection
     }
 
     /**
-     * @codeCoverageIgnore
+     * @see PDO::quote()
      */
-    public function quote_string(string $string): string
+    public function quote(string $string, int $type = PDO::PARAM_STR): string
     {
-        return $this->pdo->quote($string);
+        $quoted = $this->pdo->quote($string, $type);
+
+        // @phpstan-ignore-next-line
+        if ($quoted === false) {
+            throw new InvalidArgumentException("Unsupported quote type: $type");
+        }
+
+        return $quoted;
     }
 
     public function quote_identifier(string $identifier): string
@@ -315,8 +298,6 @@ class Connection
     }
 
     /**
-     * @param non-empty-string $unprefixed_table_name
-     *
      * @throws Throwable
      */
     public function create_table(string $unprefixed_table_name, Schema $schema): void
@@ -325,16 +306,13 @@ class Connection
     }
 
     /**
-     * @codeCoverageIgnore
+     * Determines if a table exists in the database.
      */
     public function table_exists(string $unprefixed_name): bool
     {
         return $this->driver->table_exists($this->table_name_prefix . $unprefixed_name);
     }
 
-    /**
-     * @codeCoverageIgnore
-     */
     public function optimize(): void
     {
         $this->driver->optimize();

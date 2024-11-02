@@ -1,14 +1,5 @@
 <?php
 
-/*
- * This file is part of the ICanBoogie package.
- *
- * (c) Olivier Laviale <olivier.laviale@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Test\ICanBoogie\ActiveRecord;
 
 use Exception;
@@ -44,7 +35,7 @@ final class StatementTest extends TestCase
     public function test_get_statement(): void
     {
         $connection = self::$connection;
-        $statement = $connection('SELECT * FROM test');
+        $statement = $connection->query('SELECT * FROM test');
         $this->assertInstanceOf(Statement::class, $statement);
 
         $records = $statement->all;
@@ -64,7 +55,7 @@ final class StatementTest extends TestCase
         $statement = 'SELECT undefined_column FROM test WHERE b = ?';
 
         try {
-            $statement = $connection($statement, [ 3 ]);
+            $statement = $connection->query($statement, [ 3 ]);
 
             $this->fail("Expected " . StatementNotValid::class);
         } catch (StatementNotValid $e) {
@@ -93,7 +84,7 @@ final class StatementTest extends TestCase
         $statement = 'INSERT INTO test (a,b,c) VALUES(1,?,?)';
 
         try {
-            $statement = $connection($statement, [ 1, "oneone" ]);
+            $statement = $connection->query($statement, [ 1, "oneone" ]);
 
             $this->fail('Expected StatementNotValid excpetion');
         } catch (Exception $e) {
@@ -128,7 +119,7 @@ final class StatementTest extends TestCase
         $statement = 'DELETE FROM undefined_table';
 
         try {
-            $statement = $connection($statement);
+            $statement = $connection->query($statement);
 
             $this->fail('Expected StatementNotValid');
         } catch (StatementNotValid $e) {
@@ -147,40 +138,6 @@ final class StatementTest extends TestCase
     }
 
     // @phpstan-ignore-next-line
-    #[DataProvider("provide_modes")]
-    public function test_mode(array $arguments): void
-    {
-        $this->markTestSkipped("Statement is final");
-
-        $arg = uniqid();
-
-        $statement = $this
-            ->getMockBuilder(Statement::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'execute' ])
-            ->getMock();
-        $statement
-            ->expects($this->once())
-            ->method('execute')
-            ->with([ $arg ])
-            ->willReturn(false);
-
-        /* @var $statement Statement */
-
-        try {
-            $statement($arg);
-        } catch (StatementInvocationFailed $e) {
-            $this->assertSame($statement, $e->statement);
-            $this->assertSame([ $arg ], $e->args);
-            $this->assertStringContainsString($arg, $e->getMessage());
-
-            return;
-        }
-
-        $this->fail("Expected StatementInvocationFailed");
-    }
-
-    // @phpstan-ignore-next-line
     public static function provide_modes(): array
     {
         return [
@@ -191,134 +148,5 @@ final class StatementTest extends TestCase
             [ [ PDO::FETCH_CLASS, Article::class ] ],
 
         ];
-    }
-
-    // @phpstan-ignore-next-line
-    #[DataProvider("provide_modes")]
-    public function test_fetchAndClose($arguments)
-    {
-        $this->markTestSkipped("Statement is final");
-
-        $expected = uniqid();
-
-        $statement = $this
-            ->getMockBuilder(Statement::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'fetch' ])
-            ->getMock();
-        $a = $statement
-            ->expects($this->once())
-            ->method('fetch')
-            ->willReturn($expected);
-        $a->with(...$arguments);
-
-        /* @var $statement Statement */
-        $this->assertSame($expected, call_user_func_array([ $statement, 'one' ], $arguments));
-    }
-
-    public function test_get_rc()
-    {
-        $this->markTestSkipped("Statement is final");
-
-        $expected = uniqid();
-
-        $statement = $this
-            ->getMockBuilder(Statement::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'fetchColumn' ])
-            ->getMock();
-        $statement
-            ->expects($this->once())
-            ->method('fetchColumn')
-            ->willReturn($expected);
-
-        /* @var $statement Statement */
-
-        $this->assertSame($expected, $statement->rc);
-    }
-
-    public function test_get_one()
-    {
-        $this->markTestSkipped("Statement is final");
-
-        $expected = uniqid();
-
-        $statement = $this
-            ->getMockBuilder(Statement::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'one' ])
-            ->getMock();
-        $statement
-            ->expects($this->once())
-            ->method('one')
-            ->willReturn($expected);
-
-        /* @var $statement Statement */
-
-        $this->assertSame($expected, $statement->one);
-    }
-
-    // @php-stan-ignore-next-line
-    #[DataProvider("provide_modes")]
-    public function test_all($arguments): void
-    {
-        $this->markTestSkipped("Statement is final");
-
-        $all = [ uniqid(), uniqid() ];
-
-        $statement = $this
-            ->getMockBuilder(Statement::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'fetchAll' ])
-            ->getMock();
-        $a = $statement
-            ->expects($this->once())
-            ->method('fetchAll')
-            ->willReturn($all);
-        call_user_func_array([ $a, 'with' ], $arguments);
-
-        /* @var $statement Statement */
-        $this->assertSame($all, call_user_func_array([ $statement, 'all' ], $arguments));
-    }
-
-    public function test_get_all(): void
-    {
-        $this->markTestSkipped("Statement is final");
-
-        $all = [ uniqid(), uniqid() ];
-
-        $statement = $this
-            ->getMockBuilder(Statement::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'fetchAll' ])
-            ->getMock();
-        $statement
-            ->expects($this->once())
-            ->method('fetchAll')
-            ->willReturn($all);
-
-        /* @var $statement Statement */
-        $this->assertSame($all, $statement->all);
-    }
-
-    public function test_get_pairs(): void
-    {
-        $this->markTestSkipped("Statement is final");
-
-        $pairs = [ 1 => "one", 2 => "tow" ];
-
-        $statement = $this
-            ->getMockBuilder(Statement::class)
-            ->disableOriginalConstructor()
-            ->setMethods([ 'fetchAll' ])
-            ->getMock();
-        $statement
-            ->expects($this->once())
-            ->method('fetchAll')
-            ->with(PDO::FETCH_KEY_PAIR)
-            ->willReturn($pairs);
-
-        /* @var $statement Statement */
-        $this->assertSame($pairs, $statement->pairs);
     }
 }
