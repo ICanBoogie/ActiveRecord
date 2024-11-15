@@ -2,7 +2,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use LogicException;
 use Throwable;
 

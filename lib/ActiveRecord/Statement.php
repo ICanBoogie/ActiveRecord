@@ -33,6 +33,13 @@ use function json_encode;
  */
 final class Statement
 {
+    /**
+     * @uses get_as_assoc
+     * @uses get_one
+     * @uses get_rc
+     * @uses get_all
+     * @uses get_pairs
+     */
     use AccessorTrait;
 
     public function __construct(
