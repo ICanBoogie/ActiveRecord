@@ -123,7 +123,7 @@ final class SchemaBuilder
         bool $serial = false,
         bool $null = false,
         bool $unique = false,
-        int|string $default = null,
+        int|string|null $default = null,
         bool $primary = false,
     ): self {
         $this->columns[$col_name] = new Integer(
@@ -401,9 +401,9 @@ final class SchemaBuilder
         string $col_name,
         string $size = Text::SIZE_REGULAR,
         bool $null = false,
-        string $default = null,
+        ?string $default = null,
         bool $unique = false,
-        string $collate = null,
+        ?string $collate = null,
     ): self {
         $this->columns[$col_name] = new Text(
             size: $size,

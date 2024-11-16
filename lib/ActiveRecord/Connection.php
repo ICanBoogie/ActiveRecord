@@ -292,7 +292,7 @@ class Connection
         return $this->driver->quote_identifier($identifier);
     }
 
-    public function cast_value(mixed $value, string $type = null): mixed
+    public function cast_value(mixed $value, ?string $type = null): mixed
     {
         return $this->driver->cast_value($value, $type);
     }

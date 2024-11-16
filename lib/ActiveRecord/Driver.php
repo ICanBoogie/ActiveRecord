@@ -24,7 +24,7 @@ interface Driver
      *
      * @param string|null $type One of `SchemaColumn::TYPE_*`.
      */
-    public function cast_value(mixed $value, string $type = null): int|string|null;
+    public function cast_value(mixed $value, ?string $type = null): int|string|null;
 
     /**
      * Creates a table given a schema.

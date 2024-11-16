@@ -58,7 +58,7 @@ abstract class BasicDriver implements Driver
     /**
      * @inheritDoc
      */
-    public function cast_value(mixed $value, string $type = null): int|string|null
+    public function cast_value(mixed $value, ?string $type = null): int|string|null
     {
         if ($value instanceof DateTimeInterface) {
             return DateTime::from($value)->utc->as_db;

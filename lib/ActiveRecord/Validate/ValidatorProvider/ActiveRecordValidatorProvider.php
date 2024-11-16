@@ -13,7 +13,7 @@ class ActiveRecordValidatorProvider extends SimpleValidatorProvider
     /**
      * @var array<string, class-string>
      */
-    private static array $active_record_validators = [
+    private const ACTIVE_RECORD_VALIDATORS = [
 
         'unique' => Validator\Unique::class
 
@@ -22,12 +22,10 @@ class ActiveRecordValidatorProvider extends SimpleValidatorProvider
     /**
      * Adds aliases to active record validator classes.
      *
-     * @param array<string, class-string> $aliases
-     *
      * @inheritdoc
      */
     public function __construct(array $aliases = [])
     {
-        parent::__construct($aliases + self::$active_record_validators);
+        parent::__construct($aliases + self::ACTIVE_RECORD_VALIDATORS);
     }
 }

@@ -336,8 +336,8 @@ final class ConfigBuilder
         string $query_class = Query::class,
         ?string $table_name = null,
         ?string $alias = null,
-        Closure $schema_builder = null,
-        Closure $association_builder = null,
+        ?Closure $schema_builder = null,
+        ?Closure $association_builder = null,
         string $connection = Config::DEFAULT_CONNECTION_ID,
     ): self {
         Assert::extends_activerecord($record_class);

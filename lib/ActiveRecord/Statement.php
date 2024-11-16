@@ -107,7 +107,7 @@ final class Statement
      *
      * @see PDOStatement::setFetchMode()
      */
-    public function mode(int $mode, string $class_name = null, mixed ...$params): self
+    public function mode(int $mode, ?string $class_name = null, mixed ...$params): self
     {
         // @phpstan-ignore-next-line
         $this->pdo_statement->setFetchMode(...func_get_args())

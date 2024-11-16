@@ -28,7 +28,7 @@ class StatementNotValid extends RuntimeException implements Exception
     /**
      * @param array<mixed> $args
      */
-    private function format_message(string $statement, array $args, PDOException $original = null): string
+    private function format_message(string $statement, array $args, ?PDOException $original = null): string
     {
         $message = '';
 

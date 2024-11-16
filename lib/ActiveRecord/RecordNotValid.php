@@ -17,7 +17,7 @@ class RecordNotValid extends LogicException implements Exception
     public function __construct(
         public readonly ActiveRecord $record,
         public readonly ValidationErrors $errors,
-        Throwable $previous = null
+        ?Throwable $previous = null
     ) {
         parent::__construct($this->format_message($errors), previous: $previous);
     }
@@ -27,9 +27,7 @@ class RecordNotValid extends LogicException implements Exception
         $message = self::DEFAULT_MESSAGE . "\n";
 
         foreach ($errors as $attribute => $attribute_errors) {
-            // @phpstan-ignore-next-line
             foreach ($attribute_errors as $error) {
-                // @phpstan-ignore-next-line
                 $message .= "\n- $attribute: $error";
             }
         }

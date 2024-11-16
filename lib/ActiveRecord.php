@@ -101,7 +101,7 @@ abstract class ActiveRecord extends Prototyped
      *     The model managing the active record. A {@link Model} instance can be specified as well as a model
      *     identifier. If `$model` is null, the model will be resolved with {@link StaticModelProvider} when required.
      */
-    public function __construct(Model $model = null)
+    public function __construct(?Model $model = null)
     {
         if ($model) {
             $this->model = $model;

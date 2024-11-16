@@ -17,8 +17,8 @@ class UnableToSetFetchMode extends RuntimeException implements Exception
      */
     public function __construct(
         public readonly array $mode,
-        string $message = null,
-        Throwable $previous = null
+        ?string $message = null,
+        ?Throwable $previous = null
     ) {
         parent::__construct($message ?? $this->format_message($mode), previous: $previous);
     }

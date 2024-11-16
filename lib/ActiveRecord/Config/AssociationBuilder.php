@@ -32,9 +32,9 @@ final class AssociationBuilder
      */
     public function has_many(
         string $associate,
-        string $foreign_key = null,
-        string $as = null,
-        string $through = null,
+        ?string $foreign_key = null,
+        ?string $as = null,
+        ?string $through = null,
     ): self {
         $this->has_many[] = new TransientHasManyAssociation(
             associate: $associate,

@@ -18,7 +18,7 @@ class RecordNotFound extends LogicException implements Exception
     public function __construct(
         string $message,
         public readonly array $records = [],
-        Throwable $previous = null
+        ?Throwable $previous = null
     ) {
         parent::__construct($message, previous: $previous);
     }

@@ -16,7 +16,7 @@ final class Assert
             or throw new LogicException("'$value' is not extending " . Model::class);
     }
 
-    public static function extends_activerecord(string $value, string $message = null): void
+    public static function extends_activerecord(string $value, ?string $message = null): void
     {
         is_subclass_of($value, ActiveRecord::class)
             or throw new LogicException($message ?? "'$value' is not extending " . ActiveRecord::class);

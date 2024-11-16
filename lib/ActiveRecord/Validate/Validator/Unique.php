@@ -24,7 +24,7 @@ class Unique extends ValidatorAbstract
     /**
      * @inheritdoc
      */
-    public function validate($value, Context $context): bool
+    public function validate(mixed $value, Context $context): bool
     {
         $column = $context->option(self::OPTION_COLUMN, $context->attribute)
             ?? throw new RuntimeException("Unable to resolve column from context option OPTION_COLUMN");
@@ -44,10 +44,8 @@ class Unique extends ValidatorAbstract
         return !$model->where($where)->exists;
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function get_params_mapping() // @phpstan-ignore-line
+    #[\Override]
+    protected function get_params_mapping(): array
     {
         return [ self::OPTION_COLUMN ];
     }

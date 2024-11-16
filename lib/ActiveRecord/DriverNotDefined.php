@@ -18,10 +18,10 @@ class DriverNotDefined extends LogicException implements Exception
      */
     public function __construct(
         public readonly string $driver_name,
-        string $message = null,
-        Throwable $previous = null
+        ?string $message = null,
+        ?Throwable $previous = null
     ) {
-        parent::__construct($message ?? $this->format_message($driver_name), 0, $previous);
+        parent::__construct($message ?? $this->format_message($driver_name), previous: $previous);
     }
 
     private function format_message(string $driver_name): string

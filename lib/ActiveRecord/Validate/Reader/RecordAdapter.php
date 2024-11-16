@@ -24,7 +24,7 @@ class RecordAdapter extends AbstractAdapter
     /**
      * @inheritdoc
      */
-    public function read($name)
+    public function read(string $name): mixed
     {
         try {
             return $this->source->$name;

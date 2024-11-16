@@ -2,6 +2,7 @@
 
 namespace Test\ICanBoogie\ActiveRecord\Validate\Validator;
 
+use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\Context;
@@ -35,6 +36,7 @@ final class UniqueTest extends TestCase
         $record->save();
 
         $context = new Context();
+        $context->attribute = 'title';
         $context->reader = new RecordAdapter($record);
         $context->validator_params = [ Unique::OPTION_COLUMN => 'title' ];
 

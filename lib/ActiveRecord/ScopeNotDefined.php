@@ -13,9 +13,9 @@ class ScopeNotDefined extends LogicException implements Exception
     public function __construct(
         public readonly string $scope_name,
         public readonly Model $model,
-        Throwable $previous = null
+        ?Throwable $previous = null,
     ) {
-        parent::__construct($this->format_message($scope_name, $model), 0, $previous);
+        parent::__construct($this->format_message($scope_name, $model), previous: $previous);
     }
 
     private function format_message(string $scope_name, Model $model): string

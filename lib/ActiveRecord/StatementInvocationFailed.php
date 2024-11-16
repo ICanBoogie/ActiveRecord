@@ -18,8 +18,8 @@ class StatementInvocationFailed extends LogicException implements Exception
     public function __construct(
         public readonly Statement $statement,
         public readonly array $args,
-        string $message = null,
-        Throwable $previous = null
+        ?string $message = null,
+        ?Throwable $previous = null
     ) {
         parent::__construct($message ?? $this->format_message($statement, $args), previous: $previous);
     }

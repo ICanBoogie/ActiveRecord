@@ -59,11 +59,11 @@ readonly class Integer extends Column
      *     Values are signed by default.
      * @param bool $serial
      *     An integer that is automatically incremented by the database. This has a few constraints:
-     *     - `$size` must at least 2 bytes
+     *     - `$size` must be at least two bytes
      *     - `$unsigned` must be `true`
      *     - `$null` must be `false`
      *     - `$unique` must be `true`
-     *     Values are not serial by default.
+     *     Values aren't serial by default.
      */
     public function __construct(
         public int $size = self::SIZE_REGULAR,
@@ -71,7 +71,7 @@ readonly class Integer extends Column
         public bool $serial = false,
         bool $null = false,
         bool $unique = false,
-        int|string $default = null,
+        int|string|null $default = null,
     ) {
         in_array($size, self::ALLOWED_SIZES)
             or throw new LogicException("Size must be one of the allowed ones");

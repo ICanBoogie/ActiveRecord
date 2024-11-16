@@ -418,12 +418,12 @@ class Query implements IteratorAggregate
      * </pre>
      */
     public function join(
-        string $expression = null,
-        Query $query = null,
-        string $with = null,
+        ?string $expression = null,
+        ?Query $query = null,
+        ?string $with = null,
         string $mode = 'INNER',
-        string $as = null,
-        string $on = null,
+        ?string $as = null,
+        ?string $on = null,
     ): static {
         if ($expression) {
             $this->joins[] = $expression;
@@ -462,8 +462,8 @@ class Query implements IteratorAggregate
     private function join_with_query(
         Query $query,
         string $mode = 'INNER',
-        string $as = null,
-        string $on = null,
+        ?string $as = null,
+        ?string $on = null,
     ): void {
         $as ??= $query->model->alias;
         $on ??= $query->model->primary;
@@ -496,8 +496,8 @@ class Query implements IteratorAggregate
     private function join_with_model( // @phpstan-ignore-line
         Model $model,
         string $mode = 'INNER',
-        string $as = null,
-        string $on = null,
+        ?string $as = null,
+        ?string $on = null,
     ): void {
         $as ??= $model->alias;
         //phpcs:disable PSR2.Methods.FunctionCallSignature.SpaceBeforeOpenBracket
@@ -1001,7 +1001,7 @@ class Query implements IteratorAggregate
      *
      * @return string|array<string, string>
      */
-    private function compute(string $method, string $column = null): string|array
+    private function compute(string $method, ?string $column = null): string|array
     {
         $query = 'SELECT ';
 
@@ -1035,7 +1035,7 @@ class Query implements IteratorAggregate
      *
      * @return int|array<non-empty-string, int>
      */
-    public function count(string $column = null): int|array
+    public function count(?string $column = null): int|array
     {
         // @phpstan-ignore-next-line
         return $this->compute('COUNT', $column);
@@ -1105,7 +1105,7 @@ class Query implements IteratorAggregate
      * @todo-20140901: reflect on join to add the required tables by default, discarding tables
      * joined with the LEFT mode.
      */
-    public function delete(string $tables = null): Statement
+    public function delete(?string $tables = null): Statement
     {
         if (!$tables && $this->joins) {
             $tables = "`{alias}`";

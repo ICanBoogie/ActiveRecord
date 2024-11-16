@@ -281,7 +281,7 @@ class Table
      *
      * @throws Throwable
      */
-    public function save(array $values, int $id = null, array $options = []): int|false
+    public function save(array $values, ?int $id = null, array $options = []): int|false
     {
         // TODO: If we have a parent, we should do the changes in a transaction.
 
@@ -298,7 +298,7 @@ class Table
      * @param array<string, mixed> $values
      * @param array<string, mixed> $options
      */
-    private function save_callback(array $values, int $id = null, array $options = []): int
+    private function save_callback(array $values, ?int $id = null, array $options = []): int
     {
         assert(count($values) > 0);
 

@@ -52,7 +52,6 @@ class ValidateActiveRecord
      */
     protected function create_validator_provider(): ValidatorProvider
     {
-        // @phpstan-ignore-next-line
         return new ValidatorProviderCollection([
 
             new ActiveRecordValidatorProvider(),
@@ -66,7 +65,7 @@ class ValidateActiveRecord
      *
      * @param array<string, mixed> $rules
      */
-    protected function create_validator(array $rules, callable $validator_provider = null): Validation
+    protected function create_validator(array $rules, ?callable $validator_provider = null): Validation
     {
         return new Validation($rules, $validator_provider);
     }
