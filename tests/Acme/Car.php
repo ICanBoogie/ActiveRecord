@@ -11,8 +11,6 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 /**
  * @property Brand $brand
  * @property Driver $driver
- *
- * @extends ActiveRecord<int>
  */
 class Car extends ActiveRecord
 {

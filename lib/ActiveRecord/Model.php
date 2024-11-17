@@ -15,20 +15,19 @@ use function implode;
 /**
  * Base class for activerecord models.
  *
- * @template TKey of scalar|scalar[]
- * @template TValue of ActiveRecord
+ * @template TRecord of ActiveRecord
  *
  * @property-read Model|null $parent Parent model.
  */
 class Model extends Table
 {
     /**
-     * @var class-string<TValue>
+     * @var class-string<TRecord>
      */
     public readonly string $activerecord_class;
 
     /**
-     * @var class-string<Query<TValue>>
+     * @var class-string<Query<TRecord>>
      */
     public readonly string $query_class;
 
@@ -68,7 +67,7 @@ class Model extends Table
      *
      * @param int|non-empty-string ...$keys
      *
-     * @return TValue|TValue[] A record or a set of records.
+     * @return TRecord|TRecord[] A record or a set of records.
      * @throws RecordNotFound when the record, or one or more records of the records
      * set couldn't be found.
      */
@@ -88,13 +87,13 @@ class Model extends Table
      *
      * @param int|non-empty-string $key
      *
-     * @return ActiveRecord&TValue
+     * @return ActiveRecord&TRecord
      */
     private function find_one(int|string $key): ActiveRecord
     {
         assert(is_string($this->primary));
 
-        /** @var TValue|false $record */
+        /** @var TRecord|false $record */
         $record = $this->where([ $this->primary => $key ])->one;
 
         if (!$record) {
@@ -112,7 +111,7 @@ class Model extends Table
      *
      * @param array<int|non-empty-string> $keys
      *
-     * @return array<int|non-empty-string, TValue>
+     * @return array<int|non-empty-string, TRecord>
      */
     private function find_many(array $keys): array
     {
@@ -132,7 +131,7 @@ class Model extends Table
             }
         }
 
-        /** @var array<int|non-empty-string, TValue> $records */
+        /** @var array<int|non-empty-string, TRecord> $records */
 
         if ($missing) {
             if (count($missing) > 1) {
@@ -157,7 +156,7 @@ class Model extends Table
     /**
      * Returns a new query.
      *
-     * @return Query<TValue>
+     * @return Query<TRecord>
      */
     public function query(): Query
     {
@@ -167,7 +166,7 @@ class Model extends Table
     /**
      * Returns a new query with the WHERE clause initialized with the provided conditions and arguments.
      *
-     * @return Query<TValue>
+     * @return Query<TRecord>
      *
      * @see Query::where()
      */
@@ -183,7 +182,7 @@ class Model extends Table
      *
      * @param array<string, mixed> $properties Optional properties to instantiate the record with.
      *
-     * @retrun TValue
+     * @retrun TRecord
      */
     public function new(array $properties = []): ActiveRecord
     {

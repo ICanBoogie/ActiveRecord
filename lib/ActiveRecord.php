@@ -22,14 +22,15 @@ use function is_array;
  *
  * @method ValidationErrors validate() Validate the active record, returns an array of errors.
  *
- * @see self::get_model()
- * @property-read Model $model The model managing the active record.
- * @see self::get_is_new()
- * @property-read bool $is_new Whether the record is new or not.
- * @see self::get_primary_key_value()
- * @property-read TKey $primary_key_value The value of the primary key.
- *
- * @template TKey of scalar|scalar[]
+ * @property-read Model<static> $model
+ *     The model managing the active record.
+ *     {@see self::get_model()}
+ * @property-read bool $is_new
+ *     Whether the record is new or not.
+ *     {@see self::get_is_new()}
+ * @property-read scalar|scalar[] $primary_key_value
+ *     The value of the primary key.
+ *     {@see self::get_primary_key_value()}
  */
 abstract class ActiveRecord extends Prototyped
 {
@@ -62,21 +63,22 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Model managing the active record.
      *
-     * @var Model<TKey, static>
+     * @var Model<static>
      */
     private Model $model;
 
     /**
-     * @return Model<TKey, static>
+     * @return Model<static>
      */
     protected function get_model(): Model
     {
+        /** @var Model<static> */
         return $this->model
             ??= StaticModelProvider::model_for_record($this::class);
     }
 
     /**
-     * @return mixed&TKey
+     * @return scalar|scalar[]
      */
     protected function get_primary_key_value(): mixed
     {
@@ -97,9 +99,9 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * @param ?Model<TKey, static> $model
-     *     The model managing the active record. A {@link Model} instance can be specified as well as a model
-     *     identifier. If `$model` is null, the model will be resolved with {@link StaticModelProvider} when required.
+     * @param ?Model<static> $model
+     *     The model managing the active record. A {@see Model} instance can be specified as well as a model
+     *     identifier. If `$model` is null, the model will be resolved with {@see StaticModelProvider} when required.
      */
     public function __construct(?Model $model = null)
     {
@@ -109,9 +111,9 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * Removes the {@link $model} property.
+     * Removes the {@see $model} property.
      *
-     * Properties whose value are instances of the {@link ActiveRecord} class are removed from the
+     * Properties whose values are instances of the {@see ActiveRecord} class are removed from the
      * exported properties.
      *
      * @return array<non-empty-string, mixed>

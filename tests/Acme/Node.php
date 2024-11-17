@@ -7,9 +7,6 @@ use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 
-/**
- * @extends ActiveRecord<int>
- */
 class Node extends ActiveRecord
 {
     #[Id, Serial]

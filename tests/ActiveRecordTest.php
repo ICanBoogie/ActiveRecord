@@ -136,7 +136,7 @@ final class ActiveRecordTest extends TestCase
         try {
             $record->save();
         } catch (RecordNotValid $e) {
-            $errors = $e->errors;
+            $errors = $e->errors->to_array();
 
             $this->assertArrayNotHasKey('id', $errors);
             $this->assertArrayHasKey('name', $errors);

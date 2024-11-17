@@ -28,7 +28,7 @@ use function substr;
 use const PHP_INT_MAX;
 
 /**
- * @template TRecord of ActiveRecord
+ * @template-covariant TRecord of ActiveRecord
  *
  * @implements IteratorAggregate<TRecord>
  *
@@ -201,7 +201,7 @@ class Query implements IteratorAggregate
     private array $mode = [];
 
     /**
-     * @param Model<int|non-empty-string, TRecord> $model The model to query.
+     * @param Model<TRecord> $model The model to query.
      */
     public function __construct(
         public readonly Model $model

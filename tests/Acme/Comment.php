@@ -8,9 +8,6 @@ use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 
-/**
- * @extends ActiveRecord<int>
- */
 class Comment extends ActiveRecord
 {
     #[Id, Serial]

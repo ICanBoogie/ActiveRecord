@@ -12,8 +12,6 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 /**
  * @property-read Query<Appointment> $appointments
  * @property-read Query<Patient> $patients
- *
- * @extends ActiveRecord<int>
  */
 #[HasMany(Appointment::class, foreign_key: 'physician_id')]
 #[HasMany(Patient::class, through: Appointment::class)]

@@ -63,7 +63,7 @@ final class StaticModelProvider
      *
      * @param class-string<T> $activerecord_class
      *
-     * @phpstan-return Model<scalar|scalar[], T>
+     * @return Model<T>
      **/
     public static function model_for_record(string $activerecord_class): Model
     {

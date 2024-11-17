@@ -11,8 +11,6 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 /**
  * @property-read Physician $physician
  * @property-read Patient $patient
- *
- * @extends ActiveRecord<int>
  */
 class Appointment extends ActiveRecord
 {

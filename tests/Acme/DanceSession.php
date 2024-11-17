@@ -10,8 +10,6 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 
 /**
  * @property-read ActiveRecord\Query<Person> $people
- *
- * @extends ActiveRecord<int>
  */
 #[HasMany(Person::class)]
 final class DanceSession extends ActiveRecord

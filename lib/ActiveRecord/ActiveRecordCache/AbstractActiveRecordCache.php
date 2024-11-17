@@ -2,6 +2,7 @@
 
 namespace ICanBoogie\ActiveRecord\ActiveRecordCache;
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ActiveRecordCache;
 use ICanBoogie\ActiveRecord\Model;
 

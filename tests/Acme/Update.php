@@ -9,9 +9,6 @@ use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 
-/**
- * @extends ActiveRecord<int>
- */
 class Update extends ActiveRecord
 {
     #[Id, Serial]

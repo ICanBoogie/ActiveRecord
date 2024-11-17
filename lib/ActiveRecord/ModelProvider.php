@@ -16,7 +16,7 @@ interface ModelProvider
      *
      * @param class-string<T> $activerecord_class
      *
-     * @phpstan-return Model<scalar|scalar[], T>
+     * @phpstan-return Model<T>
      */
     public function model_for_record(string $activerecord_class): Model;
 }

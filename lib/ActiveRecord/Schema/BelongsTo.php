@@ -35,10 +35,10 @@ final readonly class BelongsTo extends Integer
      * @param class-string<ActiveRecord> $associate
      *     The associate ActiveRecord class.
      * @param non-empty-string|null $as
-     *     The name of prototype getter for the association, by default it is build according to the column name e.g.
-     *    `article_id` would result is a `article` getter.
+     *     The name of prototype getter for the association, by default, it is built according to the column name e.g.
+     *    `article_id` would result in an `article` getter.
      */
-    public function __construct( // @phpstan-ignore-line
+    public function __construct(
         public string $associate,
         int $size = Integer::SIZE_REGULAR,
         bool $null = false,

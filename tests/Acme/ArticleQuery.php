@@ -8,8 +8,8 @@ use ICanBoogie\ActiveRecord\Query;
  * @extends Query<Article>
  *
  * @property-read self $ordered
- * @uses self::ordered
- * @uses self::get_ordered
+ *     {@see self::ordered()}
+ *     {@see self::get_ordered()}
  */
 class ArticleQuery extends Query
 {

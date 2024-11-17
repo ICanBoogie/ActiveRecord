@@ -14,8 +14,6 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
  * @property-read Skill $hire_skill
  * @property-read Skill $summon_skill
  * @property-read Skill $teach_skill
- *
- * @extends ActiveRecord<int>
  */
 #[HasMany(Equipment::class, through: PersonEquipment::class)]
 class Person extends ActiveRecord
