@@ -1,9 +1,11 @@
+# $schema: https://phpstan.olvlvl.com/schema.json
 parameters:
   level: max
   paths:
     - lib
   ignoreErrors:
-  - "#get_.*is unused#"
-  - "#generic class .+Model does not specify its types#"
-  - "#generic class .+Model but does not specify its types#"
-  - "#generic class .+Query but does not specify its types#"
+    - identifier: trait.unused
+    - "#get_.*is unused#"
+    - "#generic class .+Model does not specify its types#"
+    - "#generic class .+Model but does not specify its types#"
+    - "#generic class .+Query but does not specify its types#"

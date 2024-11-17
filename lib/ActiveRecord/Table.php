@@ -17,7 +17,6 @@ use function array_values;
 use function count;
 use function implode;
 use function is_array;
-use function is_numeric;
 use function is_string;
 use function strtr;
 
@@ -109,7 +108,7 @@ class Table
         }
 
         $columns = array_reverse($columns);
-        $columns = array_merge(...array_values($columns));
+        $columns = array_merge(...$columns);
 
         return new Schema($columns, primary: $this->primary);
     }
@@ -220,7 +219,7 @@ class Table
     /**
      * Interface to the connection's prepare method.
      *
-     * The statement is resolved by the {@link resolve_statement()} method before the call is
+     * The statement is resolved by the {@see resolve_statement()} method before the call is
      * forwarded.
      *
      * @param non-empty-string $query
@@ -235,7 +234,7 @@ class Table
     /**
      * Executes a statement.
      *
-     * The statement is prepared by the {@link prepare()} method before it is executed.
+     * The statement is prepared by the {@see prepare()} method before it is executed.
      *
      * @param non-empty-string $query
      * @param array<int|string, mixed> $args
@@ -317,7 +316,6 @@ class Table
                 );
 
             assert(is_string($this->primary));
-            assert(is_numeric($parent_id));
 
             $values[$this->primary] = $parent_id;
         }
@@ -375,9 +373,9 @@ class Table
     /**
      * Inserts values into the table.
      *
-     * @param non-empty-array<mixed> $values The values to insert.
+     * @param non-empty-array<string, mixed> $values The values to insert.
      * @param bool $ignore Optional value to ignore insert errors.
-     * @param bool $upsert Optional value to update the row if there's a matching primary key.
+     * @param bool $upsert Optional value to update the row if there is a matching primary key.
      */
     public function insert(array $values, bool $ignore = false, bool $upsert = false): void
     {

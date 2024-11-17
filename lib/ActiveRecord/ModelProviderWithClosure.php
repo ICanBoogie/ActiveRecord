@@ -9,6 +9,9 @@ use Closure;
  */
 final readonly class ModelProviderWithClosure implements ModelProvider
 {
+    /**
+     * @param Closure(string):Model $closure
+     */
     public function __construct(
         private Closure $closure
     ) {

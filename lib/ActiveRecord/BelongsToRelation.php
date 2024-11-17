@@ -32,7 +32,7 @@ final readonly class BelongsToRelation extends Relation
         }
 
         /** @var ActiveRecord|null */
-        return $this->resolve_related_model()->find($id);
+        return $this->resolve_related_model()->find($id); // @phpstan-ignore argument.type
     }
 
     /**

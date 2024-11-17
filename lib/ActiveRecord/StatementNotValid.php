@@ -33,6 +33,7 @@ class StatementNotValid extends RuntimeException implements Exception
         $message = '';
 
         if ($original) {
+            /** @var string[] $er */
             $er = array_pad($original->errorInfo ?? [], 3, '');
 
             $message = sprintf('%s(%s) %s — ', $er[0], $er[1], $er[2]);

@@ -58,6 +58,8 @@ readonly class Schema
         public array $indexes = []
     ) {
         foreach ($columns as $name => $column) {
+            // (double-checking)
+            // @phpstan-ignore-next-line
             $column instanceof Column
             or throw new InvalidArgumentException(
                 sprintf(
@@ -70,6 +72,8 @@ readonly class Schema
         }
 
         foreach ($indexes as $index) {
+            // (double-checking)
+            // @phpstan-ignore-next-line
             $index instanceof Index
             or throw new InvalidArgumentException(
                 sprintf(

@@ -42,11 +42,11 @@ class DateTimePropertySupport
     public static function ensureNotEmpty(&$property, $datetime = 'now'): DateTime
     {
         if (!self::get($property)->is_empty) {
-            return $property;
+            return $property; // @phpstan-ignore return.type
         }
 
         self::set($property, $datetime);
 
-        return $property;
+        return $property; // @phpstan-ignore return.type
     }
 }

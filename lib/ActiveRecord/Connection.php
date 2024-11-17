@@ -198,7 +198,7 @@ class Connection
 
         $this->telemetry->record_execute_duration(
             $statement,
-            static fn() => $statement->execute($args)
+            static fn() => $statement->execute($args) // @phpstan-ignore argument.type
         );
 
         return $statement;
@@ -223,7 +223,6 @@ class Connection
         $statement = $this->resolve_statement($statement);
 
         try {
-            // @phpstan-ignore-next-line
             return $this->telemetry->record_execute_duration(
                 $statement,
                 fn() => $this->pdo->exec($statement)

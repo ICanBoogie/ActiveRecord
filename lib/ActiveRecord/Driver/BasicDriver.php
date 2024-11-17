@@ -22,7 +22,7 @@ abstract class BasicDriver implements Driver
     use AccessorTrait;
 
     /**
-     * @var callable
+     * @var callable():Connection
      */
     private $connection_provider;
 

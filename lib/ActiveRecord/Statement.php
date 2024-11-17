@@ -13,33 +13,25 @@ use function json_encode;
 /**
  * A database statement.
  *
- * @see self::get_as_assoc()
  * @property-read $this $as_assoc
  *     Equivalent to `mode(PDO::FETCH_ASSOC)`.
- *
- * @see self::get_all()
- * @property-read array $all
+ *     {@see self::get_as_assoc()}
+ * @property-read array<scalar|null> $all
  *     An array with the matching records.
- * @see self::get_pairs()
- * @property-read array $pairs
+ *     {@see self::get_all()}
+ * @property-read array<scalar|null> $pairs
  *     An array of key/value pairs, where _key_ is the value of the first column and _value_ the value of the second
  *     column.
- * @see self::get_one()
+ *     {@see self::get_pairs()}
  * @property-read mixed $one
  *     The first row of the result set (the cursor is closed).
- * @see self::get_rc()
+ *     {@see self::get_one()}
  * @property-read int|string|false|null $rc
  *     The value of the first column of the first row.
+ *     {@see self::get_rc()}
  */
 final class Statement
 {
-    /**
-     * @uses get_as_assoc
-     * @uses get_one
-     * @uses get_rc
-     * @uses get_all
-     * @uses get_pairs
-     */
     use AccessorTrait;
 
     public function __construct(
@@ -64,7 +56,7 @@ final class Statement
             $args = $args[0];
         }
 
-        $this->execute($args);
+        $this->execute($args); // @phpstan-ignore argument.type
 
         return $this;
     }
@@ -82,7 +74,7 @@ final class Statement
      *
      * The connection queries count is incremented.
      *
-     * @param mixed[] $params
+     * @param array<scalar|null> $params
      *
      * @throws StatementNotValid when the execution of the statement fails.
      */
@@ -103,7 +95,7 @@ final class Statement
      *
      * @return $this
      *
-     * @throws UnableToSetFetchMode if the mode cannot be set.
+     * @throws UnableToSetFetchMode if the mode can't be set.
      *
      * @see PDOStatement::setFetchMode()
      */
@@ -185,13 +177,13 @@ final class Statement
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, scalar>
      *     Where _key_ is the value of the first column and _value_ the value of the second column.
      *
      * @see $pairs
      */
     private function get_pairs(): array
     {
-        return $this->pdo_statement->fetchAll(PDO::FETCH_KEY_PAIR);
+        return $this->pdo_statement->fetchAll(PDO::FETCH_KEY_PAIR); // @phpstan-ignore return.type
     }
 }

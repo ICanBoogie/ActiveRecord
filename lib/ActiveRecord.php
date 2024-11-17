@@ -92,9 +92,11 @@ abstract class ActiveRecord extends Prototyped
                 $actual[] = $this->$property;
             }
 
+            // @phpstan-ignore-next-line
             return $actual;
         }
 
+        // @phpstan-ignore-next-line
         return $this->$primary;
     }
 
@@ -295,6 +297,7 @@ abstract class ActiveRecord extends Prototyped
         $key = $this->$primary
             ?? throw new LogicException("Unable to delete record, the primary key is not defined");
 
+        // @phpstan-ignore-next-line
         $model->delete($key);
     }
 }

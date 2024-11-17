@@ -36,34 +36,45 @@ use const PHP_INT_MAX;
  * methods of the {@see Model} class create a {@see Query} object returned for
  * further specification, such as filters or limits.
  *
- * @see self::get_all()
- * @property-read array $all An array with all the records matching the query.
- * @see self::get_one()
- * @property-read TRecord|array<string>|false $one The first record matching the query.
- * @see self::get_pairs()
- * @property-read array $pairs An array of key/value pairs.
- * @see self::get_rc()
- * @property-read int|string|false|null $rc The first column of the first row matching the query.
- * @see self::get_count()
- * @property-read int $count The number of records matching the query.
- * @see self::get_exists()
- * @property-read bool|array $exists `true` if a record matching the query exists, `false`
- * otherwise. If there are multiple records, the property is an array of booleans.
- *
- * @see self::get_joins()
- * @property-read non-empty-string[] $joins The join collection from {@see join()}.
- * @see self::get_joins_args()
- * @property-read mixed[] $joins_args The arguments to the joins.
- * @see self::get_conditions()
- * @property-read non-empty-string[] $conditions The collected conditions.
- * @see self::get_conditions_args()
- * @property-read mixed[] $conditions_args The arguments to the conditions.
- * @see self::get_having_args()
- * @property-read mixed[] $having_args The arguments to the `HAVING` clause.
- * @see self::get_args()
- * @property-read mixed[] $args Returns the arguments to the query.
- * @see self::get_prepared()
- * @property-read Query<TRecord> $prepared Return a prepared query.
+ * @property-read array<mixed> $all
+ *     An array with all the records matching the query.
+ *     {@see self::get_all()}
+ * @property-read TRecord|array<string>|false $one
+ *     The first record matching the query.
+ *     {@see self::get_one()}
+ * @property-read array<string, scalar|null> $pairs
+ *     An array of key/value pairs.
+ *     {@see self::get_pairs()}
+ * @property-read int|string|false|null $rc
+ *     The value of the first column of the first row.
+ *     {@see self::get_rc()}
+ * @property-read int $count
+ *     The number of records matching the query.
+ *     {@see self::get_count()}
+ * @property-read bool $exists
+ *     Whether the query has a match.
+ *     {@see self::get_exists()}
+ * @property-read non-empty-string[] $joins
+ *     The join collection from {@see join()}.
+ *     {@see self::get_joins()}
+ * @property-read mixed[] $joins_args
+ *     The arguments to the joins.
+ *     {@see self::get_joins_args()}
+ * @property-read non-empty-string[] $conditions
+ *     The collected conditions.
+ *     {@see self::get_conditions()}
+ * @property-read mixed[] $conditions_args
+ *     The arguments to the conditions.
+ *     {@see self::get_conditions_args()}
+ * @property-read mixed[] $having_args
+ *     The arguments to the `HAVING` clause.
+ *     {@see self::get_having_args()}
+ * @property-read mixed[] $args
+ *     Returns the arguments to the query.
+ *     {@see self::get_args()}
+ * @property-read Query<TRecord> $prepared
+ *     Return a prepared query.
+ *     {@see self::get_prepared()}
  */
 class Query implements IteratorAggregate
 {
@@ -204,7 +215,7 @@ class Query implements IteratorAggregate
      * @param Model<TRecord> $model The model to query.
      */
     public function __construct(
-        public readonly Model $model
+        public readonly Model $model // @phpstan-ignore generics.variance
     ) {
     }
 
@@ -327,9 +338,8 @@ class Query implements IteratorAggregate
         $field = array_shift($order);
         assert(is_string($field));
         $field_values = is_array($order[0]) ? $order[0] : $order;
-        $field_values = array_map(function ($v) use ($connection) {
-            return $connection->quote($v);
-        }, $field_values);
+        // @phpstan-ignore-next-line
+        $field_values = array_map(fn($v) => $connection->quote($v), $field_values);
 
         return "ORDER BY FIELD($field, " . implode(', ', $field_values) . ")";
     }
@@ -357,8 +367,7 @@ class Query implements IteratorAggregate
     /**
      * Resolve the placeholders of a statement.
      *
-     * Note: Currently, the method simply forwards the statement to the model's
-     * resolve_statement() method.
+     * Note: Currently, the method forwards the statement to the model's resolve_statement() method.
      */
     private function resolve_statement(string $statement): string
     {
@@ -546,12 +555,12 @@ class Query implements IteratorAggregate
 
         $target = $this->model;
 
-        while ($target) {
+        while ($target instanceof Model) {
             if ($target->schema->has_column($column)) {
                 break;
             }
 
-            $target = $target->parent_model;
+            $target = $target->parent;
         }
 
         if (!$target) {
@@ -587,6 +596,7 @@ class Query implements IteratorAggregate
 
                     if (is_array($arg)) {
                         foreach ($arg as $value) {
+                            // @phpstan-ignore-next-line argument.type
                             $joined .= ',' . (is_numeric($value) ? $value : $this->model->connection->quote($value));
                         }
 
@@ -608,6 +618,8 @@ class Query implements IteratorAggregate
 
             $conditions = substr($c, 5);
         } else {
+            assert(is_null($conditions) || is_string($conditions));
+
             $conditions_args = [];
 
             if ($args) {
@@ -615,9 +627,8 @@ class Query implements IteratorAggregate
                     $conditions_args = $args[0];
                 } else {
                     #
-                    # We dereference values otherwise the caller would get a corrupted array.
+                    # We dereference values, otherwise the caller would get a corrupted array.
                     #
-
                     foreach ($args as $key => $value) {
                         $conditions_args[$key] = $value;
                     }
@@ -638,8 +649,8 @@ class Query implements IteratorAggregate
      *
      * 1. Pure string conditions
      *
-     * If you'd like to add conditions to your statement, you could specify them in there,
-     * just like `$model->where('order_count = 2');`. This will find all the entries, where the
+     * If you would like to add conditions to your statement, you could specify them in there,
+     * like `$model->where('order_count = 2');`. This will find all the entries where the
      * `order_count` field's value is 2.
      *
      * 2. Array conditions
@@ -665,7 +676,7 @@ class Query implements IteratorAggregate
      *
      * `$model->where([ 'order_id' => [ 123, 456, 789 ] ]);`
      *
-     * This will return the orders with the `order_id` 123, 456 or 789.
+     * This will return the orders with the `order_id` 123, 456, or 789.
      *
      * 3. Modifiers
      *
@@ -674,7 +685,7 @@ class Query implements IteratorAggregate
      *
      * `$model->where([ '!order_id' => [ 123, 456, 789 ]]);`
      *
-     * This will return the orders with the `order_id` different from 123, 456 and 789.
+     * This will return the orders with the `order_id` different from 123, 456, and 789.
      *
      * `$model->where([ '!order_count' => 2 ]);`
      *
@@ -821,6 +832,7 @@ class Query implements IteratorAggregate
     private function execute(): Statement
     {
         $statement = $this->prepare();
+        // @phpstan-ignore-next-line
         $statement->execute($this->args);
 
         return $statement;
@@ -932,11 +944,9 @@ class Query implements IteratorAggregate
      * $model->exists(1, 2);
      * $model->exists([ 1, 2 ]);
      *
-     * @param mixed $key
-     *
      * @return bool|array
      */
-    public function exists($key = null) // @phpstan-ignore-line
+    public function exists(mixed $key = null) // @phpstan-ignore-line
     {
         if ($key !== null && func_num_args() > 1) {
             $key = func_get_args();
@@ -987,9 +997,9 @@ class Query implements IteratorAggregate
         return !empty($rc);
     }
 
-    protected function get_exists(): bool
+    private function get_exists(): bool
     {
-        // @phpstan-ignore-next-line
+        /** @var bool */
         return $this->exists();
     }
 
@@ -1021,6 +1031,7 @@ class Query implements IteratorAggregate
         $statement = ($this->model)($query, $this->args);
 
         if ($method == 'COUNT' && $column) {
+            // @phpstan-ignore-next-line
             return $statement->pairs;
         }
 

@@ -37,7 +37,7 @@
   },
   "require-dev": {
     "ext-pdo_mysql": "*",
-    "phpstan/phpstan": "^1.12",
+    "phpstan/phpstan": "^2.0",
     "phpunit/phpunit": "^11.4"
   },
   "autoload": {
