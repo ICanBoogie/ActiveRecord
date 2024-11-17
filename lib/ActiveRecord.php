@@ -29,7 +29,7 @@ use function is_array;
  * @see self::get_primary_key_value()
  * @property-read TKey $primary_key_value The value of the primary key.
  *
- * @template TKey of int|non-empty-string|non-empty-array<non-empty-string>
+ * @template TKey of scalar|scalar[]
  */
 abstract class ActiveRecord extends Prototyped
 {

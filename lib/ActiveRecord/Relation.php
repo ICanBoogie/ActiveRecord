@@ -73,7 +73,7 @@ abstract readonly class Relation
      *
      * @param class-string<T> $activerecord_class
      *
-     * @return Model<int|non-empty-string|non-empty-string[], T>
+     * @return Model<scalar|scalar[], T>
      */
     protected function model_for_activerecord(string $activerecord_class): Model
     {

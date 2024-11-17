@@ -12,7 +12,7 @@ use LogicException;
 final class StaticModelProvider
 {
     /**
-     * @var (Closure(): ModelProvider)|null
+     * @var (Closure():ModelProvider)|null
      */
     private static ?Closure $factory = null;
 
@@ -21,10 +21,10 @@ final class StaticModelProvider
     /**
      * Sets the {@see ModelProvider} factory.
      *
-     * @param (callable(): ModelProvider) $factory
+     * @param (callable():ModelProvider) $factory
      *     The factory is invoked once: the first time {@see model_for_record} is invoked.
      *
-     * @return (callable(): ModelProvider)|null
+     * @return (callable():ModelProvider)|null
      *     The previous factory, or `null` if none was defined.
      */
     public static function set(callable $factory): ?callable
@@ -40,7 +40,7 @@ final class StaticModelProvider
     /**
      * Returns the current {@see ModelProvider} factory.
      *
-     * @return (callable(): ModelProvider)|null
+     * @return (callable():ModelProvider)|null
      */
     public static function get(): ?callable
     {
@@ -63,7 +63,7 @@ final class StaticModelProvider
      *
      * @param class-string<T> $activerecord_class
      *
-     * @phpstan-return Model<int|non-empty-string|non-empty-string[], T>
+     * @phpstan-return Model<scalar|scalar[], T>
      **/
     public static function model_for_record(string $activerecord_class): Model
     {

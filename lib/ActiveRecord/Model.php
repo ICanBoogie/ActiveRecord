@@ -15,7 +15,7 @@ use function implode;
 /**
  * Base class for activerecord models.
  *
- * @template TKey of int|non-empty-string|non-empty-string[]
+ * @template TKey of scalar|scalar[]
  * @template TValue of ActiveRecord
  *
  * @property-read Model|null $parent Parent model.
