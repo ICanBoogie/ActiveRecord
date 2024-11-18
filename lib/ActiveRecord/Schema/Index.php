@@ -7,7 +7,7 @@ use Attribute;
 /**
  * An index on one or multiple columns.
  */
-#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
 final readonly class Index implements SchemaAttribute
 {
     /**
