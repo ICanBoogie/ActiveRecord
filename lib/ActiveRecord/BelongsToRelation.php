@@ -8,7 +8,6 @@ use LogicException;
 
 use function array_pop;
 use function explode;
-use function ICanBoogie\singularize;
 
 /**
  * Representation of a belongs_to relation.
@@ -57,6 +56,6 @@ final readonly class BelongsToRelation extends Relation
         $parts = explode('.', $related);
         $part = array_pop($parts);
 
-        return singularize($part);
+        return Inflector::singularize($part);
     }
 }

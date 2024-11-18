@@ -23,10 +23,7 @@ use Throwable;
 
 use function assert;
 use function get_parent_class;
-use function ICanBoogie\pluralize;
-use function ICanBoogie\singularize;
 use function ICanBoogie\trim_suffix;
-use function ICanBoogie\underscore;
 use function is_string;
 use function json_encode;
 use function preg_match;
@@ -245,7 +242,7 @@ final class ConfigBuilder
 
         $related = $this->model_definitions[$association->associate];
         $foreign_key = $association->foreign_key;
-        $as = $association->as ?? pluralize($related->alias);
+        $as = $association->as ?? Inflector::pluralize($related->alias);
 
         if ($association->through) {
             $foreign_key ??= $related->schema->primary;
@@ -372,7 +369,7 @@ final class ConfigBuilder
             activerecord_class: $record_class,
             query_class: $query_class,
             table_name: $table_name,
-            alias: $alias ?? singularize($table_name), // @phpstan-ignore-line
+            alias: $alias ?? Inflector::singularize($table_name), // @phpstan-ignore-line
             connection: $connection,
         );
 
@@ -389,7 +386,7 @@ final class ConfigBuilder
         $pos = strrpos($activerecord_class, '\\');
         $base = substr($activerecord_class, $pos + 1);
 
-        return pluralize(underscore($base)); // @phpstan-ignore-line
+        return Inflector::pluralize(Inflector::underscore($base)); // @phpstan-ignore-line
     }
 
     private bool $use_attributes = false;

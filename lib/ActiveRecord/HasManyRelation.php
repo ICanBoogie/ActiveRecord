@@ -6,7 +6,6 @@ use ICanBoogie\ActiveRecord;
 use LogicException;
 use PDO;
 
-use function ICanBoogie\pluralize;
 use function is_string;
 
 /**
@@ -94,6 +93,6 @@ final readonly class HasManyRelation extends Relation
 
     protected function resolve_property_name(string $related): string
     {
-        return pluralize(parent::resolve_property_name($related));
+        return Inflector::pluralize(parent::resolve_property_name($related));
     }
 }

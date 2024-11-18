@@ -2,9 +2,9 @@
 
 namespace ICanBoogie\ActiveRecord\Config;
 
+use ICanBoogie\ActiveRecord\Inflector;
 use ICanBoogie\ActiveRecord\Schema;
 
-use function ICanBoogie\singularize;
 use function strrpos;
 use function substr;
 
@@ -61,6 +61,6 @@ readonly class TableDefinition
             : $name;
 
         /** @var non-empty-string */
-        return singularize($alias);
+        return Inflector::singularize($alias);
     }
 }

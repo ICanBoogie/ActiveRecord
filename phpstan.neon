@@ -9,3 +9,5 @@ parameters:
     - "#generic class .+Model does not specify its types#"
     - "#generic class .+Model but does not specify its types#"
     - "#generic class .+Query but does not specify its types#"
+    # See https://github.com/phpstan/phpstan/issues/12075
+    - "/should return .+Inflector but returns mixed/"
