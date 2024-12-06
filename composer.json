@@ -27,7 +27,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": ">=8.2",
+    "php": ">=8.4",
     "ext-pdo": "*",
     "icanboogie/common": "^6.0",
     "icanboogie/datetime": "^3.0",

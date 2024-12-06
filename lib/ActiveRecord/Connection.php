@@ -2,8 +2,9 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
+use ICanBoogie\ActiveRecord\Driver\MySQLDriver;
+use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
 use InvalidArgumentException;
 use PDO;
 use PDOException;
@@ -15,26 +16,9 @@ use function strtr;
 
 /**
  * A connection to a database.
- *
- * @see self::get_last_insert_id()
- * @property-read int $last_insert_id
- *     Returns the ID of the last inserted row, or the last value from a sequence object,
- *     depending on the underlying driver.
  */
 class Connection
 {
-    /**
-     * @see self::get_last_insert_id()
-     */
-    use AccessorTrait;
-
-    private const DRIVERS_MAPPING = [
-
-        'mysql' => Driver\MySQLDriver::class,
-        'sqlite' => Driver\SQLiteDriver::class,
-
-    ];
-
     public readonly string $id;
 
     /**
@@ -113,30 +97,19 @@ class Connection
     }
 
     /**
-     * Resolves driver class.
+     * Resolves a {@see Driver} implementation.
      *
-     * @return class-string<Driver>
      * @throws DriverNotDefined
-     *
-     */
-    private function resolve_driver_class(string $driver_name): string
-    {
-        return self::DRIVERS_MAPPING[$driver_name]
-            ?? throw new DriverNotDefined($driver_name); // @phpstan-ignore-line
-    }
-
-    /**
-     * Resolves a {@link Driver} implementation.
      */
     private function resolve_driver(string $driver_name): Driver
     {
-        $driver_class = $this->resolve_driver_class($driver_name);
+        $connection_provider = fn() => $this;
 
-        return new $driver_class(
-            function () {
-                return $this;
-            }
-        );
+        return match ($driver_name) {
+            'mysql' => new MySQLDriver($connection_provider),
+            'sqlite' => new SQLiteDriver($connection_provider),
+            default => throw new DriverNotDefined($driver_name), // @phpstan-ignore-line
+        };
     }
 
     /**
@@ -171,7 +144,7 @@ class Connection
      * Overrides the method to resolve the statement before it is prepared, then set its fetch
      * mode and connection.
      *
-     * @throws StatementNotValid if the statement cannot be prepared.
+     * @throws StatementNotValid if the statement can't be prepared.
      */
     public function prepare(string $statement): Statement
     {
@@ -216,7 +189,7 @@ class Connection
      * Using this method increments the `queries_count` stat.
      *
      * @return false|int @FIXME https://github.com/sebastianbergmann/phpunit/issues/4735
-     * @throws StatementNotValid if the statement cannot be executed.
+     * @throws StatementNotValid if the statement can't be executed.
      */
     public function exec(string $statement): bool|int
     {
@@ -232,15 +205,21 @@ class Connection
         }
     }
 
-    public function get_last_insert_id(): int
+    /**
+     * The ID of the last inserted row, or the last value from a sequence object,
+     * depending on the underlying driver.
+     */
+    public int $last_insert_id
     {
-        $id = $this->pdo->lastInsertId();
+        get {
+            $id = $this->pdo->lastInsertId();
 
-        if ($id === false) {
-            throw new RuntimeException("Unable to retrieve last inserted ID");
+            if ($id === false) {
+                throw new RuntimeException("Unable to retrieve last inserted ID");
+            }
+
+            return (int)$id;
         }
-
-        return (int)$id;
     }
 
     /**
@@ -248,9 +227,9 @@ class Connection
      *
      * The following placeholders are supported:
      *
-     * - `{prefix}`: replaced by the {@link $table_name_prefix} property.
-     * - `{charset}`: replaced by the {@link $charset} property.
-     * - `{collate}`: replaced by the {@link $collate} property.
+     * - `{prefix}`: replaced by the {@see $table_name_prefix} property.
+     * - `{charset}`: replaced by the {@see $charset} property.
+     * - `{collate}`: replaced by the {@see $collate} property.
      */
     public function resolve_statement(string $statement): string
     {

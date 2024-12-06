@@ -4,7 +4,6 @@ namespace ICanBoogie\ActiveRecord;
 
 use DateTimeInterface;
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\PrototypeTrait;
 use InvalidArgumentException;
 use IteratorAggregate;
 use LogicException;
@@ -35,52 +34,10 @@ use const PHP_INT_MAX;
  * The class offers many features to compose model queries. Most query-related
  * methods of the {@see Model} class create a {@see Query} object returned for
  * further specification, such as filters or limits.
- *
- * @property-read array<mixed> $all
- *     An array with all the records matching the query.
- *     {@see self::get_all()}
- * @property-read TRecord|array<string>|false $one
- *     The first record matching the query.
- *     {@see self::get_one()}
- * @property-read array<string, scalar|null> $pairs
- *     An array of key/value pairs.
- *     {@see self::get_pairs()}
- * @property-read int|string|false|null $rc
- *     The value of the first column of the first row.
- *     {@see self::get_rc()}
- * @property-read int $count
- *     The number of records matching the query.
- *     {@see self::get_count()}
- * @property-read bool $exists
- *     Whether the query has a match.
- *     {@see self::get_exists()}
- * @property-read non-empty-string[] $joins
- *     The join collection from {@see join()}.
- *     {@see self::get_joins()}
- * @property-read mixed[] $joins_args
- *     The arguments to the joins.
- *     {@see self::get_joins_args()}
- * @property-read non-empty-string[] $conditions
- *     The collected conditions.
- *     {@see self::get_conditions()}
- * @property-read mixed[] $conditions_args
- *     The arguments to the conditions.
- *     {@see self::get_conditions_args()}
- * @property-read mixed[] $having_args
- *     The arguments to the `HAVING` clause.
- *     {@see self::get_having_args()}
- * @property-read mixed[] $args
- *     Returns the arguments to the query.
- *     {@see self::get_args()}
- * @property-read Query<TRecord> $prepared
- *     Return a prepared query.
- *     {@see self::get_prepared()}
  */
 class Query implements IteratorAggregate
 {
-    use PrototypeTrait;
-
-    public const LIMIT_MAX = PHP_INT_MAX;
+    public const int LIMIT_MAX = PHP_INT_MAX;
 
     /**
      * Part of the `SELECT` clause.
@@ -92,16 +49,14 @@ class Query implements IteratorAggregate
      *
      * @var non-empty-string[]
      */
-    private array $joins = [];
+    private array $joins_ = [];
 
     /**
-     * @return non-empty-string[]
-     *
-     * @see $joins
+     * @var non-empty-string[]
      */
-    private function get_joins(): array
+    public array $joins
     {
-        return $this->joins;
+        get => $this->joins_;
     }
 
     /**
@@ -109,16 +64,14 @@ class Query implements IteratorAggregate
      *
      * @var mixed[]
      */
-    private array $joins_args = [];
+    private array $joins_args_ = [];
 
     /**
-     * @return mixed[]
-     *
-     * @see $joins_args
+     * @var mixed[]
      */
-    private function get_joins_args(): array
+    public array $joins_args
     {
-        return $this->joins_args;
+        get => $this->joins_args_;
     }
 
     /**
@@ -126,14 +79,14 @@ class Query implements IteratorAggregate
      *
      * @var non-empty-string[]
      */
-    private array $conditions = [];
+    private array $conditions_ = [];
 
     /**
-     * @return non-empty-string[]
+     * @var non-empty-string[]
      */
-    private function get_conditions(): array
+    public array $conditions
     {
-        return $this->conditions;
+        get => $this->conditions_;
     }
 
     /**
@@ -141,14 +94,14 @@ class Query implements IteratorAggregate
      *
      * @var mixed[]
      */
-    private array $conditions_args = [];
+    private array $conditions_args_ = [];
 
     /**
-     * @return mixed[]
+     * @var mixed[]
      */
-    private function get_conditions_args(): array
+    public array $conditions_args
     {
-        return $this->conditions_args;
+        get => $this->conditions_args_;
     }
 
     /**
@@ -161,25 +114,25 @@ class Query implements IteratorAggregate
      *
      * @var mixed[]
      */
-    private array $having_args = [];
+    private array $having_args_ = [];
 
     /**
-     * @return mixed[]
+     * @var mixed[]
      */
-    private function get_having_args(): array
+    public array $having_args
     {
-        return $this->having_args;
+        get => $this->having_args_;
     }
 
     /**
      * Returns the arguments to the query, which include joins arguments, conditions arguments,
      * and _having_ arguments.
      *
-     * @return mixed[]
+     * @var mixed[]
      */
-    private function get_args(): array
+    public array $args
     {
-        return array_merge($this->joins_args, $this->conditions_args, $this->having_args);
+        get => array_merge($this->joins_args_, $this->conditions_args_, $this->having_args_);
     }
 
     /**
@@ -266,7 +219,7 @@ class Query implements IteratorAggregate
      */
     private function render_joins(): string
     {
-        return implode(' ', $this->joins);
+        return implode(' ', $this->joins_);
     }
 
     /**
@@ -276,11 +229,11 @@ class Query implements IteratorAggregate
     {
         $query = '';
 
-        if ($this->joins) {
+        if ($this->joins_) {
             $query = ' ' . $this->render_joins();
         }
 
-        $conditions = $this->conditions;
+        $conditions = $this->conditions_;
 
         if ($conditions) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
@@ -435,7 +388,7 @@ class Query implements IteratorAggregate
         ?string $on = null,
     ): static {
         if ($expression) {
-            $this->joins[] = $expression;
+            $this->joins_[] = $expression;
 
             return $this;
         }
@@ -487,8 +440,8 @@ class Query implements IteratorAggregate
             $on = ' ' . $on;
         }
 
-        $this->joins[] = "$mode JOIN($query) `$as`$on";
-        $this->joins_args = array_merge($this->joins_args, $query->args);
+        $this->joins_[] = "$mode JOIN($query) `$as`$on";
+        $this->joins_args_ = array_merge($this->joins_args_, $query->args);
     }
 
     /**
@@ -535,7 +488,7 @@ class Query implements IteratorAggregate
             return $primary;
         }) ();
 
-        $this->joins[] = "$mode JOIN `$model->name` AS `$as` USING(`$on`)";
+        $this->joins_[] = "$mode JOIN `$model->name` AS `$as` USING(`$on`)";
     }
 
     /**
@@ -700,10 +653,10 @@ class Query implements IteratorAggregate
         [ $conditions, $conditions_args ] = $this->deferred_parse_conditions(...$conditions_and_args);
 
         if ($conditions) {
-            $this->conditions[] = $conditions;
+            $this->conditions_[] = $conditions;
 
             if ($conditions_args) {
-                $this->conditions_args = array_merge($this->conditions_args, $conditions_args);
+                $this->conditions_args_ = array_merge($this->conditions_args_, $conditions_args);
             }
         }
 
@@ -762,7 +715,7 @@ class Query implements IteratorAggregate
         assert($having !== null);
 
         $this->having = $having;
-        $this->having_args = $having_args;
+        $this->having_args_ = $having_args;
 
         return $this;
     }
@@ -820,10 +773,12 @@ class Query implements IteratorAggregate
 
     /**
      * Return a prepared query.
+     *
+     * @deprecated Use {@see self::prepare()}
      */
-    protected function get_prepared(): Statement
+    public Statement $prepared
     {
-        return $this->prepare();
+        get => $this->prepare();
     }
 
     /**
@@ -878,13 +833,13 @@ class Query implements IteratorAggregate
     }
 
     /**
-     * Getter for the {@see $all} magic property.
+     * @var TRecord[]|mixed[]
      *
-     * @return TRecord[]|mixed[]
+     * @see self::all()
      */
-    protected function get_all(): array
+    public array $all
     {
-        return $this->all();
+        get => $this->all();
     }
 
     /**
@@ -906,33 +861,32 @@ class Query implements IteratorAggregate
     }
 
     /**
-     * @see $one
+     * @see self::one()
      */
-    protected function get_one(): mixed
+    public mixed $one
     {
-        return $this->one();
+        get => $this->one();
     }
 
     /**
      * Execute the query and return an array of key/value pairs, where _key_ is the value of
      * the first column and _value_ the value of the second column.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      *
-     * @see $pairs
+     * @see self::pairs()
      */
-    protected function get_pairs(): array
+    public array $pairs
     {
-        // @phpstan-ignore-next-line
-        return $this->all(PDO::FETCH_KEY_PAIR);
+        get => $this->all(PDO::FETCH_KEY_PAIR);
     }
 
     /**
      * Returns the first column of the first row.
      */
-    protected function get_rc(): int|string|false|null
+    public int|string|false|null $rc
     {
-        return (clone $this)->take(1)->execute()->rc;
+        get => (clone $this)->take(1)->execute()->rc;
     }
 
     /**
@@ -997,10 +951,9 @@ class Query implements IteratorAggregate
         return !empty($rc);
     }
 
-    private function get_exists(): bool
+    public bool $exists
     {
-        /** @var bool */
-        return $this->exists();
+        get => $this->exists();
     }
 
     /**
@@ -1053,13 +1006,13 @@ class Query implements IteratorAggregate
     }
 
     /**
-     * @return int|array<non-empty-string, int>
+     * @var int|array<non-empty-string, int>
      *
-     * @see $count
+     * @see self::count()
      */
-    protected function get_count(): int|array
+    public int|array $count
     {
-        return $this->count();
+        get => $this->count();
     }
 
     /**
@@ -1118,7 +1071,7 @@ class Query implements IteratorAggregate
      */
     public function delete(?string $tables = null): Statement
     {
-        if (!$tables && $this->joins) {
+        if (!$tables && $this->joins_) {
             $tables = "`{alias}`";
         }
 
@@ -1137,7 +1090,7 @@ class Query implements IteratorAggregate
     # Batches
     #
 
-    public const DEFAULT_BATCH_SIZE = 1000;
+    public const int DEFAULT_BATCH_SIZE = 1000;
 
     private int $batch_size = self::DEFAULT_BATCH_SIZE;
 

@@ -2,7 +2,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use ICanBoogie\Accessor\AccessorTrait;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -12,28 +11,9 @@ use function json_encode;
 
 /**
  * A database statement.
- *
- * @property-read $this $as_assoc
- *     Equivalent to `mode(PDO::FETCH_ASSOC)`.
- *     {@see self::get_as_assoc()}
- * @property-read array<scalar|null> $all
- *     An array with the matching records.
- *     {@see self::get_all()}
- * @property-read array<scalar|null> $pairs
- *     An array of key/value pairs, where _key_ is the value of the first column and _value_ the value of the second
- *     column.
- *     {@see self::get_pairs()}
- * @property-read mixed $one
- *     The first row of the result set (the cursor is closed).
- *     {@see self::get_one()}
- * @property-read int|string|false|null $rc
- *     The value of the first column of the first row.
- *     {@see self::get_rc()}
  */
 final class Statement
 {
-    use AccessorTrait;
-
     public function __construct(
         public readonly PDOStatement $pdo_statement,
         private readonly ConnectionTelemetry $telemetry,
@@ -108,9 +88,12 @@ final class Statement
         return $this;
     }
 
-    private function get_as_assoc(): self
+    /**
+     * Equivalent to `mode(PDO::FETCH_ASSOC)`.
+     */
+    public self $as_assoc
     {
-        return $this->mode(PDO::FETCH_ASSOC);
+        get => $this->mode(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -132,25 +115,29 @@ final class Statement
     }
 
     /**
+     * The first row of the result set (the cursor is closed).
+     *
      * @see $one
      */
-    private function get_one(): mixed
+    public mixed $one
     {
-        return $this->one();
+        get => $this->one();
     }
 
     /**
-     * Fetches the first column of the first row of the result set and closes the cursor.
+     * The value of the first column of the first row.
      *
      * @see $rc
      */
-    private function get_rc(): int|string|false|null
+    public int|string|false|null $rc
     {
-        $rc = $this->pdo_statement->fetchColumn();
+        get {
+            $rc = $this->pdo_statement->fetchColumn();
 
-        $this->pdo_statement->closeCursor();
+            $this->pdo_statement->closeCursor();
 
-        return $rc;
+            return $rc;
+        }
     }
 
     /**
@@ -167,23 +154,24 @@ final class Statement
     }
 
     /**
-     * @return mixed[]
+     * @var array<scalar|null> $all
+     *     An array with the matching records.
      *
      * @see $all
      */
-    private function get_all(): array
+    public array $all
     {
-        return $this->pdo_statement->fetchAll();
+        get => $this->pdo_statement->fetchAll();
     }
 
     /**
-     * @return array<string, scalar>
+     * @var array<string, scalar>
      *     Where _key_ is the value of the first column and _value_ the value of the second column.
      *
      * @see $pairs
      */
-    private function get_pairs(): array
+    public array $pairs
     {
-        return $this->pdo_statement->fetchAll(PDO::FETCH_KEY_PAIR); // @phpstan-ignore return.type
+        get => $this->pdo_statement->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 }

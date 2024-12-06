@@ -1,30 +1,13 @@
 ---
 services:
-  app82:
-    build:
-      context: .
-      args:
-        PHP_VERSION: "8.2"
-    environment: &env
-      PHP_IDE_CONFIG: 'serverName=icanboogie-activerecord'
-    volumes: &vol
-    - .:/app:delegated
-    - ~/.composer:/root/.composer:delegated
-    working_dir: /app
-  app83:
-    build:
-      context: .
-      args:
-        PHP_VERSION: "8.3"
-    environment: *env
-    volumes: *vol
-    working_dir: /app
   app84:
     build:
       context: .
-      dockerfile: Dockerfile
       args:
-        PHP_VERSION: '8.4.0RC4'
-    environment: *env
-    volumes: *vol
+        PHP_VERSION: "8.4"
+    environment:
+      PHP_IDE_CONFIG: 'serverName=icanboogie-activerecord'
+    volumes:
+      - .:/app:delegated
+      - ~/.composer:/root/.composer:delegated
     working_dir: /app

@@ -2,8 +2,8 @@
 
 namespace ICanBoogie\ActiveRecord\Driver;
 
+use Closure;
 use DateTimeInterface;
-use ICanBoogie\Accessor\AccessorTrait;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\ActiveRecord\Schema;
@@ -11,32 +11,21 @@ use ICanBoogie\DateTime;
 
 /**
  * Basic connection driver.
- *
- * @property-read Connection $connection {@see self::get_connection}
  */
 abstract class BasicDriver implements Driver
 {
-    /**
-     * @see get_connection
-     */
-    use AccessorTrait;
-
-    /**
-     * @var callable():Connection
-     */
-    private $connection_provider;
-
-    private function get_connection(): Connection
+    public Connection $connection
     {
-        return ($this->connection_provider)();
+        get => ($this->connection_provider)();
     }
 
     /**
-     * @param callable $connection_provider A callable that provides a database connection.
+     * @param Closure():Connection $connection_provider
+     *     A callable that provides a database connection.
      */
-    public function __construct(callable $connection_provider)
-    {
-        $this->connection_provider = $connection_provider;
+    public function __construct(
+        private readonly Closure $connection_provider
+    ) {
     }
 
     /**
