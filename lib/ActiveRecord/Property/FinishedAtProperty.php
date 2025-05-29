@@ -6,37 +6,11 @@ use ICanBoogie\DateTime;
 
 /**
  * Implements a `finished_at` property.
- *
- * @see DateTimeProperty
- *
- * @property DateTime $finished_at
- *
- * @codeCoverageIgnore
  */
 trait FinishedAtProperty
 {
-    /**
-     * The date and time at which the record was finished.
-     *
-     * @var mixed
-     */
-    private $finished_at;
-
-    /**
-     * Returns the date and time at which the record was finished.
-     */
-    protected function get_finished_at(): DateTime
-    {
-        return DateTimePropertySupport::get($this->finished_at);
-    }
-
-    /**
-     * Sets the date and time at which the record was finished.
-     *
-     * @param mixed $datetime
-     */
-    protected function set_finished_at($datetime): void
-    {
-        DateTimePropertySupport::set($this->finished_at, $datetime);
+    public DateTime $finished_at {
+        get => $this->finished_at ??= DateTime::none();
+        set(\DateTimeInterface|DateTime|string|null $value) => DateTimePropertySupport::adapt($value);
     }
 }

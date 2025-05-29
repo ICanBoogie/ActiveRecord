@@ -6,37 +6,11 @@ use ICanBoogie\DateTime;
 
 /**
  * Implements a `started_at` property.
- *
- * @see DateTimeProperty
- *
- * @property DateTime $started_at
- *
- * @codeCoverageIgnore
  */
 trait StartedAtProperty
 {
-    /**
-     * The date and time at which the record was started.
-     *
-     * @var mixed
-     */
-    private $started_at;
-
-    /**
-     * Returns the date and time at which the record was started.
-     */
-    protected function get_started_at(): DateTime
-    {
-        return DateTimePropertySupport::get($this->started_at);
-    }
-
-    /**
-     * Sets the date and time at which the record was started.
-     *
-     * @param mixed $datetime
-     */
-    protected function set_started_at($datetime): void
-    {
-        DateTimePropertySupport::set($this->started_at, $datetime);
+    public DateTime $started_at {
+        get => $this->started_at ??= DateTime::none();
+        set(\DateTimeInterface|DateTime|string|null $value) => DateTimePropertySupport::adapt($value);
     }
 }
