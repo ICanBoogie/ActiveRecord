@@ -36,7 +36,6 @@ final class StatementTest extends TestCase
     {
         $connection = self::$connection;
         $statement = $connection->query('SELECT * FROM test');
-        $this->assertInstanceOf(Statement::class, $statement);
 
         $records = $statement->all;
         $this->assertIsArray($records);
@@ -89,9 +88,6 @@ final class StatementTest extends TestCase
             $this->fail('Expected StatementNotValid excpetion');
         } catch (Exception $e) {
             $this->assertInstanceOf(StatementNotValid::class, $e);
-
-            /* @var $e StatementNotValid */
-
             $this->assertInstanceOf(PDOException::class, $e->original);
             $this->assertNull($e->getPrevious());
 

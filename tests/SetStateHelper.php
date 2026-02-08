@@ -8,7 +8,7 @@ use function var_export;
 
 final class SetStateHelper
 {
-    private const SANDBOX = __DIR__ . '/sandbox';
+    private const string SANDBOX = __DIR__ . '/sandbox';
 
     /**
      * @template T of object

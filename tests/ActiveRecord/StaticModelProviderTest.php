@@ -27,19 +27,18 @@ final class StaticModelProviderTest extends TestCase
 
     public function test_model_for_activerecord(): void
     {
-        $model = $this->getMockBuilder(Model::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $model = $this->createStub(Model::class);
 
-        $resolver = $this->createMock(ModelProvider::class);
-        $resolver
+        $provider = $this->createMock(ModelProvider::class);
+        $provider
+            ->expects($this->exactly(2))
             ->method('model_for_record')
             ->with(Article::class)
             ->willReturn($model);
 
-        StaticModelProvider::set(static function() use (&$n, $resolver) {
+        StaticModelProvider::set(static function() use (&$n, $provider) {
             $n++;
-            return $resolver;
+            return $provider;
         });
 
         $actual = StaticModelProvider::model_for_record(Article::class);

@@ -2,7 +2,6 @@
 
 namespace Test\ICanBoogie\ActiveRecord\Schema;
 
-use ICanBoogie\ActiveRecord\Schema\Binary;
 use ICanBoogie\ActiveRecord\Schema\Date;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\SetStateHelper;

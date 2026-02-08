@@ -16,11 +16,10 @@ use Test\ICanBoogie\Fixtures;
 use function gmdate;
 use function rand;
 use function time;
-use function uniqid;
 
 final class QueryTest extends TestCase
 {
-    private const N = 10;
+    private const int N = 10;
 
     /**
      * @var Query<Node>

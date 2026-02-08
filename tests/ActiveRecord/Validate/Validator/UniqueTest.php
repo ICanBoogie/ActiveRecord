@@ -2,7 +2,6 @@
 
 namespace Test\ICanBoogie\ActiveRecord\Validate\Validator;
 
-use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\Context;

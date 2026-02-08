@@ -81,12 +81,14 @@ final class ActiveRecordTest extends TestCase
 
     public function test_model_is_resolved_with_resolver(): void
     {
-        $resolver = $this->createMock(ModelProvider::class);
-        $resolver->method('model_for_record')
+        $provider = $this->createMock(ModelProvider::class);
+        $provider
+            ->expects($this->exactly(1))
+            ->method('model_for_record')
             ->with(Node::class)
             ->willReturn($this->model);
 
-        StaticModelProvider::set(fn() => $resolver);
+        StaticModelProvider::set(fn() => $provider);
 
         $record = new Node();
 

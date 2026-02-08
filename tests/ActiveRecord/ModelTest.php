@@ -26,7 +26,7 @@ use function uniqid;
 
 final class ModelTest extends TestCase
 {
-    private const PREFIX = 'myprefix';
+    private const string PREFIX = 'myprefix';
 
     private ConnectionCollection $connections;
     private ModelCollection $models;
@@ -35,7 +35,7 @@ final class ModelTest extends TestCase
 
     protected function setUp(): void
     {
-        $config = (new ConfigBuilder())
+        $config = new ConfigBuilder()
             ->add_connection(
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: 'sqlite::memory:',
@@ -219,7 +219,7 @@ final class ModelTest extends TestCase
             new ModelDefinition(
                 table: new TableDefinition(
                     name: $id,
-                    schema: (new SchemaBuilder())
+                    schema: new SchemaBuilder()
                         ->add_serial('id', primary: true)
                         ->build()
                 ),

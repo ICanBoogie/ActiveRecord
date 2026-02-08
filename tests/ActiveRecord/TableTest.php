@@ -35,7 +35,7 @@ final class TableTest extends TestCase
             $connection,
             new TableDefinition(
                 name: 'animals',
-                schema: $this->animals_schema = (new SchemaBuilder())
+                schema: $this->animals_schema = new SchemaBuilder()
                     ->add_serial('id', primary: true)
                     ->add_character('name')
                     ->add_timestamp('date')
@@ -47,7 +47,7 @@ final class TableTest extends TestCase
             $connection,
             new TableDefinition(
                 name: 'dogs',
-                schema: (new SchemaBuilder())
+                schema: new SchemaBuilder()
                     ->add_foreign('id', primary: true)
                     ->add_float('bark_volume')
                     ->build()
@@ -59,7 +59,7 @@ final class TableTest extends TestCase
             $connection,
             new TableDefinition(
                 name: 'multi_column',
-                schema: (new SchemaBuilder())
+                schema: new SchemaBuilder()
                     ->add_integer('pk_1', primary: true)
                     ->add_integer('pk_2', primary: true)
                     ->add_character('title')

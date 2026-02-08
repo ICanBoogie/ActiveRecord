@@ -47,7 +47,7 @@ final class DriverTest extends TestCase
             }
         };
 
-        $schema = (new SchemaBuilder())
+        $schema = new SchemaBuilder()
             ->add_serial('id', primary: true)
             ->add_character('uuid', size: 36, fixed: true, unique: true)
             ->add_character('country', size: 2, fixed: true)

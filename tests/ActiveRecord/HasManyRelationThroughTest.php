@@ -52,7 +52,7 @@ final class HasManyRelationThroughTest extends TestCase
         $this->assertTrue($r->has('patients'));
 
         $ra = $r->get('appointments');
-        assert($ra instanceof HasManyRelation);
+
         $this->assertInstanceOf(HasManyRelation::class, $ra);
         $this->assertEquals('appointments', $ra->as);
         $this->assertEquals('ph_id', $ra->local_key);
@@ -60,7 +60,7 @@ final class HasManyRelationThroughTest extends TestCase
         $this->assertNull($ra->through);
 
         $rp = $r->get('patients');
-        assert($rp instanceof HasManyRelation);
+
         $this->assertInstanceOf(HasManyRelation::class, $rp);
         $this->assertEquals('patients', $rp->as);
         $this->assertEquals('ph_id', $rp->local_key);

@@ -13,7 +13,7 @@ final class SchemaBuilderTest extends TestCase
 {
     public function test_build(): void
     {
-        $actual = (new SchemaBuilder())
+        $actual = new SchemaBuilder()
             ->add_serial('nid', primary: true)
             ->add_boolean('is_active')
             ->add_integer('rating_count')
@@ -55,14 +55,14 @@ final class SchemaBuilderTest extends TestCase
 
     public function test_use_record(): void
     {
-        $expected = (new SchemaBuilder())
+        $expected = new SchemaBuilder()
             ->add_text('body')
             ->add_date('date')
             ->add_integer('rating', null: true)
             ->add_index('rating', name: 'idx_rating')
             ->build();
 
-        $actual = (new SchemaBuilder())
+        $actual = new SchemaBuilder()
             ->use_record(Article::class)
             ->build();
 
@@ -71,7 +71,7 @@ final class SchemaBuilderTest extends TestCase
 
     public function test_build_fails_when_index_uses_undefined_column(): void
     {
-        $builder = (new SchemaBuilder())
+        $builder = new SchemaBuilder()
             ->add_boolean('is_active')
             ->add_index('madonna');
 
