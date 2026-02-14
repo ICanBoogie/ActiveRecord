@@ -12,7 +12,7 @@ None
 
 ### Backward Incompatible Changes
 
-None
+- Removed unused `ModelAttribute`.
 
 ### Deprecated Features
 
@@ -21,6 +21,7 @@ None
 ### Other Changes
 
 - Date properties use property hooks.
+- Remove dependency on icanboogie/common.
 
 
 

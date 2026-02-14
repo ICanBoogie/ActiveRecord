@@ -29,7 +29,6 @@
   "require": {
     "php": ">=8.4",
     "ext-pdo": "*",
-    "icanboogie/common": "^6.0",
     "icanboogie/datetime": "^3.0",
     "icanboogie/inflector": "^4.0",
     "icanboogie/prototype": "^6.0",

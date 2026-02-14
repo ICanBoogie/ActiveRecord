@@ -937,10 +937,8 @@ class Query implements IteratorAggregate
                 $exists[$key] = true;
             }
 
-            foreach ($exists as $v) {
-                if (!$v) {
-                    return $exists;
-                }
+            if (array_any($exists, fn($v) => !$v)) {
+                return $exists;
             }
 
             # all true

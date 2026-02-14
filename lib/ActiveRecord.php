@@ -22,12 +22,6 @@ use function is_array;
  *
  * @method ValidationErrors validate() Validate the active record, returns an array of errors.
  *
- * @property-read Model<static> $model
- *     The model managing the active record.
- *     {@see self::get_model()}
- * @property-read bool $is_new
- *     Whether the record is new or not.
- *     {@see self::get_is_new()}
  * @property-read scalar|scalar[] $primary_key_value
  *     The value of the primary key.
  *     {@see self::get_primary_key_value()}
@@ -61,28 +55,20 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * Model managing the active record.
+     * The model managing the active record.
      *
      * @var Model<static>
      */
-    private Model $model;
-
-    /**
-     * @return Model<static>
-     */
-    protected function get_model(): Model
-    {
-        /** @var Model<static> */
-        return $this->model
-            ??= StaticModelProvider::model_for_record($this::class);
+    public private(set) Model $model {
+        get => $this->model ??= StaticModelProvider::model_for_record($this::class);
     }
 
     /**
      * @return scalar|scalar[]
      */
-    protected function get_primary_key_value(): mixed
+    public function get_primary_key_value(): mixed
     {
-        $model = $this->get_model();
+        $model = $this->model;
         $primary = $model->extended_schema->primary;
 
         if (is_array($primary)) {
@@ -126,8 +112,8 @@ abstract class ActiveRecord extends Prototyped
     {
         $properties = parent::__sleep();
 
-        /** @phpstan-ignore-next-line */
         unset($properties['model']);
+        unset($properties['is_new']);
 
         foreach (array_keys($properties) as $property) {
             if ($this->$property instanceof self) {
@@ -155,21 +141,20 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Whether the record is new or not.
      */
-    protected function get_is_new(): bool
-    {
-        $primary = $this->get_model()->primary;
+    public bool $is_new {
+        get {
+            $primary = $this->model->primary;
 
-        if (is_array($primary)) {
-            foreach ($primary as $property) {
-                if (empty($this->$property)) {
+            if (is_array($primary)) {
+                if (array_any($primary, fn($property) => empty($this->$property))) {
                     return true;
                 }
+            } elseif (empty($this->$primary)) {
+                return true;
             }
-        } elseif (empty($this->$primary)) {
-            return true;
-        }
 
-        return false;
+            return false;
+        }
     }
 
     /**
@@ -183,7 +168,7 @@ abstract class ActiveRecord extends Prototyped
             $this->assert_is_valid();
         }
 
-        $model = $this->get_model();
+        $model = $this->model;
         $schema = $model->extended_schema;
         // @phpstan-ignore-next-line
         $properties = $this->alter_persistent_properties($this->to_array(), $schema);
@@ -290,7 +275,7 @@ abstract class ActiveRecord extends Prototyped
      */
     public function delete(): void
     {
-        $model = $this->get_model();
+        $model = $this->model;
         $model_class = $model::class;
         $primary = $model->primary
             ?? throw new LogicException("Unable to delete record, model `$model_class` doesn't have a primary key");
