@@ -63,6 +63,7 @@ class ConnectionCollection implements ConnectionProvider, ConnectionIterator
     public function connection_iterator(): iterable
     {
         foreach ($this->definitions as $id => $definition) {
+            // @phpstan-ignore-next-line // false positive, $id is a string
             yield $id => new ConnectionAccessor(
                 $definition,
                 isset($this->established[$id]),

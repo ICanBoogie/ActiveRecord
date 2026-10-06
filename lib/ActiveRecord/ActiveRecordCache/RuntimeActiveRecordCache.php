@@ -32,6 +32,8 @@ class RuntimeActiveRecordCache extends AbstractActiveRecordCache implements Iter
             return;
         }
 
+        assert(is_int($key) || is_string($key));
+
         $this->records[$key] = $record;
     }
 

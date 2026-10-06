@@ -6,7 +6,7 @@ use ICanBoogie\ActiveRecord;
 use InvalidArgumentException;
 
 /**
- * A transient version of {@link HasManyAssociation}, used during configuration.
+ * A transient version of {@see HasManyAssociation}, used during configuration.
  *
  * @internal
  */
@@ -24,12 +24,14 @@ final readonly class TransientHasManyAssociation
         public ?string $as,
         public ?string $through,
     ) {
+        // @phpstan-ignore-next-line // false positive
         is_a($associate, ActiveRecord::class, true)
         or throw new InvalidArgumentException(
             "Expected the name of a class extending ICanBoogie\ActiveRecord for \$associate, given: $associate"
         );
 
         if ($through) {
+            // @phpstan-ignore-next-line // false positive
             is_a($through, ActiveRecord::class, true)
             or throw new InvalidArgumentException(
                 "Expected the name of a class extending ICanBoogie\ActiveRecord for \$through, given: $through"

@@ -105,7 +105,7 @@ final class ActiveRecordTest extends TestCase
 
     public function test_serialize_should_remove_model_info(): void
     {
-        $record = new Sample($this->model);
+        $record = new Node($this->model);
         $serialized_record = serialize($record);
 
         $this->assertStringNotContainsString('"model"', $serialized_record);

@@ -257,7 +257,6 @@ class Connection
     {
         $quoted = $this->pdo->quote($string, $type);
 
-        // @phpstan-ignore-next-line
         if ($quoted === false) {
             throw new InvalidArgumentException("Unsupported quote type: $type");
         }

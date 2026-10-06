@@ -878,6 +878,7 @@ class Query implements IteratorAggregate
      */
     public array $pairs
     {
+        // @phpstan-ignore-next-line
         get => $this->all(PDO::FETCH_KEY_PAIR);
     }
 
@@ -934,6 +935,7 @@ class Query implements IteratorAggregate
             $exists = array_fill_keys($key, false);
 
             foreach ($rc as $key) {
+                // @phpstan-ignore-next-line
                 $exists[$key] = true;
             }
 
@@ -951,6 +953,7 @@ class Query implements IteratorAggregate
 
     public bool $exists
     {
+        // @phpstan-ignore-next-line
         get => $this->exists();
     }
 

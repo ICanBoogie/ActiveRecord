@@ -10,7 +10,7 @@ use ICanBoogie\Validate\Reader\AbstractAdapter;
 class RecordAdapter extends AbstractAdapter
 {
     /**
-     * Read values from an {@link ActiveRecord} instance.
+     * Read values from an {@see ActiveRecord} instance.
      */
     public readonly ActiveRecord $record;
 
@@ -28,7 +28,7 @@ class RecordAdapter extends AbstractAdapter
     {
         try {
             return $this->source->$name;
-        } catch (PropertyNotDefined | Error $e) { // @phpstan-ignore-line
+        } catch (PropertyNotDefined | Error $e) {
             return null;
         }
     }

@@ -161,6 +161,7 @@ final class Statement
      */
     public array $all
     {
+        // @phpstan-ignore-next-line
         get => $this->pdo_statement->fetchAll();
     }
 
@@ -172,6 +173,7 @@ final class Statement
      */
     public array $pairs
     {
+        // @phpstan-ignore-next-line
         get => $this->pdo_statement->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 }

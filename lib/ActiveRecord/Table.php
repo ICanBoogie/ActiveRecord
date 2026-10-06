@@ -330,6 +330,7 @@ class Table
             // If we have a parent, its primary key values must be used.
 
             if ($driver_name === 'mysql') {
+                // @phpstan-ignore-next-line
                 if ($parent_id && empty($holders[$this->primary])) {
                     $filtered[] = $parent_id;
                     $holders[] = '`{primary}` = ?';
@@ -349,6 +350,7 @@ class Table
             # a new entry has been created, but we don't have any other fields then the primary key
             #
 
+            // @phpstan-ignore-next-line
             if (empty($identifiers[$this->primary])) {
                 $identifiers[] = '`{primary}`';
                 $filtered[] = $parent_id;

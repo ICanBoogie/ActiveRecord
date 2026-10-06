@@ -126,6 +126,7 @@ class Model extends Table
 
             foreach ($query_records as $record) {
                 $key = $record->$primary;
+                assert(is_int($key) || is_string($key));
                 $records[$key] = $record;
                 unset($missing[$key]);
             }

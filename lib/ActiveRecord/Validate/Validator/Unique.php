@@ -28,6 +28,7 @@ class Unique extends ValidatorAbstract
     {
         $column = $context->option(self::OPTION_COLUMN, $context->attribute)
             ?? throw new RuntimeException("Unable to resolve column from context option OPTION_COLUMN");
+        assert(is_string($column));
         $record = $this->resolve_record($context);
         $model = $record->model;
         $where = [ $column => $value ];

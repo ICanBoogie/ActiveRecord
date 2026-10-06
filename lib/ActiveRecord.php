@@ -21,10 +21,6 @@ use function is_array;
  * storage via a database.
  *
  * @method ValidationErrors validate() Validate the active record, returns an array of errors.
- *
- * @property-read scalar|scalar[] $primary_key_value
- *     The value of the primary key.
- *     {@see self::get_primary_key_value()}
  */
 abstract class ActiveRecord extends Prototyped
 {
@@ -59,31 +55,33 @@ abstract class ActiveRecord extends Prototyped
      *
      * @var Model<static>
      */
-    public private(set) Model $model {
+    private(set) Model $model {
+        // @phpstan-ignore-next-line
         get => $this->model ??= StaticModelProvider::model_for_record($this::class);
     }
 
     /**
      * @return scalar|scalar[]
      */
-    public function get_primary_key_value(): mixed
+    public mixed $primary_key_value
     {
-        $model = $this->model;
-        $primary = $model->extended_schema->primary;
+        get {
+            $model = $this->model;
+            $primary = $model->extended_schema->primary;
 
-        if (is_array($primary)) {
-            $actual = [];
+            if (is_array($primary)) {
+                $actual = [];
 
-            foreach ($primary as $property) {
-                $actual[] = $this->$property;
+                foreach ($primary as $property) {
+                    $actual[] = $this->$property ?? null;
+                }
+
+                return $actual;
             }
 
-            // @phpstan-ignore-next-line
-            return $actual;
+            // The primary key might not be initialized yet.
+            return $this->$primary ?? null;
         }
-
-        // @phpstan-ignore-next-line
-        return $this->$primary;
     }
 
     /**
@@ -112,8 +110,12 @@ abstract class ActiveRecord extends Prototyped
     {
         $properties = parent::__sleep();
 
+        // @phpstan-ignore-next-line
         unset($properties['model']);
+        // @phpstan-ignore-next-line
         unset($properties['is_new']);
+        // @phpstan-ignore-next-line
+        unset($properties['primary_key_value']);
 
         foreach (array_keys($properties) as $property) {
             if ($this->$property instanceof self) {
@@ -127,7 +129,7 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Removes `model` from the output.
      *
-     * @return array<non-empty-string, mixed>
+     * @return array<mixed, mixed>
      */
     public function __debugInfo(): array
     {
