@@ -8,7 +8,7 @@ PHP 8.4+
 
 ### New features
 
-None
+- Added `ResolvesToColumn` to enable custom column types.
 
 ### Backward Incompatible Changes
 

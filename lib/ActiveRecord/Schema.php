@@ -60,7 +60,7 @@ readonly class Schema
         foreach ($columns as $name => $column) {
             // (double-checking)
             // @phpstan-ignore-next-line
-            $column instanceof Column
+            $column instanceof ActiveRecord\Schema\SchemaAttribute
             or throw new InvalidArgumentException(
                 sprintf(
                     "Expected %s for column %s, given: %s",

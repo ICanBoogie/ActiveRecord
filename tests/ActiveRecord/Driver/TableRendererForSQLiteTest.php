@@ -23,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Equipment;
 use Test\ICanBoogie\Acme\Location;
+use Test\ICanBoogie\Acme\Schema\Uuid;
 
 final class TableRendererForSQLiteTest extends TestCase
 {
@@ -195,6 +196,19 @@ final class TableRendererForSQLiteTest extends TestCase
                 );
                 SQL,
             ],
+
+            'A custom column' => [
+                new Schema(
+                    columns: [
+                        'uuid' => new Uuid(),
+                    ]
+                ),
+                <<<SQL
+                CREATE TABLE tblSample (
+                uuid CHAR(40) NOT NULL
+                );
+                SQL,
+            ]
 
         ];
     }
