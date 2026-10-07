@@ -135,7 +135,7 @@ abstract class ActiveRecord extends Prototyped
     {
         $array = (array)$this;
 
-        unset($array["\0" . __CLASS__ . "\0model"]);
+        unset($array['model']);
 
         return $array;
     }

@@ -9,5 +9,8 @@ services:
       PHP_IDE_CONFIG: 'serverName=icanboogie-activerecord'
     volumes:
       - .:/app:delegated
-      - ~/.composer:/root/.composer:delegated
+      - composer-cache:/root/.composer
     working_dir: /app
+
+volumes:
+  composer-cache: ~

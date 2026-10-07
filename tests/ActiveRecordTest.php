@@ -150,4 +150,12 @@ final class ActiveRecordTest extends TestCase
 
         $this->fail("Expected RecordNotValid");
     }
+
+    public function test_model_is_removed_from_debug(): void
+    {
+        $sut = new Node($this->model);
+        $actual = $sut->__debugInfo();
+
+        $this->assertArrayNotHasKey('model', $actual);
+    }
 }
