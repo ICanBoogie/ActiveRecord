@@ -11,9 +11,12 @@ use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\StatementNotValid;
 use ICanBoogie\ActiveRecord\Table;
 use LogicException;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Group;
+use Test\ICanBoogie\DbTestCase;
+use Test\ICanBoogie\Fixtures;
 
-final class TableTest extends TestCase
+#[Group("db")]
+final class TableTest extends DbTestCase
 {
     private Connection $connection;
     private Table $animals;
@@ -26,7 +29,9 @@ final class TableTest extends TestCase
         $this->connection = $connection = new Connection(
             new ConnectionDefinition(
                 id: Config::DEFAULT_CONNECTION_ID,
-                dsn: 'sqlite::memory:',
+                dsn: Fixtures::dsn(),
+                username: Fixtures::username(),
+                password: Fixtures::password(),
                 table_name_prefix: 'prefix'
             )
         );
@@ -125,15 +130,23 @@ final class TableTest extends TestCase
     public function test_get_update_join(): void
     {
         $table = $this->dogs;
+        $quote = $this->connection->quote_identifier(...);
 
-        $this->assertSame(" INNER JOIN `prefix_animals` `animal` USING(`id`)", $table->update_join);
+        $this->assertSame(
+            ' INNER JOIN ' . $quote('prefix_animals') . ' ' . $quote('animal') . ' USING(' . $quote('id') . ')',
+            $table->update_join
+        );
     }
 
     public function test_get_select_join(): void
     {
         $table = $this->dogs;
+        $quote = $this->connection->quote_identifier(...);
 
-        $this->assertSame("`dog` INNER JOIN `prefix_animals` `animal` USING(`id`)", $table->select_join);
+        $this->assertSame(
+            $quote('dog') . ' INNER JOIN ' . $quote('prefix_animals') . ' ' . $quote('animal') . ' USING(' . $quote('id') . ')',
+            $table->select_join
+        );
     }
 
     public function test_extended_schema(): void

@@ -5,10 +5,13 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Fixtures;
 
 use function uniqid;
 
+#[Group("db")]
 final class ConnectionCollectionTest extends TestCase
 {
     private ConnectionCollection $connections;
@@ -16,7 +19,12 @@ final class ConnectionCollectionTest extends TestCase
     protected function setUp(): void
     {
         $this->connections = new ConnectionCollection([
-            new ConnectionDefinition(id: 'one', dsn: 'sqlite::memory:'),
+            new ConnectionDefinition(
+                id: 'one',
+                dsn: Fixtures::dsn(),
+                username: Fixtures::username(),
+                password: Fixtures::password(),
+            ),
             new ConnectionDefinition(id: 'bad', dsn: 'mysql:dbname=bad_database' . uniqid()),
         ]);
     }
@@ -45,8 +53,18 @@ final class ConnectionCollectionTest extends TestCase
     public function test_iterator(): void
     {
         $connections = new ConnectionCollection([
-            new ConnectionDefinition(id: 'one', dsn: 'sqlite::memory:'),
-            new ConnectionDefinition(id: 'two', dsn: 'sqlite::memory:'),
+            new ConnectionDefinition(
+                id: 'one',
+                dsn: Fixtures::dsn(),
+                username: Fixtures::username(),
+                password: Fixtures::password(),
+            ),
+            new ConnectionDefinition(
+                id: 'two',
+                dsn: Fixtures::dsn(),
+                username: Fixtures::username(),
+                password: Fixtures::password(),
+            ),
         ]);
 
         $actual = [];

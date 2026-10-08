@@ -8,13 +8,16 @@ use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelCollection;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Postgres\Sample;
+use Test\ICanBoogie\DbTestCase;
 
 use function extension_loaded;
 use function getenv;
 
-final class PostgreSQLTest extends TestCase
+#[Group("db")]
+#[Group("pgsql")]
+final class PostgreSQLTest extends DbTestCase
 {
     private const DEFAULT_DSN = 'pgsql:host=127.0.0.1;dbname=postgres';
     private const DEFAULT_USERNAME = 'postgres';
@@ -32,15 +35,21 @@ final class PostgreSQLTest extends TestCase
             ->use_attributes()
             ->add_connection(
                 id: Config::DEFAULT_CONNECTION_ID,
-                dsn: getenv('ACTIVERECORD_PGSQL_DSN') ?: self::DEFAULT_DSN,
-                username: getenv('ACTIVERECORD_PGSQL_USERNAME') ?: self::DEFAULT_USERNAME,
-                password: getenv('ACTIVERECORD_PGSQL_PASSWORD') ?: self::DEFAULT_PASSWORD,
+                dsn: getenv('ACTIVERECORD_DSN') ?: self::DEFAULT_DSN,
+                username: getenv('ACTIVERECORD_USERNAME') ?: self::DEFAULT_USERNAME,
+                password: getenv('ACTIVERECORD_PASSWORD') ?: self::DEFAULT_PASSWORD,
             )
             ->add_record(Sample::class)
             ->build();
 
         try {
             $connections = new ConnectionCollection($config->connections);
+            $connection = $connections->connection_for_id(Config::DEFAULT_CONNECTION_ID);
+
+            if ($connection->driver_name !== 'pgsql') {
+                $this->markTestSkipped("Not a pgsql connection, got: {$connection->driver_name}");
+            }
+
             $models = new ModelCollection($connections, $config->models);
 
             $models->uninstall();

@@ -19,12 +19,15 @@ use ICanBoogie\ActiveRecord\Schema\Time;
 use ICanBoogie\ActiveRecord\Schema\Timestamp;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Equipment;
 use Test\ICanBoogie\Acme\Location;
 use Test\ICanBoogie\Acme\Schema\Uuid;
 
+#[Group("db")]
+#[Group("sqlite")]
 final class TableRendererForSQLiteTest extends TestCase
 {
     #[DataProvider('provideRender')]

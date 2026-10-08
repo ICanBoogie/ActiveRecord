@@ -4,16 +4,18 @@ namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ModelCollection;
 use LogicException;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
 use function array_keys;
 
-final class ModelCollectionTest extends TestCase
+#[Group("db")]
+final class ModelCollectionTest extends DbTestCase
 {
     private ModelCollection $sut;
 

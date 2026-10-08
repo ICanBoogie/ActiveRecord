@@ -3,12 +3,14 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ModelCollection;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
-final class ModelExtendTest extends TestCase
+#[Group("db")]
+final class ModelExtendTest extends DbTestCase
 {
     private ModelCollection $models;
 

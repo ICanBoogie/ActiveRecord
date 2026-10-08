@@ -10,7 +10,6 @@ use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use LogicException;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\ActiveRecordTest\Sample;
 use Test\ICanBoogie\ActiveRecordTest\ValidateCase;
@@ -19,7 +18,8 @@ use function serialize;
 use function uniqid;
 
 #[Group("record")]
-final class ActiveRecordTest extends TestCase
+#[Group("db")]
+final class ActiveRecordTest extends DbTestCase
 {
     private Model $model;
 
@@ -62,8 +62,6 @@ final class ActiveRecordTest extends TestCase
         $sut->save();
 
         $nid = $sut->nid;
-
-        $this->assertNotNull($nid);
         $this->assertEquals($nid, $sut->primary_key_value);
 
         $sut->title = "madonna 2";
@@ -126,7 +124,7 @@ final class ActiveRecordTest extends TestCase
     {
         $record = new Node($this->model);
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage("Unable to delete record, the primary key is not defined");
+        $this->expectExceptionMessageIs("Unable to delete record, the primary key is not defined");
         $record->delete();
     }
 

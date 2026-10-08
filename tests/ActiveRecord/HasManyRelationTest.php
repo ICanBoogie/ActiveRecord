@@ -7,12 +7,14 @@ use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RelationCollection;
 use ICanBoogie\ActiveRecord\RelationNotDefined;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Comment;
+use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
-final class HasManyRelationTest extends TestCase
+#[Group("db")]
+final class HasManyRelationTest extends DbTestCase
 {
     private Model $articles;
     private Model $comments;

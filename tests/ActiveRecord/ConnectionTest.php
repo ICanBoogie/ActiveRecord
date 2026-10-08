@@ -4,8 +4,11 @@ namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Connection;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Fixtures;
 
+#[Group("db")]
 final class ConnectionTest extends TestCase
 {
     private string $id;
@@ -18,7 +21,9 @@ final class ConnectionTest extends TestCase
         $this->connection = new Connection(
             new ConnectionDefinition(
                 id: $this->id,
-                dsn: 'sqlite::memory:',
+                dsn: Fixtures::dsn(),
+                username: Fixtures::username(),
+                password: Fixtures::password(),
                 charset_and_collate: 'ascii/bin',
                 time_zone: '+02:30',
             )
@@ -47,6 +52,8 @@ final class ConnectionTest extends TestCase
 
     public function test_quote_identifier(): void
     {
-        $this->assertSame("`identifier`", $this->connection->quote_identifier('identifier'));
+        $quote = $this->connection->driver_name === 'pgsql' ? '"identifier"' : '`identifier`';
+
+        $this->assertSame($quote, $this->connection->quote_identifier('identifier'));
     }
 }

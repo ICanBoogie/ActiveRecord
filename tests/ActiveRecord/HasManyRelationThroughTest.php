@@ -5,16 +5,18 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\HasManyRelation;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
 use Test\ICanBoogie\Acme\HasMany\Patient;
 use Test\ICanBoogie\Acme\HasMany\Physician;
+use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
 use function array_column;
 use function assert;
 
-final class HasManyRelationThroughTest extends TestCase
+#[Group("db")]
+final class HasManyRelationThroughTest extends DbTestCase
 {
     /**
      * @var Model<int, Physician>
@@ -42,6 +44,11 @@ final class HasManyRelationThroughTest extends TestCase
         $this->physicians = $models->model_for_record(Physician::class);
         $this->patients = $models->model_for_record(Patient::class);
         $this->appointments = $models->model_for_record(Appointment::class);
+    }
+
+    private function quote_identifier(string $identifier): string
+    {
+        return $this->physicians->connection->quote_identifier($identifier);
     }
 
     public function test_through_is_set(): void
@@ -72,11 +79,12 @@ final class HasManyRelationThroughTest extends TestCase
     {
         $physician = new Physician();
         $physician->ph_id = 123;
+        $quote = $this->quote_identifier(...);
 
         $query = $physician->appointments;
 
         $this->assertEquals(
-            "SELECT * FROM `appointments` `appointment` WHERE (`physician_id` = ?)",
+            'SELECT * FROM ' . $quote('appointments') . ' ' . $quote('appointment') . ' WHERE (' . $quote('physician_id') . ' = ?)',
             (string)$query
         );
 
@@ -90,11 +98,12 @@ final class HasManyRelationThroughTest extends TestCase
     {
         $patient = new Patient();
         $patient->pa_id = 123;
+        $quote = $this->quote_identifier(...);
 
         $query = $patient->appointments;
 
         $this->assertEquals(
-            "SELECT * FROM `appointments` `appointment` WHERE (`patient_id` = ?)",
+            'SELECT * FROM ' . $quote('appointments') . ' ' . $quote('appointment') . ' WHERE (' . $quote('patient_id') . ' = ?)',
             (string)$query
         );
 
@@ -108,10 +117,14 @@ final class HasManyRelationThroughTest extends TestCase
     {
         $physician = new Physician();
         $physician->ph_id = 123;
+        $quote = $this->quote_identifier(...);
         $query = $physician->patients;
 
         $this->assertEquals(
-            "SELECT `patient`.* FROM `patients` `patient` INNER JOIN `appointments` ON `appointments`.patient_id = `patient`.pa_id INNER JOIN `physicians` `physician` ON `appointments`.physician_id = `physician`.ph_id WHERE (`physician`.ph_id = ?)",
+            'SELECT ' . $quote('patient') . '.* FROM ' . $quote('patients') . ' ' . $quote('patient')
+            . ' INNER JOIN ' . $quote('appointments') . ' ON ' . $quote('appointments') . '.patient_id = ' . $quote('patient') . '.pa_id'
+            . ' INNER JOIN ' . $quote('physicians') . ' ' . $quote('physician') . ' ON ' . $quote('appointments') . '.physician_id = ' . $quote('physician') . '.ph_id'
+            . ' WHERE (' . $quote('physician') . '.ph_id = ?)',
             (string)$query
         );
 
@@ -125,13 +138,17 @@ final class HasManyRelationThroughTest extends TestCase
     {
         $patient = new Patient();
         $patient->pa_id = 123;
+        $quote = $this->quote_identifier(...);
 
         $query = $patient->physicians;
 
         assert($query instanceof Query);
 
         $this->assertEquals(
-            "SELECT `physician`.* FROM `physicians` `physician` INNER JOIN `appointments` ON `appointments`.physician_id = `physician`.ph_id INNER JOIN `patients` `patient` ON `appointments`.patient_id = `patient`.pa_id WHERE (`patient`.pa_id = ?)",
+            'SELECT ' . $quote('physician') . '.* FROM ' . $quote('physicians') . ' ' . $quote('physician')
+            . ' INNER JOIN ' . $quote('appointments') . ' ON ' . $quote('appointments') . '.physician_id = ' . $quote('physician') . '.ph_id'
+            . ' INNER JOIN ' . $quote('patients') . ' ' . $quote('patient') . ' ON ' . $quote('appointments') . '.patient_id = ' . $quote('patient') . '.pa_id'
+            . ' WHERE (' . $quote('patient') . '.pa_id = ?)',
             (string)$query
         );
 

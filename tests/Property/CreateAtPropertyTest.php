@@ -8,9 +8,6 @@ use PHPUnit\Framework\TestCase;
 
 final class CreateAtPropertyTest extends TestCase
 {
-    /**
-     * @var object<CreatedAtProperty>
-     */
     private object $sut;
 
     protected function setUp(): void
@@ -23,7 +20,7 @@ final class CreateAtPropertyTest extends TestCase
         };
     }
 
-    public function testEmpty()
+    public function testEmpty(): void
     {
         $this->assertInstanceOf(DateTime::class, $this->sut->created_at);
         $this->assertTrue($this->sut->created_at->is_empty);

@@ -6,12 +6,13 @@ use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\Context;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
 #[Group('validate')]
-final class UniqueTest extends TestCase
+#[Group('db')]
+final class UniqueTest extends DbTestCase
 {
     public function test_normalize_options(): void
     {

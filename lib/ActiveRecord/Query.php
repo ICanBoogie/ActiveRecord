@@ -311,9 +311,9 @@ class Query implements IteratorAggregate
     private function render_skip_and_take(?int $skip, ?int $take): string
     {
         if ($skip && $take) {
-            return "LIMIT $skip, $take";
+            return "LIMIT $take OFFSET $skip";
         } elseif ($skip) {
-            return "LIMIT $skip, " . self::LIMIT_MAX;
+            return "LIMIT " . self::LIMIT_MAX . " OFFSET $skip";
         } elseif ($take) {
             return "LIMIT $take";
         }

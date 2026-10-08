@@ -12,10 +12,13 @@ use PDO;
 use PDOException;
 use PDOStatement;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Throwable;
 
+#[Group("db")]
+#[Group("sqlite")]
 final class StatementTest extends TestCase
 {
     private static Connection $connection;

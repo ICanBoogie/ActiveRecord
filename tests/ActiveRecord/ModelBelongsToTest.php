@@ -7,8 +7,8 @@ use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ModelCollection;
 use LogicException;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Brand;
 use Test\ICanBoogie\Acme\Car;
 use Test\ICanBoogie\Acme\DanceSession;
@@ -17,11 +17,13 @@ use Test\ICanBoogie\Acme\Equipment;
 use Test\ICanBoogie\Acme\Person;
 use Test\ICanBoogie\Acme\PersonEquipment;
 use Test\ICanBoogie\Acme\Skill;
+use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
 use function is_int;
 
-final class ModelBelongsToTest extends TestCase
+#[Group("db")]
+final class ModelBelongsToTest extends DbTestCase
 {
     public function test_belongs_to_runtime(): void
     {

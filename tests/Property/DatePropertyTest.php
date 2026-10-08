@@ -8,9 +8,6 @@ use PHPUnit\Framework\TestCase;
 
 final class DatePropertyTest extends TestCase
 {
-    /**
-     * @var object<DateProperty>
-     */
     private object $sut;
 
     protected function setUp(): void

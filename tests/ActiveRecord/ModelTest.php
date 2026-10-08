@@ -14,17 +14,19 @@ use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\DateTime;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Count;
 use Test\ICanBoogie\Acme\CustomQuery;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\SampleRecord;
+use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
 use function uniqid;
 
-final class ModelTest extends TestCase
+#[Group("db")]
+final class ModelTest extends DbTestCase
 {
     private const string PREFIX = 'myprefix';
 
@@ -38,7 +40,9 @@ final class ModelTest extends TestCase
         $config = new ConfigBuilder()
             ->add_connection(
                 id: Config::DEFAULT_CONNECTION_ID,
-                dsn: 'sqlite::memory:',
+                dsn: Fixtures::dsn(),
+                username: Fixtures::username(),
+                password: Fixtures::password(),
                 table_name_prefix: self::PREFIX
             );
 

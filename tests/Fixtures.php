@@ -25,8 +25,45 @@ use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\Subscriber;
 use Test\ICanBoogie\Acme\Update;
 
+use function getenv;
+
 final class Fixtures
 {
+    /**
+     * The DSN of the connection used by the tests.
+     *
+     * It can be configured with the `ACTIVERECORD_DSN` environment variable, and defaults to
+     * `sqlite::memory:`.
+     */
+    public static function dsn(): string
+    {
+        $dsn = getenv('ACTIVERECORD_DSN');
+
+        return ($dsn === false || $dsn === '') ? 'sqlite::memory:' : $dsn;
+    }
+
+    /**
+     * The username of the connection used by the tests, configured with the
+     * `ACTIVERECORD_USERNAME` environment variable.
+     */
+    public static function username(): ?string
+    {
+        $username = getenv('ACTIVERECORD_USERNAME');
+
+        return ($username === false || $username === '') ? null : $username;
+    }
+
+    /**
+     * The password of the connection used by the tests, configured with the
+     * `ACTIVERECORD_PASSWORD` environment variable.
+     */
+    public static function password(): ?string
+    {
+        $password = getenv('ACTIVERECORD_PASSWORD');
+
+        return ($password === false || $password === '') ? null : $password;
+    }
+
     /**
      * @param string ...$model_ids
      *     Model identifiers.
@@ -45,8 +82,12 @@ final class Fixtures
 
     public static function with_main_connection(ConfigBuilder $builder): ConfigBuilder
     {
-        return $builder
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:');
+        return $builder->add_connection(
+            Config::DEFAULT_CONNECTION_ID,
+            self::dsn(),
+            username: self::username(),
+            password: self::password(),
+        );
     }
 
     /**
@@ -68,7 +109,8 @@ final class Fixtures
                     schema_builder: fn(SchemaBuilder $schema) => $schema
                         ->add_character('body')
                         ->add_datetime('date', default: DateTime::CURRENT_TIMESTAMP)
-                        ->add_integer('rating', size: Integer::SIZE_TINY, null: true),
+                        // TINYINT is not supported by PostgreSQL, so we use a regular integer for now.
+                        ->add_integer('rating', size: Integer::SIZE_REGULAR, null: true),
                     association_builder: fn(AssociationBuilder $association) => $association
                         ->has_many(Comment::class, foreign_key: 'nid')
                         ->has_many(Comment::class, foreign_key: 'nid', as: 'article_comments') // testing 'as'
