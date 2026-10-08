@@ -71,7 +71,9 @@ class Table
         while ($parent) {
             assert(is_string($this->primary));
 
-            $join .= " INNER JOIN `$parent->name` `$parent->alias` USING(`$this->primary`)";
+            $join .= ' INNER JOIN ' . $this->quote_identifier($parent->name)
+                . ' ' . $this->quote_identifier($parent->alias)
+                . ' USING(' . $this->quote_identifier($this->primary) . ')';
             $parent = $parent->parent;
         }
 
@@ -88,7 +90,7 @@ class Table
 
     private function make_select_join(): string
     {
-        return "`$this->alias`" . $this->update_join;
+        return $this->quote_identifier($this->alias) . $this->update_join;
     }
 
     public Schema $extended_schema;
@@ -128,6 +130,14 @@ class Table
             : $this->schema;
         $this->update_join = $this->make_update_join();
         $this->select_join = $this->make_select_join();
+    }
+
+    /**
+     * Quotes an identifier using the connection's driver.
+     */
+    private function quote_identifier(string $identifier): string
+    {
+        return $this->connection->quote_identifier($identifier);
     }
 
     /**
@@ -211,7 +221,8 @@ class Table
             '{prefix}' => $this->connection->table_name_prefix,
             '{primary}' => $primary,
             '{self}' => $this->name,
-            '{self_and_related}' => "`$this->name`" . ($this->select_join ? " $this->select_join" : '')
+            '{self_and_related}' => $this->quote_identifier($this->name)
+                . ($this->select_join ? " $this->select_join" : '')
 
         ]);
     }
@@ -330,17 +341,18 @@ class Table
             // If we have a parent, its primary key values must be used.
 
             if ($driver_name === 'mysql') {
-                // @phpstan-ignore-next-line
+                assert(is_string($this->primary));
+
                 if ($parent_id && empty($holders[$this->primary])) {
                     $filtered[] = $parent_id;
-                    $holders[] = '`{primary}` = ?';
+                    $holders[] = $this->quote_identifier($this->primary) . ' = ?';
                 }
 
-                $statement = 'INSERT INTO `{self}` SET ' . implode(', ', $holders);
+                $statement = 'INSERT INTO ' . $this->quote_identifier($this->name) . ' SET ' . implode(', ', $holders);
                 $statement = $this->prepare($statement);
 
                 $statement->execute($filtered);
-            } elseif ($driver_name === 'sqlite') {
+            } elseif ($driver_name === 'sqlite' || $driver_name === 'pgsql') {
                 $this->insert($values);
             } else {
                 throw new LogicException("Don't know what to do with $driver_name");
@@ -350,16 +362,15 @@ class Table
             # a new entry has been created, but we don't have any other fields then the primary key
             #
 
-            // @phpstan-ignore-next-line
             if (empty($identifiers[$this->primary])) {
-                $identifiers[] = '`{primary}`';
+                $identifiers[] = $this->quote_identifier($this->primary);
                 $filtered[] = $parent_id;
             }
 
             $identifiers = implode(', ', $identifiers);
             $placeholders = implode(', ', array_fill(0, count($filtered), '?'));
 
-            $statement = "INSERT INTO `{self}` ($identifiers) VALUES ($placeholders)";
+            $statement = "INSERT INTO " . $this->quote_identifier($this->name) . " ($identifiers) VALUES ($placeholders)";
             $statement = $this->prepare($statement);
 
             $statement->execute($filtered);
@@ -396,7 +407,7 @@ class Table
                 $query .= ' IGNORE ';
             }
 
-            $query .= ' INTO `{self}` SET ' . implode(', ', $holders);
+            $query .= ' INTO ' . $this->quote_identifier($this->name) . ' SET ' . implode(', ', $holders);
 
             if ($upsert) {
                 #
@@ -432,8 +443,37 @@ class Table
                 . ($ignore | $upsert ? ' OR' : '')
                 . ($ignore ? ' IGNORE' : '')
                 . ($upsert ? ' REPLACE' : '')
-                . ' INTO `{self}` (' . implode(', ', $identifiers) . ')'
+                . ' INTO ' . $this->quote_identifier($this->name) . ' (' . implode(', ', $identifiers) . ')'
                 . ' VALUES (' . implode(', ', $holders) . ')';
+        } elseif ($driver_name == 'pgsql') {
+            $columns = array_keys($holders);
+            $holders = array_fill(0, count($identifiers), '?');
+
+            $query = 'INSERT INTO ' . $this->quote_identifier($this->name)
+                . ' (' . implode(', ', $identifiers) . ')'
+                . ' VALUES (' . implode(', ', $holders) . ')';
+
+            if ($ignore) {
+                $query .= ' ON CONFLICT DO NOTHING';
+            } elseif ($upsert) {
+                $primary = $this->primary;
+                assert($primary !== null);
+                $primary = is_array($primary) ? $primary : [ $primary ];
+                $conflict = implode(', ', array_map($this->quote_identifier(...), $primary));
+
+                $set = [];
+
+                foreach ($columns as $column) {
+                    if (in_array($column, $primary, true)) {
+                        continue;
+                    }
+
+                    $quoted = $this->quote_identifier($column);
+                    $set[] = "$quoted = EXCLUDED.$quoted";
+                }
+
+                $query .= ' ON CONFLICT (' . $conflict . ') DO UPDATE SET ' . implode(', ', $set);
+            }
         } else {
             throw new LogicException("Unsupported drive: $driver_name.");
         }
@@ -451,6 +491,8 @@ class Table
      */
     public function update(array $values, int|string $key): void
     {
+        assert(is_string($this->primary));
+
         #
         # SQLite doesn't support UPDATE with INNER JOIN.
         #
@@ -462,7 +504,9 @@ class Table
                 [ $table_values, $holders ] = $table->filter_values($values);
 
                 if ($holders) {
-                    $query = 'UPDATE `{self}` SET ' . implode(', ', $holders) . ' WHERE `{primary}` = ?';
+                    $query = 'UPDATE ' . $table->quote_identifier($table->name) . ' SET '
+                        . implode(', ', $holders)
+                        . ' WHERE ' . $table->quote_identifier($this->primary) . ' = ?';
                     $table_values[] = $key;
 
                     $table->execute($query, $table_values);
@@ -476,7 +520,9 @@ class Table
 
         [ $values, $holders ] = $this->filter_values($values, true);
 
-        $query = "UPDATE `{self}` $this->update_join  SET " . implode(', ', $holders) . ' WHERE `{primary}` = ?';
+        $query = "UPDATE " . $this->quote_identifier($this->name) . " $this->update_join  SET "
+            . implode(', ', $holders)
+            . ' WHERE ' . $this->quote_identifier($this->primary) . ' = ?';
         $values[] = $key;
 
         $this->execute($query, $values);
@@ -497,15 +543,17 @@ class Table
             $parts = [];
 
             foreach ($this->primary as $identifier) {
-                $parts[] = "`$identifier` = ?";
+                $parts[] = $this->quote_identifier($identifier) . ' = ?';
             }
 
             $where .= implode(' AND ', $parts);
         } else {
-            $where .= '`{primary}` = ?';
+            assert(is_string($this->primary));
+
+            $where .= $this->quote_identifier($this->primary) . ' = ?';
         }
 
-        $statement = $this->prepare('DELETE FROM `{self}` ' . $where);
+        $statement = $this->prepare('DELETE FROM ' . $this->quote_identifier($this->name) . ' ' . $where);
         $statement((array)$key);
     }
 
@@ -516,18 +564,32 @@ class Table
      */
     public function truncate(bool $reset_autoincrement = false): void
     {
-        if ($this->connection->driver_name == 'sqlite') {
-            $this->execute("DELETE FROM {self}");
+        $driver_name = $this->connection->driver_name;
+
+        if ($driver_name == 'sqlite') {
+            $this->execute("DELETE FROM " . $this->quote_identifier($this->name));
             if ($reset_autoincrement) {
-                $this->execute("DELETE FROM sqlite_sequence WHERE name = '{self}'");
+                $this->execute("DELETE FROM sqlite_sequence WHERE name = '" . $this->name . "'");
             }
             $this->execute('vacuum');
 
             return;
         }
 
-        $this->execute("TRUNCATE TABLE {self}");
-        $this->execute("ALTER TABLE {self} AUTO_INCREMENT = 1");
+        if ($driver_name == 'pgsql') {
+            $query = 'TRUNCATE TABLE ' . $this->quote_identifier($this->name);
+
+            if ($reset_autoincrement) {
+                $query .= ' RESTART IDENTITY';
+            }
+
+            $this->execute($query);
+
+            return;
+        }
+
+        $this->execute("TRUNCATE TABLE " . $this->quote_identifier($this->name));
+        $this->execute("ALTER TABLE " . $this->quote_identifier($this->name) . " AUTO_INCREMENT = 1");
     }
 
     /**
@@ -537,7 +599,7 @@ class Table
      */
     public function drop(bool $if_exists = false): void
     {
-        $query = 'DROP TABLE' . ($if_exists ? ' IF EXISTS ' : '') . ' `{self}`';
+        $query = 'DROP TABLE' . ($if_exists ? ' IF EXISTS ' : '') . ' ' . $this->quote_identifier($this->name);
 
         $this->execute($query);
     }

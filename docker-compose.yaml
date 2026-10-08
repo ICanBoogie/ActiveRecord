@@ -7,10 +7,21 @@ services:
         PHP_VERSION: "8.4"
     environment:
       PHP_IDE_CONFIG: 'serverName=icanboogie-activerecord'
+      ACTIVERECORD_PGSQL_DSN: 'pgsql:host=postgres;dbname=postgres'
+      ACTIVERECORD_PGSQL_USERNAME: 'postgres'
+      ACTIVERECORD_PGSQL_PASSWORD: 'postgres'
     volumes:
       - .:/app:delegated
       - composer-cache:/root/.composer
     working_dir: /app
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
 
 volumes:
   composer-cache: ~

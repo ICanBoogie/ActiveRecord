@@ -252,7 +252,7 @@ The `{self}` placeholder is replaced in queries by the `name` property:
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$stmt = $model('SELECT * FROM `{self}` LIMIT 10');
+$stmt = $model('SELECT * FROM {self} LIMIT 10');
 ```
 
 
@@ -1133,11 +1133,11 @@ already instantiated model.
 
 ## Continuous Integration
 
-The project is continuously tested by [GitHub actions](https://github.com/ICanBoogie/ActiveRecord/actions).
+The project is continuously tested by [GitHub Actions](https://github.com/ICanBoogie/ActiveRecord/actions).
 
-[![Tests](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/test.yml/badge.svg?branch=6.0)](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/test.yml)
-[![Static Analysis](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/static-analysis.yml/badge.svg?branch=6.0)](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/static-analysis.yml)
-[![Code Style](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/code-style.yml/badge.svg?branch=6.0)](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/code-style.yml)
+[![Tests](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/test.yml/badge.svg?branch=7.0)](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/test.yml)
+[![Static Analysis](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/static-analysis.yml/badge.svg?branch=7.0)](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/static-analysis.yml)
+[![Code Style](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/code-style.yml/badge.svg?branch=7.0)](https://github.com/ICanBoogie/ActiveRecord/actions/workflows/code-style.yml)
 
 
 

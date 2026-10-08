@@ -78,15 +78,21 @@ final readonly class HasManyRelation extends Relation
         assert(is_string($related->primary));
         assert(is_string($owner->primary));
 
-        $q = $related->query()->select("`{alias}`.*");
+        $quote = $related->connection->quote_identifier(...);
+
+        $q = $related->query()->select($quote($related->alias) . '.*');
         // Because of the select, we need to set the mode otherwise an array would be
         // fetched instead of an object.
         $q->mode(PDO::FETCH_CLASS, $related->activerecord_class);
         //phpcs:disable Generic.Files.LineLength.TooLong
-        $q->join(expression: "INNER JOIN `$through_model->name` ON `$through_model->name`.{$r2->local_key} = `$r2_model->alias`.{$related->primary}");
+        $q->join(expression: 'INNER JOIN ' . $quote($through_model->name)
+            . ' ON ' . $quote($through_model->name) . ".{$r2->local_key}"
+            . ' = ' . $quote($r2_model->alias) . ".{$related->primary}");
         //phpcs:disable Generic.Files.LineLength.TooLong
-        $q->join(expression: "INNER JOIN `$owner->name` `$owner->alias` ON `$through_model->name`.{$r1->local_key} = `$owner->alias`.{$owner->primary}");
-        $q->where("`$owner->alias`.{$owner->primary} = ?", $record->{$this->local_key});
+        $q->join(expression: 'INNER JOIN ' . $quote($owner->name) . ' ' . $quote($owner->alias)
+            . ' ON ' . $quote($through_model->name) . ".{$r1->local_key}"
+            . ' = ' . $quote($owner->alias) . ".{$owner->primary}");
+        $q->where($quote($owner->alias) . ".{$owner->primary} = ?", $record->{$this->local_key});
 
         return $q;
     }

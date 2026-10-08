@@ -2,7 +2,7 @@
 
 namespace Test\ICanBoogie\ActiveRecord\Driver;
 
-use ICanBoogie\ActiveRecord\Driver\TableRendererForPostgresSQL;
+use ICanBoogie\ActiveRecord\Driver\TableRendererForPostgreSQL;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Binary;
@@ -23,14 +23,14 @@ use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Equipment;
 use Test\ICanBoogie\Acme\Location;
 
-final class TableRendererForPostgresSQLTest extends TestCase
+final class TableRendererForPostgreSQLTest extends TestCase
 {
     #[DataProvider('provideRender')]
     public function test_render(Schema $schema, string $expected): void
     {
         $prefixed_table_name = 'tblSample';
 
-        $renderer = new TableRendererForPostgresSQL();
+        $renderer = new TableRendererForPostgreSQL();
         $actual = $renderer->render($schema, $prefixed_table_name);
 
         $this->assertEquals($expected, $actual);

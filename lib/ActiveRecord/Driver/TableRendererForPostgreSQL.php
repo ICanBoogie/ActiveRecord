@@ -21,7 +21,7 @@ use function in_array;
 /**
  * @link https://www.sqlite.org/lang_createtable.html
  */
-final class TableRendererForPostgresSQL extends TableRenderer
+final class TableRendererForPostgreSQL extends TableRenderer
 {
     use RenderCreateIndexForMySQL;
     use RenderTableConstraintsForMySQL;

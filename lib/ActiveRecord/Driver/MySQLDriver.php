@@ -36,6 +36,7 @@ final class MySQLDriver extends BasicDriver
     public function optimize(): void
     {
         $connection = $this->connection;
+        /** @var array<string> $tables */
         $tables = $connection->query('SHOW TABLES')->all(\PDO::FETCH_COLUMN);
         $connection->exec('OPTIMIZE TABLE ' . implode(', ', $tables));
     }

@@ -9,6 +9,7 @@ PHP 8.4+
 ### New features
 
 - Added `ResolvesToColumn` to enable custom column types.
+- Added support for PostgreSQL.
 
 ### Backward Incompatible Changes
 

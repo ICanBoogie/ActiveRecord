@@ -4,6 +4,7 @@ namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Driver\MySQLDriver;
+use ICanBoogie\ActiveRecord\Driver\PostgreSQLDriver;
 use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
 use InvalidArgumentException;
 use PDO;
@@ -73,7 +74,7 @@ class Connection
             : '';
 
         [ $this->charset, $this->collate ] = extract_charset_and_collate(
-            $definition->charset_and_collate ?? $definition::DEFAULT_CHARSET_AND_COLLATE
+            $definition->charset_and_collate
         );
 
         $this->timezone = $definition->time_zone;
@@ -107,6 +108,7 @@ class Connection
 
         return match ($driver_name) {
             'mysql' => new MySQLDriver($connection_provider),
+            'pgsql' => new PostgreSQLDriver($connection_provider),
             'sqlite' => new SQLiteDriver($connection_provider),
             default => throw new DriverNotDefined($driver_name), // @phpstan-ignore-line
         };

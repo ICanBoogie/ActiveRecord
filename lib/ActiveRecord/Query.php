@@ -172,6 +172,14 @@ class Query implements IteratorAggregate
     ) {
     }
 
+    /**
+     * Quotes an identifier using the model's connection driver.
+     */
+    private function quote_identifier(string $identifier): string
+    {
+        return $this->model->connection->quote_identifier($identifier);
+    }
+
     /*
      * Rendering
      */
@@ -440,7 +448,7 @@ class Query implements IteratorAggregate
             $on = ' ' . $on;
         }
 
-        $this->joins_[] = "$mode JOIN($query) `$as`$on";
+        $this->joins_[] = "$mode JOIN($query) " . $this->quote_identifier($as) . "$on";
         $this->joins_args_ = array_merge($this->joins_args_, $query->args);
     }
 
@@ -488,7 +496,9 @@ class Query implements IteratorAggregate
             return $primary;
         }) ();
 
-        $this->joins_[] = "$mode JOIN `$model->name` AS `$as` USING(`$on`)";
+        $this->joins_[] = "$mode JOIN " . $this->quote_identifier($model->name)
+            . ' AS ' . $this->quote_identifier($as)
+            . ' USING(' . $this->quote_identifier($on) . ')';
     }
 
     /**
@@ -503,7 +513,7 @@ class Query implements IteratorAggregate
     private function render_join_on(string $column, string $as, Query $query): string
     {
         if ($query->model->schema->has_column($column) && $this->model->schema->has_column($column)) {
-            return "USING(`$column`)";
+            return 'USING(' . $this->quote_identifier($column) . ')';
         }
 
         $target = $this->model;
@@ -522,7 +532,8 @@ class Query implements IteratorAggregate
             throw new InvalidArgumentException("Unable to resolve column `$column` from model $model_class");
         }
 
-        return "ON `$as`.`$column` = `$target->alias`.`$column`";
+        return 'ON ' . $this->quote_identifier($as) . '.' . $this->quote_identifier($column)
+            . ' = ' . $this->quote_identifier($target->alias) . '.' . $this->quote_identifier($column);
     }
 
     /**
@@ -559,13 +570,17 @@ class Query implements IteratorAggregate
                         $conditions_args = array_merge($conditions_args, $arg->args);
                     }
 
-                    $c .= ' AND `' . ($column[0] == '!' ? substr($column, 1) . '` NOT' : $column . '`')
-                        . ' IN(' . $joined . ')';
+                    $negated = $column[0] == '!';
+                    $identifier = $this->quote_identifier($negated ? substr($column, 1) : $column);
+
+                    $c .= ' AND ' . $identifier . ($negated ? ' NOT IN(' : ' IN(') . $joined . ')';
                 } else {
                     $conditions_args[] = $arg;
 
-                    $c .= ' AND `' . ($column[0] == '!' ? substr($column, 1) . '` !' : $column . '` ')
-                        . '= ?';
+                    $negated = $column[0] == '!';
+                    $identifier = $this->quote_identifier($negated ? substr($column, 1) : $column);
+
+                    $c .= ' AND ' . $identifier . ($negated ? ' != ' : ' = ') . '?';
                 }
             }
 
@@ -924,14 +939,18 @@ class Query implements IteratorAggregate
         # Checking if the query matches the specified record keys.
         #
 
+        $primary = $this->model->primary;
+        assert(is_string($primary));
+
         $rc = $query
-            ->select('`{primary}`')
-            ->and([ '{primary}' => $key ])
+            ->select($this->quote_identifier($primary)) // @phpstan-ignore argument.type
+            ->and([ $primary => $key ])
             ->skip(null)
             ->take(null)
             ->all(PDO::FETCH_COLUMN);
 
         if ($rc && is_array($key)) {
+            /** @var array<string> $key */
             $exists = array_fill_keys($key, false);
 
             foreach ($rc as $key) {
@@ -971,11 +990,11 @@ class Query implements IteratorAggregate
 
         if ($column) {
             if ($method == 'COUNT') {
-                $query .= "`$column`, $method(`$column`)";
+                $query .= $this->quote_identifier($column) . ", $method(" . $this->quote_identifier($column) . ")";
 
                 $this->group($column);
             } else {
-                $query .= "$method(`$column`)";
+                $query .= "$method(" . $this->quote_identifier($column) . ")";
             }
         } else {
             $query .= $method . '(*)';
@@ -1073,13 +1092,14 @@ class Query implements IteratorAggregate
     public function delete(?string $tables = null): Statement
     {
         if (!$tables && $this->joins_) {
-            $tables = "`{alias}`";
+            $tables = $this->quote_identifier($this->model->alias);
         }
 
         if ($tables) {
-            $query = "DELETE $tables FROM {self} AS `{alias}`";
+            $query = "DELETE $tables FROM " . $this->quote_identifier($this->model->name)
+                . ' AS ' . $this->quote_identifier($this->model->alias);
         } else {
-            $query = "DELETE FROM {self}";
+            $query = "DELETE FROM " . $this->quote_identifier($this->model->name);
         }
 
         $query .= $this->render_main();

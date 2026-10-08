@@ -5,6 +5,7 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Connection;
 use ICanBoogie\ActiveRecord\Driver\MySQLDriver;
+use ICanBoogie\ActiveRecord\Driver\PostgreSQLDriver;
 use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
@@ -108,6 +109,26 @@ final class DriverTest extends TestCase
 
                 CREATE INDEX my_week_index ON menus (week);
                 SQLite,
+            ],
+
+            [
+                PostgreSQLDriver::class,
+                <<<PostgreSQL
+                CREATE TABLE menus (
+                id SERIAL NOT NULL UNIQUE,
+                uuid CHAR(36) NOT NULL UNIQUE,
+                country CHAR(2) NOT NULL,
+                week CHAR(8) NOT NULL,
+                product VARCHAR(255) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+
+                PRIMARY KEY (id),
+                UNIQUE (country, week, product)
+                );
+
+                CREATE INDEX my_week_index ON menus (week);
+                PostgreSQL,
             ],
 
         ];

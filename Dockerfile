@@ -3,7 +3,7 @@ FROM php:${PHP_VERSION}-cli-trixie
 
 RUN <<-EOF
 	apt-get update
-	apt-get install -y autoconf pkg-config unzip
+	apt-get install -y autoconf pkg-config unzip libpq-dev
 	pecl channel-update pecl.php.net
 	pecl install xdebug
 	docker-php-ext-enable xdebug
@@ -35,4 +35,4 @@ RUN composer global require squizlabs/php_codesniffer
 
 # extra
 
-RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install pdo_mysql pdo_pgsql

@@ -8,12 +8,24 @@ jobs:
   phpunit:
     name: phpunit
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+        - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       matrix:
         php-version:
-        - "8.2"
-        - "8.3"
         - "8.4"
+        - "8.5"
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -24,7 +36,7 @@ jobs:
         php-version: "${{ matrix.php-version }}"
         ini-values: memory_limit=-1
         tools: composer:v2
-        extensions: pdo_mysql
+        extensions: pdo_mysql, pdo_pgsql
     - name: Cache dependencies
       uses: actions/cache@v4
       with:
@@ -41,7 +53,7 @@ jobs:
       run: make test-coveralls
 
     - name: Upload code coverage
-      if: ${{ matrix.php-version == '8.3' }}
+      if: ${{ matrix.php-version == '8.4' }}
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
