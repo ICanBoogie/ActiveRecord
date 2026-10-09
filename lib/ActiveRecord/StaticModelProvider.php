@@ -19,6 +19,13 @@ final class StaticModelProvider
     private static ?ModelProvider $provider = null;
 
     /**
+     * A cache for the models.
+     *
+     * @var array<class-string, Model>
+     */
+    private static array $models = [];
+
+    /**
      * Sets the {@see ModelProvider} factory.
      *
      * @param (callable():ModelProvider) $factory
@@ -31,8 +38,8 @@ final class StaticModelProvider
     {
         $previous = self::$factory;
 
+        self::reset();
         self::$factory = $factory(...);
-        self::$provider = null;
 
         return $previous;
     }
@@ -54,6 +61,7 @@ final class StaticModelProvider
     {
         self::$factory = null;
         self::$provider = null;
+        self::$models = [];
     }
 
     /**
@@ -72,7 +80,8 @@ final class StaticModelProvider
                 "No factory defined yet. Please define one with `StaticModelProvider::set()`"
             );
 
-        return (self::$provider ??= $factory())->model_for_record($activerecord_class);
+        return self::$models[$activerecord_class]
+            ??= (self::$provider ??= $factory())->model_for_record($activerecord_class);
     }
 
     /** @codeCoverageIgnore */

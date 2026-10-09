@@ -13,6 +13,7 @@ PHP 8.4+
 - Added foreign key constraints, opt-in with `BelongsTo::$on_delete` and `OnDelete`, e.g.
   `#[BelongsTo(User::class, on_delete: OnDelete::Cascade)]`. `ConfigBuilder` resolves them into
   `Schema::$foreign_keys`, and `ModelCollection::install()` creates referenced tables first.
+- Added `ActiveRecord::model()` to resolve the model of a record class.
 
 ### Backward Incompatible Changes
 
@@ -49,6 +50,7 @@ None
   such as join tables. The update clause used to be empty, which is invalid SQL.
 - Use `Pdo\Mysql::ATTR_INIT_COMMAND` instead of `PDO::MYSQL_ATTR_INIT_COMMAND`, which is deprecated
   since PHP 8.5.
+- `StaticModelProvider` now caches models per record class, and `set()` invalidates the cache.
 
 
 

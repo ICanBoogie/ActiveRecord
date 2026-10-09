@@ -28,13 +28,23 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Returns a new query.
      *
+     * @return Model<static>
+     */
+    final public static function model(): Model
+    {
+        return StaticModelProvider::model_for_record(static::class);
+    }
+
+    /**
+     * Returns a new query.
+     *
      * @return Query<static>
      *
      * @see Model::query()
      */
     final public static function query(): Query
     {
-        return StaticModelProvider::model_for_record(static::class)->query();
+        return self::model()->query();
     }
 
     /**
