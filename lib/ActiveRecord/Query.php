@@ -826,9 +826,9 @@ class Query implements IteratorAggregate
         } elseif ($this->select ?? null) {
             $args = [ PDO::FETCH_ASSOC ];
         } elseif ($this->model->activerecord_class) {
-            $args = [ PDO::FETCH_CLASS, $this->model->activerecord_class, [ $this->model ] ];
+            $args = [ PDO::FETCH_CLASS, $this->model->activerecord_class ];
         } else {
-            $args = [ PDO::FETCH_CLASS, ActiveRecord::class, [ $this->model ] ];
+            $args = [ PDO::FETCH_CLASS, ActiveRecord::class ];
         }
 
         // @phpstan-ignore-next-line

@@ -175,6 +175,7 @@ use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 
 /**
  * @extends Model<int, Node>
@@ -212,12 +213,10 @@ $config = (new ActiveRecord\ConfigBuilder())
 $models = new ModelCollection($connections, $config->models);
 $models->install();
 
-$node_model = $models->model_for_record(Node::class);
+// Active records retrieve their model with the static model provider
+StaticModelProvider::set(fn() => $models);
 
-$node = new Node($node_model);
-//               ^^^^^^^^^^^
-// because we don't use a model provider yet, we need to specify the model to the active record
-
+$node = new Node();
 $node->title = "My first node";
 $node->number = 123;
 $id = $node->save()->id;
@@ -419,6 +418,7 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\ModelCollection;
@@ -512,6 +512,7 @@ use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\HasMany;
@@ -555,7 +556,8 @@ An active record is an object-oriented representation of a record in a database.
 table columns are its public properties, and it is not unusual that getters/setters and business
 logic methods are implemented by its class.
 
-If the model managing the record is not specified when the instance is created, [StaticModelResolver](lib/ActiveRecord/StaticModelResolver.php) will be used to resolve the model when needed.
+The model managing a record is resolved with `ActiveRecord::model()`, which uses
+[StaticModelProvider](lib/ActiveRecord/StaticModelProvider.php).
 
 ```php
 <?php
@@ -570,12 +572,12 @@ class Node extends ActiveRecord
 
     protected function get_next()
     {
-        return $this->model->own->visible->where('date > ?', $this->date)->order('date')->one;
+        return static::model()->own->visible->where('date > ?', $this->date)->order('date')->one;
     }
 
     protected function get_previous()
     {
-        return $this->model->own->visible->where('date < ?', $this->date)->order('date DESC')->one;
+        return static::model()->own->visible->where('date < ?', $this->date)->order('date DESC')->one;
     }
 
     // …
@@ -1060,8 +1062,8 @@ var_dump($models->is_installed()); // [ "NodeModel" => false, "ContentModel" => 
 
 #### Model provider
 
-`StaticModelProvider::model_for_record()` is used by active records to retrieve their model when
-required, and by queries during joins. Models are retrieved using the model collection returned by
+`StaticModelProvider::model_for_record()` is used by `ActiveRecord::model()` to retrieve the model
+of a record class, and by queries during joins. Models are retrieved using the model collection returned by
 [ModelProvider][].
 
 The following example demonstrates how to define a factory for a model provider:

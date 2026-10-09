@@ -13,6 +13,7 @@ use ICanBoogie\ActiveRecord\ModelCollection;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Article;
@@ -52,6 +53,7 @@ final class ModelTest extends DbTestCase
 
         $models = $this->models;
         $models->install();
+        StaticModelProvider::set(fn() => $models);
 
         $articles = $models->model_for_record(Article::class);
         $articles->save([ 'title' => 'Madonna', 'body' => uniqid(), 'date' => '1958-08-16' ]);
@@ -67,6 +69,13 @@ final class ModelTest extends DbTestCase
 
         $this->articles = $articles;
         $this->nodes = $models->model_for_record(Node::class);
+    }
+
+    protected function tearDown(): void
+    {
+        StaticModelProvider::reset();
+
+        parent::tearDown();
     }
 
     /**
@@ -185,17 +194,6 @@ final class ModelTest extends DbTestCase
         $this->assertInstanceOf(Article::class, $records[$id1]);
         $this->assertInstanceOf(Article::class, $records[$id2]);
         $this->assertInstanceOf(Article::class, $records[$id3]);
-    }
-
-    public function test_new_record(): void
-    {
-        $model = $this->articles;
-        $title = 'Title ' . uniqid();
-        $record = $model->new([ 'title' => $title ]);
-
-        $this->assertInstanceOf(Article::class, $record);
-        $this->assertSame($title, $record->title);
-        $this->assertSame($model, $record->model);
     }
 
     public function test_query(): void

@@ -6,6 +6,7 @@ use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use LogicException;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -25,19 +26,22 @@ use function is_int;
 #[Group("db")]
 final class ModelBelongsToTest extends DbTestCase
 {
+    protected function tearDown(): void
+    {
+        StaticModelProvider::reset();
+
+        parent::tearDown();
+    }
+
     public function test_belongs_to_runtime(): void
     {
         $models = Fixtures::only_models('drivers', 'brands', 'cars');
 
         $models->install();
+        StaticModelProvider::set(fn() => $models);
 
-        $drivers = $models->model_for_record(Driver::class);
-        $brands = $models->model_for_record(Brand::class);
-        $cars = $models->model_for_record(Car::class);
-
-        /* @var $car Car */
-        $car = $cars->new([ 'name' => '4two' ]);
-        $this->assertInstanceOf(Car::class, $car);
+        $car = new Car();
+        $car->name = '4two';
 
         try {
             /** @phpstan-ignore-next-line */
@@ -57,20 +61,17 @@ final class ModelBelongsToTest extends DbTestCase
 
         # driver
 
-        $driver = $drivers->new([ 'name' => 'Madonna' ]);
-        $this->assertInstanceOf(Driver::class, $driver);
+        $driver = new Driver();
+        $driver->name = 'Madonna';
         $driver->save();
         $driver_id = $driver->driver_id;
 
         # brand
 
-        $brand = $brands->new([ 'name' => 'Smart' ]);
-        $this->assertInstanceOf(Brand::class, $brand);
+        $brand = new Brand();
+        $brand->name = 'Smart';
         $brand->save();
         $brand_id = $brand->brand_id;
-
-        assert(is_int($driver_id));
-        assert(is_int($brand_id));
 
         $car->driver_id = $driver_id;
         $car->brand_id = $brand_id;

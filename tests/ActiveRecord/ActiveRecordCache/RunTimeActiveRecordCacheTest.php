@@ -17,7 +17,7 @@ final class RunTimeActiveRecordCacheTest extends TestCase
         $primary = $model->primary;
         $key = 123;
 
-        $record = new Article($model);
+        $record = new Article();
         $record->$primary = $key;
 
         $this->assertSame($primary, $model->primary);

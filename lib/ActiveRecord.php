@@ -26,7 +26,7 @@ use function is_array;
 abstract class ActiveRecord extends Prototyped
 {
     /**
-     * Returns a new query.
+     * Returns the model managing the active record.
      *
      * @return Model<static>
      */
@@ -62,23 +62,12 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * The model managing the active record.
-     *
-     * @var Model<static>
-     */
-    private(set) Model $model {
-        // @phpstan-ignore-next-line
-        get => $this->model ??= StaticModelProvider::model_for_record($this::class);
-    }
-
-    /**
      * @return scalar|scalar[]
      */
     public mixed $primary_key_value
     {
         get {
-            $model = $this->model;
-            $primary = $model->extended_schema->primary;
+            $primary = static::model()->extended_schema->primary;
 
             if (is_array($primary)) {
                 $actual = [];
@@ -96,19 +85,7 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * @param ?Model<static> $model
-     *     The model managing the active record. A {@see Model} instance can be specified as well as a model
-     *     identifier. If `$model` is null, the model will be resolved with {@see StaticModelProvider} when required.
-     */
-    public function __construct(?Model $model = null)
-    {
-        if ($model) {
-            $this->model = $model;
-        }
-    }
-
-    /**
-     * Removes the {@see $model} property.
+     * Removes computed properties.
      *
      * Properties whose values are instances of the {@see ActiveRecord} class are removed from the
      * exported properties.
@@ -121,8 +98,6 @@ abstract class ActiveRecord extends Prototyped
     {
         $properties = parent::__sleep();
 
-        // @phpstan-ignore-next-line
-        unset($properties['model']);
         // @phpstan-ignore-next-line
         unset($properties['is_new']);
         // @phpstan-ignore-next-line
@@ -138,25 +113,11 @@ abstract class ActiveRecord extends Prototyped
     }
 
     /**
-     * Removes `model` from the output.
-     *
-     * @return array<mixed, mixed>
-     */
-    public function __debugInfo(): array
-    {
-        $array = (array)$this;
-
-        unset($array['model']);
-
-        return $array;
-    }
-
-    /**
      * Whether the record is new or not.
      */
     public bool $is_new {
         get {
-            $primary = $this->model->primary;
+            $primary = static::model()->primary;
 
             if (is_array($primary)) {
                 if (array_any($primary, fn($property) => empty($this->$property))) {
@@ -183,7 +144,7 @@ abstract class ActiveRecord extends Prototyped
             $this->assert_is_valid();
         }
 
-        $model = $this->model;
+        $model = static::model();
         $schema = $model->extended_schema;
         // @phpstan-ignore-next-line
         $properties = $this->alter_persistent_properties($this->to_array(), $schema);
@@ -292,7 +253,7 @@ abstract class ActiveRecord extends Prototyped
      */
     public function delete(): void
     {
-        $model = $this->model;
+        $model = static::model();
         $model_class = $model::class;
         $model->primary
             ?? throw new LogicException("Unable to delete record, model `$model_class` doesn't have a primary key");

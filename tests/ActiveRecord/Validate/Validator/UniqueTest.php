@@ -2,6 +2,7 @@
 
 namespace Test\ICanBoogie\ActiveRecord\Validate\Validator;
 
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
 use ICanBoogie\Validate\Context;
@@ -14,6 +15,13 @@ use Test\ICanBoogie\Fixtures;
 #[Group('db')]
 final class UniqueTest extends DbTestCase
 {
+    protected function tearDown(): void
+    {
+        StaticModelProvider::reset();
+
+        parent::tearDown();
+    }
+
     public function test_normalize_options(): void
     {
         $column = uniqid();
@@ -29,9 +37,9 @@ final class UniqueTest extends DbTestCase
         $models = Fixtures::only_models('nodes');
 
         $models->install();
-        $model = $models->model_for_record(Node::class);
+        StaticModelProvider::set(fn() => $models);
 
-        $record = new Node($model);
+        $record = new Node();
         $record->title = $title = 'A title';
         $record->save();
 
@@ -44,7 +52,7 @@ final class UniqueTest extends DbTestCase
         $actual = $validator->validate($title, $context);
         $this->assertTrue($actual);
 
-        $record = new Node($model);
+        $record = new Node();
         $record->title = $title;
 
         $context->reader = new RecordAdapter($record);

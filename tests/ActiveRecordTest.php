@@ -35,14 +35,22 @@ final class ActiveRecordTest extends DbTestCase
      */
     private Model $model;
 
+    /**
+     * Models resolved by {@see StaticModelProvider}, by record class.
+     *
+     * @var array<class-string<ActiveRecord>, Model<*>>
+     */
+    private array $models = [];
+
     protected function setUp(): void
     {
         $models = Fixtures::only_models('nodes');
 
         $this->model = $models->model_for_record(Node::class);
         $this->model->install();
+        $this->models[Node::class] = $this->model;
 
-        StaticModelProvider::set(fn() => new ModelProviderWithClosure(fn() => $this->model));
+        StaticModelProvider::set(fn() => new ModelProviderWithClosure(fn(string $class) => $this->models[$class]));
     }
 
     protected function tearDown(): void
@@ -76,6 +84,7 @@ final class ActiveRecordTest extends DbTestCase
 
         $model = $models->model_for_record($record_class);
         $model->install();
+        $this->models[$record_class] = $model;
 
         return $model;
     }
@@ -110,14 +119,7 @@ final class ActiveRecordTest extends DbTestCase
     {
         $sut = new Node();
 
-        $this->assertSame($this->model, $sut->model);
-    }
-
-    public function test_should_use_provided_model(): void
-    {
-        $record = new Node($this->model);
-
-        $this->assertSame($this->model, $record->model);
+        $this->assertSame($this->model, $sut::model());
     }
 
     public function test_model_is_resolved_with_resolver(): void
@@ -133,7 +135,7 @@ final class ActiveRecordTest extends DbTestCase
 
         $record = new Node();
 
-        $this->assertSame($this->model, $record->model);
+        $this->assertSame($this->model, $record::model());
     }
 
     public function test_is_new(): void
@@ -150,7 +152,8 @@ final class ActiveRecordTest extends DbTestCase
 
     public function test_is_new_with_multi_column_primary_key(): void
     {
-        $sut = new Composite($this->composite_model());
+        $this->models[Composite::class] = $this->composite_model();
+        $sut = new Composite();
 
         $this->assertTrue($sut->is_new);
 
@@ -176,7 +179,8 @@ final class ActiveRecordTest extends DbTestCase
 
     public function test_primary_key_value_with_multi_column_primary_key(): void
     {
-        $sut = new Composite($this->composite_model());
+        $this->models[Composite::class] = $this->composite_model();
+        $sut = new Composite();
 
         $this->assertSame([ null, null ], $sut->primary_key_value);
 
@@ -204,6 +208,7 @@ final class ActiveRecordTest extends DbTestCase
         $this->assertSame(1, $this->model->query()->count);
 
         $found = $this->model->find($nid);
+        assert($found instanceof Node);
         $this->assertSame("madonna 2", $found->title);
     }
 
@@ -213,7 +218,7 @@ final class ActiveRecordTest extends DbTestCase
             ->add_serial('id', primary: true)
             ->add_character('name'));
 
-        $record = new Validated($model);
+        $record = new Validated();
         $record->name = 'ab';
 
         try {
@@ -234,25 +239,23 @@ final class ActiveRecordTest extends DbTestCase
             ->add_serial('id', primary: true)
             ->add_character('name'));
 
-        $record = new Validated($model);
+        $record = new Validated();
         $record->name = 'ab';
 
         $this->assertSame($record, $record->save(skip_validation: true));
 
-        $id = $record->id;
-        $this->assertIsInt($id);
-
-        $found = $model->find($id);
+        $found = $model->find($record->id);
+        assert($found instanceof Validated);
         $this->assertSame('ab', $found->name);
     }
 
     public function test_save_with_no_properties(): void
     {
-        $model = $this->model_with(NoProperties::class, fn(SchemaBuilder $schema) => $schema
+        $this->model_with(NoProperties::class, fn(SchemaBuilder $schema) => $schema
             ->add_serial('id', primary: true)
             ->add_character('name'));
 
-        $record = new NoProperties($model);
+        $record = new NoProperties();
         $record->name = 'madonna';
 
         $this->expectException(LogicException::class);
@@ -268,10 +271,11 @@ final class ActiveRecordTest extends DbTestCase
             ->add_character('name', default: 'anonymous')
             ->add_character('nickname', null: true));
 
-        $record = new Nullable($model);
+        $record = new Nullable();
         $record->save();
 
         $found = $model->find($record->id);
+        assert($found instanceof Nullable);
         $this->assertSame('anonymous', $found->name, "null was discarded, the default value was used");
         $this->assertNull($found->nickname);
 
@@ -284,6 +288,7 @@ final class ActiveRecordTest extends DbTestCase
         $record->save();
 
         $found = $model->find($record->id);
+        assert($found instanceof Nullable);
         $this->assertSame('madonna', $found->name, "null was discarded, the value was not updated");
         $this->assertNull($found->nickname, "null is accepted by the column");
     }
@@ -292,7 +297,7 @@ final class ActiveRecordTest extends DbTestCase
     {
         $model = $this->composite_model();
 
-        $record = new Composite($model);
+        $record = new Composite();
         $record->a = 1;
         $record->b = 2;
         $record->name = 'madonna';
@@ -318,30 +323,32 @@ final class ActiveRecordTest extends DbTestCase
             ->add_character('code', primary: true)
             ->add_character('name'));
 
-        $record = new Natural($model);
+        $record = new Natural();
         $record->code = 'alpha';
         $record->name = 'madonna';
 
         $this->assertSame($record, $record->save());
 
         $found = $model->find('alpha');
+        assert($found instanceof Natural);
         $this->assertSame('madonna', $found->name);
 
         $record->name = 'madonna 2';
         $this->assertSame($record, $record->save());
 
         $found = $model->find('alpha');
+        assert($found instanceof Natural);
         $this->assertSame('madonna 2', $found->name);
         $this->assertSame(1, $model->query()->count);
     }
 
     public function test_delete(): void
     {
-        $record = new Node($this->model);
+        $record = new Node();
         $record->title = "madonna";
         $record->save();
 
-        $other = new Node($this->model);
+        $other = new Node();
         $other->title = "other";
         $other->save();
 
@@ -354,7 +361,7 @@ final class ActiveRecordTest extends DbTestCase
 
     public function test_delete_missing_primary(): void
     {
-        $record = new Node($this->model);
+        $record = new Node();
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs("Unable to delete record, the primary key is not defined");
@@ -366,13 +373,13 @@ final class ActiveRecordTest extends DbTestCase
     {
         $model = $this->composite_model();
 
-        $record = new Composite($model);
+        $record = new Composite();
         $record->a = 1;
         $record->b = 2;
         $record->name = 'madonna';
         $record->save();
 
-        $other = new Composite($model);
+        $other = new Composite();
         $other->a = 1;
         $other->b = 3;
         $other->name = 'other';
@@ -386,7 +393,8 @@ final class ActiveRecordTest extends DbTestCase
 
     public function test_delete_with_multi_column_primary_key_partially_defined(): void
     {
-        $record = new Composite($this->composite_model());
+        $this->models[Composite::class] = $this->composite_model();
+        $record = new Composite();
         $record->a = 1;
 
         $this->expectException(LogicException::class);
@@ -397,11 +405,11 @@ final class ActiveRecordTest extends DbTestCase
 
     public function test_delete_without_primary_key(): void
     {
-        $model = $this->model_with(Natural::class, fn(SchemaBuilder $schema) => $schema
+        $this->model_with(Natural::class, fn(SchemaBuilder $schema) => $schema
             ->add_character('code')
             ->add_character('name'));
 
-        $record = new Natural($model);
+        $record = new Natural();
         $record->code = 'alpha';
 
         $this->expectException(LogicException::class);
@@ -412,54 +420,37 @@ final class ActiveRecordTest extends DbTestCase
         $record->delete();
     }
 
-    public function test_sleep_should_remove_model_and_computed_properties(): void
+    public function test_sleep_should_remove_computed_properties(): void
     {
-        $record = new Node($this->model);
+        $record = new Node();
         $record->title = "madonna";
 
         $properties = $record->__sleep();
 
-        $this->assertArrayNotHasKey('model', $properties);
         $this->assertArrayNotHasKey('is_new', $properties);
         $this->assertArrayNotHasKey('primary_key_value', $properties);
         $this->assertArrayHasKey('title', $properties);
     }
 
-    public function test_serialize_should_remove_model_info(): void
+    public function test_serialize(): void
     {
-        $record = new Node($this->model);
+        $record = new Node();
         $record->title = "madonna";
         $record->save();
 
         $serialized_record = serialize($record);
-
-        $this->assertStringNotContainsString('"model"', $serialized_record);
-        $this->assertStringNotContainsString('"model_id"', $serialized_record);
 
         $actual = unserialize($serialized_record);
 
         $this->assertInstanceOf(Node::class, $actual);
         $this->assertSame($record->nid, $actual->nid);
         $this->assertSame("madonna", $actual->title);
-        $this->assertSame($this->model, $actual->model, "the model is resolved again");
-    }
-
-    public function test_debug_info_should_exclude_model(): void
-    {
-        $record = new Node($this->model);
-        $record->title = uniqid();
-
-        $array = $record->__debugInfo();
-
-        $this->assertArrayNotHasKey('model', $array);
-        $this->assertArrayNotHasKey("\0" . ActiveRecord::class . "\0model", $array);
-        $this->assertArrayHasKey('title', $array);
     }
 
     #[Group("validate")]
     public function test_validate(): void
     {
-        $record = new ValidateCase($this->model);
+        $record = new ValidateCase();
 
         try {
             $record->save();

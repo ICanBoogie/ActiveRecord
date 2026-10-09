@@ -175,20 +175,4 @@ class Model extends Table
     {
         return $this->query()->where(...$conditions_and_args);
     }
-
-    /**
-     * Creates a new ActiveRecord instance.
-     *
-     * The class of the instance is defined by the {@link $activerecord_class} property.
-     *
-     * @param array<string, mixed> $properties Optional properties to instantiate the record with.
-     *
-     * @retrun TRecord
-     */
-    public function new(array $properties = []): ActiveRecord
-    {
-        $class = $this->activerecord_class;
-
-        return $properties ? $class::from($properties, [ $this ]) : new $class($this);
-    }
 }

@@ -8,6 +8,7 @@ use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Postgres\Sample;
 use Test\ICanBoogie\DbTestCase;
@@ -19,9 +20,9 @@ use function getenv;
 #[Group("pgsql")]
 final class PostgreSQLTest extends DbTestCase
 {
-    private const DEFAULT_DSN = 'pgsql:host=127.0.0.1;dbname=postgres';
-    private const DEFAULT_USERNAME = 'postgres';
-    private const DEFAULT_PASSWORD = 'postgres';
+    private const string DEFAULT_DSN = 'pgsql:host=127.0.0.1;dbname=postgres';
+    private const string DEFAULT_USERNAME = 'postgres';
+    private const string DEFAULT_PASSWORD = 'postgres';
 
     private Model $samples;
 
@@ -56,24 +57,29 @@ final class PostgreSQLTest extends DbTestCase
             $models->install();
 
             $this->samples = $models->model_for_record(Sample::class);
+
+            StaticModelProvider::set(fn() => $models);
         } catch (ConnectionNotEstablished $e) {
             $this->markTestSkipped("PostgreSQL is not available: {$e->getMessage()}");
         }
     }
 
+    protected function tearDown(): void
+    {
+        StaticModelProvider::reset();
+
+        parent::tearDown();
+    }
+
     public function test_save_and_load(): void
     {
-        $sample = $this->samples->new([
-            'name' => 'one',
-            'active' => true,
-            'count' => 42,
-        ]);
+        $sample = new Sample();
+        $sample->name = 'one';
+        $sample->active = true;
+        $sample->count = 42;
         $sample->save();
 
-        $id = $sample->id;
-        $this->assertIsInt($id);
-
-        $reloaded = $this->samples->find($id);
+        $reloaded = $this->samples->find($sample->id);
         assert($reloaded instanceof Sample);
 
         $this->assertSame('one', $reloaded->name);
@@ -85,11 +91,10 @@ final class PostgreSQLTest extends DbTestCase
 
     public function test_save_and_load_false(): void
     {
-        $sample = $this->samples->new([
-            'name' => 'two',
-            'active' => false,
-            'count' => 0,
-        ]);
+        $sample = new Sample();
+        $sample->name = 'two';
+        $sample->active = false;
+        $sample->count = 0;
         $sample->save();
 
         $reloaded = $this->samples->find($sample->id);
@@ -105,10 +110,12 @@ final class PostgreSQLTest extends DbTestCase
         $this->samples->save([ 'name' => 'on', 'active' => true, 'count' => 1 ]);
         $this->samples->save([ 'name' => 'off', 'active' => false, 'count' => 2 ]);
 
+        /** @var array<Sample> $active */
         $active = $this->samples->where([ 'active' => true ])->all;
         $this->assertCount(1, $active);
         $this->assertSame('on', $active[0]->name);
 
+        /** @var array<Sample> $inactive */
         $inactive = $this->samples->where([ 'active' => false ])->all;
         $this->assertCount(1, $inactive);
         $this->assertSame('off', $inactive[0]->name);

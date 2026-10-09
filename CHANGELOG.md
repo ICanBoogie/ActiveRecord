@@ -24,6 +24,11 @@ PHP 8.4+
 - `Table::save()` no longer takes `$options`, which was unused, and returns `int` instead of
   `int|false`.
 - `Table::insert()` throws `LogicException` when both `ignore` and `upsert` are requested.
+- Removed `ActiveRecord::$model` and the `$model` parameter of the `ActiveRecord` constructor. Use
+  `ActiveRecord::model()` instead, which resolves the model with `StaticModelProvider`. A model
+  provider must now be defined before records are used.
+- Removed `ActiveRecord::__debugInfo()`, it only existed to hide `$model`.
+- Removed `Model::new()`. Instantiate the record class instead, e.g. `new Node()`.
 - With SQLite, an upsert now uses `ON CONFLICT … DO UPDATE` instead of `INSERT OR REPLACE`. Columns
   that are not provided keep their values instead of being reset, and only primary key conflicts
   trigger the update. This matches MySQL and PostgreSQL.

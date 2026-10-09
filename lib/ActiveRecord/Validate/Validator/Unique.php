@@ -13,13 +13,13 @@ use RuntimeException;
  */
 class Unique extends ValidatorAbstract
 {
-    public const ALIAS = 'unique';
-    public const DEFAULT_MESSAGE = '`{value}` is already used';
+    public const string ALIAS = 'unique';
+    public const string DEFAULT_MESSAGE = '`{value}` is already used';
 
     /**
      * Specify the column to check, otherwise `attribute` is used.
      */
-    public const OPTION_COLUMN = 'column';
+    public const string OPTION_COLUMN = 'column';
 
     /**
      * @inheritdoc
@@ -30,7 +30,7 @@ class Unique extends ValidatorAbstract
             ?? throw new RuntimeException("Unable to resolve column from context option OPTION_COLUMN");
         assert(is_string($column));
         $record = $this->resolve_record($context);
-        $model = $record->model;
+        $model = $record::model();
         $where = [ $column => $value ];
         $primary = $model->primary;
 
@@ -39,8 +39,6 @@ class Unique extends ValidatorAbstract
         if (!empty($record->$primary)) {
             $where['!' . $primary] = $record->$primary;
         }
-
-        $a = $model->where($where)->all;
 
         return !$model->where($where)->exists;
     }

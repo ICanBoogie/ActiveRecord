@@ -5,6 +5,7 @@ namespace Test\ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\HasManyRelation;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
+use ICanBoogie\ActiveRecord\StaticModelProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
 use Test\ICanBoogie\Acme\HasMany\Patient;
@@ -19,17 +20,17 @@ use function assert;
 final class HasManyRelationThroughTest extends DbTestCase
 {
     /**
-     * @var Model<int, Physician>
+     * @var Model<Physician>
      */
     private Model $physicians;
 
     /**
-     * @var Model<int, Patient>
+     * @var Model<Patient>
      */
     private Model $patients;
 
     /**
-     * @var Model<int, Appointment>
+     * @var Model<Appointment>
      */
     private Model $appointments;
 
@@ -44,6 +45,15 @@ final class HasManyRelationThroughTest extends DbTestCase
         $this->physicians = $models->model_for_record(Physician::class);
         $this->patients = $models->model_for_record(Patient::class);
         $this->appointments = $models->model_for_record(Appointment::class);
+
+        StaticModelProvider::set(fn() => $models);
+    }
+
+    protected function tearDown(): void
+    {
+        StaticModelProvider::reset();
+
+        parent::tearDown();
     }
 
     private function quote_identifier(string $identifier): string
@@ -164,21 +174,21 @@ final class HasManyRelationThroughTest extends DbTestCase
         $this->patients->install();
         $this->appointments->install();
 
-        $patient_1 = new Patient($this->patients);
+        $patient_1 = new Patient();
         $patient_1->name = "Patient 1";
         $patient_1->save();
-        $patient_2 = new Patient($this->patients);
+        $patient_2 = new Patient();
         $patient_2->name = "Patient 2";
         $patient_2->save();
 
-        $physician_1 = new Physician($this->physicians);
+        $physician_1 = new Physician();
         $physician_1->name = "Physician 1";
         $physician_1->save();
-        $physician_2 = new Physician($this->physicians);
+        $physician_2 = new Physician();
         $physician_2->name = "Physician 2";
         $physician_2->save();
 
-        $appointment = new Appointment($this->appointments);
+        $appointment = new Appointment();
         $appointment->patient_id = $patient_1->pa_id;
         $appointment->physician_id = $physician_1->ph_id;
         $appointment->appointment_date = '2023-06-06';
