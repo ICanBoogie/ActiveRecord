@@ -1043,8 +1043,9 @@ foreach ($models->instances as $class => $model)
 All the models of a [ModelRegistry][], or any other [ModelIterator][], can be installed and
 uninstalled with a single command using the `install()` and `uninstall()` methods of a
 [ModelInstaller][]. The `is_installed()` method returns an array of key/value pair where _key_ is a
-record class and _value_ `true` if the model is installed, `false` otherwise. Tables referenced by
-[foreign keys](#foreign-key-constraints) are installed first and uninstalled last.
+record class and _value_ `true` if the model is installed, `false` otherwise. A model is installed
+after its parent and the tables referenced by its [foreign keys](#foreign-key-constraints), and
+uninstalled before them.
 
 ```php
 <?php
@@ -1058,6 +1059,41 @@ $installer->install();
 var_dump($installer->is_installed()); // [ Node::class => true, Content::class => true ]
 $installer->uninstall();
 var_dump($installer->is_installed()); // [ Node::class => false, Content::class => false ]
+```
+
+`install()` throws the first failure. To follow the installation, or to keep going when a model
+fails, pass an [InstallProgress][] implementation. It is notified of each model in install order:
+`already_installed()`, `installing()` then `installed()` or `failed()`, and `skipped()` for the
+models that depend on a model that failed or was skipped. Throw from `failed()` to abort the
+installation, return to continue.
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord\InstallProgress;
+use ICanBoogie\ActiveRecord\ModelInstaller;
+
+/* @var $models \ICanBoogie\ActiveRecord\ModelRegistry */
+
+new ModelInstaller($models)->install(new class () implements InstallProgress {
+    public function already_installed(string $activerecord_class): void {}
+    public function installing(string $activerecord_class): void {}
+
+    public function installed(string $activerecord_class): void
+    {
+        echo "$activerecord_class: installed\n";
+    }
+
+    public function failed(string $activerecord_class, Throwable $error): void
+    {
+        echo "$activerecord_class: {$error->getMessage()}\n";
+    }
+
+    public function skipped(string $activerecord_class, string $dependency): void
+    {
+        echo "$activerecord_class: skipped, depends on $dependency\n";
+    }
+});
 ```
 
 
@@ -1211,6 +1247,7 @@ See [CONTRIBUTING](CONTRIBUTING.md) for details.
 [Model]:                        https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Model.html
 [ModelAlreadyInstantiated]:     https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
 [ModelNotDefined]:              https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
+[InstallProgress]:              https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.InstallProgress.html
 [ModelInstaller]:               https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelInstaller.html
 [ModelIterator]:                https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelIterator.html
 [ModelRegistry]:                https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelRegistry.html

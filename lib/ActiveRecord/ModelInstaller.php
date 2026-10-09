@@ -8,11 +8,13 @@ use Throwable;
 
 use function array_keys;
 use function array_reverse;
-use function array_values;
+use function get_parent_class;
 use function implode;
+use function is_subclass_of;
 
 /**
- * Installs and uninstalls models, in the order required by their foreign keys.
+ * Installs and uninstalls models, in the order required by their dependencies: their parent, and
+ * the models referenced by their foreign keys.
  */
 final readonly class ModelInstaller
 {
@@ -24,18 +26,53 @@ final readonly class ModelInstaller
     /**
      * Install all the models.
      *
+     * @param InstallProgress $progress
+     *     Receives the progress of the installation, and decides whether a failure aborts it. By
+     *     default, the first failure is thrown.
+     *
      * @throws Throwable
      */
-    public function install(): void
+    public function install(InstallProgress $progress = new ThrowingInstallProgress()): void
     {
-        foreach ($this->accessors_in_install_order() as $accessor) {
+        [ $accessors, $dependencies ] = $this->resolve_install_order();
+
+        /**
+         * Models that failed or were skipped.
+         *
+         * @var array<class-string<ActiveRecord>, true> $not_installed
+         */
+        $not_installed = [];
+
+        foreach ($accessors as $activerecord_class => $accessor) {
+            foreach ($dependencies[$activerecord_class] as $dependency) {
+                if (isset($not_installed[$dependency])) {
+                    $not_installed[$activerecord_class] = true;
+                    $progress->skipped($activerecord_class, $dependency);
+
+                    continue 2;
+                }
+            }
+
             $model = $accessor->get();
 
             if ($model->is_installed()) {
+                $progress->already_installed($activerecord_class);
+
                 continue;
             }
 
-            $model->install();
+            $progress->installing($activerecord_class);
+
+            try {
+                $model->install();
+            } catch (Throwable $e) {
+                $not_installed[$activerecord_class] = true;
+                $progress->failed($activerecord_class, $e);
+
+                continue;
+            }
+
+            $progress->installed($activerecord_class);
         }
     }
 
@@ -46,7 +83,9 @@ final readonly class ModelInstaller
      */
     public function uninstall(): void
     {
-        foreach (array_reverse($this->accessors_in_install_order()) as $accessor) {
+        [ $accessors ] = $this->resolve_install_order();
+
+        foreach (array_reverse($accessors) as $accessor) {
             $model = $accessor->get();
 
             if (!$model->is_installed()) {
@@ -76,14 +115,17 @@ final readonly class ModelInstaller
     }
 
     /**
-     * Returns the model accessors ordered so that the tables referenced by foreign keys come before
-     * the tables referencing them.
+     * Returns the model accessors ordered so that the models come after their dependencies, along
+     * with these dependencies.
      *
-     * @return list<ModelAccessor>
+     * @return array{
+     *     array<class-string<ActiveRecord>, ModelAccessor>,
+     *     array<class-string<ActiveRecord>, list<class-string<ActiveRecord>>>
+     * }
      *
-     * @throws LogicException if foreign keys reference each other in a cycle.
+     * @throws LogicException if dependencies form a cycle.
      */
-    private function accessors_in_install_order(): array
+    private function resolve_install_order(): array
     {
         $accessors = [];
         $class_by_table = [];
@@ -94,30 +136,78 @@ final readonly class ModelInstaller
             $class_by_table[$definition->connection][$definition->table->name] = $activerecord_class;
         }
 
+        $dependencies = [];
+
+        foreach ($accessors as $activerecord_class => $accessor) {
+            $dependencies[$activerecord_class] = $this->resolve_dependencies(
+                $activerecord_class,
+                $accessor,
+                $accessors,
+                $class_by_table,
+            );
+        }
+
         $ordered = [];
         $visiting = [];
 
         foreach (array_keys($accessors) as $activerecord_class) {
-            $this->visit_for_install($activerecord_class, $accessors, $class_by_table, $ordered, $visiting);
+            $this->visit_for_install($activerecord_class, $accessors, $dependencies, $ordered, $visiting);
         }
 
-        return array_values($ordered);
+        return [ $ordered, $dependencies ];
     }
 
     /**
-     * Depth-first visit of the tables referenced by foreign keys.
+     * Returns the models a model depends on: its parent, and the models referenced by its
+     * foreign keys.
      *
      * @param class-string<ActiveRecord> $activerecord_class
      * @param array<class-string<ActiveRecord>, ModelAccessor> $accessors
      * @param array<string, array<string, class-string<ActiveRecord>>> $class_by_table
      *     Record classes by connection and table name.
+     *
+     * @return list<class-string<ActiveRecord>>
+     */
+    private function resolve_dependencies(
+        string $activerecord_class,
+        ModelAccessor $accessor,
+        array $accessors,
+        array $class_by_table,
+    ): array {
+        $dependencies = [];
+        $parent_class = get_parent_class($activerecord_class);
+
+        if ($parent_class && is_subclass_of($parent_class, ActiveRecord::class) && isset($accessors[$parent_class])) {
+            $dependencies[] = $parent_class;
+        }
+
+        $definition = $accessor->definition;
+
+        foreach ($definition->table->schema->foreign_keys as $foreign_key) {
+            $dependency = $class_by_table[$definition->connection][$foreign_key->table] ?? null;
+
+            // A table can reference itself, and the referenced table might not be part of the iterator.
+            if ($dependency && $dependency !== $activerecord_class) {
+                $dependencies[] = $dependency;
+            }
+        }
+
+        return $dependencies;
+    }
+
+    /**
+     * Depth-first visit of the dependencies.
+     *
+     * @param class-string<ActiveRecord> $activerecord_class
+     * @param array<class-string<ActiveRecord>, ModelAccessor> $accessors
+     * @param array<class-string<ActiveRecord>, list<class-string<ActiveRecord>>> $dependencies
      * @param array<class-string<ActiveRecord>, ModelAccessor> $ordered
      * @param array<class-string<ActiveRecord>, true> $visiting
      */
     private function visit_for_install(
         string $activerecord_class,
         array $accessors,
-        array $class_by_table,
+        array $dependencies,
         array &$ordered,
         array &$visiting,
     ): void {
@@ -133,19 +223,12 @@ final readonly class ModelInstaller
         }
 
         $visiting[$activerecord_class] = true;
-        $accessor = $accessors[$activerecord_class];
-        $definition = $accessor->definition;
 
-        foreach ($definition->table->schema->foreign_keys as $foreign_key) {
-            $dependency = $class_by_table[$definition->connection][$foreign_key->table] ?? null;
-
-            // A table can reference itself, and the referenced table might not be part of the iterator.
-            if ($dependency && $dependency !== $activerecord_class) {
-                $this->visit_for_install($dependency, $accessors, $class_by_table, $ordered, $visiting);
-            }
+        foreach ($dependencies[$activerecord_class] as $dependency) {
+            $this->visit_for_install($dependency, $accessors, $dependencies, $ordered, $visiting);
         }
 
         unset($visiting[$activerecord_class]);
-        $ordered[$activerecord_class] = $accessor;
+        $ordered[$activerecord_class] = $accessors[$activerecord_class];
     }
 }
