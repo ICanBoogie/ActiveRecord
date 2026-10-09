@@ -207,6 +207,136 @@ final class TableTest extends DbTestCase
     }
 
     //
+    // Save
+    //
+
+    public function test_save_inserts_then_updates(): void
+    {
+        $id = $this->animals->save([ 'name' => "Rex", 'date' => '2020-01-01 00:00:00' ]);
+
+        $this->assertGreaterThan(0, $id);
+
+        $this->assertSame($id, $this->animals->save([ 'name' => "Rex 2" ], $id));
+
+        $actual = $this->animals
+            ->execute("SELECT name, date FROM {self} WHERE id = ?", [ $id ])
+            ->as_assoc
+            ->all;
+
+        $this->assertEquals([ [ 'name' => "Rex 2", 'date' => '2020-01-01 00:00:00' ] ], $actual);
+    }
+
+    public function test_save_discards_unknown_values(): void
+    {
+        $id = $this->animals->save([ 'name' => "Rex", 'date' => '2020-01-01 00:00:00', 'unknown' => 1 ]);
+
+        $this->assertGreaterThan(0, $id);
+    }
+
+    public function test_save_spreads_values_over_the_hierarchy(): void
+    {
+        $id = $this->dogs->save([ 'name' => "Rex", 'date' => '2020-01-01 00:00:00', 'bark_volume' => 1.5 ]);
+        $other_id = $this->dogs->save([ 'name' => "Max", 'date' => '2020-01-01 00:00:00', 'bark_volume' => 2.5 ]);
+
+        $this->assertNotSame($id, $other_id);
+
+        $animal = $this->animals->execute("SELECT name FROM {self} WHERE id = ?", [ $id ])->as_assoc->one;
+        $dog = $this->dogs->execute("SELECT bark_volume FROM {self} WHERE id = ?", [ $id ])->as_assoc->one;
+
+        $this->assertEquals([ 'name' => "Rex" ], $animal);
+        $this->assertEquals([ 'bark_volume' => 1.5 ], $dog);
+    }
+
+    public function test_save_updates_the_hierarchy(): void
+    {
+        $id = $this->dogs->save([ 'name' => "Rex", 'date' => '2020-01-01 00:00:00', 'bark_volume' => 1.5 ]);
+
+        $this->dogs->save([ 'name' => "Rex 2", 'bark_volume' => 2.5 ], $id);
+
+        $animal = $this->animals->execute("SELECT name FROM {self} WHERE id = ?", [ $id ])->as_assoc->one;
+        $dog = $this->dogs->execute("SELECT bark_volume FROM {self} WHERE id = ?", [ $id ])->as_assoc->one;
+
+        $this->assertEquals([ 'name' => "Rex 2" ], $animal);
+        $this->assertEquals([ 'bark_volume' => 2.5 ], $dog);
+    }
+
+    public function test_save_rolls_back_the_hierarchy_on_failure(): void
+    {
+        try {
+            // `bark_volume` is required, so the insert into `dogs` fails after the one into `animals`.
+            $this->dogs->save([ 'name' => "Rex", 'date' => '2020-01-01 00:00:00' ]);
+            $this->fail("Expected StatementNotValid");
+        } catch (StatementNotValid) {
+            // expected
+        }
+
+        $this->assertFalse($this->connection->pdo->inTransaction());
+        $this->assertSame(0, (int) $this->animals->execute("SELECT COUNT(*) FROM {self}")->rc);
+    }
+
+    public function test_save_joins_an_active_transaction(): void
+    {
+        $this->connection->begin();
+
+        $this->dogs->save([ 'name' => "Rex", 'date' => '2020-01-01 00:00:00', 'bark_volume' => 1.5 ]);
+
+        $this->assertTrue($this->connection->pdo->inTransaction(), "the transaction is not committed");
+
+        $this->connection->pdo->rollBack();
+
+        $this->assertSame(0, (int) $this->animals->execute("SELECT COUNT(*) FROM {self}")->rc);
+    }
+
+    public function test_insert_fails_when_ignore_and_upsert(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage("`ignore` and `upsert` are mutually exclusive");
+
+        $this->multi_column->insert([ 'pk_1' => 1, 'pk_2' => 1, 'title' => "One" ], ignore: true, upsert: true);
+    }
+
+    public function test_upsert_fails_without_primary_key(): void
+    {
+        $table = new Table(
+            $this->connection,
+            new TableDefinition(
+                name: 'no_primary',
+                schema: new SchemaBuilder()
+                    ->add_character('title')
+                    ->build()
+            )
+        );
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage("doesn't have a primary key");
+
+        $table->insert([ 'title' => "One" ], upsert: true);
+    }
+
+    public function test_upsert_keeps_values_not_provided(): void
+    {
+        $table = new Table(
+            $this->connection,
+            new TableDefinition(
+                name: 'ratings',
+                schema: new SchemaBuilder()
+                    ->add_integer('id', primary: true)
+                    ->add_character('title')
+                    ->add_integer('rating', null: true)
+                    ->build()
+            )
+        );
+
+        $table->install();
+        $table->insert([ 'id' => 1, 'title' => "One", 'rating' => 5 ]);
+        $table->insert([ 'id' => 1, 'title' => "One Updated" ], upsert: true);
+
+        $actual = $table->execute("SELECT * FROM {self}")->as_assoc->all;
+
+        $this->assertEquals([ [ 'id' => 1, 'title' => "One Updated", 'rating' => 5 ] ], $actual);
+    }
+
+    //
     // Multi-column tests
     //
 

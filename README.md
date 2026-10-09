@@ -220,7 +220,7 @@ $node = new Node($node_model);
 
 $node->title = "My first node";
 $node->number = 123;
-$id = $node->save();
+$id = $node->save()->id;
 # or
 $id = $node->id;
 

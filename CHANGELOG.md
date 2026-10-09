@@ -17,6 +17,12 @@ PHP 8.4+
 - Column default values are now rendered as SQL literals: strings are quoted and escaped, numbers
   of numeric columns and the `CURRENT_*` keywords are rendered as is. Defaults that were quoted by
   hand, such as `"'madonna'"`, must be unquoted.
+- `Table::save()` no longer takes `$options`, which was unused, and returns `int` instead of
+  `int|false`.
+- `Table::insert()` throws `LogicException` when both `ignore` and `upsert` are requested.
+- With SQLite, an upsert now uses `ON CONFLICT … DO UPDATE` instead of `INSERT OR REPLACE`. Columns
+  that are not provided keep their values instead of being reset, and only primary key conflicts
+  trigger the update. This matches MySQL and PostgreSQL.
 
 ### Deprecated Features
 
@@ -28,8 +34,14 @@ None
 - Remove dependency on icanboogie/common.
 - `ActiveRecord::save()` returns the record.
 - Fixed `ActiveRecord::delete()` for records with a multi-column primary key.
+- Fixed float values being truncated to integers when saved.
+- Fixed updating a record spread over multiple tables with PostgreSQL.
+- Saving or updating a record spread over multiple tables happens in a transaction, unless one is
+  already active.
 - Fixed upserts on MySQL and PostgreSQL for tables where every column is part of the primary key,
   such as join tables. The update clause used to be empty, which is invalid SQL.
+- Use `Pdo\Mysql::ATTR_INIT_COMMAND` instead of `PDO::MYSQL_ATTR_INIT_COMMAND`, which is deprecated
+  since PHP 8.5.
 
 
 

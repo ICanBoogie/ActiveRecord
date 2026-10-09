@@ -9,6 +9,8 @@ use ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\DateTime;
 
+use function is_float;
+
 /**
  * Basic connection driver.
  */
@@ -59,6 +61,11 @@ abstract class BasicDriver implements Driver
 
         if ($value === true) {
             return 1;
+        }
+
+        // The return type would truncate floats to integers.
+        if (is_float($value)) {
+            return (string) $value;
         }
 
         /** @var string */

@@ -9,6 +9,7 @@ use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
 use InvalidArgumentException;
 use PDO;
 use PDOException;
+use Pdo\Mysql;
 use RuntimeException;
 use Throwable;
 
@@ -119,7 +120,7 @@ class Connection
      *
      * May alter the options according to the driver.
      *
-     * @return array<PDO::*, mixed>
+     * @return array<int, mixed>
      */
     private function make_options(): array
     {
@@ -132,7 +133,7 @@ class Connection
 
         return [
 
-            PDO::MYSQL_ATTR_INIT_COMMAND => $init_command,
+            Mysql::ATTR_INIT_COMMAND => $init_command,
 
         ];
     }
@@ -212,17 +213,17 @@ class Connection
      * depending on the underlying driver.
      */
     public int $last_insert_id
-    {
-        get {
-            $id = $this->pdo->lastInsertId();
+        {
+            get {
+                $id = $this->pdo->lastInsertId();
 
-            if ($id === false) {
-                throw new RuntimeException("Unable to retrieve last inserted ID");
+                if ($id === false) {
+                    throw new RuntimeException("Unable to retrieve last inserted ID");
+                }
+
+                return (int)$id;
             }
-
-            return (int)$id;
         }
-    }
 
     /**
      * Replaces placeholders with their value.
