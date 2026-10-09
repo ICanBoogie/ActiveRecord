@@ -100,9 +100,11 @@ final class SchemaBuilder
     public function add_boolean(
         string $col_name,
         bool $null = false,
+        ?bool $default = null,
     ): self {
         $this->columns[$col_name] = new Boolean(
             null: $null,
+            default: $default,
         );
 
         return $this;

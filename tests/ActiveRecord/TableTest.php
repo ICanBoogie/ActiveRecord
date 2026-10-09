@@ -336,6 +336,30 @@ final class TableTest extends DbTestCase
         $this->assertEquals([ [ 'id' => 1, 'title' => "One Updated", 'rating' => 5 ] ], $actual);
     }
 
+    public function test_insert_uses_boolean_defaults(): void
+    {
+        $table = new Table(
+            $this->connection,
+            new TableDefinition(
+                name: 'flags',
+                schema: new SchemaBuilder()
+                    ->add_integer('id', primary: true)
+                    ->add_boolean('is_on', default: true)
+                    ->add_boolean('is_off', default: false)
+                    ->build()
+            )
+        );
+
+        $table->install();
+        $table->insert([ 'id' => 1 ]);
+
+        $actual = $table->execute("SELECT is_on, is_off FROM {self}")->as_assoc->one;
+        assert(is_array($actual));
+
+        // Engines return booleans differently: `true` on PostgreSQL, `1` or `"1"` on MySQL and SQLite.
+        $this->assertSame([ 'is_on' => true, 'is_off' => false ], array_map(boolval(...), $actual));
+    }
+
     //
     // Multi-column tests
     //

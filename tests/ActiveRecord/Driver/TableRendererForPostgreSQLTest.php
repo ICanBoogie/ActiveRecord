@@ -237,6 +237,8 @@ final class TableRendererForPostgreSQLTest extends TestCase
                         'c3' => new Character(default: "back\\slash"),
                         'c4' => new Character(default: "123"),
                         't' => new Date(default: "1977-06-06"),
+                        'b1' => new Boolean(default: true),
+                        'b2' => new Boolean(null: true, default: false),
                     ],
                 ),
                 <<<SQL
@@ -247,7 +249,9 @@ final class TableRendererForPostgreSQLTest extends TestCase
                 c2 VARCHAR(255) NOT NULL DEFAULT 'it''s',
                 c3 VARCHAR(255) NOT NULL DEFAULT 'back\\slash',
                 c4 VARCHAR(255) NOT NULL DEFAULT '123',
-                t DATE NOT NULL DEFAULT '1977-06-06'
+                t DATE NOT NULL DEFAULT '1977-06-06',
+                b1 BOOLEAN NOT NULL DEFAULT TRUE,
+                b2 BOOLEAN NULL DEFAULT FALSE
                 );
                 SQL,
             ],

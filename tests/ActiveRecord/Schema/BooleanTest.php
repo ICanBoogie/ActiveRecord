@@ -3,52 +3,62 @@
 namespace Test\ICanBoogie\ActiveRecord\Schema;
 
 use ICanBoogie\ActiveRecord\Schema\Boolean;
+use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\SetStateHelper;
 
-use function get_object_vars;
-
 final class BooleanTest extends TestCase
 {
-    public function testExport(): void
+    #[DataProvider('provideExport')]
+    public function testExport(Boolean $expected): void
     {
-        $expected = new Boolean(
-            null: true,
-        );
-
         $actual = SetStateHelper::export_import($expected);
 
         $this->assertEquals($expected, $actual);
     }
 
-    #[DataProvider('provideInstance')]
-    public function testInstance(Boolean $actual, Integer $expected): void
+    /**
+     * @return array<array{ Boolean }>
+     */
+    public static function provideExport(): array
     {
-        $this->assertEquals(
-            get_object_vars($expected),
-            get_object_vars($actual)
-        );
+        return [
+            [ new Boolean(null: true) ],
+            [ new Boolean(default: true) ],
+            [ new Boolean(default: false) ],
+        ];
     }
 
     /**
-     * @return array<array{ Boolean, Integer }>
+     * A boolean is not an integer, so checks such as `instanceof Integer` don't apply to it.
      */
-    public static function provideInstance(): array
+    public function testIsNotInteger(): void
     {
-        return [ // @phpstan-ignore-line
+        $actual = new Boolean();
 
-            [
-                new Boolean(),
-                new Integer(size: Integer::SIZE_TINY, unsigned: true),
-            ],
+        $this->assertInstanceOf(Column::class, $actual);
+        $this->assertNotInstanceOf(Integer::class, $actual);
+    }
 
-            [
-                new Boolean(null: true),
-                new Integer(size: Integer::SIZE_TINY, unsigned: true, null: true),
-            ],
+    #[DataProvider('provideDefault')]
+    public function testDefault(?bool $default, ?string $expected): void
+    {
+        $actual = new Boolean(default: $default);
 
+        $this->assertSame($expected, $actual->default);
+    }
+
+    /**
+     * @return array<array{ ?bool, ?string }>
+     */
+    public static function provideDefault(): array
+    {
+        return [
+            [ null, null ],
+            [ true, Boolean::TRUE ],
+            [ false, Boolean::FALSE ],
         ];
     }
 }

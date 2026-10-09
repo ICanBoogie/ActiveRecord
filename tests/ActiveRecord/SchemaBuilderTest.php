@@ -16,6 +16,7 @@ final class SchemaBuilderTest extends TestCase
         $actual = new SchemaBuilder()
             ->add_serial('nid', primary: true)
             ->add_boolean('is_active')
+            ->add_boolean('is_featured', default: false)
             ->add_integer('rating_count')
             ->add_decimal('rating_avg', 5, null: true)
             ->add_character('country', size: 2, fixed: true)
@@ -33,6 +34,7 @@ final class SchemaBuilderTest extends TestCase
             columns: [
                 'nid' => new Schema\Serial(),
                 'is_active' => new Schema\Boolean(),
+                'is_featured' => new Schema\Boolean(default: false),
                 'rating_count' => new Schema\Integer(),
                 'rating_avg' => new Schema\Decimal(5, null: true),
                 'country' => new Schema\Character(2, fixed: true),

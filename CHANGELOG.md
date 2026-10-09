@@ -14,6 +14,8 @@ PHP 8.4+
   `#[BelongsTo(User::class, on_delete: OnDelete::Cascade)]`. `ConfigBuilder` resolves them into
   `Schema::$foreign_keys`, and `ModelCollection::install()` creates referenced tables first.
 - Added `ActiveRecord::model()` to resolve the model of a record class.
+- `Boolean` columns accept a default value, e.g. `#[Boolean(default: false)]`, rendered as `TRUE`
+  or `FALSE`. `SchemaBuilder::add_boolean()` takes `default` too.
 
 ### Backward Incompatible Changes
 
@@ -28,6 +30,8 @@ PHP 8.4+
   `ActiveRecord::model()` instead, which resolves the model with `StaticModelProvider`. A model
   provider must now be defined before records are used.
 - Removed `ActiveRecord::__debugInfo()`, it only existed to hide `$model`.
+- `Boolean` no longer extends `Integer`, it extends `Column`. It doesn't have `$size` or
+  `$unsigned` anymore, and MySQL no longer renders `BOOLEAN UNSIGNED`, which MySQL rejects.
 - Removed `Model::new()`. Instantiate the record class instead, e.g. `new Node()`.
 - With SQLite, an upsert now uses `ON CONFLICT … DO UPDATE` instead of `INSERT OR REPLACE`. Columns
   that are not provided keep their values instead of being reset, and only primary key conflicts

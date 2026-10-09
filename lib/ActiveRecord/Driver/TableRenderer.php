@@ -128,8 +128,8 @@ abstract class TableRenderer
     /**
      * Renders the default value of a column.
      *
-     * `CURRENT_*` keywords and numeric values of numeric columns are rendered as is, any other
-     * value is rendered as a string literal.
+     * `CURRENT_*` keywords, numeric values of numeric columns, and `TRUE`/`FALSE` of boolean
+     * columns are rendered as is, any other value is rendered as a string literal.
      */
     protected function render_default(Column $column): string
     {
@@ -142,6 +142,10 @@ abstract class TableRenderer
         }
 
         if (($column instanceof Integer || $column instanceof Decimal) && is_numeric($default)) {
+            return $default;
+        }
+
+        if ($column instanceof Boolean) {
             return $default;
         }
 
