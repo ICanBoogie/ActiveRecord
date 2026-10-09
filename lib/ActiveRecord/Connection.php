@@ -141,6 +141,11 @@ class Connection
     private function after_connection(): void
     {
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        if ($this->driver_name === 'sqlite') {
+            // SQLite doesn't enforce foreign keys unless asked to, for each connection.
+            $this->pdo->exec('PRAGMA foreign_keys = ON');
+        }
     }
 
     /**

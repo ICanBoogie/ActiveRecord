@@ -8,6 +8,7 @@ use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 
+use function array_push;
 use function implode;
 use function is_array;
 
@@ -94,6 +95,11 @@ final class TableRendererForSQLite extends TableRenderer
                 : $index->columns;
             $constraints[] = "UNIQUE ($indexed_columns)";
         }
+
+        //
+        // FOREIGN KEY
+        //
+        array_push($constraints, ...$this->render_foreign_keys($schema));
 
         return $constraints;
     }

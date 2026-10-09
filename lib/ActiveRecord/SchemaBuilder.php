@@ -15,6 +15,7 @@ use ICanBoogie\ActiveRecord\Schema\Decimal;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Index;
 use ICanBoogie\ActiveRecord\Schema\Integer;
+use ICanBoogie\ActiveRecord\Schema\OnDelete;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
@@ -422,6 +423,8 @@ final class SchemaBuilder
      *     The local key i.e. column name.
      * @phpstan-param Integer::SIZE_* $size
      * @param non-empty-string|null $as
+     * @param OnDelete|null $on_delete
+     *     If defined, a foreign key constraint is created, see {@see BelongsTo::$on_delete}.
      *
      * @return $this
      *
@@ -434,6 +437,7 @@ final class SchemaBuilder
         bool $null = false,
         bool $unique = false,
         ?string $as = null,
+        ?OnDelete $on_delete = null,
     ): self {
         $this->columns[$col_name] = new BelongsTo(
             associate: $associate,
@@ -441,6 +445,7 @@ final class SchemaBuilder
             null: $null,
             unique: $unique,
             as: $as,
+            on_delete: $on_delete,
         );
 
         return $this;

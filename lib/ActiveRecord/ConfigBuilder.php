@@ -57,6 +57,7 @@ final class ConfigBuilder
         $this->validate_models();
 
         $associations = $this->build_associations();
+        $this->resolve_foreign_keys();
         $models = $this->build_models($associations);
 
         return new Config($this->connections, $models);
@@ -101,7 +102,14 @@ final class ConfigBuilder
             assert($parent_column instanceof Integer);
 
             $definition->schema = new Schema(
-                columns: [ $primary => new Integer(size: $parent_column->size, unique: true) ] + $schema->columns,
+                columns: [
+                    // The child shares the primary key of its parent, its type must be the same.
+                    $primary => new Integer(
+                        size: $parent_column->size,
+                        unsigned: $parent_column->unsigned,
+                        unique: true,
+                    ),
+                ] + $schema->columns,
                 primary: $primary,
                 indexes: $schema->indexes,
             );
@@ -145,6 +153,101 @@ final class ConfigBuilder
         }
 
         return $associations;
+    }
+
+    /**
+     * Creates foreign keys from the {@see Schema\BelongsTo} columns that define an action on delete.
+     *
+     * The columns are aligned on the size and signedness of the referenced primary key, as MySQL
+     * requires.
+     */
+    private function resolve_foreign_keys(): void
+    {
+        foreach ($this->model_definitions as $definition) {
+            $schema = $definition->schema;
+            $columns = $schema->columns;
+            $foreign_keys = $schema->foreign_keys;
+
+            foreach ($schema->belongs_to_iterator() as $name => $column) {
+                if (!$column->on_delete) {
+                    continue;
+                }
+
+                try {
+                    [ $columns[$name], $foreign_keys[] ] = $this->resolve_foreign_key($definition, $name, $column);
+                } catch (Throwable $e) {
+                    throw new InvalidConfig(
+                        "Unable to create foreign key $definition->activerecord_class::$name",
+                        previous: $e
+                    );
+                }
+            }
+
+            if ($foreign_keys === $schema->foreign_keys) {
+                continue;
+            }
+
+            $definition->schema = new Schema(
+                columns: $columns,
+                primary: $schema->primary,
+                indexes: $schema->indexes,
+                foreign_keys: $foreign_keys,
+            );
+        }
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @return array{ Schema\BelongsTo, Schema\ForeignKey }
+     */
+    private function resolve_foreign_key(
+        TransientModelDefinition $definition,
+        string $name,
+        Schema\BelongsTo $column,
+    ): array {
+        $on_delete = $column->on_delete;
+        assert($on_delete !== null);
+
+        $associate = $this->model_definitions[$column->associate]
+            ?? throw new InvalidConfig("$column->associate is not defined");
+
+        $associate->connection === $definition->connection
+        or throw new InvalidConfig(
+            "$associate->activerecord_class uses connection '$associate->connection',"
+            . " a foreign key cannot reference a table on another connection"
+        );
+
+        $references = $associate->schema->primary;
+
+        is_string($references)
+        or throw new InvalidConfig("The primary key of $associate->activerecord_class is not a single column");
+
+        $referenced_column = $associate->schema->columns[$references];
+
+        $referenced_column instanceof Integer
+        or throw new InvalidConfig("The primary key of $associate->activerecord_class is not an integer");
+
+        ($on_delete !== Schema\OnDelete::SetNull || $column->null)
+        or throw new InvalidConfig("The column must be nullable to use OnDelete::SetNull");
+
+        return [
+            new Schema\BelongsTo(
+                associate: $column->associate,
+                size: $referenced_column->size,
+                unsigned: $referenced_column->unsigned,
+                null: $column->null,
+                unique: $column->unique,
+                as: $column->as,
+                on_delete: $on_delete,
+            ),
+            new Schema\ForeignKey(
+                column: $name,
+                table: $associate->table_name,
+                references: $references,
+                on_delete: $on_delete,
+            ),
+        ];
     }
 
     private function resolve_parent_definition(TransientModelDefinition $definition): ?TransientModelDefinition

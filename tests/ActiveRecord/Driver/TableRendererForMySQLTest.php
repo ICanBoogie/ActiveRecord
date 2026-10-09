@@ -12,8 +12,10 @@ use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Date;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Decimal;
+use ICanBoogie\ActiveRecord\Schema\ForeignKey;
 use ICanBoogie\ActiveRecord\Schema\Index;
 use ICanBoogie\ActiveRecord\Schema\Integer;
+use ICanBoogie\ActiveRecord\Schema\OnDelete;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Time;
@@ -35,6 +37,40 @@ final class TableRendererForMySQLTest extends TestCase
         $actual = $renderer->render($schema, $prefixed_table_name);
 
         $this->assertEquals($expected, $actual);
+    }
+
+    public function test_render_foreign_keys(): void
+    {
+        $schema = new Schema(
+            columns: [
+                'id' => new Serial(),
+                'author_id' => new BelongsTo(Article::class, unsigned: true, on_delete: OnDelete::Cascade),
+                'reviewer_id' => new BelongsTo(Article::class, null: true, on_delete: OnDelete::SetNull),
+            ],
+            primary: 'id',
+            foreign_keys: [
+                new ForeignKey('author_id', 'authors', 'id', OnDelete::Cascade),
+                new ForeignKey('reviewer_id', 'people', 'id', OnDelete::SetNull),
+            ],
+        );
+
+        $renderer = new TableRendererForMySQL('prefix_');
+        $actual = $renderer->render($schema, 'prefix_books');
+
+        $this->assertEquals(
+            <<<SQL
+        CREATE TABLE prefix_books (
+        id INTEGER(4) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
+        author_id INTEGER(4) UNSIGNED NOT NULL,
+        reviewer_id INTEGER(4) NULL,
+
+        PRIMARY KEY (id),
+        FOREIGN KEY (author_id) REFERENCES prefix_authors (id) ON DELETE CASCADE,
+        FOREIGN KEY (reviewer_id) REFERENCES prefix_people (id) ON DELETE SET NULL
+        ) COLLATE utf8_general_ci;
+        SQL,
+            $actual
+        );
     }
 
     /**

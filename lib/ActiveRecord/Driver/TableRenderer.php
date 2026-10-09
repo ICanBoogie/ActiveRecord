@@ -24,6 +24,15 @@ use function str_replace;
 
 abstract class TableRenderer
 {
+    /**
+     * @param string $table_name_prefix
+     *     The prefix defined by the connection, used to name the tables referenced by foreign keys.
+     */
+    public function __construct(
+        protected readonly string $table_name_prefix = '',
+    ) {
+    }
+
     public function render(Schema $schema, string $prefixed_table_name): string
     {
         $column_defs = implode(",\n", $this->render_column_defs($schema));
@@ -60,6 +69,26 @@ abstract class TableRenderer
      * @return non-empty-string[]
      */
     abstract protected function render_table_options(): array;
+
+    /**
+     * Renders the `FOREIGN KEY` table constraints.
+     *
+     * @return non-empty-string[]
+     */
+    protected function render_foreign_keys(Schema $schema): array
+    {
+        $constraints = [];
+
+        foreach ($schema->foreign_keys as $foreign_key) {
+            $table = $this->table_name_prefix . $foreign_key->table;
+
+            $constraints[] = "FOREIGN KEY ($foreign_key->column)"
+                . " REFERENCES $table ($foreign_key->references)"
+                . " ON DELETE {$foreign_key->on_delete->value}";
+        }
+
+        return $constraints;
+    }
 
     protected function render_type_name(Column $column): string
     {

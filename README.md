@@ -452,6 +452,46 @@ echo "{$record->title} belongs to {$record->user->name}.";
 ```
 
 
+#### Foreign key constraints
+
+A _belongs to_ relation can also create a foreign key constraint when the table is created. This is
+opt-in: specify what should happen to a record when the record it belongs to is deleted, using
+`on_delete`.
+
+```php
+<?php
+
+use ICanBoogie\ActiveRecord;
+use ICanBoogie\ActiveRecord\Schema\BelongsTo;
+use ICanBoogie\ActiveRecord\Schema\OnDelete;
+
+class Article extends ActiveRecord
+{
+    // Articles are deleted with their user.
+    #[BelongsTo(User::class, on_delete: OnDelete::Cascade)]
+    public int $uid;
+
+    // The reference is cleared when the editor is deleted, the column must be nullable.
+    #[BelongsTo(User::class, null: true, on_delete: OnDelete::SetNull)]
+    public ?int $editor_id;
+}
+```
+
+The same option is available with `SchemaBuilder::belongs_to()`. The available actions are
+`OnDelete::Cascade`, `OnDelete::SetNull`, `OnDelete::Restrict`, and `OnDelete::NoAction`.
+
+The following applies when a foreign key is created:
+
+- The column gets the size and the signedness of the referenced primary key, which must be a single
+  integer column.
+- The referenced model must use the same connection.
+- `ModelCollection::install()` creates the referenced tables first, and `uninstall()` drops them
+  last. Foreign keys that form a cycle between tables are not supported, a table referencing itself
+  is fine.
+- SQLite connections enable foreign keys with `PRAGMA foreign_keys = ON`, which SQLite doesn't do
+  by default.
+
+
 
 
 
@@ -1000,7 +1040,8 @@ foreach ($models->instances as $class => $model)
 All the models managed by the provider can be installed and uninstalled with a single command
 using the `install()` and `uninstall()` methods. The `is_installed()` method returns an array
 of key/value pair where _key_ is a model identifier and _value_ `true` if the model is
-installed, `false` otherwise.
+installed, `false` otherwise. Tables referenced by [foreign keys](#foreign-key-constraints) are
+installed first and uninstalled last.
 
 ```php
 <?php

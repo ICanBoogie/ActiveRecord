@@ -5,6 +5,7 @@ namespace ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Column;
+use ICanBoogie\ActiveRecord\Schema\ForeignKey;
 use ICanBoogie\ActiveRecord\Schema\Index;
 use InvalidArgumentException;
 
@@ -24,6 +25,7 @@ readonly class Schema
      *     columns: non-empty-array<non-empty-string, Column>,
      *     primary: non-empty-string|non-empty-array<non-empty-string>|null,
      *     indexes: array<Index>,
+     *     foreign_keys: array<ForeignKey>,
      *  } $an_array
      */
     public static function __set_state(array $an_array): self
@@ -39,7 +41,7 @@ readonly class Schema
      */
     public static function from(string $activerecord_class): self
     {
-        return (new SchemaBuilder())
+        return new SchemaBuilder()
             ->use_record($activerecord_class)
             ->build();
     }
@@ -51,11 +53,14 @@ readonly class Schema
      * @param non-empty-array<non-empty-string, Column> $columns
      * @param non-empty-string|non-empty-array<non-empty-string>|null $primary
      * @param array<Index> $indexes
+     * @param array<ForeignKey> $foreign_keys
+     *     Usually resolved by {@see ConfigBuilder} from {@see BelongsTo} columns.
      */
     public function __construct(
         public array $columns,
         public string|array|null $primary = null,
-        public array $indexes = []
+        public array $indexes = [],
+        public array $foreign_keys = [],
     ) {
         foreach ($columns as $name => $column) {
             // (double-checking)
@@ -80,6 +85,19 @@ readonly class Schema
                     "Expected %s, given: %s",
                     Index::class,
                     get_debug_type($index)
+                )
+            );
+        }
+
+        foreach ($foreign_keys as $foreign_key) {
+            // (double-checking)
+            // @phpstan-ignore-next-line
+            $foreign_key instanceof ForeignKey
+            or throw new InvalidArgumentException(
+                sprintf(
+                    "Expected %s, given: %s",
+                    ForeignKey::class,
+                    get_debug_type($foreign_key)
                 )
             );
         }

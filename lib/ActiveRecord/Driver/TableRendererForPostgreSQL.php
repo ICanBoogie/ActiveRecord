@@ -6,7 +6,6 @@ use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Binary;
 use ICanBoogie\ActiveRecord\Schema\Blob;
-use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Integer;
@@ -77,9 +76,7 @@ final class TableRendererForPostgreSQL extends TableRenderer
     {
         $constraint = '';
 
-        if ($column instanceof Integer && !$column instanceof Boolean && !$column instanceof Serial) {
-            $constraint .= $column->unsigned ? " UNSIGNED" : '';
-        }
+        // PostgreSQL doesn't have unsigned integers.
 
         $constraint .= $column->null ? " NULL" : " NOT NULL";
         $constraint .= $column->default !== null ? " DEFAULT " . $this->render_default($column) : '';

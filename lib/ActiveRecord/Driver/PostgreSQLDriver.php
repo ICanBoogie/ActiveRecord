@@ -38,7 +38,7 @@ final class PostgreSQLDriver extends BasicDriver
      */
     protected function render_create_table(string $table_name, Schema $schema): string
     {
-        return new TableRendererForPostgreSQL()
+        return new TableRendererForPostgreSQL($this->connection->table_name_prefix)
             ->render($schema, $table_name);
     }
 

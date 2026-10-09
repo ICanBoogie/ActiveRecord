@@ -36,6 +36,11 @@ trait RenderTableConstraintsForMySQL
             $constraints[] = "UNIQUE ($indexed_columns)";
         }
 
+        //
+        // FOREIGN KEY
+        //
+        array_push($constraints, ...$this->render_foreign_keys($schema));
+
         return $constraints;
     }
 }

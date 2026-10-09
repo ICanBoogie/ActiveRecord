@@ -10,6 +10,9 @@ PHP 8.4+
 
 - Added `ResolvesToColumn` to enable custom column types.
 - Added support for PostgreSQL.
+- Added foreign key constraints, opt-in with `BelongsTo::$on_delete` and `OnDelete`, e.g.
+  `#[BelongsTo(User::class, on_delete: OnDelete::Cascade)]`. `ConfigBuilder` resolves them into
+  `Schema::$foreign_keys`, and `ModelCollection::install()` creates referenced tables first.
 
 ### Backward Incompatible Changes
 
@@ -36,6 +39,10 @@ None
 - Fixed `ActiveRecord::delete()` for records with a multi-column primary key.
 - Fixed float values being truncated to integers when saved.
 - Fixed updating a record spread over multiple tables with PostgreSQL.
+- Fixed PostgreSQL tables with unsigned integers, PostgreSQL has no `UNSIGNED`.
+- Fixed the primary key of a child table not having the signedness of its parent's primary key. With
+  MySQL, `INTEGER UNSIGNED` parents had `INTEGER` children.
+- SQLite connections enable foreign keys with `PRAGMA foreign_keys = ON`.
 - Saving or updating a record spread over multiple tables happens in a transaction, unless one is
   already active.
 - Fixed upserts on MySQL and PostgreSQL for tables where every column is part of the primary key,

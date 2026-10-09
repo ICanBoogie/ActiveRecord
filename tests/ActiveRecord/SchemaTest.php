@@ -85,6 +85,12 @@ final class SchemaTest extends TestCase
                     unique: true,
                     as: 'location',
                 ),
+                't105' => new Schema\BelongsTo(
+                    associate: Location::class,
+                    unsigned: true,
+                    null: true,
+                    on_delete: Schema\OnDelete::SetNull,
+                ),
 
                 't201' => new Schema\Decimal(
                     precision: 6,
@@ -143,6 +149,9 @@ final class SchemaTest extends TestCase
             primary: 'id',
             indexes: [
                 new Schema\Index([ 'id', 'name' ])
+            ],
+            foreign_keys: [
+                new Schema\ForeignKey('t105', 'locations', 'id', Schema\OnDelete::SetNull),
             ],
         );
 

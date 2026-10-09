@@ -55,8 +55,21 @@ abstract class DbTestCase extends TestCase
 
         $suffix = $driver_name === 'pgsql' ? ' CASCADE' : '';
 
+        // Tables are dropped in any order, foreign keys must not get in the way.
+        match ($driver_name) {
+            'sqlite' => $pdo->exec('PRAGMA foreign_keys = OFF'),
+            'mysql' => $pdo->exec('SET FOREIGN_KEY_CHECKS = 0'),
+            default => null,
+        };
+
         foreach ($tables as $table) {
             $pdo->exec('DROP TABLE ' . $connection->quote_identifier((string) $table) . $suffix);
         }
+
+        match ($driver_name) {
+            'sqlite' => $pdo->exec('PRAGMA foreign_keys = ON'),
+            'mysql' => $pdo->exec('SET FOREIGN_KEY_CHECKS = 1'),
+            default => null,
+        };
     }
 }

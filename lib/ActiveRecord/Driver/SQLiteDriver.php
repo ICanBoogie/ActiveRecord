@@ -14,7 +14,7 @@ final class SQLiteDriver extends BasicDriver
      */
     protected function render_create_table(string $table_name, Schema $schema): string
     {
-        return new TableRendererForSQLite()
+        return new TableRendererForSQLite($this->connection->table_name_prefix)
             ->render($schema, $table_name);
     }
 
