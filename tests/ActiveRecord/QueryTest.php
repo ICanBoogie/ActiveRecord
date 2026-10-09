@@ -2,6 +2,7 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord\ModelInstaller;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\DateTime;
@@ -51,9 +52,9 @@ final class QueryTest extends DbTestCase
 
         StaticModelProvider::set(fn() => $models);
 
-        $models->install();
-        $articles = $models->model_for_record(Article::class);
+        new ModelInstaller($models)->install();
 
+        $articles = $models->model_for_record(Article::class);
         $this->nodes = $models->model_for_record(Node::class)->query();
         $this->articles = $articles->query();
         $this->updates = $models->model_for_record(Update::class)->query();

@@ -2,6 +2,7 @@
 
 namespace Test\ICanBoogie\ActiveRecord\Validate\Validator;
 
+use ICanBoogie\ActiveRecord\ModelInstaller;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\ActiveRecord\Validate\Reader\RecordAdapter;
 use ICanBoogie\ActiveRecord\Validate\Validator\Unique;
@@ -35,9 +36,8 @@ final class UniqueTest extends DbTestCase
     public function test_unique(): void
     {
         $models = Fixtures::only_models('nodes');
-
-        $models->install();
         StaticModelProvider::set(fn() => $models);
+        new ModelInstaller($models)->install();
 
         $record = new Node();
         $record->title = $title = 'A title';

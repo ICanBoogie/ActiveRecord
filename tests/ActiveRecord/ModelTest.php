@@ -7,9 +7,10 @@ use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelInstaller;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
@@ -31,8 +32,8 @@ final class ModelTest extends DbTestCase
 {
     private const string PREFIX = 'myprefix';
 
-    private ConnectionCollection $connections;
-    private ModelCollection $models;
+    private ConnectionRegistry $connections;
+    private ModelRegistry $models;
     private Model $nodes;
     private Model $articles;
 
@@ -52,7 +53,7 @@ final class ModelTest extends DbTestCase
         );
 
         $models = $this->models;
-        $models->install();
+        new ModelInstaller($models)->install();
         StaticModelProvider::set(fn() => $models);
 
         $articles = $models->model_for_record(Article::class);

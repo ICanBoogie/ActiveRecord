@@ -31,7 +31,7 @@ final class CharacterTest extends TestCase
     public function testInvalid(string $message, Closure $new): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
+        $this->expectExceptionMessageIsOrContains($message);
         $new();
     }
 

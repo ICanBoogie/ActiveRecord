@@ -3,9 +3,10 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ConfigBuilder;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelInstaller;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\Schema\OnDelete;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\StatementNotValid;
@@ -23,7 +24,7 @@ use Test\ICanBoogie\Fixtures;
 #[Group("db")]
 final class ForeignKeyTest extends DbTestCase
 {
-    private ModelCollection $models;
+    private ModelInstaller $installer;
     private Model $authors;
     private Model $books;
     private Model $reviews;
@@ -40,20 +41,21 @@ final class ForeignKeyTest extends DbTestCase
             ->add_record(Author::class)
             ->build();
 
-        $this->models = new ModelCollection(new ConnectionCollection($config->connections), $config->models);
-        $this->models->install();
+        $models = new ModelRegistry(new ConnectionRegistry($config->connections), $config->models);
+        $this->installer = new ModelInstaller($models);
+        $this->installer->install();
 
-        $this->authors = $this->models->model_for_record(Author::class);
-        $this->books = $this->models->model_for_record(Book::class);
-        $this->reviews = $this->models->model_for_record(Review::class);
-        $this->loans = $this->models->model_for_record(Loan::class);
+        $this->authors = $models->model_for_record(Author::class);
+        $this->books = $models->model_for_record(Book::class);
+        $this->reviews = $models->model_for_record(Review::class);
+        $this->loans = $models->model_for_record(Loan::class);
     }
 
     public function test_install_creates_referenced_tables_first(): void
     {
         $this->assertSame(
             [ Review::class => true, Loan::class => true, Book::class => true, Author::class => true ],
-            $this->models->is_installed()
+            $this->installer->is_installed()
         );
     }
 
@@ -86,6 +88,7 @@ final class ForeignKeyTest extends DbTestCase
         $this->books->delete($book_id);
 
         $review = $this->reviews->find($review_id);
+        assert($review instanceof Review);
 
         $this->assertNull($review->book_id);
         $this->assertSame("Ambiguous", $review->body);
@@ -109,11 +112,11 @@ final class ForeignKeyTest extends DbTestCase
 
     public function test_uninstall_drops_referencing_tables_first(): void
     {
-        $this->models->uninstall();
+        $this->installer->uninstall();
 
         $this->assertSame(
             [ Review::class => false, Loan::class => false, Book::class => false, Author::class => false ],
-            $this->models->is_installed()
+            $this->installer->is_installed()
         );
     }
 
@@ -134,11 +137,14 @@ final class ForeignKeyTest extends DbTestCase
             )
             ->build();
 
-        $models = new ModelCollection(new ConnectionCollection($config->connections), $config->models);
+        $models = new ModelRegistry(new ConnectionRegistry($config->connections), $config->models);
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage("foreign keys form a cycle: " . Brand::class . " -> " . Driver::class);
+        $this->expectExceptionMessageIs(
+            "Unable to order the installation of the models, foreign keys form a cycle: "
+            . Brand::class . " -> " . Driver::class . " -> " . Brand::class
+        );
 
-        $models->install();
+        new ModelInstaller($models)->install();
     }
 }

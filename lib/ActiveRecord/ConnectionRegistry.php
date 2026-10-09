@@ -8,9 +8,9 @@ use PDOException;
 use function ICanBoogie\iterable_to_dictionary;
 
 /**
- * A collection of connections.
+ * A registry of connections, established on demand from their definitions.
  */
-class ConnectionCollection implements ConnectionProvider, ConnectionIterator
+class ConnectionRegistry implements ConnectionProvider, ConnectionIterator
 {
     /**
      * @var array<string, ConnectionDefinition>

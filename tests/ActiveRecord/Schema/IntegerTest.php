@@ -31,7 +31,7 @@ final class IntegerTest extends TestCase
     public function testInvalid(string $message, Closure $new): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage($message);
+        $this->expectExceptionMessageIsOrContains($message);
         $new();
     }
 

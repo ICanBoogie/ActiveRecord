@@ -5,8 +5,8 @@ namespace Test\ICanBoogie;
 use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
@@ -34,6 +34,8 @@ final class Fixtures
      *
      * It can be configured with the `ACTIVERECORD_DSN` environment variable, and defaults to
      * `sqlite::memory:`.
+     *
+     * @phpstan-return non-empty-string|null
      */
     public static function dsn(): string
     {
@@ -45,6 +47,8 @@ final class Fixtures
     /**
      * The username of the connection used by the tests, configured with the
      * `ACTIVERECORD_USERNAME` environment variable.
+     *
+     * @phpstan-return non-empty-string|null
      */
     public static function username(): ?string
     {
@@ -56,6 +60,8 @@ final class Fixtures
     /**
      * The password of the connection used by the tests, configured with the
      * `ACTIVERECORD_PASSWORD` environment variable.
+     *
+     * @phpstan-return non-empty-string|null
      */
     public static function password(): ?string
     {
@@ -68,16 +74,16 @@ final class Fixtures
      * @param string ...$model_ids
      *     Model identifiers.
      */
-    public static function only_models(string ...$model_ids): ModelCollection
+    public static function only_models(string ...$model_ids): ModelRegistry
     {
         $config = self::with_models(
             self::with_main_connection(new ConfigBuilder()),
             $model_ids
         )->build();
 
-        $connections = new ConnectionCollection($config->connections);
+        $connections = new ConnectionRegistry($config->connections);
 
-        return new ModelCollection($connections, $config->models);
+        return new ModelRegistry($connections, $config->models);
     }
 
     public static function with_main_connection(ConfigBuilder $builder): ConfigBuilder
@@ -206,14 +212,14 @@ final class Fixtures
     }
 
     /**
-     * @return array{ ConnectionCollection, ModelCollection }
+     * @return array{ ConnectionRegistry, ModelRegistry }
      */
     public static function connections_and_models(Config $config): array
     {
         return [
 
-            $connections = new ConnectionCollection($config->connections),
-            new ModelCollection($connections, $config->models),
+            $connections = new ConnectionRegistry($config->connections),
+            new ModelRegistry($connections, $config->models),
 
         ];
     }

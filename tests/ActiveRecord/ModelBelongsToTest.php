@@ -4,8 +4,9 @@ namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
+use ICanBoogie\ActiveRecord\ModelInstaller;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use LogicException;
 use PHPUnit\Framework\Attributes\Group;
@@ -37,7 +38,7 @@ final class ModelBelongsToTest extends DbTestCase
     {
         $models = Fixtures::only_models('drivers', 'brands', 'cars');
 
-        $models->install();
+        new ModelInstaller($models)->install();
         StaticModelProvider::set(fn() => $models);
 
         $car = new Car();
@@ -97,8 +98,8 @@ final class ModelBelongsToTest extends DbTestCase
             ->add_record(record_class: PersonEquipment::class)
             ->build();
 
-        $connections = new ConnectionCollection($config->connections);
-        $models = new ModelCollection($connections, $config->models);
+        $connections = new ConnectionRegistry($config->connections);
+        $models = new ModelRegistry($connections, $config->models);
 
         $people = $models->model_for_record(Person::class);
 

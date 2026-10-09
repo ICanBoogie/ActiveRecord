@@ -2,7 +2,8 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelInstaller;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Node;
@@ -12,12 +13,12 @@ use Test\ICanBoogie\Fixtures;
 #[Group("db")]
 final class ModelExtendTest extends DbTestCase
 {
-    private ModelCollection $models;
+    private ModelRegistry $models;
 
     protected function setUp(): void
     {
         $this->models = Fixtures::only_models('nodes', 'articles', 'comments');
-        $this->models->install();
+        new ModelInstaller($this->models)->install();
     }
 
     public function test_parent(): void

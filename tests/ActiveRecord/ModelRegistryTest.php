@@ -2,7 +2,7 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use LogicException;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,9 +15,9 @@ use Test\ICanBoogie\Fixtures;
 use function array_keys;
 
 #[Group("db")]
-final class ModelCollectionTest extends DbTestCase
+final class ModelRegistryTest extends DbTestCase
 {
-    private ModelCollection $sut;
+    private ModelRegistry $sut;
 
     protected function setUp(): void
     {
@@ -81,49 +81,10 @@ final class ModelCollectionTest extends DbTestCase
         $this->assertSame($actual, $expected);
     }
 
-    #[Test]
-    public function should_fail_on_invalid_model(): void
+    public function test_fail_on_invalid_model(): void
     {
         $this->expectException(LogicException::class);
+        // @phpstan-ignore-next-line // bad class on purpose
         $this->sut->model_for_record(self::class);
-    }
-
-    public function test_install(): void
-    {
-        $this->assertSame([
-
-            Node::class => false,
-            Article::class => false,
-            Comment::class => false,
-
-        ], $this->sut->is_installed());
-
-        $this->sut->install();
-
-        $this->assertSame([
-
-            Node::class => true,
-            Article::class => true,
-            Comment::class => true,
-
-        ], $this->sut->is_installed());
-
-        $this->sut->install(); // installing twice shouldn't raise any alarm
-    }
-
-    public function test_uninstall(): void
-    {
-        $this->sut->install();
-        $this->sut->uninstall();
-
-        $this->assertSame([
-
-            Node::class => false,
-            Article::class => false,
-            Comment::class => false,
-
-        ], $this->sut->is_installed());
-
-        $this->sut->uninstall(); // uninstalling twice shouldn't raise any alarm
     }
 }

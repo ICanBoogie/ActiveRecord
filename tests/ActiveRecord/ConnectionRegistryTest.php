@@ -3,8 +3,8 @@
 namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Fixtures;
@@ -12,13 +12,13 @@ use Test\ICanBoogie\Fixtures;
 use function uniqid;
 
 #[Group("db")]
-final class ConnectionCollectionTest extends TestCase
+final class ConnectionRegistryTest extends TestCase
 {
-    private ConnectionCollection $connections;
+    private ConnectionRegistry $connections;
 
     protected function setUp(): void
     {
-        $this->connections = new ConnectionCollection([
+        $this->connections = new ConnectionRegistry([
             new ConnectionDefinition(
                 id: 'one',
                 dsn: Fixtures::dsn(),
@@ -52,7 +52,7 @@ final class ConnectionCollectionTest extends TestCase
 
     public function test_iterator(): void
     {
-        $connections = new ConnectionCollection([
+        $connections = new ConnectionRegistry([
             new ConnectionDefinition(
                 id: 'one',
                 dsn: Fixtures::dsn(),

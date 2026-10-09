@@ -4,10 +4,11 @@ namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
 use ICanBoogie\ActiveRecord\ConnectionNotEstablished;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelInstaller;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Postgres\Sample;
@@ -44,17 +45,17 @@ final class PostgreSQLTest extends DbTestCase
             ->build();
 
         try {
-            $connections = new ConnectionCollection($config->connections);
+            $connections = new ConnectionRegistry($config->connections);
             $connection = $connections->connection_for_id(Config::DEFAULT_CONNECTION_ID);
 
             if ($connection->driver_name !== 'pgsql') {
                 $this->markTestSkipped("Not a pgsql connection, got: {$connection->driver_name}");
             }
 
-            $models = new ModelCollection($connections, $config->models);
-
-            $models->uninstall();
-            $models->install();
+            $models = new ModelRegistry($connections, $config->models);
+            $installer = new ModelInstaller($models);
+            $installer->uninstall();
+            $installer->install();
 
             $this->samples = $models->model_for_record(Sample::class);
 

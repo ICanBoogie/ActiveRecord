@@ -4,6 +4,7 @@ namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\HasManyRelation;
 use ICanBoogie\ActiveRecord\Model;
+use ICanBoogie\ActiveRecord\ModelInstaller;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RelationCollection;
 use ICanBoogie\ActiveRecord\RelationNotDefined;
@@ -16,14 +17,22 @@ use Test\ICanBoogie\Fixtures;
 #[Group("db")]
 final class HasManyRelationTest extends DbTestCase
 {
+    /**
+     * @var Model<Article>
+     */
     private Model $articles;
+
+    /**
+     * @var Model<Comment>
+     */
     private Model $comments;
 
     protected function setUp(): void
     {
         $models = Fixtures::only_models('nodes', 'articles', 'comments');
 
-        $models->install();
+        new ModelInstaller($models)->install();
+
         $this->articles = $articles = $models->model_for_record(Article::class);
 
         for ($i = 1; $i < 4; $i++) {
@@ -70,6 +79,7 @@ final class HasManyRelationTest extends DbTestCase
     public function test_getter(): void
     {
         $article = $this->articles->find(1);
+        assert($article instanceof Article);
         $article_comments = $article->comments;
 
         $this->assertInstanceOf(Query::class, $article_comments);

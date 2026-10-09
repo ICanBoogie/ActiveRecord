@@ -5,9 +5,9 @@ namespace Test\ICanBoogie;
 use Closure;
 use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\ModelProvider;
 use ICanBoogie\ActiveRecord\ModelProviderWithClosure;
 use ICanBoogie\ActiveRecord\RecordNotValid;
@@ -79,8 +79,8 @@ final class ActiveRecordTest extends DbTestCase
             )
             ->build();
 
-        $connections = new ConnectionCollection($config->connections);
-        $models = new ModelCollection($connections, $config->models);
+        $connections = new ConnectionRegistry($config->connections);
+        $models = new ModelRegistry($connections, $config->models);
 
         $model = $models->model_for_record($record_class);
         $model->install();

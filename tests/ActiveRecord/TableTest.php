@@ -290,7 +290,7 @@ final class TableTest extends DbTestCase
     public function test_insert_fails_when_ignore_and_upsert(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage("`ignore` and `upsert` are mutually exclusive");
+        $this->expectExceptionMessageIsOrContains("`ignore` and `upsert` are mutually exclusive");
 
         $this->multi_column->insert([ 'pk_1' => 1, 'pk_2' => 1, 'title' => "One" ], ignore: true, upsert: true);
     }
@@ -308,7 +308,7 @@ final class TableTest extends DbTestCase
         );
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage("doesn't have a primary key");
+        $this->expectExceptionMessageIsOrContains("doesn't have a primary key");
 
         $table->insert([ 'title' => "One" ], upsert: true);
     }
@@ -367,7 +367,7 @@ final class TableTest extends DbTestCase
     public function test_insert_fails_when_values_is_empty(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage("No values to insert");
+        $this->expectExceptionMessageIsOrContains("No values to insert");
         $this->multi_column->insert([]); // @phpstan-ignore-line
     }
 

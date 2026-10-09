@@ -12,13 +12,17 @@ PHP 8.4+
 - Added support for PostgreSQL.
 - Added foreign key constraints, opt-in with `BelongsTo::$on_delete` and `OnDelete`, e.g.
   `#[BelongsTo(User::class, on_delete: OnDelete::Cascade)]`. `ConfigBuilder` resolves them into
-  `Schema::$foreign_keys`, and `ModelCollection::install()` creates referenced tables first.
+  `Schema::$foreign_keys`, and `ModelInstaller::install()` creates referenced tables first.
 - Added `ActiveRecord::model()` to resolve the model of a record class.
 - `Boolean` columns accept a default value, e.g. `#[Boolean(default: false)]`, rendered as `TRUE`
   or `FALSE`. `SchemaBuilder::add_boolean()` takes `default` too.
 
 ### Backward Incompatible Changes
 
+- Renamed `ModelCollection` as `ModelRegistry`, and `ConnectionCollection` as `ConnectionRegistry`.
+- Moved `install()`, `uninstall()`, and `is_installed()` from `ModelCollection` to the new
+  `ModelInstaller`, which takes any `ModelIterator`. Replace `$models->install()` with
+  `new ModelInstaller($models)->install()`.
 - Removed unused `ModelAttribute`.
 - Column default values are now rendered as SQL literals: strings are quoted and escaped, numbers
   of numeric columns and the `CURRENT_*` keywords are rendered as is. Defaults that were quoted by

@@ -3,7 +3,7 @@
 namespace Test\ICanBoogie;
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use ICanBoogie\ActiveRecord\StaticConnectionProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -11,7 +11,7 @@ final class StaticConnectionProviderTest extends TestCase
 {
     public function test_set_unset(): void
     {
-        $factory = fn() => new ConnectionCollection([]);
+        $factory = fn() => new ConnectionRegistry([]);
         StaticConnectionProvider::set($factory);
         $this->assertNotNull(StaticConnectionProvider::get());
 
@@ -22,7 +22,7 @@ final class StaticConnectionProviderTest extends TestCase
     public function test_connection_for_id(): void
     {
         $id = "foo";
-        $factory = fn() => new ConnectionCollection([
+        $factory = fn() => new ConnectionRegistry([
             new ConnectionDefinition(
                 id: $id,
                 dsn: "sqlite::memory:"

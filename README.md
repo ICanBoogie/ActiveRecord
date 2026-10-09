@@ -168,9 +168,10 @@ class, and usually implement a specific business logic.
 namespace App\Modules\Nodes;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelInstaller;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Integer;
@@ -208,10 +209,10 @@ $config = (new ActiveRecord\ConfigBuilder())
     ->add_record(NodeModel::class)
     ->build();
 
-/* @var $connections ConnectionCollection */
+/* @var $connections ConnectionRegistry */
 
-$models = new ModelCollection($connections, $config->models);
-$models->install();
+$models = new ModelRegistry($connections, $config->models);
+new ModelInstaller($models)->install();
 
 // Active records retrieve their model with the static model provider
 StaticModelProvider::set(fn() => $models);
@@ -421,7 +422,7 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Character;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 
 class Article extends ActiveRecord
@@ -485,7 +486,7 @@ The following applies when a foreign key is created:
 - The column gets the size and the signedness of the referenced primary key, which must be a single
   integer column.
 - The referenced model must use the same connection.
-- `ModelCollection::install()` creates the referenced tables first, and `uninstall()` drops them
+- `ModelInstaller::install()` creates the referenced tables first, and `uninstall()` drops them
   last. Foreign keys that form a cycle between tables are not supported, a table referencing itself
   is fine.
 - SQLite connections enable foreign keys with `PRAGMA foreign_keys = ON`, which SQLite doesn't do
@@ -516,7 +517,7 @@ use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\HasMany;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 
 class Article extends ActiveRecord
@@ -842,17 +843,17 @@ The connections provider manages database connections.
 
 #### Defining connections
 
-Connection definitions can be specified while creating the [ConnectionCollection][] instance.
-[ConnectionCollection][] implements [ConnectionProvider][], it is recommended to type against the
+Connection definitions can be specified while creating the [ConnectionRegistry][] instance.
+[ConnectionRegistry][] implements [ConnectionProvider][], it is recommended to type against the
 interface and use the method `connection_for_id()`.
 
 ```php
 <?php
 
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
-use ICanBoogie\ActiveRecord\ConnectionCollection;
+use ICanBoogie\ActiveRecord\ConnectionRegistry;
 
-$connections = new ConnectionCollection([
+$connections = new ConnectionRegistry([
 
     new ConnectionDefinition(id: 'read', dsn: 'sqlite::memory:'),
     new ConnectionDefinition(id: 'write', dsn: 'mysql:dbname=my_database'),
@@ -877,7 +878,7 @@ that is not defined.
 ```php
 <?php
 
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionRegistry */
 
 if (isset($connections->definitions['one']))
 {
@@ -897,7 +898,7 @@ The property is _read-only_.
 ```php
 <?php
 
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionRegistry */
 
 foreach ($connections->established as $id => $connection)
 {
@@ -905,12 +906,12 @@ foreach ($connections->established as $id => $connection)
 }
 ```
 
-The [ConnectionCollection][] instance itself can be used to traverse established connections.
+The [ConnectionRegistry][] instance itself can be used to traverse established connections.
 
 ```php
 <?php
 
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionRegistry */
 
 foreach ($connections as $id => $connection)
 {
@@ -933,9 +934,9 @@ connections) and instantiate them.
 
 #### Defining models
 
-Model definitions can be specified while creating the [ModelCollection][] instance.
-[ModelCollection][] implements [ModelProvider][], it is recommended to type against the interface
-and use the method `model_for_id()` to retrieve models from the collection.
+Model definitions can be specified while creating the [ModelRegistry][] instance.
+[ModelRegistry][] implements [ModelProvider][], it is recommended to type against the interface
+and use the method `model_for_id()` to retrieve models from the registry.
 
 Note: You don't have to create the [Connection][] instances used by the models, you can use their
 identifier which will get resolved when the model is needed.
@@ -946,11 +947,11 @@ Note: If `CONNECTION` is not specified the `primary` connection is used.
 <?php
 
 use ICanBoogie\ActiveRecord\Model;
-use ICanBoogie\ActiveRecord\ModelCollection;
+use ICanBoogie\ActiveRecord\ModelRegistry;
 
-/* @var $connections \ICanBoogie\ActiveRecord\ConnectionCollection */
+/* @var $connections \ICanBoogie\ActiveRecord\ConnectionRegistry */
 
-$models = new ModelCollection($connections, [
+$models = new ModelRegistry($connections, [
 
     'nodes' => [
 
@@ -973,14 +974,14 @@ $models = new ModelCollection($connections, [
 $model = $models->model_for_id('nodes');
 ```
 
-Model definitions can be modified or added after the [ModelCollection][] instance has been created.
+Model definitions can be modified or added after the [ModelRegistry][] instance has been created.
 
 ```php
 <?php
 
 use ICanBoogie\ActiveRecord\Model;
 
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+/* @var $models \ICanBoogie\ActiveRecord\ModelRegistry */
 
 $models['new'] = [
 
@@ -998,12 +999,12 @@ exception is thrown in attempt to modify the definition of an already instantiat
 
 #### Obtaining a model
 
-Use the [ModelCollection][] instance as an array to obtain a [Model][] instance.
+Use the [ModelRegistry][] instance as an array to obtain a [Model][] instance.
 
 ```php
 <?php
 
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+/* @var $models \ICanBoogie\ActiveRecord\ModelRegistry */
 
 $nodes = $models['nodes'];
 ```
@@ -1025,7 +1026,7 @@ property is _read-only_.
 ```php
 <?php
 
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+/* @var $models \ICanBoogie\ActiveRecord\ModelRegistry */
 
 foreach ($models->instances as $class => $model)
 {
@@ -1039,21 +1040,24 @@ foreach ($models->instances as $class => $model)
 
 #### Installing / Uninstalling models
 
-All the models managed by the provider can be installed and uninstalled with a single command
-using the `install()` and `uninstall()` methods. The `is_installed()` method returns an array
-of key/value pair where _key_ is a model identifier and _value_ `true` if the model is
-installed, `false` otherwise. Tables referenced by [foreign keys](#foreign-key-constraints) are
-installed first and uninstalled last.
+All the models of a [ModelRegistry][], or any other [ModelIterator][], can be installed and
+uninstalled with a single command using the `install()` and `uninstall()` methods of a
+[ModelInstaller][]. The `is_installed()` method returns an array of key/value pair where _key_ is a
+record class and _value_ `true` if the model is installed, `false` otherwise. Tables referenced by
+[foreign keys](#foreign-key-constraints) are installed first and uninstalled last.
 
 ```php
 <?php
 
-/* @var $models \ICanBoogie\ActiveRecord\ModelCollection */
+use ICanBoogie\ActiveRecord\ModelInstaller;
 
-$models->install();
-var_dump($models->is_installed()); // [ "NodeModel" => true, "ContentModel" => true ]
-$models->uninstall();
-var_dump($models->is_installed()); // [ "NodeModel" => false, "ContentModel" => false ]
+/* @var $models \ICanBoogie\ActiveRecord\ModelRegistry */
+
+$installer = new ModelInstaller($models);
+$installer->install();
+var_dump($installer->is_installed()); // [ Node::class => true, Content::class => true ]
+$installer->uninstall();
+var_dump($installer->is_installed()); // [ Node::class => false, Content::class => false ]
 ```
 
 
@@ -1201,13 +1205,15 @@ See [CONTRIBUTING](CONTRIBUTING.md) for details.
 [ConnectionAlreadyEstablished]: https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ConnectionAlreadyEstablished.html
 [ConnectionNotDefined]:         https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ConnectionNotDefined.html
 [ConnectionNotEstablished]:     https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ConnectionNotEstablished.html
-[ConnectionCollection]:         https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ConnectionCollection.html
+[ConnectionRegistry]:           https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ConnectionRegistry.html
 [CreatedAtProperty]:            https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Property.CreatedAtProperty.html
 [DateTimeProperty]:             https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Property.DateTimeProperty.html
 [Model]:                        https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Model.html
 [ModelAlreadyInstantiated]:     https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelAlreadyInstantiated.html
 [ModelNotDefined]:              https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelNotDefined.html
-[ModelCollection]:              https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelCollection.html
+[ModelInstaller]:               https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelInstaller.html
+[ModelIterator]:                https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelIterator.html
+[ModelRegistry]:                https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelRegistry.html
 [ModelProvider]:                https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.ModelProvider.html
 [Query]:                        https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.Query.html
 [RecordNotFound]:               https://icanboogie.org/api/activerecord/master/class-ICanBoogie.ActiveRecord.RecordNotFound.html

@@ -78,7 +78,7 @@ final class SchemaBuilderTest extends TestCase
             ->add_index('madonna');
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage("Column used by index is not defined: madonna");
+        $this->expectExceptionMessageIsOrContains("Column used by index is not defined: madonna");
         $builder->build();
     }
 }
