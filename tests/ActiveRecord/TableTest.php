@@ -23,6 +23,7 @@ final class TableTest extends DbTestCase
     private Schema $animals_schema;
     private Table $dogs;
     private Table $multi_column;
+    private Table $key_only;
 
     protected function setUp(): void
     {
@@ -72,9 +73,21 @@ final class TableTest extends DbTestCase
             )
         );
 
+        $this->key_only = new Table(
+            $connection,
+            new TableDefinition(
+                name: 'key_only',
+                schema: new SchemaBuilder()
+                    ->add_integer('pk_1', primary: true)
+                    ->add_integer('pk_2', primary: true)
+                    ->build()
+            )
+        );
+
         $this->animals->install();
         $this->dogs->install();
         $this->multi_column->install();
+        $this->key_only->install();
     }
 
     /*
@@ -254,5 +267,34 @@ final class TableTest extends DbTestCase
             ->as_assoc
             ->one;
         $this->assertEquals($updated_values, $actual);
+    }
+
+    //
+    // Key-only tests: every column is part of the primary key, so an upsert has nothing to update.
+    //
+
+    public function test_upsert_key_only_inserts_new_row(): void
+    {
+        $values = [ 'pk_1' => 1, 'pk_2' => 1 ];
+        $this->key_only->insert($values, upsert: true);
+
+        $actual = $this->key_only
+            ->execute("SELECT * FROM {self}")
+            ->as_assoc
+            ->all;
+        $this->assertEquals([ $values ], $actual);
+    }
+
+    public function test_upsert_key_only_keeps_existing_row(): void
+    {
+        $values = [ 'pk_1' => 1, 'pk_2' => 1 ];
+        $this->key_only->insert($values);
+        $this->key_only->insert($values, upsert: true);
+
+        $actual = $this->key_only
+            ->execute("SELECT * FROM {self}")
+            ->as_assoc
+            ->all;
+        $this->assertEquals([ $values ], $actual);
     }
 }

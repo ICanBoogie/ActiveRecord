@@ -370,7 +370,9 @@ class Table
             $identifiers = implode(', ', $identifiers);
             $placeholders = implode(', ', array_fill(0, count($filtered), '?'));
 
-            $statement = "INSERT INTO " . $this->quote_identifier($this->name) . " ($identifiers) VALUES ($placeholders)";
+            $statement = "INSERT INTO " . $this->quote_identifier(
+                    $this->name
+                ) . " ($identifiers) VALUES ($placeholders)";
             $statement = $this->prepare($statement);
 
             $statement->execute($filtered);
@@ -419,6 +421,7 @@ class Table
                 $update_holders = $holders;
 
                 $primary = $this->primary;
+                assert($primary !== null);
 
                 if (is_array($primary)) {
                     $flip = array_flip($primary);
@@ -431,6 +434,13 @@ class Table
                 }
 
                 $update_values = array_values($update_values);
+
+                if (!$update_holders) {
+                    # Every column is part of the primary key, there's nothing to update.
+                    # MySQL has no DO NOTHING, so we assign a key column to itself.
+                    $key = $this->quote_identifier(is_array($primary) ? reset($primary) : $primary);
+                    $update_holders = [ "$key = $key" ];
+                }
 
                 $query .= ' ON DUPLICATE KEY UPDATE ' . implode(', ', $update_holders);
 
@@ -472,7 +482,9 @@ class Table
                     $set[] = "$quoted = EXCLUDED.$quoted";
                 }
 
-                $query .= ' ON CONFLICT (' . $conflict . ') DO UPDATE SET ' . implode(', ', $set);
+                $query .= ' ON CONFLICT (' . $conflict . ') '
+                    // Every column is part of the primary key, there's nothing to update.
+                    . ($set ? 'DO UPDATE SET ' . implode(', ', $set) : 'DO NOTHING');
             }
         } else {
             throw new LogicException("Unsupported drive: $driver_name.");

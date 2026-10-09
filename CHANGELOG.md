@@ -28,6 +28,8 @@ None
 - Remove dependency on icanboogie/common.
 - `ActiveRecord::save()` returns the record.
 - Fixed `ActiveRecord::delete()` for records with a multi-column primary key.
+- Fixed upserts on MySQL and PostgreSQL for tables where every column is part of the primary key,
+  such as join tables. The update clause used to be empty, which is invalid SQL.
 
 
 
