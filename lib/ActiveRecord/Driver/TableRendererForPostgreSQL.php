@@ -8,15 +8,11 @@ use ICanBoogie\ActiveRecord\Schema\Binary;
 use ICanBoogie\ActiveRecord\Schema\Blob;
 use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Column;
-use ICanBoogie\ActiveRecord\Schema\Date;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
-use ICanBoogie\ActiveRecord\Schema\Time;
 use InvalidArgumentException;
-
-use function in_array;
 
 /**
  * @link https://www.sqlite.org/lang_createtable.html
@@ -86,7 +82,7 @@ final class TableRendererForPostgreSQL extends TableRenderer
         }
 
         $constraint .= $column->null ? " NULL" : " NOT NULL";
-        $constraint .= $column->default !== null ? " DEFAULT " . $this->format_default($column->default) : '';
+        $constraint .= $column->default !== null ? " DEFAULT " . $this->render_default($column) : '';
         $constraint .= $column->unique ? " UNIQUE" : '';
         $constraint .= $column->collate ? " COLLATE $column->collate" : '';
 
@@ -95,13 +91,11 @@ final class TableRendererForPostgreSQL extends TableRenderer
         return ltrim($constraint);
     }
 
-    private function format_default(string $default): string
+    protected function render_default(Column $column): string
     {
-        if (in_array($default, [ DateTime::CURRENT_TIMESTAMP, Date::CURRENT_DATE, Time::CURRENT_TIME ])) {
-            return "($default)";
-        }
+        $default = parent::render_default($column);
 
-        return $default;
+        return $this->is_current_keyword($default) ? "($default)" : $default;
     }
 
     protected function render_table_options(): array

@@ -14,6 +14,9 @@ PHP 8.4+
 ### Backward Incompatible Changes
 
 - Removed unused `ModelAttribute`.
+- Column default values are now rendered as SQL literals: strings are quoted and escaped, numbers
+  of numeric columns and the `CURRENT_*` keywords are rendered as is. Defaults that were quoted by
+  hand, such as `"'madonna'"`, must be unquoted.
 
 ### Deprecated Features
 
@@ -23,6 +26,8 @@ None
 
 - Date properties use property hooks.
 - Remove dependency on icanboogie/common.
+- `ActiveRecord::save()` returns the record.
+- Fixed `ActiveRecord::delete()` for records with a multi-column primary key.
 
 
 

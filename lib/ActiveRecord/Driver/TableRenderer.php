@@ -11,12 +11,16 @@ use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Date;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Decimal;
+use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Text;
 use ICanBoogie\ActiveRecord\Schema\Time;
 use ICanBoogie\ActiveRecord\Schema\Timestamp;
 use RuntimeException;
 
 use function implode;
+use function in_array;
+use function is_numeric;
+use function str_replace;
 
 abstract class TableRenderer
 {
@@ -90,5 +94,44 @@ abstract class TableRenderer
 
             default => throw new RuntimeException("Don't know what to do with " . $column::class)
         };
+    }
+
+    /**
+     * Renders the default value of a column.
+     *
+     * `CURRENT_*` keywords and numeric values of numeric columns are rendered as is, any other
+     * value is rendered as a string literal.
+     */
+    protected function render_default(Column $column): string
+    {
+        $default = $column->default;
+
+        assert($default !== null);
+
+        if ($this->is_current_keyword($default)) {
+            return $default;
+        }
+
+        if (($column instanceof Integer || $column instanceof Decimal) && is_numeric($default)) {
+            return $default;
+        }
+
+        return $this->quote_string($default);
+    }
+
+    /**
+     * Whether the default value is one of `CURRENT_TIMESTAMP`, `CURRENT_DATE`, or `CURRENT_TIME`.
+     */
+    protected function is_current_keyword(string $default): bool
+    {
+        return in_array($default, [ DateTime::CURRENT_TIMESTAMP, Date::CURRENT_DATE, Time::CURRENT_TIME ], true);
+    }
+
+    /**
+     * Quotes a string as an SQL string literal.
+     */
+    protected function quote_string(string $string): string
+    {
+        return "'" . str_replace("'", "''", $string) . "'";
     }
 }

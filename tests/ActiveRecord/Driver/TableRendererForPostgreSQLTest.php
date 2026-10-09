@@ -11,6 +11,7 @@ use ICanBoogie\ActiveRecord\Schema\Boolean;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Date;
 use ICanBoogie\ActiveRecord\Schema\DateTime;
+use ICanBoogie\ActiveRecord\Schema\Decimal;
 use ICanBoogie\ActiveRecord\Schema\Index;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
@@ -189,6 +190,31 @@ final class TableRendererForPostgreSQLTest extends TestCase
                 location_hint VARCHAR(255) NULL,
 
                 PRIMARY KEY (equipment_id, location_id)
+                );
+                SQL,
+            ],
+
+            'Default values' => [
+                new Schema(
+                    columns: [
+                        'i' => new Integer(default: 13),
+                        'd' => new Decimal(6, 3, default: "123.456"),
+                        'c1' => new Character(default: "madonna"),
+                        'c2' => new Character(default: "it's"),
+                        'c3' => new Character(default: "back\\slash"),
+                        'c4' => new Character(default: "123"),
+                        't' => new Date(default: "1977-06-06"),
+                    ],
+                ),
+                <<<SQL
+                CREATE TABLE tblSample (
+                i INTEGER NOT NULL DEFAULT 13,
+                d DECIMAL(6, 3) NOT NULL DEFAULT 123.456,
+                c1 VARCHAR(255) NOT NULL DEFAULT 'madonna',
+                c2 VARCHAR(255) NOT NULL DEFAULT 'it''s',
+                c3 VARCHAR(255) NOT NULL DEFAULT 'back\\slash',
+                c4 VARCHAR(255) NOT NULL DEFAULT '123',
+                t DATE NOT NULL DEFAULT '1977-06-06'
                 );
                 SQL,
             ],

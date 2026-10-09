@@ -14,6 +14,7 @@ use ReflectionException;
 use Throwable;
 
 use function array_keys;
+use function in_array;
 use function is_array;
 
 /**
@@ -162,9 +163,11 @@ abstract class ActiveRecord extends Prototyped
     /**
      * Saves the active record using its model.
      *
+     * @return $this
+     *
      * @throws Throwable
      */
-    public function save(bool $skip_validation = false): void
+    public function save(bool $skip_validation = false): static
     {
         if (!$skip_validation) {
             $this->assert_is_valid();
@@ -188,7 +191,7 @@ abstract class ActiveRecord extends Prototyped
         if (is_array($primary)) {
             $model->insert($properties, upsert: true);
 
-            return;
+            return $this;
         }
 
         #
@@ -201,7 +204,7 @@ abstract class ActiveRecord extends Prototyped
         ) {
             $model->insert($properties, upsert: true);
 
-            return;
+            return $this;
         }
 
         #
@@ -210,7 +213,7 @@ abstract class ActiveRecord extends Prototyped
 
         $id = null;
 
-        if (isset($properties[$primary])) {
+        if ($primary && isset($properties[$primary])) {
             $id = $properties[$primary];
             unset($properties[$primary]);
             assert(is_numeric($id));
@@ -219,9 +222,11 @@ abstract class ActiveRecord extends Prototyped
         // @phpstan-ignore-next-line
         $rc = $model->save($properties, $id);
 
-        if ($id === null) {
+        if ($id === null && $primary) {
             $this->$primary = $rc;
         }
+
+        return $this;
     }
 
     /**
@@ -279,10 +284,13 @@ abstract class ActiveRecord extends Prototyped
     {
         $model = $this->model;
         $model_class = $model::class;
-        $primary = $model->primary
+        $model->primary
             ?? throw new LogicException("Unable to delete record, model `$model_class` doesn't have a primary key");
-        $key = $this->$primary
-            ?? throw new LogicException("Unable to delete record, the primary key is not defined");
+        $key = $this->primary_key_value;
+
+        if ($key === null || (is_array($key) && in_array(null, $key, true))) {
+            throw new LogicException("Unable to delete record, the primary key is not defined");
+        }
 
         // @phpstan-ignore-next-line
         $model->delete($key);

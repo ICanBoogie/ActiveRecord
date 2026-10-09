@@ -56,7 +56,7 @@ final class TableRendererForSQLite extends TableRenderer
         }
 
         $constraint .= $column->null ? " NULL" : " NOT NULL";
-        $constraint .= $column->default !== null ? " DEFAULT $column->default" : '';
+        $constraint .= $column->default !== null ? " DEFAULT " . $this->render_default($column) : '';
         $constraint .= $column->unique ? " UNIQUE" : '';
         $constraint .= $column->collate ? " COLLATE $column->collate" : '';
 

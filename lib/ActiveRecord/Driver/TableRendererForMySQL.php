@@ -5,13 +5,10 @@ namespace ICanBoogie\ActiveRecord\Driver;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\BelongsTo;
 use ICanBoogie\ActiveRecord\Schema\Column;
-use ICanBoogie\ActiveRecord\Schema\Date;
-use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\Serial;
-use ICanBoogie\ActiveRecord\Schema\Time;
 
-use function in_array;
+use function str_replace;
 
 /**
  * @link https://www.sqlite.org/lang_createtable.html
@@ -58,7 +55,7 @@ final class TableRendererForMySQL extends TableRenderer
             $constraint .= " AUTO_INCREMENT";
         }
 
-        $constraint .= $column->default !== null ? " DEFAULT " . $this->format_default($column->default) : '';
+        $constraint .= $column->default !== null ? " DEFAULT " . $this->render_default($column) : '';
         $constraint .= $column->unique ? " UNIQUE" : '';
         $constraint .= $column->collate ? " COLLATE $column->collate" : '';
 
@@ -67,13 +64,19 @@ final class TableRendererForMySQL extends TableRenderer
         return ltrim($constraint);
     }
 
-    private function format_default(string $default): string
+    protected function render_default(Column $column): string
     {
-        if (in_array($default, [ DateTime::CURRENT_TIMESTAMP, Date::CURRENT_DATE, Time::CURRENT_TIME ])) {
-            return "($default)";
-        }
+        $default = parent::render_default($column);
 
-        return $default;
+        return $this->is_current_keyword($default) ? "($default)" : $default;
+    }
+
+    /**
+     * MySQL also treats backslashes as escape characters in string literals.
+     */
+    protected function quote_string(string $string): string
+    {
+        return parent::quote_string(str_replace('\\', '\\\\', $string));
     }
 
     protected function render_table_options(): array
