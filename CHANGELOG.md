@@ -48,6 +48,8 @@ PHP 8.4+
 - With SQLite, an upsert now uses `ON CONFLICT … DO UPDATE` instead of `INSERT OR REPLACE`. Columns
   that are not provided keep their values instead of being reset, and only primary key conflicts
   trigger the update. This matches MySQL and PostgreSQL.
+- Removed `ScopeNotDefine`, a leftover from scopes.
+- Removed `StatementInvocationFailed` for it's never used.
 
 ### Deprecated Features
 
@@ -72,6 +74,7 @@ None
 - Use `Pdo\Mysql::ATTR_INIT_COMMAND` instead of `PDO::MYSQL_ATTR_INIT_COMMAND`, which is deprecated
   since PHP 8.5.
 - `StaticModelProvider` now caches models per record class, and `set()` invalidates the cache.
+- The documentation moved from `README.md` to `docs/`, one page per topic, and was updated for v7.0.
 
 
 

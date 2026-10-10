@@ -1,358 +1,162 @@
-# Query Interface
+# Query interface
 
 The query interface provides different ways to retrieve data from the database. Using the query
 interface, you can find records using a variety of methods and conditions; specify the order,
-fields, grouping, limit, or the tables to join; use dynamic or scoped filters; check the existence
-or particular records; perform various calculations.
+fields, grouping, limit, or the tables to join; check the existence of particular records; perform
+various calculations.
 
-Records can be retrieved in various ways, especially using the `all`, `one`, `pairs` or `rc` magic
-properties.
+Queries start from a model, with `$model->query()` or `$model->where()`, or from a record class,
+with `Article::query()` or `Article::where()`. Query methods return the query, so they can be
+chained. Records are retrieved with the `all`, `one`, `pairs`, or `rc` properties, or by iterating
+over the query. Casting a query to a string renders its SQL.
 
-
-
-
-
-## Summary
-
-[Conditions](#conditions)
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->where('is_online = ?', true);
-$query->where([ 'is_online' => true, 'is_home_excluded' => false ]);
-$query->where('site_id = 0 OR site_id = ?', 1)->and('language = "" OR language = ?', "fr");
-
-# Sets
-
-$query->where([ 'order_count' => [ 1, 2, 3 ] ]);
-$query->where([ '!order_count' => [ 1, 2, 3 ] ]); # NOT
-
-# Query extensions
-
-$query->visible;
-$query->own->visible->ordered;
-```
-
-[Grouping](#grouping-data) and [ordering](#ordering)
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->group('date(created)')->order('created');
-$query->group('date(created)')->having('created > ?', new DateTime('-1 month'))->order('created');
-```
-
-[Rows range](#specify-the-number-of-rows-to-skip-and-take)
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->skip(100)->take(10);
-```
-
-[Fields selection](#selecting-specific-fields)
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->select('nid, created, title');
-$query->select('nid, created, CONCAT_WS(":", title, language)');
-```
-
-[Joins](#joining-tables)
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->join(query: $subquery, on: 'nid');
-$query->join(with: Content::class);
-$query->join(expression: 'INNER JOIN contents USING(nid)');
-```
-
-[Retrieving data](#retrieving-data)
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->all;
-$query->order('created DESC')->all(PDO::FETCH_ASSOC);
-$query->order('created DESC')->mode(PDO::FETCH_ASSOC)->all;
-$query->order('created DESC')->one;
-$query->select('nid, title')->pairs;
-$query->select('title')->rc;
-```
-
-[Testing object existence](#checking-the-existence-of-records)
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->exists;
-$query->exists(1, 2, 3);
-$query->exists([ 1, 2, 3 ]);
-$query->where('author = ?', 'madonna')->exists;
-```
-
-[Calculations](#calculations)
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->count;
-$query->count('is_online'); // count is_online = 0 and is_online = 1
-$query->average('score');
-$query->minimum('age');
-$query->maximum('age');
-$query->sum('comments_count');
-```
-
-
+The examples use the records of [Getting started](../GettingStarted.md): two articles, the first
+one by alice, online, with a comment by bob; the second one by bob, offline.
 
 
 
 ## Conditions
 
-The `where()` method specifies the conditions used to filter the records. It represents the
-`WHERE`-part of the SQL statement. Conditions can either be specified as a string, as a list of
-arguments or as an array.
-
-
+The `where()` method specifies the conditions used to filter the records. It represents the `WHERE`
+part of the SQL statement. Conditions can either be specified as a string, with or without
+arguments, or as an array.
 
 
 
 ### Conditions specified as a string
 
-Adding a condition to a query can be as simple as `$query->where('is_online = 1')`. This would
-return all the records where the `is_online` field equals `1`.
-
-__Warning:__ Building your own conditions as string can leave you vulnerable to SQL injection
-exploits. For instance, `$query->where('is_online = ' . $_GET['online']);` is not safe. Always use
-placeholders when you can't trust the source of your inputs:
+Adding a condition to a query can be as simple as `where('is_online = 1')`. Building your own
+conditions as string can leave you vulnerable to SQL injection, for instance
+`where('user_id = ' . $_GET['user'])` is not safe. Always use placeholders when you can't trust the
+source of your inputs:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->where('is_online = ?', true);
+$articles = Article::where('is_online = ?', true)->all;
+$articles = Article::where('is_online = ? AND user_id = ?', true, 1)->all;
 ```
 
-Of course, you can use multiple conditions:
+`and()` is an alias of `where()`, which reads better when you add conditions:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->where('is_online = ? AND is_home_excluded = ?', true, false);
+$articles = Article::where('is_online = ?', true)->and('user_id = ?', 1)->all;
 ```
 
-`and()` is alias to `where()` and should be preferred when linking adding conditions:
+
+
+### Conditions specified as an array
+
+Conditions can also be specified as arrays, where _key_ is a column and _value_ its value:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->where('is_online = ?', true)->and('is_home_excluded = ?', false);
+$articles = Article::where([ 'is_online' => true, 'user_id' => 1 ])->all;
 ```
 
-
-
-
-
-### Conditions specified as an array (or list of arguments)
-
-Conditions can also be specified as arrays:
+An array of values makes a subset condition:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->where([ 'is_online' => true, 'is_home_excluded' => false ]);
+echo Article::where([ 'nid' => [ 1, 2, 3 ] ]);
+// … WHERE (`nid` IN(1,2,3))
 ```
 
+The values of a subset are quoted and written in the statement, they are not passed as arguments.
+A [query can be used as a subset](#using-a-query-as-a-subquery) too.
 
-
-
-
-### Subset conditions
-
-Records belonging to a subset can be retrieved using an array as condition value:
+Prefixing a column with an exclamation mark negates the condition:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->where([ 'orders_count' => [ 1, 3, 5 ] ]);
+echo Article::where([ '!user_id' => 1 ]);
+// … WHERE (`user_id` != ?)
+
+echo Article::where([ '!nid' => [ 1, 2 ] ]);
+// … WHERE (`nid` NOT IN(1,2))
 ```
-
-This generates something like: `... WHERE (orders_count IN (?,?,?))`, with the arguments available
-in `$query->args`.
-
-
-
-
-
-### Modifiers
-
-When conditions are specified as an array, it is possible to modify the comparing function.
-Prefixing a field name with an exclamation mark uses the _not equal_ operator.
-
-The following example demonstrates how to search for records where the `order_count` field is
-different from "2":
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->where([ '!order_count' => 2 ]);
-```
-
-```
-… WHERE `order_count` != 2
-```
-
-This also works with subsets:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->where([ '!order_count' => [ 1,3,5 ] ]);
-```
-
-```
-… WHERE `order_count` NOT IN(1, 3, 5)
-```
-
 
 
 
 ## Ordering
 
-The `order()` method retrieves records in a specific order.
-
-The following example demonstrates how to get records in the ascending order of their creation date:
+The `order()` method retrieves records in a specific order:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->order('created');
+$articles = Article::query()->order('date')->all;
+$articles = Article::query()->order('date DESC, title')->all;
 ```
 
-A direction can be specified:
+A column prefixed with a minus sign is sorted in descending order, `order('-date, title')` is the
+same as `order('date DESC, title')`.
 
+On MySQL, records can also be ordered by the values of a column, using `FIELD()`:
+
+<!-- doc-test: mysql -->
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->order('created ASC');
-# or
-$query->order('created DESC');
+$articles = Article::where([ 'nid' => [ 1, 2 ] ])->order('nid', [ 2, 1 ])->all;
 ```
-
-Multiple fields can be used while ordering:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->order('created DESC, title');
-```
-
-Records can also be ordered by field:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->where([ 'nid' => [ 1, 2, 3 ] ])->order('nid', [ 2, 3, 1 ]);
-# or
-$query->where([ 'nid' => [ 1, 2, 3 ] ])->order('nid', 2, 3, 1);
-```
-
-
 
 
 
 ## Grouping data
 
-The `group()` method specifies the `GROUP BY` clause.
-
-The following example demonstrates how to retrieve the first record of records grouped by day:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->group('DATE(created)')->order('created');
-```
-
-
-
-
-
-### Filtering groups
-
-The `having()` method specifies the `HAVING` clause, which specifies the conditions of the `GROUP
-BY` clause.
-
-The following example demonstrates how to retrieve the first record created by day for the past
-month:
+The `group()` method specifies the `GROUP BY` clause, and the `having()` method specifies the
+`HAVING` clause, the conditions on the groups. `having()` takes conditions as `where()` does. The
+following example counts the articles of the users who wrote at least one:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->group('DATE(created)')->having('created > ?', new DateTime('-1 month'))->order('created');
+$counts = Article::query()
+    ->select('user_id, COUNT(nid)')
+    ->group('user_id')
+    ->having('COUNT(nid) > 0')
+    ->pairs; // [ 1 => 1, 2 => 1 ]
 ```
 
+On SQLite, an argument compared with an expression such as `COUNT(nid)` is compared as text, see
+[Database engines](../Engines.md#queries).
 
 
 
+## Skipping and taking rows
 
-## Specify the number of rows to skip and take
-
-Use the `skip()` method to specify the number of rows to skip before fetching, and use the `take()`
-method to specify the number of rows to take while fetching.
+Use the `skip()` method to specify the number of rows to skip before fetching, and the `take()`
+method to specify the number of rows to take:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->skip(100)->take(10);
+$articles = Article::query()->order('-date')->skip(10)->take(10)->all;
 ```
-
 
 
 
@@ -363,40 +167,65 @@ of its parents' tables (e.g. `SELECT article.*, node.*`), and records are instan
 [ActiveRecord][] class defined by the model. The fields of joined tables are not selected, so they
 can't overwrite the record's fields of the same name.
 
+The following example finds the articles with a comment containing "Great". The records are
+`Article` instances, and since the columns of `comments` aren't selected, `comment.user_id`
+doesn't overwrite `Article::$user_id`:
+
+```php
+<?php
+
+namespace App;
+
+$articles = Article::query()
+    ->join(with: Comment::class)
+    ->where('comment.body LIKE ?', '%Great%')
+    ->all;
+
+echo $articles[0]->user->username; // alice
+```
+
 The `select()` method specifies the fields to select, in which case each row of the result set is
-returned as an array, unless a fetch mode is defined. Use `select('*')` to get the fields of joined
-tables too.
-
-The following example demonstrates how to get the identifier, creation date, and title of records:
+returned as an array, unless a fetch mode is defined. Because the `SELECT` string is used _as is_,
+SQL expressions can be used. Use `select('*')` to get the fields of joined tables too.
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->select('nid, created, title');
+$rows = Article::query()->select('nid, title, UPPER(title) AS shout')->all;
+// [ [ 'nid' => 1, 'title' => "Hello world", 'shout' => "HELLO WORLD" ], … ]
 ```
-
-Because the `SELECT` string is used _as is_ to build the query, complex SQL statements can be used:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->select('nid, created, CONCAT_WS(":", title, language)');
-```
-
-
 
 
 
 ## Joining tables
 
-The `join()` method specifies the `JOIN` clause. A raw string or a model identifier can be used to
-specify the join. The method can be used multiple times to create multiple joins.
+The `join()` method specifies a `JOIN` clause. A record class, a subquery, or a raw string can be
+used to specify the join. The method can be used multiple times to create multiple joins.
 
 
+
+### Joining tables using a record class
+
+The table of the model of the record class is joined. The tables are joined `USING` the primary key
+of the queried model if the joined table has that column, otherwise the primary key of the joined
+model. The following options are available:
+
+- `mode`: The join mode. Default: `INNER`.
+- `as`: The alias of the joined table. Default: The alias of the joined model.
+- `on`: The column used to join the tables.
+
+```php
+<?php
+
+namespace App;
+
+echo Article::query()->join(with: Comment::class, mode: 'LEFT', as: 'c');
+// … LEFT JOIN `comments` AS `c` USING(`nid`)
+```
+
+The model is obtained from the model provider of the queried model.
 
 
 
@@ -404,436 +233,256 @@ specify the join. The method can be used multiple times to create multiple joins
 
 A query can be joined as a subquery. The following options are available:
 
-- `mode`: Specifies the join mode. Default: `INNER`.
-- `as`: Alias for the subquery. Default: The alias of the model associated with the query.
-- `on`: The column used for the conditional expression. Depending on the columns available, the
-  method tries to determine the best solution between `ON` and `USING`.
+- `mode`: The join mode. Default: `INNER`.
+- `as`: The alias of the subquery. Default: The alias of the model of the subquery.
+- `on`: The column used to join the subquery, which must exist in both. Default: The primary key of
+  the model of the subquery. Depending on the columns, the method uses `USING` or `ON`.
 
-The following example demonstrates how to fetch users and order them by the number of online
-articles they've published since last year. We use the join mode `LEFT` so that users that did not
-publish articles are fetched as well.
-
-```php
-<?php
-
-/* @var $articles \ICanBoogie\ActiveRecord\Model */
-/* @var $users \ICanBoogie\ActiveRecord\Model */
-
-$online_article_count = $articles
-    ->where([ 'type' => 'articles', 'created_at' => new DateTime('-1 year') ])
-    ->select('user_id, COUNT(node_id) AS online_article_count')
-    ->online
-    ->group('user_id');
-
-$users = $users
-    ->query()
-    ->join(query: $online_article_count, on: 'user_id', mode: 'LEFT')
-    ->order('online_article_count DESC');
-```
-
-
-
-
-
-### Joining tables using a model
-
-A join can be specified using a model or a model identifier, in which case, the relationship between
-that model and the model associated with the query is used to create the join. The following options
-are available:
-
-- `mode`: Specifies the join mode. Default: `INNER`.
-- `as`: Alias for the joining model. Default: The alias of the joining model.
-
-The column character ":" is used to distinguish a model identifier from a raw fragment.
+The following example orders the articles by their number of comments. The `LEFT` join mode keeps
+the articles without comments:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-/* @var $contents_model \ICanBoogie\ActiveRecord\Model */
+namespace App;
 
-$query->join(with: ContentRecord::class);
-$query->join(with: ContentRecord::class, mode: 'LEFT', as: 'cnt');
+$comment_counts = Comment::query()
+    ->select('nid, COUNT(id) AS comment_count')
+    ->group('nid');
+
+$rows = Article::query()
+    ->join(query: $comment_counts, on: 'nid', mode: 'LEFT')
+    ->select('title, comment_count')
+    ->order('comment_count DESC')
+    ->all;
 ```
-
-> **Note:** If a model identifier is provided, the model collection associated with the
-> query's model is used to obtain the model.
-
-
 
 
 
 ### Joining tables using a raw string
 
-Finally, a join can be specified using a raw string, which will be included _as is_ in the final SQL
-statement.
+Finally, a join can be specified using a raw string, which is included _as is_ in the statement.
+The `{prefix}` placeholder is replaced with the table name prefix of the connection.
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->join(expression: 'INNER JOIN `contents` USING(`nid`)');
+$articles = Article::query()
+    ->join(expression: 'INNER JOIN {prefix}users AS author ON author.id = article.user_id')
+    ->where('author.username = ?', "alice")
+    ->all;
 ```
-
-
 
 
 
 ## Retrieving data
 
-There are many ways to retrieve data. We have already seen the `find()` method, which can be used to
-retrieve records using their identifier. The following methods or magic properties work with
-conditions.
-
-
+The `find()` method of the [model](Model.md#finding-records) retrieves records using their
+primary key. The following methods and properties retrieve the records matching a query.
 
 
 
 ### Retrieving data by iteration
 
-Queries are traversable, it's the easiest way to retrieve the rows of a result set:
+Queries are traversable, it's the easiest way to retrieve the rows of a result set. The rows are
+fetched in batches of 1000, use `batch_size()` to change the size of the batches.
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-foreach ($query->where('is_online = 1') as $node) {
-    // …
+foreach (Article::where([ 'is_online' => true ])->batch_size(100) as $article) {
+    echo "$article->title\n";
 }
 ```
 
 
 
-
-
 ### Retrieving the complete result set
 
-The magic property `all` retrieves the complete result set as an array:
+The `all` property retrieves the complete result set as an array, and the `all()` method does the
+same with a specific fetch mode:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$array = $query->all;
-$array = $query->visible->order('created DESC')->all;
+$articles = Article::where([ 'is_online' => true ])->order('-date')->all;
+$rows = Article::where([ 'is_online' => true ])->order('-date')->all(\PDO::FETCH_ASSOC);
 ```
-
-The `all()` method retrieves the complete result set using a specific fetch mode:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$array = $query->all(\PDO::FETCH_ASSOC);
-$array = $query->visible->order('created DESC')->all(\PDO::FETCH_ASSOC);
-```
-
-
 
 
 
 ### Retrieving a single record
 
-The `one` magic property retrieves a single record:
+The `one` property retrieves a single record, or `false` if there is none. The `one()` method does
+the same with a specific fetch mode. The number of records to retrieve is automatically limited to
+1.
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$record = $query->one;
-$record = $query->order('created DESC')->one;
+$latest = Article::query()->order('-date')->one;
+$row = Article::query()->order('-date')->one(\PDO::FETCH_ASSOC);
 ```
-
-The `one()` method retrieves a single record using a specific fetch mode:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$record = $query->one(\PDO::FETCH_ASSOC);
-$record = $query->order('created DESC')->one(\PDO::FETCH_ASSOC);
-```
-
-Note: The number of records to retrieve is automatically limited to 1.
-
-
 
 
 
 ### Retrieving key/value pairs
 
-The `pairs` magic property retrieves key/value pairs when selecting two columns, the first column is
-the key and the second its value.
+The `pairs` property retrieves key/value pairs when selecting two columns, the first column is the
+key and the second its value:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->select('nid, title')->pairs;
+$titles = Article::query()->select('nid, title')->pairs;
+// [ 1 => "Hello world", 2 => "Work in progress" ]
 ```
-
-The result is similar to the following example:
-
-```
-array
-  34 => string 'Créer un nuage de mots-clé' (length=28)
-  57 => string 'Générer à la volée des miniatures avec mise en cache' (length=56)
-  307 => string 'Mes premiers pas de développeur sous Ubuntu 10.04 (Lucid Lynx)' (length=63)
-  ...
-```
-
-
 
 
 
 ### Retrieving the first column of the first row
 
-The `rc` magic property retrieves the first column of the first row.
+The `rc` property retrieves the first column of the first row. The number of records to retrieve is
+automatically limited to 1.
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$title = $query->select('title')->rc;
+$title = Article::query()->select('title')->order('-views')->rc; // Hello world
 ```
-
-Note: The number of records to retrieve is automatically limited to 1.
-
-
 
 
 
 ## Defining the fetch mode
 
-The fetch mode is usually selected by the query interface but the `mode` can be used to specify it.
+The fetch mode is usually selected by the query interface, but the `mode()` method can specify it.
+It accepts the same arguments as
+[PDOStatement::setFetchMode](https://www.php.net/manual/en/pdostatement.setfetchmode.php).
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->select('nid, title')->mode(\PDO::FETCH_NUM);
+$rows = Article::query()->select('nid, title')->mode(\PDO::FETCH_NUM)->all;
+// [ [ 1, "Hello world" ], [ 2, "Work in progress" ] ]
 ```
-
-The `mode()` method accepts the same arguments as the
-[PDOStatement::setFetchMode](http://php.net/manual/fr/pdostatement.setfetchmode.php) method.
-
-As we have seen in previous examples, the fetch mode can also be specified when fetching data with
-the `all()` and `one()` methods.
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$array = $query->order('created DESC')->all(\PDO::FETCH_ASSOC);
-$record = $query->order('created DESC')->one(\PDO::FETCH_ASSOC);
-```
-
-
 
 
 
 ## Checking the existence of records
 
-The `exists()` method checks the existence of a record, it queries the database just like `find()`
-but returns `true` when a record is found and `false` otherwise.
+The `exists()` method checks the existence of records using their primary key. With multiple keys,
+it returns `true` when all the records exist, `false` when none exist, and an array otherwise.
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->exists(1);
+var_dump(Article::query()->exists(1));            // true
+var_dump(Article::query()->exists(1, 2));         // true
+var_dump(Article::query()->exists([ 1, 2, 99 ])); // [ 1 => true, 2 => true, 99 => false ]
 ```
 
-The method accepts multiple identifiers in which case it returns `true` when all the records exist,
-`false` when all the record don't exist, and an array otherwise.
+The `exists` property is `true` if at least one record matches the query:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->exists(1, 2, 999);
-# or
-$query->exists([ 1, 2, 999 ]);
+var_dump(Article::where([ 'user_id' => 1 ])->exists); // true
 ```
-
-The method would return the following result if records "1" and "2" exist but not record "999".
-
-```
-array
-  1 => boolean true
-  2 => boolean true
-  999 => boolean false
-```
-
-The `exists` magic property is `true` if at least one record matching the specified conditions
-exists, `false` otherwise.
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->where([ 'author' => 'Madonna' ])->exists;
-```
-
-
 
 
 
 ## Counting
 
-The `count` magic property is the number of records in a matching a query.
+The `count` property is the number of records matching a query:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->count;
+echo Article::query()->count;                         // 2
+echo Article::where([ 'is_online' => true ])->count;  // 1
+echo Article::query()->join(with: Comment::class)->count; // 1
 ```
 
-Or on a query:
+The `count()` method returns an array with the number of records for each value of a column:
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->where([ 'firstname' => 'Ryan' ])->count;
+$counts = Article::query()->count('user_id'); // [ 1 => 1, 2 => 1 ]
 ```
-
-Of course, all query methods can be combined:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->where([ 'firstname' => 'Ryan' ])->join(with: Content::class)->and('YEAR(date) = 2011')->count;
-```
-
-The `count()` method returns an array with the number of recond for each value of a field:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->count('is_online');
-```
-
-```
-array
-  0 => string '35' (length=2)
-  1 => string '145' (length=3)
-```
-
-In this example, there are 35 record online and 145 offline.
-
-
 
 
 
 ## Calculations
 
-The `average()`, `minimum()`, `maximum()` and `sum()` methods are respectively used, for a column,
-to compute its average value, its minimum value, its maximum value and its sum.
-
-All calculation methods work directly on the query:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->average('price');
-```
-
-And on a query:
+The `average()`, `minimum()`, `maximum()` and `sum()` methods compute, for a column, its average
+value, its minimum value, its maximum value, and its sum. They take the conditions of the query
+into account.
 
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query->where([ 'category' => 'Toys' ])->average('price');
+echo Article::query()->sum('views');                                // 42
+echo Article::query()->maximum('date');                             // 2026-10-11
+echo Article::where([ 'is_online' => true ])->average('views');     // 42
 ```
-
-Of course, all query methods can be combined:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query->where([ 'category' => 'Toys' ])->join(with: Content::class)->and('YEAR(date) = 2011')->average('price');
-```
-
-
 
 
 
 ## Some useful properties
 
-The following properties might be helpful, especially when you are using the Query interface to
-create a query string to be used in the subquery of another query:
+The following properties might be helpful, especially when you use a query in another query:
 
-- `conditions`: The conditions rendered as a string.
+- `conditions`: The conditions, as a list of strings.
 - `conditions_args`: The arguments to the conditions.
-- `model`: The model associated with the query.
-
-
+- `joins`: The `JOIN` clauses, as a list of strings.
+- `args`: All the arguments of the query: those of the joins, the conditions, and the `HAVING`
+  clause.
+- `model`: The model of the query.
 
 
 
 ## Using a query as a subquery
 
-The following example demonstrates how a query on some taxonomy queries can be used as a subquery
-to obtain only the online articles in a "music" category:
+A query can be used as a subset in the conditions of another query. The following example finds
+the articles commented by bob:
 
 ```php
 <?php
 
-/* @var $taxonomy_terms_nodes \ICanBoogie\ActiveRecord\Query */
-/* @var $articles \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$taxonomy_query = $taxonomy_terms_nodes
-    ->where([
+$commented_by_bob = Comment::where([ 'user_id' => 2 ])->select('nid');
 
-        'termslug' => "music",
-        'vocabularyslug' => "category",
-        'constructor' => "articles"
+$articles = Article::where([ 'nid' => $commented_by_bob ])->all;
 
-    ])
-    ->join(with: Vocabulary::class)
-    ->join(with: VocabularyScope::class)
-    ->select('nid');
-
-$matches = $articles
-    ->where([ 'is_online' => true ])
-    ->and("nid IN ($taxonomy_query)", $taxonomy_query->conditions_args)
-    ->all;
-
-# or
-
-$matches = $articles
-    ->where([ 'is_online' => true, 'nid' => $taxonomy_query ])
-    ->all;
+// Or, as a string, with its arguments.
+$articles = Article::where("nid IN ($commented_by_bob)", $commented_by_bob->args)->all;
 ```
-
-
 
 
 
@@ -844,45 +493,29 @@ The records matching a query can be deleted using the `delete()` method:
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query
-    ->where([ 'is_deleted' => true, 'uid' => 123 ])
-    ->take(10)
-    ->delete();
+Comment::where([ 'user_id' => 2 ])->delete();
 ```
 
-You might need to join tables to decide which record to delete, in which case you might want to
-define in which tables the records should be deleted. The following example demonstrates how to
-delete the nodes and comments of nodes belonging to user 123 and marked as deleted:
+On MySQL, the number of records to delete can be limited with `take()`, and tables can be joined to
+decide which records to delete. When tables are joined, the records are only deleted from the table
+of the query, unless other tables are specified:
 
+<!-- doc-test: mysql -->
 ```php
 <?php
 
-/* @var $query \ICanBoogie\ActiveRecord\Query */
+namespace App;
 
-$query
-    ->where([ 'is_deleted' => true, 'uid' => 123 ])
-    ->join(with: Node::class)
-    ->delete('comments, nodes');
-```
+Comment::query()->order('-id')->take(10)->delete();
 
-When using `join()` the table associated with the query is used by default. The following example
-demonstrates how to delete nodes that lack content:
-
-```php
-<?php
-
-/* @var $query \ICanBoogie\ActiveRecord\Query */
-
-$query
-    ->join(with: Content::class, mode: 'LEFT')
-    ->where('content.nid IS NULL')
+Comment::query()
+    ->join(with: Article::class)
+    ->where('article.user_id = ?', 1)
     ->delete();
 ```
 
 
 
-
-
-[ActiveRecord](../../lib/ActiveRecord.php)
+[ActiveRecord]: ../../lib/ActiveRecord.php

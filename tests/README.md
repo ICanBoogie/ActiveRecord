@@ -64,6 +64,30 @@ zero-configuration default.
   their own DSN or skip themselves when the configured DSN doesn't match.
 - `validate`, `record` — additional feature-specific groups, used alongside `db` when relevant.
 
+## Documentation
+
+`Test\ICanBoogie\Docs\DocsTest` runs the PHP blocks of `README.md` and `docs/`, each in its own
+process, so the examples of the documentation keep working. It is part of the `db` group, and runs
+on every engine.
+
+The blocks marked `setup` in `docs/GettingStarted.md` define the example records and data, and run
+before every other block. `tests/Docs/prelude.php` then defines the variables available to the
+blocks, such as `$builder`, `$model`, or `$query`. A `/* @var $name Type */` annotation in a block
+asserts that the variable is defined, with that type.
+
+An HTML comment before a block changes how it is tested:
+
+- `<!-- doc-test: setup -->`: Defines the example records and data.
+- `<!-- doc-test: excerpt -->`: Shows parts of the setup, each line must appear in the setup code.
+- `<!-- doc-test: mysql -->`: Only runs on MySQL.
+- `<!-- doc-test: skip: <reason> -->`: Not run.
+
+To run a single block and see its output, pass the file and the line of its opening fence:
+
+```shell
+php tests/Docs/run.php docs/ActiveRecord/Query.md 42
+```
+
 ## Test isolation
 
 SQLite's `sqlite::memory:` gives every connection a fresh database, but PostgreSQL and MySQL
