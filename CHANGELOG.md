@@ -16,6 +16,7 @@ PHP 8.4+
 - Added `ActiveRecord::model()` to resolve the model of a record class.
 - `Boolean` columns accept a default value, e.g. `#[Boolean(default: false)]`, rendered as `TRUE`
   or `FALSE`. `SchemaBuilder::add_boolean()` takes `default` too.
+- Added `SchemaBuilder::add_time()` for `Time` columns.
 - `ModelInstaller::install()` takes an optional `InstallProgress`, notified of each model as already
   installed, installing, installed, failed, or skipped because a model it depends on failed. By
   default, the first failure is thrown. Models are installed after their parent too, not only after

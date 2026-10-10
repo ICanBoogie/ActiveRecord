@@ -27,6 +27,8 @@ final class SchemaBuilderTest extends TestCase
             ->add_blob('blob2')
             ->add_text('body')
             ->add_datetime('date', default: DateTime::CURRENT_TIMESTAMP)
+            ->add_time('opens_at')
+            ->add_time('closes_at', null: true, default: Schema\Time::CURRENT_TIME)
             ->add_index('is_active')
             ->build();
 
@@ -44,7 +46,9 @@ final class SchemaBuilderTest extends TestCase
                 'blob1' => new Schema\Blob(size: Schema\Blob::SIZE_LONG, null: true, unique: true),
                 'blob2' => new Schema\Blob(),
                 'body' => new Schema\Text(),
-                'date' => new DateTime(default: DateTime::CURRENT_TIMESTAMP)
+                'date' => new DateTime(default: DateTime::CURRENT_TIMESTAMP),
+                'opens_at' => new Schema\Time(),
+                'closes_at' => new Schema\Time(null: true, default: Schema\Time::CURRENT_TIME),
             ],
             primary: 'nid',
             indexes: [

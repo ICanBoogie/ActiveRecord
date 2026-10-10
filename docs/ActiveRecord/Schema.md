@@ -120,7 +120,7 @@ $builder->add_record(
 | [DateTime][]    | `add_datetime()`                   |                                                                        |
 | [Timestamp][]   | `add_timestamp()`                  |                                                                        |
 | [Date][]        | `add_date()`                       |                                                                        |
-| [Time][]        |                                    |                                                                        |
+| [Time][]        | `add_time()`                       |                                                                        |
 
 All the columns take `null` to make them nullable, and `unique` to add a unique constraint.
 Character and text columns take a `collate`.

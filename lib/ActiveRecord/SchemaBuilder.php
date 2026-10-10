@@ -19,6 +19,7 @@ use ICanBoogie\ActiveRecord\Schema\OnDelete;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
 use ICanBoogie\ActiveRecord\Schema\Serial;
 use ICanBoogie\ActiveRecord\Schema\Text;
+use ICanBoogie\ActiveRecord\Schema\Time;
 use ICanBoogie\ActiveRecord\Schema\Timestamp;
 use LogicException;
 use ReflectionAttribute;
@@ -258,6 +259,26 @@ final class SchemaBuilder
         ?string $default = null,
     ): self {
         $this->columns[$col_name] = new Date(
+            null: $null,
+            default: $default,
+        );
+
+        return $this;
+    }
+
+    /**
+     * @param non-empty-string $col_name
+     *
+     * @return $this
+     *
+     * @see Time
+     */
+    public function add_time(
+        string $col_name,
+        bool $null = false,
+        ?string $default = null,
+    ): self {
+        $this->columns[$col_name] = new Time(
             null: $null,
             default: $default,
         );
