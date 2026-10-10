@@ -374,7 +374,7 @@ class Query implements IteratorAggregate
      * @param ?Query<ActiveRecord> $query
      *     A {@link execute} instance, it is rendered as a string and used as a subquery of the `JOIN` clause.
      *     The `$options` parameter can be used to customize the output.
-     * @param ?class-string<ActiveRecord> $with
+     * @param ?class-string<ActiveRecord> $record
      * @param non-empty-string $mode
      *     Join mode. Default: "INNER"
      * @param ?non-empty-string $as
@@ -389,7 +389,7 @@ class Query implements IteratorAggregate
      *
      * # using an ActiveRecord class.
      *
-     * $query->join(with: Comment::class);
+     * $query->join(record: Comment::class);
      *
      * # using a subquery
      *
@@ -407,7 +407,7 @@ class Query implements IteratorAggregate
     public function join(
         ?string $expression = null,
         ?Query $query = null,
-        ?string $with = null,
+        ?string $record = null,
         string $mode = 'INNER',
         ?string $as = null,
         ?string $on = null,
@@ -424,8 +424,8 @@ class Query implements IteratorAggregate
             return $this;
         }
 
-        if ($with) {
-            $model = $this->model->models->model_for_record($with);
+        if ($record) {
+            $model = $this->model->models->model_for_record($record);
 
             $this->join_with_model($model, mode: $mode, as: $as, on: $on); // @phpstan-ignore-line
 

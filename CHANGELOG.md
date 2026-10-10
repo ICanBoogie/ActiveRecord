@@ -56,6 +56,7 @@ PHP 8.4+
   had a column of the same name, such as `id`. `ConfigBuilder::build()` throws `InvalidConfig` if no
   `BelongsTo` column references the owner, or if several do: specify `foreign_key` then. It also
   throws if `foreign_key` isn't a column of the related record.
+- Renamed `Query::join(with:)` as `Query::join(record:)`.
 
 ### Deprecated Features
 

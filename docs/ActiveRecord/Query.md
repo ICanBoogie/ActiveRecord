@@ -177,7 +177,7 @@ doesn't overwrite `Article::$user_id`:
 namespace App;
 
 $articles = Article::query()
-    ->join(with: Comment::class)
+    ->join(record: Comment::class)
     ->where('comment.body LIKE ?', '%Great%')
     ->all;
 
@@ -221,7 +221,7 @@ model. The following options are available:
 
 namespace App;
 
-echo Article::query()->join(with: Comment::class, mode: 'LEFT', as: 'c');
+echo Article::query()->join(record: Comment::class, mode: 'LEFT', as: 'c');
 // … LEFT JOIN `comments` AS `c` USING(`nid`)
 ```
 
@@ -420,7 +420,7 @@ namespace App;
 
 echo Article::query()->count;                         // 2
 echo Article::where([ 'is_online' => true ])->count;  // 1
-echo Article::query()->join(with: Comment::class)->count; // 1
+echo Article::query()->join(record: Comment::class)->count; // 1
 ```
 
 The `count()` method returns an array with the number of records for each value of a column:
@@ -511,7 +511,7 @@ namespace App;
 Comment::query()->order('-id')->take(10)->delete();
 
 Comment::query()
-    ->join(with: Article::class)
+    ->join(record: Article::class)
     ->where('article.user_id = ?', 1)
     ->delete();
 ```

@@ -195,7 +195,7 @@ final class QueryTest extends DbTestCase
         ]);
 
         $article = $this->articles
-            ->join(with: Comment::class)
+            ->join(record: Comment::class)
             ->where([ 'nid' => 1 ])
             ->one;
 
@@ -267,17 +267,17 @@ final class QueryTest extends DbTestCase
 
         $this->assertEquals(
             'SELECT update_id, email FROM ' . $quote('updates') . ' ' . $quote('update') . ' INNER JOIN ' . $quote('subscribers') . ' AS ' . $quote('subscriber') . ' USING(' . $quote('subscriber_id') . ')',
-            (string)$q1->select('update_id, email')->join(with: Subscriber::class)
+            (string)$q1->select('update_id, email')->join(record: Subscriber::class)
         );
 
         $this->assertEquals(
             'SELECT update_id, email FROM ' . $quote('updates') . ' ' . $quote('update') . ' INNER JOIN ' . $quote('subscribers') . ' AS ' . $quote('sub') . ' USING(' . $quote('subscriber_id') . ')',
-            (string)$q2->select('update_id, email')->join(with: Subscriber::class, as: 'sub')
+            (string)$q2->select('update_id, email')->join(record: Subscriber::class, as: 'sub')
         );
 
         $this->assertEquals(
             'SELECT update_id, email FROM ' . $quote('updates') . ' ' . $quote('update') . ' LEFT JOIN ' . $quote('subscribers') . ' AS ' . $quote('sub') . ' USING(' . $quote('subscriber_id') . ')',
-            (string)$q3->select('update_id, email')->join(with: Subscriber::class, mode: 'LEFT', as: 'sub')
+            (string)$q3->select('update_id, email')->join(record: Subscriber::class, mode: 'LEFT', as: 'sub')
         );
     }
 
