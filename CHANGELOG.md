@@ -38,6 +38,10 @@ PHP 8.4+
   `ActiveRecord::model()` instead, which resolves the model with `StaticModelProvider`. A model
   provider must now be defined before records are used.
 - Removed `ActiveRecord::__debugInfo()`, it only existed to hide `$model`.
+- Without `select()`, a query now selects only the columns of its record, e.g.
+  `SELECT article.*, node.*` instead of `SELECT *`. The columns of joined tables are no longer
+  hydrated into records, and no longer overwrite the record's columns of the same name. Use
+  `select('*')` to get them, as arrays.
 - `Boolean` no longer extends `Integer`, it extends `Column`. It doesn't have `$size` or
   `$unsigned` anymore, and MySQL no longer renders `BOOLEAN UNSIGNED`, which MySQL rejects.
 - Removed `Model::new()`. Instantiate the record class instead, e.g. `new Node()`.

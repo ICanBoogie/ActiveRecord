@@ -810,6 +810,31 @@ to the `records` property of the [RecordNotFound][] exception.
 
 Queries often start from a model, with `$model->query()` or `$model->where()`.
 
+By default, a query only selects the columns of its record, even when other tables are joined. The
+following example finds the articles with a comment containing "great", using the `Article` record
+of [Extending another model](#extending-another-model) and a `Comment` record that has `nid` and
+`body` columns. The records are `Article` instances, and since the columns of `comments` aren't
+selected, `comments.body` doesn't overwrite `Article::$body`:
+
+```php
+<?php
+
+namespace App;
+
+$articles = Article::query()
+    ->join(with: Comment::class)
+    ->where('comment.body LIKE ?', '%great%')
+    ->all;
+
+// SELECT `article`.*, `node`.* FROM `articles` `article`
+// INNER JOIN `nodes` `node` USING(`nid`)
+// INNER JOIN `comments` AS `comment` USING(`nid`)
+// WHERE (comment.body LIKE ?)
+```
+
+Use `select()` to choose the columns, in which case rows are returned as arrays, e.g.
+`->select('title, comment.body')`.
+
 See [The Query Interface](docs/ActiveRecord/Query.md)
 
 
@@ -923,9 +948,9 @@ foreach ($connections as $id => $connection)
 
 
 
-### Model collection
+### Model registry
 
-Models are managed using a model collection that resolves model attributes (such as database
+Models are managed using a model registry that resolves model attributes (such as database
 connections) and instantiate them.
 
 

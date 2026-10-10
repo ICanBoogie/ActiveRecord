@@ -201,11 +201,28 @@ class Query implements IteratorAggregate
     /**
      * Render the `SELECT` clause.
      *
+     * Without a {@see select()}, only the columns of the queried record are selected.
+     *
      * @return string
      */
     private function render_select(): string
     {
-        return 'SELECT ' . ($this->select ?? '*');
+        return 'SELECT ' . ($this->select ?? $this->render_record_select());
+    }
+
+    /**
+     * Renders the columns of the queried record: its table and its parents' tables, which
+     * `{self_and_related}` joins in, but not the tables added with {@see join()}.
+     */
+    private function render_record_select(): string
+    {
+        $columns = [];
+
+        for ($table = $this->model; $table; $table = $table->parent) {
+            $columns[] = $this->quote_identifier($table->alias) . '.*';
+        }
+
+        return implode(', ', $columns);
     }
 
     /**

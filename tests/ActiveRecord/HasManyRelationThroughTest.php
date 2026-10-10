@@ -94,7 +94,9 @@ final class HasManyRelationThroughTest extends DbTestCase
         $query = $physician->appointments;
 
         $this->assertEquals(
-            'SELECT * FROM ' . $quote('appointments') . ' ' . $quote('appointment') . ' WHERE (' . $quote('physician_id') . ' = ?)',
+            'SELECT ' . $quote('appointment')
+            . '.* FROM ' . $quote('appointments') . ' ' . $quote('appointment')
+            . ' WHERE (' . $quote('physician_id') . ' = ?)',
             (string)$query
         );
 
@@ -113,7 +115,9 @@ final class HasManyRelationThroughTest extends DbTestCase
         $query = $patient->appointments;
 
         $this->assertEquals(
-            'SELECT * FROM ' . $quote('appointments') . ' ' . $quote('appointment') . ' WHERE (' . $quote('patient_id') . ' = ?)',
+            'SELECT ' . $quote('appointment')
+            . '.* FROM ' . $quote('appointments') . ' ' . $quote('appointment')
+            . ' WHERE (' . $quote('patient_id') . ' = ?)',
             (string)$query
         );
 
@@ -131,9 +135,12 @@ final class HasManyRelationThroughTest extends DbTestCase
         $query = $physician->patients;
 
         $this->assertEquals(
-            'SELECT ' . $quote('patient') . '.* FROM ' . $quote('patients') . ' ' . $quote('patient')
-            . ' INNER JOIN ' . $quote('appointments') . ' ON ' . $quote('appointments') . '.patient_id = ' . $quote('patient') . '.pa_id'
-            . ' INNER JOIN ' . $quote('physicians') . ' ' . $quote('physician') . ' ON ' . $quote('appointments') . '.physician_id = ' . $quote('physician') . '.ph_id'
+            'SELECT ' . $quote('patient')
+            . '.* FROM ' . $quote('patients') . ' ' . $quote('patient')
+            . ' INNER JOIN ' . $quote('appointments')
+            . ' ON ' . $quote('appointments') . '.patient_id = ' . $quote('patient') . '.pa_id'
+            . ' INNER JOIN ' . $quote('physicians') . ' ' . $quote('physician')
+            . ' ON ' . $quote('appointments') . '.physician_id = ' . $quote('physician') . '.ph_id'
             . ' WHERE (' . $quote('physician') . '.ph_id = ?)',
             (string)$query
         );
@@ -152,12 +159,13 @@ final class HasManyRelationThroughTest extends DbTestCase
 
         $query = $patient->physicians;
 
-        assert($query instanceof Query);
-
         $this->assertEquals(
-            'SELECT ' . $quote('physician') . '.* FROM ' . $quote('physicians') . ' ' . $quote('physician')
-            . ' INNER JOIN ' . $quote('appointments') . ' ON ' . $quote('appointments') . '.physician_id = ' . $quote('physician') . '.ph_id'
-            . ' INNER JOIN ' . $quote('patients') . ' ' . $quote('patient') . ' ON ' . $quote('appointments') . '.patient_id = ' . $quote('patient') . '.pa_id'
+            'SELECT ' . $quote('physician')
+            . '.* FROM ' . $quote('physicians') . ' ' . $quote('physician')
+            . ' INNER JOIN ' . $quote('appointments')
+            . ' ON ' . $quote('appointments') . '.physician_id = ' . $quote('physician') . '.ph_id'
+            . ' INNER JOIN ' . $quote('patients') . ' ' . $quote('patient')
+            . ' ON ' . $quote('appointments') . '.patient_id = ' . $quote('patient') . '.pa_id'
             . ' WHERE (' . $quote('patient') . '.pa_id = ?)',
             (string)$query
         );

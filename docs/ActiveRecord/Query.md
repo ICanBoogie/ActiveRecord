@@ -358,10 +358,14 @@ $query->skip(100)->take(10);
 
 ## Selecting specific fields
 
-By default, all fields are selected (`SELECT *`) and records are instances of the [ActiveRecord][]
-class defined by the model. The `select()` method selects only a subset of fields from the result
-set, in which case each row of the result set is returned as an array, unless a fetch mode is
-defined.
+By default, only the fields of the queried record are selected, that is the fields of its table and
+of its parents' tables (e.g. `SELECT article.*, node.*`), and records are instances of the
+[ActiveRecord][] class defined by the model. The fields of joined tables are not selected, so they
+can't overwrite the record's fields of the same name.
+
+The `select()` method specifies the fields to select, in which case each row of the result set is
+returned as an array, unless a fetch mode is defined. Use `select('*')` to get the fields of joined
+tables too.
 
 The following example demonstrates how to get the identifier, creation date, and title of records:
 

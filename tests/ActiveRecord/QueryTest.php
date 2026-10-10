@@ -9,12 +9,14 @@ use ICanBoogie\DateTime;
 use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\ArticleQuery;
+use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\Subscriber;
 use Test\ICanBoogie\Acme\Update;
 use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
+use function get_object_vars;
 use function gmdate;
 use function rand;
 use function time;
@@ -167,6 +169,51 @@ final class QueryTest extends DbTestCase
         );
     }
 
+    /**
+     * Without a select, only the columns of the record's table and its parents' tables are selected.
+     */
+    public function test_select_defaults_to_record_columns(): void
+    {
+        $quote = $this->quote_identifier(...);
+
+        $this->assertEquals(
+            'SELECT ' . $quote('article') . '.*, ' . $quote('node') . '.* FROM ' . $quote('articles') . ' ' . $quote('article')
+            . ' INNER JOIN ' . $quote('nodes') . ' ' . $quote('node') . ' USING(' . $quote('nid') . ')',
+            (string) $this->articles
+        );
+    }
+
+    /**
+     * The columns of joined tables don't leak into the record, even when they share a name with one of
+     * its columns: `comments.body` must not overwrite `articles.body`.
+     */
+    public function test_join_with_model_only_hydrates_record_columns(): void
+    {
+        $this->articles->model->models->model_for_record(Comment::class)->save([
+            'nid' => 1,
+            'body' => "COMMENT BODY",
+        ]);
+
+        $article = $this->articles
+            ->join(with: Comment::class)
+            ->where([ 'nid' => 1 ])
+            ->one;
+
+        $this->assertInstanceOf(Article::class, $article);
+        $this->assertEquals("TITLE 1", $article->title);
+        $this->assertEquals("BODY 1", $article->body);
+        $this->assertArrayNotHasKey('comment_id', get_object_vars($article));
+    }
+
+    /**
+     * An explicit select, even `*`, returns arrays.
+     */
+    public function test_explicit_select_returns_arrays(): void
+    {
+        $this->assertIsArray($this->articles->select('*')->one);
+        $this->assertIsArray($this->articles->select('title')->one);
+    }
+
     public function test_join_with_query(): void
     {
         $updates = $this->updates;
@@ -186,7 +233,7 @@ final class QueryTest extends DbTestCase
             $subscriber_query->joins
         );
         $this->assertEquals(
-            'SELECT * FROM ' . $quote('subscribers') . ' ' . $quote('subscriber') . ' INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM ' . $quote('updates') . ' ' . $quote('update') . ' ORDER BY updated_at DESC) ' . $quote('update') . ' USING(' . $quote('subscriber_id') . ') GROUP BY ' . $quote('subscriber') . '.subscriber_id',
+            'SELECT ' . $quote('subscriber') . '.* FROM ' . $quote('subscribers') . ' ' . $quote('subscriber') . ' INNER JOIN(SELECT subscriber_id, updated_at, update_hash FROM ' . $quote('updates') . ' ' . $quote('update') . ' ORDER BY updated_at DESC) ' . $quote('update') . ' USING(' . $quote('subscriber_id') . ') GROUP BY ' . $quote('subscriber') . '.subscriber_id',
             (string)$subscriber_query
         );
     }
