@@ -23,6 +23,9 @@ final class AssociationBuilder
     /**
      * @param class-string<ActiveRecord> $associate
      *     The associate ActiveRecord.
+     * @param non-empty-string|null $foreign_key
+     *     The column of the associate that references the owner. Defaults to the associate's
+     *     {@see Schema\BelongsTo} column that references the owner, or one of its ancestors.
      * @param non-empty-string|null $as
      *     The name of the accessor.
      * @param class-string<ActiveRecord>|null $through

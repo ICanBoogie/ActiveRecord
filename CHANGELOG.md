@@ -50,6 +50,12 @@ PHP 8.4+
   trigger the update. This matches MySQL and PostgreSQL.
 - Removed `ScopeNotDefine`, a leftover from scopes.
 - Removed `StatementInvocationFailed` for it's never used.
+- When `foreign_key` is omitted, a has-many relation now resolves it from the `BelongsTo` column of
+  the related record that references the owner, or one of its ancestors. It used to default to the
+  name of the owner's primary key, which silently matched the wrong records when the related record
+  had a column of the same name, such as `id`. `ConfigBuilder::build()` throws `InvalidConfig` if no
+  `BelongsTo` column references the owner, or if several do: specify `foreign_key` then. It also
+  throws if `foreign_key` isn't a column of the related record.
 
 ### Deprecated Features
 

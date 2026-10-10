@@ -22,8 +22,11 @@ use LogicException;
 use Throwable;
 
 use function assert;
+use function count;
 use function get_parent_class;
 use function ICanBoogie\trim_suffix;
+use function implode;
+use function is_a;
 use function is_string;
 use function json_encode;
 use function preg_match;
@@ -33,8 +36,8 @@ use function substr;
 
 final class ConfigBuilder
 {
-    private const REGEXP_TIMEZONE = '/^[-+]\d{2}:\d{2}$/';
-    public const ID_SUFFIX = '_id';
+    private const string REGEXP_TIMEZONE = '/^[-+]\d{2}:\d{2}$/';
+    public const string ID_SUFFIX = '_id';
 
     /**
      * @var array<non-empty-string, ConnectionDefinition>
@@ -140,7 +143,7 @@ final class ConfigBuilder
                     $has_many[] = $this->resolve_has_many($owner, $item);
                 } catch (Throwable $e) {
                     throw new InvalidConfig(
-                        "Unable to apply $owner->activerecord_class::has_may($item->associate::$item->foreign_key)",
+                        "Unable to apply $owner->activerecord_class::has_many($item->associate)",
                         previous: $e
                     );
                 }
@@ -294,20 +297,6 @@ final class ConfigBuilder
     }
 
     /**
-     * @return non-empty-string|null
-     */
-    private function try_key(mixed $key, TransientModelDefinition $on): ?string
-    {
-        if (!is_string($key)) {
-            return null;
-        }
-
-        assert(strlen($key) > 1);
-
-        return $on->schema->has_column($key) ? $key : null;
-    }
-
-    /**
      * @param non-empty-string $local_key
      */
     private function resolve_belongs_to(string $local_key, Schema\BelongsTo $column): BelongsToAssociation
@@ -349,8 +338,11 @@ final class ConfigBuilder
 
         if ($association->through) {
             $foreign_key ??= $related->schema->primary;
+        } elseif ($foreign_key) {
+            $related->schema->has_column($foreign_key)
+            or throw new InvalidConfig("$related->activerecord_class has no column '$foreign_key'");
         } else {
-            $foreign_key ??= $this->try_key($owner->schema->primary, $related);
+            $foreign_key = $this->resolve_has_many_foreign_key($owner, $related);
         }
 
         $foreign_key or throw new InvalidConfig("Unable to resolve the foreign key");
@@ -370,6 +362,44 @@ final class ConfigBuilder
             as: $as,
             through: $through?->activerecord_class,
         );
+    }
+
+    /**
+     * Resolves the foreign key of a has-many relation from the {@see Schema\BelongsTo} column of the
+     * related record that references the owner, or one of its ancestors.
+     *
+     * @return non-empty-string
+     */
+    private function resolve_has_many_foreign_key(
+        TransientModelDefinition $owner,
+        TransientModelDefinition $related,
+    ): string {
+        $exact = [];
+        $inherited = [];
+
+        foreach ($related->schema->belongs_to_iterator() as $name => $column) {
+            if ($column->associate === $owner->activerecord_class) {
+                $exact[] = $name;
+            } elseif (is_a($owner->activerecord_class, $column->associate, true)) {
+                $inherited[] = $name;
+            }
+        }
+
+        $candidates = $exact ?: $inherited;
+
+        count($candidates) > 0
+        or throw new InvalidConfig(
+            "$related->activerecord_class has no BelongsTo column referencing $owner->activerecord_class,"
+            . " specify foreign_key"
+        );
+
+        count($candidates) === 1
+        or throw new InvalidConfig(
+            "$related->activerecord_class has several BelongsTo columns referencing"
+            . " $owner->activerecord_class (" . implode(', ', $candidates) . "), specify foreign_key"
+        );
+
+        return $candidates[0];
     }
 
     /**

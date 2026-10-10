@@ -15,13 +15,13 @@ use function in_array;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 readonly class Integer extends Column
 {
-    public const SIZE_TINY = 1;
-    public const SIZE_SMALL = 2;
-    public const SIZE_MEDIUM = 3;
-    public const SIZE_REGULAR = 4;
-    public const SIZE_BIG = 8;
+    public const int SIZE_TINY = 1;
+    public const int SIZE_SMALL = 2;
+    public const int SIZE_MEDIUM = 3;
+    public const int SIZE_REGULAR = 4;
+    public const int SIZE_BIG = 8;
 
-    private const ALLOWED_SIZES = [
+    private const array ALLOWED_SIZES = [
         self::SIZE_TINY,
         self::SIZE_SMALL,
         self::SIZE_MEDIUM,

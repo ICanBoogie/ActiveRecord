@@ -75,7 +75,7 @@ use ICanBoogie\ActiveRecord\Schema\Text;
 /**
  * @property-read Query<Article> $articles
  */
-#[HasMany(Article::class, foreign_key: 'user_id')]
+#[HasMany(Article::class)]
 class User extends ActiveRecord
 {
     #[Id, Serial]

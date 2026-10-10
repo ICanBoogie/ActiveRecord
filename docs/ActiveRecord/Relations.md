@@ -167,10 +167,13 @@ A getter is added to the record class, and returns a [Query](Query.md) for the r
 Its name is the plural of the alias of the related model, `articles` for `Article`. Use `as` to
 choose another name.
 
-`foreign_key` is the column of the related records that references the owner. It defaults to the
-name of the owner's primary key. Comments reference articles with `nid`, the primary key of
-articles, so it can be omitted. Articles reference users with `user_id`, and the primary key of
-users is `id`, so it must be specified:
+`foreign_key` is the column of the related records that references the owner. When it's omitted,
+it's resolved from the [BelongsTo][] column of the related record that references the owner, or one
+of its ancestors. Articles reference users with `user_id`, and comments reference articles with
+`nid`, so both can be omitted. A `BelongsTo` that references the owner itself is preferred over one
+that references an ancestor. The configuration fails if no column references the owner, or if
+several do, as with a record that references the same user as author and editor. Then, specify
+`foreign_key`:
 
 <!-- doc-test: excerpt -->
 ```php
@@ -179,7 +182,7 @@ users is `id`, so it must be specified:
 /**
  * @property-read Query<Article> $articles
  */
-#[HasMany(Article::class, foreign_key: 'user_id')]
+#[HasMany(Article::class)]
 class User extends ActiveRecord
 {
     // …
@@ -224,7 +227,7 @@ use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 $builder->add_record(
     record_class: User::class,
     association_builder: fn(AssociationBuilder $association) => $association
-        ->has_many(Article::class, foreign_key: 'user_id'),
+        ->has_many(Article::class),
 );
 ```
 

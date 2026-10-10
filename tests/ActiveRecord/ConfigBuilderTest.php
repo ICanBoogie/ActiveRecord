@@ -4,22 +4,24 @@ namespace Test\ICanBoogie\ActiveRecord;
 
 use Closure;
 use ICanBoogie\ActiveRecord\Config;
+use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\Config\InvalidConfig;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\Schema;
-use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\Schema\ForeignKey;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\OnDelete;
+use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Brand;
+use Test\ICanBoogie\Acme\Car;
+use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\Driver;
 use Test\ICanBoogie\Acme\ForeignKey\Author;
 use Test\ICanBoogie\Acme\ForeignKey\Book;
 use Test\ICanBoogie\Acme\ForeignKey\Review;
-use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
 use Test\ICanBoogie\Acme\HasMany\Patient;
 use Test\ICanBoogie\Acme\HasMany\Physician;
@@ -55,6 +57,7 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
+        $this->assertInstanceOf(Schema\Integer::class, $schema->columns['nid']);
         $this->assertFalse($schema->columns['nid']->serial);
 
         $nid = $schema->columns['nid'];
@@ -131,6 +134,7 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertInstanceOf(Schema::class, $schema);
         $this->assertEquals('nid', $schema->primary);
+        $this->assertInstanceOf(Schema\Integer::class, $schema->columns['nid']);
         $this->assertFalse($schema->columns['nid']->serial);
         $this->assertEquals([
             new Schema\Index('rating', name: 'idx_rating')
@@ -300,6 +304,150 @@ final class ConfigBuilderTest extends TestCase
                     ->add_character('code', primary: true))
                 ->add_record(Driver::class, schema_builder: $driver(OnDelete::Cascade)),
             "not an integer",
+        ];
+    }
+
+    /**
+     * Both records have an `id` primary key, the foreign key must not default to it.
+     */
+    public function test_has_many_infers_foreign_key_from_belongs_to(): void
+    {
+        $config = new ConfigBuilder()
+            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
+            ->add_record(
+                record_class: Driver::class,
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_serial('id', primary: true),
+                association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_many(Car::class),
+            )
+            ->add_record(
+                record_class: Car::class,
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_serial('id', primary: true)
+                    ->belongs_to('driver_id', Driver::class),
+            )
+            ->build();
+
+        $has_many = $config->models[Driver::class]->association?->has_many;
+
+        $this->assertEquals([
+            new Config\HasManyAssociation(Car::class, 'driver_id', 'cars', null),
+        ], $has_many);
+    }
+
+    /**
+     * @param Closure(SchemaBuilder): SchemaBuilder $comment_schema
+     */
+    #[DataProvider('provide_has_many_infers_foreign_key_from_ancestor')]
+    public function test_has_many_infers_foreign_key_from_ancestor(Closure $comment_schema, string $expected): void
+    {
+        $config = new ConfigBuilder()
+            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
+            ->add_record(
+                record_class: Node::class,
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_serial('nid', primary: true),
+            )
+            ->add_record(
+                record_class: Article::class,
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_text('body'),
+                association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_many(Comment::class),
+            )
+            ->add_record(
+                record_class: Comment::class,
+                schema_builder: $comment_schema,
+            )
+            ->build();
+
+        $has_many = $config->models[Article::class]->association?->has_many;
+
+        $this->assertNotNull($has_many);
+        $this->assertEquals($expected, $has_many[0]->foreign_key);
+    }
+
+    /**
+     * @return iterable<string, array{ Closure(SchemaBuilder): SchemaBuilder, string }>
+     */
+    public static function provide_has_many_infers_foreign_key_from_ancestor(): iterable
+    {
+        yield "BelongsTo the parent" => [
+            fn(SchemaBuilder $schema) => $schema
+                ->add_serial('id', primary: true)
+                ->belongs_to('node_id', Node::class),
+            'node_id',
+        ];
+
+        yield "BelongsTo the record is preferred over BelongsTo the parent" => [
+            fn(SchemaBuilder $schema) => $schema
+                ->add_serial('id', primary: true)
+                ->belongs_to('node_id', Node::class)
+                ->belongs_to('article_id', Article::class),
+            'article_id',
+        ];
+    }
+
+    /**
+     * @param Closure(SchemaBuilder): SchemaBuilder $car_schema
+     * @param non-empty-string|null $foreign_key
+     */
+    #[DataProvider('provide_invalid_has_many')]
+    public function test_invalid_has_many(Closure $car_schema, ?string $foreign_key, string $expected): void
+    {
+        $builder = new ConfigBuilder()
+            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
+            ->add_record(
+                record_class: Driver::class,
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_serial('id', primary: true),
+                association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_many(Car::class, foreign_key: $foreign_key),
+            )
+            ->add_record(
+                record_class: Car::class,
+                schema_builder: $car_schema,
+            );
+
+        try {
+            $builder->build();
+            $this->fail("Expected InvalidConfig");
+        } catch (InvalidConfig $e) {
+            $this->assertStringStartsWith("Unable to apply", $e->getMessage());
+            $this->assertInstanceOf(Throwable::class, $e->getPrevious());
+            $this->assertStringContainsString($expected, $e->getPrevious()->getMessage());
+        }
+    }
+
+    /**
+     * @return iterable<string, array{ Closure(SchemaBuilder): SchemaBuilder, ?string, string }>
+     */
+    public static function provide_invalid_has_many(): iterable
+    {
+        yield "No BelongsTo column" => [
+            fn(SchemaBuilder $schema) => $schema
+                ->add_serial('id', primary: true)
+                ->add_integer('driver_id'),
+            null,
+            "has no BelongsTo column referencing",
+        ];
+
+        yield "Several BelongsTo columns" => [
+            fn(SchemaBuilder $schema) => $schema
+                ->add_serial('id', primary: true)
+                ->belongs_to('driver_id', Driver::class)
+                ->belongs_to('co_driver_id', Driver::class),
+            null,
+            "several BelongsTo columns referencing",
+        ];
+
+        yield "Foreign key that isn't a column" => [
+            fn(SchemaBuilder $schema) => $schema
+                ->add_serial('id', primary: true)
+                ->belongs_to('driver_id', Driver::class),
+            'pilot_id',
+            "has no column 'pilot_id'",
         ];
     }
 }
