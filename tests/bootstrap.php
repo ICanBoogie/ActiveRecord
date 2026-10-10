@@ -3,8 +3,6 @@
 namespace Test\ICanBoogie;
 
 use ICanBoogie\ActiveRecord;
-use ICanBoogie\ActiveRecord\ActiveRecordCache\RuntimeActiveRecordCache;
-use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\Prototype;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -20,6 +18,5 @@ Prototype::bind(
 
             return $validate($record);
         })
-        ->bind(Model::class, 'lazy_get_activerecord_cache', fn(Model $model) => new RuntimeActiveRecordCache($model))
         ->build()
 );

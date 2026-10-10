@@ -58,6 +58,7 @@ PHP 8.4+
   `BelongsTo` column references the owner, or if several do: specify `foreign_key` then. It also
   throws if `foreign_key` isn't a column of the related record.
 - Renamed `Query::join(with:)` as `Query::join(record:)`.
+- Removed everything related to record caching, for now…
 
 ### Deprecated Features
 
