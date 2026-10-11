@@ -13,6 +13,7 @@ PHP 8.4+
 - Added foreign key constraints, opt-in with `BelongsTo::$on_delete` and `OnDelete`, e.g.
   `#[BelongsTo(User::class, on_delete: OnDelete::Cascade)]`. `ConfigBuilder` resolves them into
   `Schema::$foreign_keys`, and `ModelInstaller::install()` creates referenced tables first.
+- Added `RelationCollection::columns_to()`, `RelationNotFound`, and `AmbiguousRelation`.
 - Added `ActiveRecord::model()` to resolve the model of a record class.
 - Added `ActiveRecord::find_one()` and `ActiveRecord::find_many()`, typed counterparts of
   `Model::find()` that throw `RecordNotFound` when a record cannot be found. `find_many()` always returns an array.
@@ -27,6 +28,9 @@ PHP 8.4+
 
 ### Backward Incompatible Changes
 
+- `Query::join(record:)` resolves the join from the relations between the models instead of guessing
+  the key, and throws `RelationNotFound` or `AmbiguousRelation` (both `LogicException`) when no relation, or more than one, links them. `on` can
+  be a column or an `ON` expression.
 - The message of `RecordNotFound` thrown by `Model::find()`, `find_one()`, and `find_many()` is now
   `No <class> for: <key>[, <key>…]`, whatever the number of keys, instead of
   `No <class> for key <key>` / `No <class> for keys <keys>`.

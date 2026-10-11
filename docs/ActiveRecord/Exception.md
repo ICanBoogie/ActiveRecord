@@ -17,6 +17,7 @@ try {
 
 | Exception                      | Thrown when                                                                                  |
 |--------------------------------|----------------------------------------------------------------------------------------------|
+| [AmbiguousRelation][]          | More than one relation links two models, e.g. when joining them. `relations` has them.       |
 | [Config\InvalidConfig][]       | The config built with `ConfigBuilder` is not valid, e.g. a relation refers to an undefined record. |
 | [ConnectionNotDefined][]       | A connection is requested with an identifier that is not defined.                            |
 | [ConnectionNotEstablished][]   | A connection can't be established. The message doesn't include the DSN or the credentials.   |
@@ -24,6 +25,7 @@ try {
 | [RecordNotFound][]             | `find_one()` or `find_many()` can't find one or more records. `records` has the records that were found.   |
 | [RecordNotValid][]             | A record is not valid when it is saved. `errors` has the validation errors.                  |
 | [RelationNotDefined][]         | A relation is requested from `Model::$relations` with a name that is not defined.            |
+| [RelationNotFound][]           | No relation links two models, e.g. when joining them. `model` and `other` are the models.    |
 | [StatementNotValid][]          | A statement can't be prepared or executed. `statement`, `args`, and `original`, the `PDOException`, describe it. |
 | [UnableToSetFetchMode][]       | The fetch mode of a statement can't be set.                                                  |
 
@@ -34,6 +36,7 @@ is deleted.
 
 
 [Exception]:                ../../lib/ActiveRecord/Exception.php
+[AmbiguousRelation]:        ../../lib/ActiveRecord/AmbiguousRelation.php
 [Config\InvalidConfig]:     ../../lib/ActiveRecord/Config/InvalidConfig.php
 [ConnectionNotDefined]:     ../../lib/ActiveRecord/ConnectionNotDefined.php
 [ConnectionNotEstablished]: ../../lib/ActiveRecord/ConnectionNotEstablished.php
@@ -41,5 +44,6 @@ is deleted.
 [RecordNotFound]:           ../../lib/ActiveRecord/RecordNotFound.php
 [RecordNotValid]:           ../../lib/ActiveRecord/RecordNotValid.php
 [RelationNotDefined]:       ../../lib/ActiveRecord/RelationNotDefined.php
+[RelationNotFound]:         ../../lib/ActiveRecord/RelationNotFound.php
 [StatementNotValid]:        ../../lib/ActiveRecord/StatementNotValid.php
 [UnableToSetFetchMode]:     ../../lib/ActiveRecord/UnableToSetFetchMode.php

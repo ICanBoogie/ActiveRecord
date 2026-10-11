@@ -20,6 +20,7 @@ use function implode;
 use function is_array;
 use function is_numeric;
 use function is_string;
+use function preg_match;
 use function preg_replace;
 use function reset;
 use function substr;
@@ -427,7 +428,7 @@ class Query implements IteratorAggregate
         if ($record) {
             $model = $this->model->models->model_for_record($record);
 
-            $this->join_with_model($model, mode: $mode, as: $as, on: $on); // @phpstan-ignore-line
+            $this->join_with_model($model, mode: $mode, as: $as, on: $on);
 
             return $this;
         }
@@ -472,50 +473,80 @@ class Query implements IteratorAggregate
     /**
      * Join a model to the query.
      *
-     * @param Model<mixed, ActiveRecord> $model
+     * Unless `$on` is provided, the join is established from the relations of the queried model to
+     * the joined model, or the relations of the joined model to the queried model.
+     *
+     * @param Model<ActiveRecord> $model
      * @param non-empty-string $mode
      *     Join mode.
      * @param ?non-empty-string $as
      *     The alias of the model. Default: The model's alias.
      * @param ?non-empty-string $on
-     *     The column on which the joint is created, or an _ON_ expression. Default: The model's primary key. @todo
+     *     The column on which the join is created, or an _ON_ expression. Default: Resolved from
+     *     the relations between the models.
+     *
+     * @throws LogicException if the join cannot be established.
      */
-    private function join_with_model( // @phpstan-ignore-line
+    private function join_with_model(
         Model $model,
         string $mode = 'INNER',
         ?string $as = null,
         ?string $on = null,
     ): void {
         $as ??= $model->alias;
-        //phpcs:disable PSR2.Methods.FunctionCallSignature.SpaceBeforeOpenBracket
-        $on ??= (function () use ($model): string {
-            $primary = $this->model->primary;
-            $model_schema = $model->extended_schema;
 
-            assert(is_array($primary) || is_string($primary));
-
-            if (is_array($primary)) {
-                foreach ($primary as $column) {
-                    if ($model_schema->has_column($column)) {
-                        return $column;
-                    }
-                }
-            } elseif (!$model_schema->has_column($primary)) {
-                $primary = $model_schema->primary;
-
-                if (is_array($primary)) {
-                    $primary = reset($primary);
-                }
-            }
-
-            assert(is_string($primary));
-
-            return $primary;
-        }) ();
+        if ($on === null) {
+            $on = $this->resolve_join_on_from_relations($model, $as);
+        } elseif (preg_match('/^\w+$/', $on)) {
+            $on = 'USING(' . $this->quote_identifier($on) . ')';
+        } else {
+            $on = "ON $on";
+        }
 
         $this->joins_[] = "$mode JOIN " . $this->quote_identifier($model->name)
             . ' AS ' . $this->quote_identifier($as)
-            . ' USING(' . $this->quote_identifier($on) . ')';
+            . ' ' . $on;
+    }
+
+    /**
+     * Resolve the `USING` or `ON` clause joining a model from the relations between the models.
+     *
+     * @param Model<ActiveRecord> $model
+     * @param non-empty-string $as
+     *
+     * @throws RelationNotFound if no relation links the models.
+     * @throws AmbiguousRelation if more than one relation links the models.
+     * @throws LogicException if the columns cannot be resolved.
+     */
+    private function resolve_join_on_from_relations(Model $model, string $as): string
+    {
+        $queried = $this->model;
+        $queried_class = $queried->activerecord_class;
+        $joined_class = $model->activerecord_class;
+
+        [ $queried_column, $joined_column ] = $queried->relations->columns_to($model);
+
+        if (!$model->schema->has_column($joined_column)) {
+            throw new LogicException("Column `$joined_column` not found in the table of $joined_class. Specify `on`.");
+        }
+
+        if ($queried_column === $joined_column && $queried->schema->has_column($queried_column)) {
+            return 'USING(' . $this->quote_identifier($queried_column) . ')';
+        }
+
+        // The column might belong to the table of a parent model.
+        $target = $queried;
+
+        while ($target instanceof Model && !$target->schema->has_column($queried_column)) {
+            $target = $target->parent;
+        }
+
+        if (!$target) {
+            throw new LogicException("Unable to resolve column `$queried_column` from model $queried_class. Specify `on`.");
+        }
+
+        return 'ON ' . $this->quote_identifier($target->alias) . '.' . $this->quote_identifier($queried_column)
+            . ' = ' . $this->quote_identifier($as) . '.' . $this->quote_identifier($joined_column);
     }
 
     /**

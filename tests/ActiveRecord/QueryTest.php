@@ -4,6 +4,7 @@ namespace Test\ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord\ModelInstaller;
 use ICanBoogie\ActiveRecord\Query;
+use ICanBoogie\ActiveRecord\RelationNotFound;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\Attributes\Group;
@@ -278,6 +279,47 @@ final class QueryTest extends DbTestCase
         $this->assertEquals(
             'SELECT update_id, email FROM ' . $quote('updates') . ' ' . $quote('update') . ' LEFT JOIN ' . $quote('subscribers') . ' AS ' . $quote('sub') . ' USING(' . $quote('subscriber_id') . ')',
             (string)$q3->select('update_id, email')->join(record: Subscriber::class, mode: 'LEFT', as: 'sub')
+        );
+    }
+
+    /**
+     * The relation can be defined on the joined model: `Update` belongs to `Subscriber`.
+     */
+    public function test_join_with_model_from_relation_of_joined_model(): void
+    {
+        $quote = $this->quote_identifier(...);
+
+        $this->assertEquals(
+            'SELECT email FROM ' . $quote('subscribers') . ' ' . $quote('subscriber') . ' INNER JOIN ' . $quote('updates') . ' AS ' . $quote('update') . ' USING(' . $quote('subscriber_id') . ')',
+            (string)$this->subscribers->select('email')->join(record: Update::class)
+        );
+    }
+
+    public function test_join_with_model_throws_when_no_relation_links_the_models(): void
+    {
+        $this->expectException(RelationNotFound::class);
+
+        $this->subscribers->join(record: Article::class);
+    }
+
+    public function test_join_with_model_on_column(): void
+    {
+        $quote = $this->quote_identifier(...);
+
+        $this->assertEquals(
+            'SELECT email FROM ' . $quote('subscribers') . ' ' . $quote('subscriber') . ' INNER JOIN ' . $quote('articles') . ' AS ' . $quote('article') . ' USING(' . $quote('nid') . ')',
+            (string)$this->subscribers->select('email')->join(record: Article::class, on: 'nid')
+        );
+    }
+
+    public function test_join_with_model_on_expression(): void
+    {
+        $quote = $this->quote_identifier(...);
+        $on = $quote('subscriber') . '.' . $quote('subscriber_id') . ' = ' . $quote('a') . '.' . $quote('nid');
+
+        $this->assertEquals(
+            'SELECT email FROM ' . $quote('subscribers') . ' ' . $quote('subscriber') . ' INNER JOIN ' . $quote('articles') . ' AS ' . $quote('a') . ' ON ' . $on,
+            (string)$this->subscribers->select('email')->join(record: Article::class, as: 'a', on: $on)
         );
     }
 

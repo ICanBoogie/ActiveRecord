@@ -208,13 +208,15 @@ used to specify the join. The method can be used multiple times to create multip
 
 ### Joining tables using a record class
 
-The table of the model of the record class is joined. The tables are joined `USING` the primary key
-of the queried model if the joined table has that column, otherwise the primary key of the joined
-model. The following options are available:
+The table of the model of the record class is joined, using the relations between the models:
+the relations of the queried model to the joined model, or the relations of the joined model to
+the queried model. The tables are joined `USING` the column when both models name it the same,
+otherwise with an `ON` clause. `RelationNotFound` is thrown when no relation links the models, and
+`AmbiguousRelation` when more than one does; provide `on` in that case. The following options are available:
 
 - `mode`: The join mode. Default: `INNER`.
 - `as`: The alias of the joined table. Default: The alias of the joined model.
-- `on`: The column used to join the tables.
+- `on`: The column used to join the tables (`USING`), or an `ON` expression. Default: Resolved from the relations.
 
 ```php
 <?php
@@ -223,6 +225,9 @@ namespace App;
 
 echo Article::query()->join(record: Comment::class, mode: 'LEFT', as: 'c');
 // … LEFT JOIN `comments` AS `c` USING(`nid`)
+
+echo Article::query()->join(record: Comment::class, on: '`article`.`nid` = `comment`.`nid`');
+// … INNER JOIN `comments` AS `comment` ON `article`.`nid` = `comment`.`nid`
 ```
 
 The model is obtained from the model provider of the queried model.
