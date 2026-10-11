@@ -25,6 +25,7 @@ use Test\ICanBoogie\Acme\SampleRecord;
 use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
+use function array_keys;
 use function uniqid;
 
 #[Group("db")]
@@ -195,6 +196,17 @@ final class ModelTest extends DbTestCase
         $this->assertInstanceOf(Article::class, $records[$id1]);
         $this->assertInstanceOf(Article::class, $records[$id2]);
         $this->assertInstanceOf(Article::class, $records[$id3]);
+    }
+
+    public function test_find_many_with_one_key_returns_array(): void
+    {
+        $model = $this->articles;
+        $id = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+
+        $records = $model->find_many($id);
+
+        $this->assertSame([ $id ], array_keys($records));
+        $this->assertInstanceOf(Article::class, $records[$id]);
     }
 
     public function test_query(): void

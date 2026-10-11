@@ -93,20 +93,24 @@ The query interface covers most needs without writing SQL, see below.
 
 ## Finding records
 
-`find()` retrieves a record, or several records, with their primary key:
+`find_one()` retrieves a record, and `find_many()` several records, with their primary key:
 
 ```php
 <?php
 
 /* @var $model \ICanBoogie\ActiveRecord\Model */
 
-$article = $model->find(1);
-$articles = $model->find(2, 1); // [ 2 => Article, 1 => Article ]
+$article = $model->find_one(1);
+$articles = $model->find_many(2, 1); // [ 2 => Article, 1 => Article ]
 ```
 
-The records are returned in the requested order, keyed by primary key. A [RecordNotFound][]
-exception is thrown when a record can't be found. Its `records` property has the records that were
-found, and `null` for the ones that weren't.
+`find_many()` always returns an array, even with a single key. The records are returned in the
+requested order, keyed by primary key. A [RecordNotFound][] exception is thrown when a record can't
+be found. Its `records` property has the records that were found, and `null` for the ones that
+weren't. Use `where()` if the records might not exist.
+
+> **Note:** `find()` is deprecated, use `find_one()` or `find_many()`. The same methods are
+> available on records, e.g. `Article::find_one(1)`, see [Active records](../ActiveRecord.md).
 
 
 

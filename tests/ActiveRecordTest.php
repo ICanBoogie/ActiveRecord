@@ -10,6 +10,7 @@ use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\ModelProvider;
 use ICanBoogie\ActiveRecord\ModelProviderWithClosure;
+use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
@@ -23,6 +24,7 @@ use Test\ICanBoogie\ActiveRecordTest\Nullable;
 use Test\ICanBoogie\ActiveRecordTest\ValidateCase;
 use Test\ICanBoogie\ActiveRecordTest\Validated;
 
+use function array_keys;
 use function serialize;
 use function uniqid;
 
@@ -210,6 +212,81 @@ final class ActiveRecordTest extends DbTestCase
         $found = $this->model->find($nid);
         assert($found instanceof Node);
         $this->assertSame("madonna 2", $found->title);
+    }
+
+    public function test_find_one(): void
+    {
+        $node = new Node();
+        $node->title = "madonna";
+        $node->save();
+
+        $found = Node::find_one($node->nid);
+
+        $this->assertSame("madonna", $found->title);
+    }
+
+    public function test_find_one_throws_when_record_does_not_exist(): void
+    {
+        $this->expectException(RecordNotFound::class);
+        $this->expectExceptionMessageIsOrContains("No " . Node::class . " for: 999");
+
+        Node::find_one(999);
+    }
+
+    public function test_find_many(): void
+    {
+        $a = new Node();
+        $a->title = "a";
+        $a->save();
+        $b = new Node();
+        $b->title = "b";
+        $b->save();
+
+        $found = Node::find_many($b->nid, $a->nid);
+
+        $this->assertSame([ $b->nid, $a->nid ], array_keys($found));
+        $this->assertSame("b", $found[$b->nid]->title);
+        $this->assertSame("a", $found[$a->nid]->title);
+    }
+
+    public function test_find_many_with_one_key_returns_array(): void
+    {
+        $node = new Node();
+        $node->title = "madonna";
+        $node->save();
+
+        $found = Node::find_many($node->nid);
+
+        $this->assertSame([ $node->nid ], array_keys($found));
+        $this->assertSame("madonna", $found[$node->nid]->title);
+    }
+
+    public function test_find_many_throws_when_one_record_does_not_exist(): void
+    {
+        $node = new Node();
+        $node->title = "madonna";
+        $node->save();
+
+        try {
+            Node::find_many($node->nid, 998, 999);
+            $this->fail("Expected RecordNotFound");
+        } catch (RecordNotFound $e) {
+            $this->assertSame("No " . Node::class . " for: 998, 999", $e->getMessage());
+            $this->assertSame([ $node->nid, 998, 999 ], array_keys($e->records));
+            $this->assertNotNull($e->records[$node->nid]);
+            $this->assertNull($e->records[998]);
+        }
+    }
+
+    public function test_find_many_with_one_key_throws_when_record_does_not_exist(): void
+    {
+        try {
+            Node::find_many(999);
+            $this->fail("Expected RecordNotFound");
+        } catch (RecordNotFound $e) {
+            $this->assertSame("No " . Node::class . " for: 999", $e->getMessage());
+            $this->assertSame([ 999 => null ], $e->records);
+        }
     }
 
     public function test_save_validates(): void

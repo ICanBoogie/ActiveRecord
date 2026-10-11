@@ -21,7 +21,7 @@ try {
 | [ConnectionNotDefined][]       | A connection is requested with an identifier that is not defined.                            |
 | [ConnectionNotEstablished][]   | A connection can't be established. The message doesn't include the DSN or the credentials.   |
 | [DriverNotDefined][]           | The DSN uses a driver other than `sqlite`, `mysql`, or `pgsql`.                              |
-| [RecordNotFound][]             | `Model::find()` can't find one or more records. `records` has the records that were found.   |
+| [RecordNotFound][]             | `find_one()` or `find_many()` can't find one or more records. `records` has the records that were found.   |
 | [RecordNotValid][]             | A record is not valid when it is saved. `errors` has the validation errors.                  |
 | [RelationNotDefined][]         | A relation is requested from `Model::$relations` with a name that is not defined.            |
 | [StatementNotValid][]          | A statement can't be prepared or executed. `statement`, `args`, and `original`, the `PDOException`, describe it. |

@@ -26,6 +26,6 @@ $builder = Fixtures::with_main_connection(new ConfigBuilder())
 $connection = $connections->connection_for_id('primary');
 $model = Article::model();
 $query = Article::query();
-$article = Article::model()->find(1);
+$article = Article::find_one(1);
 $user = $alice;
 $comment = Comment::query()->one;

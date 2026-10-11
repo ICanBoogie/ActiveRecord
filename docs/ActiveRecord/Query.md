@@ -279,8 +279,8 @@ $articles = Article::query()
 
 ## Retrieving data
 
-The `find()` method of the [model](Model.md#finding-records) retrieves records using their
-primary key. The following methods and properties retrieve the records matching a query.
+The `find_one()` and `find_many()` methods of the [model](Model.md#finding-records) retrieve
+records using their primary key. The following methods and properties retrieve the records matching a query.
 
 
 

@@ -14,6 +14,9 @@ PHP 8.4+
   `#[BelongsTo(User::class, on_delete: OnDelete::Cascade)]`. `ConfigBuilder` resolves them into
   `Schema::$foreign_keys`, and `ModelInstaller::install()` creates referenced tables first.
 - Added `ActiveRecord::model()` to resolve the model of a record class.
+- Added `ActiveRecord::find_one()` and `ActiveRecord::find_many()`, typed counterparts of
+  `Model::find()` that throw `RecordNotFound` when a record cannot be found. `find_many()` always returns an array.
+- Made `Model::find_one()` and `Model::find_many()` public.
 - `Boolean` columns accept a default value, e.g. `#[Boolean(default: false)]`, rendered as `TRUE`
   or `FALSE`. `SchemaBuilder::add_boolean()` takes `default` too.
 - Added `SchemaBuilder::add_time()` for `Time` columns.
@@ -24,6 +27,9 @@ PHP 8.4+
 
 ### Backward Incompatible Changes
 
+- The message of `RecordNotFound` thrown by `Model::find()`, `find_one()`, and `find_many()` is now
+  `No <class> for: <key>[, <key>…]`, whatever the number of keys, instead of
+  `No <class> for key <key>` / `No <class> for keys <keys>`.
 - Renamed `ModelCollection` as `ModelRegistry`, and `ConnectionCollection` as `ConnectionRegistry`.
 - Moved `install()`, `uninstall()`, and `is_installed()` from `ModelCollection` to the new
   `ModelInstaller`, which takes any `ModelIterator`. Replace `$models->install()` with
@@ -62,7 +68,7 @@ PHP 8.4+
 
 ### Deprecated Features
 
-None
+- `Model::find()` is deprecated, use `Model::find_one()` or `Model::find_many()`.
 
 ### Other Changes
 

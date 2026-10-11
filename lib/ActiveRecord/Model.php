@@ -70,6 +70,8 @@ class Model extends Table
      * @return TRecord|TRecord[] A record or a set of records.
      * @throws RecordNotFound when the record, or one or more records of the records
      * set couldn't be found.
+     *
+     * @deprecated use find_one() or find_many()
      */
     public function find(int|string ...$keys)
     {
@@ -79,7 +81,7 @@ class Model extends Table
             return $this->find_one($key);
         }
 
-        return $this->find_many($keys);
+        return $this->find_many(...$keys);
     }
 
     /**
@@ -89,7 +91,7 @@ class Model extends Table
      *
      * @return ActiveRecord&TRecord
      */
-    private function find_one(int|string $key): ActiveRecord
+    public function find_one(int|string $key): ActiveRecord
     {
         assert(is_string($this->primary));
 
@@ -98,7 +100,7 @@ class Model extends Table
 
         if (!$record) {
             throw new RecordNotFound(
-                "No $this->activerecord_class for key $key",
+                "No $this->activerecord_class for: $key",
                 [ $key => null ]
             );
         }
@@ -109,11 +111,13 @@ class Model extends Table
     /**
      * Finds many records.
      *
-     * @param array<int|non-empty-string> $keys
+     * @param int|non-empty-string ...$keys
      *
-     * @return array<int|non-empty-string, TRecord>
+     * @return array<int|non-empty-string, TRecord> The records, by primary key, even with a single key.
+     *
+     * @throws RecordNotFound when one or more records cannot be found.
      */
-    private function find_many(array $keys): array
+    public function find_many(int|string ...$keys): array
     {
         $records = $missing = array_fill_keys($keys, value: null);
 
@@ -135,18 +139,8 @@ class Model extends Table
         /** @var array<int|non-empty-string, TRecord> $records */
 
         if ($missing) {
-            if (count($missing) > 1) {
-                throw new RecordNotFound(
-                    "No $this->activerecord_class for keys " . implode(', ', array_keys($missing)),
-                    $records
-                );
-            }
-
-            $key = array_keys($missing);
-            $key = array_shift($key);
-
             throw new RecordNotFound(
-                "No $this->activerecord_class for key $key",
+                "No $this->activerecord_class for: " . implode(', ', array_keys($missing)),
                 $records
             );
         }

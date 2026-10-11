@@ -4,6 +4,7 @@ namespace ICanBoogie;
 
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\Query;
+use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\Serial;
@@ -33,6 +34,37 @@ abstract class ActiveRecord extends Prototyped
     final public static function model(): Model
     {
         return StaticModelProvider::model_for_record(static::class);
+    }
+
+    /**
+     * Finds a record with its primary key.
+     *
+     * @param int|non-empty-string $key
+     *
+     * @throws RecordNotFound when the record cannot be found. Use {@see where()} if the record might not exist.
+     *
+     * @see Model::find_one()
+     */
+    final public static function find_one(int|string $key): static
+    {
+        return static::model()->find_one($key);
+    }
+
+    /**
+     * Finds many records with their primary keys.
+     *
+     * @param int|non-empty-string ...$keys
+     *
+     * @return array<int|non-empty-string, static> The records, by primary key.
+     *
+     * @throws RecordNotFound when one or more records cannot be found. {@see RecordNotFound::$records}
+     * has the records that were found.
+     *
+     * @see Model::find_many()
+     */
+    final public static function find_many(int|string ...$keys): array
+    {
+        return static::model()->find_many(...$keys);
     }
 
     /**

@@ -22,6 +22,21 @@ $latest = Article::query()->order('-date')->take(10)->all;
 $online = Article::where([ 'is_online' => true ])->all;
 ```
 
+`find_one()` and `find_many()` retrieve records with their primary key. They throw a
+[RecordNotFound][] exception when a record can't be found, because passing a key means expecting the
+record to exist. Use `where()` when it might not:
+
+```php
+<?php
+
+namespace App;
+
+$article = Article::find_one(1);
+$articles = Article::find_many(2, 1); // [ 2 => Article, 1 => Article ]
+```
+
+`find_many()` always returns an array, keyed by primary key, even with a single key.
+
 
 
 ## Instantiating a record
@@ -201,5 +216,6 @@ echo $event->start_at;           // 2026-10-10T12:00:00Z
 
 [ActiveRecord]:         ../lib/ActiveRecord.php
 [DateTime]:             https://github.com/ICanBoogie/DateTime
+[RecordNotFound]:       ../lib/ActiveRecord/RecordNotFound.php
 [RecordNotValid]:       ../lib/ActiveRecord/RecordNotValid.php
 [icanboogie/validate]:  https://github.com/ICanBoogie/Validate
