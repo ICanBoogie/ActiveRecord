@@ -1,7 +1,7 @@
 # Active Record
 
 [![Release](https://img.shields.io/packagist/v/ICanBoogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
-[![Code Coverage](https://img.shields.io/coveralls/ICanBoogie/ActiveRecord.svg)](https://coveralls.io/r/ICanBoogie/ActiveRecord)
+[![Coverage Status](https://coveralls.io/repos/github/ICanBoogie/ActiveRecord/badge.svg?branch=7.0)](https://coveralls.io/github/ICanBoogie/ActiveRecord?branch=7.0)
 [![Downloads](https://img.shields.io/packagist/dt/icanboogie/activerecord.svg)](https://packagist.org/packages/icanboogie/activerecord)
 
 __Connections__, __models__ and __active records__ are the foundations of everything that concerns

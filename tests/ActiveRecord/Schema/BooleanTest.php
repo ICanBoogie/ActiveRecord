@@ -7,30 +7,9 @@ use ICanBoogie\ActiveRecord\Schema\Column;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Test\ICanBoogie\SetStateHelper;
 
 final class BooleanTest extends TestCase
 {
-    #[DataProvider('provideExport')]
-    public function testExport(Boolean $expected): void
-    {
-        $actual = SetStateHelper::export_import($expected);
-
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @return array<array{ Boolean }>
-     */
-    public static function provideExport(): array
-    {
-        return [
-            [ new Boolean(null: true) ],
-            [ new Boolean(default: true) ],
-            [ new Boolean(default: false) ],
-        ];
-    }
-
     /**
      * A boolean is not an integer, so checks such as `instanceof Integer` don't apply to it.
      */

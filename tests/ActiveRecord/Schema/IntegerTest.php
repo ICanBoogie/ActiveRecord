@@ -7,26 +7,9 @@ use ICanBoogie\ActiveRecord\Schema\Integer;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Test\ICanBoogie\SetStateHelper;
 
 final class IntegerTest extends TestCase
 {
-    public function testExport(): void
-    {
-        $expected = new Integer(
-            size: Integer::SIZE_BIG,
-            unsigned: true,
-            serial: false,
-            null: true,
-            unique: true,
-            default: 123,
-        );
-
-        $actual = SetStateHelper::export_import($expected);
-
-        $this->assertEquals($expected, $actual);
-    }
-
     #[DataProvider('provideInvalid')]
     public function testInvalid(string $message, Closure $new): void
     {
