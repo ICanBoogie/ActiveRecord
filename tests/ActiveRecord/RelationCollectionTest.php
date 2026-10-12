@@ -2,19 +2,19 @@
 
 namespace Test\ICanBoogie\ActiveRecord;
 
+use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\AmbiguousRelation;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\RelationNotFound;
-use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\Brand;
-use Test\ICanBoogie\Acme\Car;
 use Test\ICanBoogie\Acme\Comment;
-use Test\ICanBoogie\Acme\Driver;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\Acme\RelationCollection\Maker;
+use Test\ICanBoogie\Acme\RelationCollection\UsedVehicle;
+use Test\ICanBoogie\Acme\RelationCollection\Vehicle;
 use Test\ICanBoogie\Acme\Subscriber;
 use Test\ICanBoogie\Acme\Update;
 use Test\ICanBoogie\Fixtures;
@@ -60,34 +60,30 @@ final class RelationCollectionTest extends TestCase
 
     public function test_columns_to_with_different_column_names(): void
     {
-        $models = $this->build_cars(
-            brand: fn(SchemaBuilder $schema) => $schema->add_serial('id', primary: true),
-        );
+        $models = $this->build_models(Maker::class, Vehicle::class);
 
         $this->assertSame(
-            [ 'brand_id', 'id' ],
-            $models->model_for_record(Car::class)->relations
-                ->columns_to($models->model_for_record(Brand::class))
+            [ 'maker_id', 'id' ],
+            $models->model_for_record(Vehicle::class)->relations
+                ->columns_to($models->model_for_record(Maker::class))
         );
         $this->assertSame(
-            [ 'id', 'brand_id' ],
-            $models->model_for_record(Brand::class)->relations
-                ->columns_to($models->model_for_record(Car::class))
+            [ 'id', 'maker_id' ],
+            $models->model_for_record(Maker::class)->relations
+                ->columns_to($models->model_for_record(Vehicle::class))
         );
     }
 
     public function test_join_with_different_column_names_uses_on(): void
     {
-        $models = $this->build_cars(
-            brand: fn(SchemaBuilder $schema) => $schema->add_serial('id', primary: true),
-        );
-        $cars = $models->model_for_record(Car::class);
-        $quote = $cars->connection->quote_identifier(...);
+        $models = $this->build_models(Maker::class, Vehicle::class);
+        $vehicles = $models->model_for_record(Vehicle::class);
+        $quote = $vehicles->connection->quote_identifier(...);
 
         $this->assertStringEndsWith(
-            ' INNER JOIN ' . $quote('brands') . ' AS ' . $quote('brand')
-            . ' ON ' . $quote('car') . '.' . $quote('brand_id') . ' = ' . $quote('brand') . '.' . $quote('id'),
-            (string) $cars->query()->join(record: Brand::class)
+            ' INNER JOIN ' . $quote('makers') . ' AS ' . $quote('maker')
+            . ' ON ' . $quote('vehicle') . '.' . $quote('maker_id') . ' = ' . $quote('maker') . '.' . $quote('id'),
+            (string) $vehicles->query()->join(record: Maker::class)
         );
     }
 
@@ -108,40 +104,32 @@ final class RelationCollectionTest extends TestCase
 
     public function test_columns_to_throws_when_more_than_one_relation_links_the_models(): void
     {
-        $models = $this->build_cars(
-            brand: fn(SchemaBuilder $schema) => $schema->add_serial('brand_id', primary: true),
-            car: fn(SchemaBuilder $schema) => $schema
-                ->add_serial('car_id', primary: true)
-                ->belongs_to('brand_id', Brand::class)
-                ->belongs_to('previous_brand_id', Brand::class, as: 'previous_brand'),
-        );
-        $cars = $models->model_for_record(Car::class);
-        $brands = $models->model_for_record(Brand::class);
+        $models = $this->build_models(Maker::class, UsedVehicle::class);
+        $vehicles = $models->model_for_record(UsedVehicle::class);
+        $makers = $models->model_for_record(Maker::class);
 
         try {
-            $cars->relations->columns_to($brands);
+            $vehicles->relations->columns_to($makers);
             $this->fail("Expected " . AmbiguousRelation::class);
         } catch (AmbiguousRelation $e) {
-            $this->assertSame($cars, $e->model);
-            $this->assertSame($brands, $e->other);
+            $this->assertSame($vehicles, $e->model);
+            $this->assertSame($makers, $e->other);
             $this->assertCount(2, $e->relations);
         }
     }
 
     /**
-     * @param callable(SchemaBuilder): SchemaBuilder $brand
-     * @param (callable(SchemaBuilder): SchemaBuilder)|null $car
+     * @param class-string<ActiveRecord> ...$record_classes
      */
-    private function build_cars(callable $brand, ?callable $car = null): ModelRegistry
+    private function build_models(string ...$record_classes): ModelRegistry
     {
-        $config = Fixtures::with_main_connection(new ConfigBuilder())
-            ->add_record(record_class: Driver::class, schema_builder: fn(SchemaBuilder $schema) => $schema
-                ->add_serial('driver_id', primary: true))
-            ->add_record(record_class: Brand::class, schema_builder: $brand(...))
-            ->add_record(record_class: Car::class, schema_builder: $car ?? fn(SchemaBuilder $schema) => $schema
-                ->add_serial('car_id', primary: true)
-                ->belongs_to('brand_id', Brand::class))
-            ->build();
+        $builder = Fixtures::with_main_connection(new ConfigBuilder());
+
+        foreach ($record_classes as $record_class) {
+            $builder->add_record($record_class);
+        }
+
+        $config = $builder->build();
 
         return new ModelRegistry(new ConnectionRegistry($config->connections), $config->models);
     }

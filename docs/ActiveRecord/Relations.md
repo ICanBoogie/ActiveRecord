@@ -213,7 +213,8 @@ foreach ($alice->articles as $article) {
 $latest_comments = $article->comments->order('-id')->take(5)->all;
 ```
 
-The same relation with the association builder:
+The association builder completes the relations declared by the attributes of the record. Defining a
+relation twice, with the same options, throws an [InvalidAssociation][] exception:
 
 ```php
 <?php
@@ -227,7 +228,7 @@ use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 $builder->add_record(
     record_class: User::class,
     association_builder: fn(AssociationBuilder $association) => $association
-        ->has_many(Article::class),
+        ->has_many(Article::class, as: 'posts'),
 );
 ```
 
@@ -268,3 +269,4 @@ foreach ($article->commenters as $user) {
 
 [BelongsTo]: ../../lib/ActiveRecord/Schema/BelongsTo.php
 [HasMany]:   ../../lib/ActiveRecord/Schema/HasMany.php
+[InvalidAssociation]: ../../lib/ActiveRecord/Config/InvalidAssociation.php

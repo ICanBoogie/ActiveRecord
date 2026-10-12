@@ -16,6 +16,7 @@ use Test\ICanBoogie\Acme\ForeignKey\Book;
 use Test\ICanBoogie\Acme\ForeignKey\Loan;
 use Test\ICanBoogie\Acme\ForeignKey\Review;
 use Test\ICanBoogie\Acme\Node;
+use Test\ICanBoogie\Acme\Subscriber;
 use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 use Test\ICanBoogie\RecordingInstallProgress;
@@ -111,6 +112,7 @@ final class ModelInstallerTest extends DbTestCase
     {
         $installer = new ModelInstaller(self::models(fn(ConfigBuilder $config) => $config
             ->add_record(Node::class, model_class: FailingModel::class)
+            ->add_record(Article::class)
             ->add_record(Comment::class)));
 
         $this->expectException(RuntimeException::class);
@@ -124,7 +126,8 @@ final class ModelInstallerTest extends DbTestCase
         $models = self::models(fn(ConfigBuilder $config) => $config
             ->add_record(Node::class, model_class: FailingModel::class)
             ->add_record(Article::class)
-            ->add_record(Comment::class));
+            ->add_record(Comment::class)
+            ->add_record(Subscriber::class));
 
         new ModelInstaller($models)->install($progress = new RecordingInstallProgress());
 
@@ -132,8 +135,9 @@ final class ModelInstallerTest extends DbTestCase
             [ 'installing', Node::class ],
             [ 'failed', Node::class, "Unable to install " . Node::class ],
             [ 'skipped', Article::class, Node::class ],
-            [ 'installing', Comment::class ],
-            [ 'installed', Comment::class ],
+            [ 'skipped', Comment::class, Article::class ],
+            [ 'installing', Subscriber::class ],
+            [ 'installed', Subscriber::class ],
         ], $progress->events);
     }
 
@@ -161,7 +165,7 @@ final class ModelInstallerTest extends DbTestCase
      */
     private static function models(callable $add_records): ModelRegistry
     {
-        $config = $add_records(Fixtures::with_main_connection(new ConfigBuilder())->use_attributes())->build();
+        $config = $add_records(Fixtures::with_main_connection(new ConfigBuilder()))->build();
 
         return new ModelRegistry(new ConnectionRegistry($config->connections), $config->models);
     }

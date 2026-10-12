@@ -171,7 +171,6 @@ use ICanBoogie\ActiveRecord\ModelRegistry;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 
 $config = new ConfigBuilder()
-    ->use_attributes()
     ->add_connection('primary', 'sqlite::memory:')
     ->add_record(User::class)
     ->add_record(Node::class)

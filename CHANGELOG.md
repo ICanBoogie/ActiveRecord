@@ -2,6 +2,14 @@
 
 ## v7.0
 
+v7.0 makes the attributes of record classes first-class citizens: schemas, indexes, relations, and
+foreign keys are declared on the records, and `ConfigBuilder` and `SchemaBuilder` complete them
+instead of replacing them. Relations are explicit, `join()` and has-many no longer guess keys, and
+foreign key constraints are opt-in. PostgreSQL joins SQLite and MySQL as a supported engine, and
+the code now requires PHP 8.4, using property hooks and asymmetric visibility. Records no longer
+hold their model: it is resolved with `ActiveRecord::model()`. Many things were tightened along the
+way, so please read the backward incompatible changes.
+
 ### New Requirements
 
 PHP 8.4+
@@ -21,6 +29,14 @@ PHP 8.4+
 - `Boolean` columns accept a default value, e.g. `#[Boolean(default: false)]`, rendered as `TRUE`
   or `FALSE`. `SchemaBuilder::add_boolean()` takes `default` too.
 - Added `SchemaBuilder::add_time()` for `Time` columns.
+- Added `InvalidSchema`, thrown by `SchemaBuilder` when a schema is not valid. It extends
+  `LogicException` and implements `ActiveRecord\Exception`, and its message ends with the record class,
+  if any. `SchemaBuilder` takes an optional record class, `new SchemaBuilder(Article::class)`, and
+  starts with the columns, the primary key, and the indexes declared by its attributes.
+- Added `InvalidAssociation`, thrown by `AssociationBuilder` when an association is not valid. It
+  extends `LogicException` and implements `ActiveRecord\Exception`, and its message ends with the record
+  class, if any. `AssociationBuilder` takes an optional record class, `new AssociationBuilder(Reader::class)`,
+  and starts with the associations declared by its attributes.
 - `ModelInstaller::install()` takes an optional `InstallProgress`, notified of each model as already
   installed, installing, installed, failed, or skipped because a model it depends on failed. By
   default, the first failure is thrown. Models are installed after their parent too, not only after
@@ -68,6 +84,25 @@ PHP 8.4+
   `BelongsTo` column references the owner, or if several do: specify `foreign_key` then. It also
   throws if `foreign_key` isn't a column of the related record.
 - Renamed `Query::join(with:)` as `Query::join(record:)`.
+- Removed `ConfigBuilder::use_attributes()`: the schemas and the associations are always built from
+  the attributes of the record classes, and `schema_builder` and `association_builder` complete them.
+  A record without attributes needs a `schema_builder`, otherwise `add_record()` throws `InvalidConfig`.
+- `SchemaBuilder` no longer lets a column replace another one: defining a column that is already
+  defined, whether by an attribute or by a previous call, throws `InvalidSchema`, as does defining
+  the primary key or an index twice, or an empty column name. Remove the definitions that duplicate
+  the attributes of the record.
+- `SchemaBuilder::build()` throws `InvalidSchema` when the schema has no columns, or when the
+  primary key or an index uses a column that is not defined.
+- Removed `SchemaBuilder::use_record()`, pass the record class to the constructor instead. `Schema::from()`
+  still creates a schema from a record class.
+- Removed `AssociationBuilder::use_record()`, pass the record class to the constructor instead.
+  `AssociationBuilder::has_many()` throws `InvalidAssociation` when the associate or the `through`
+  record is not a record class, when `foreign_key` or `as` is empty, or when the same relation is defined
+  twice, whether by an attribute or by a previous call.
+- `Index::$columns` is required.
+- Reworded the messages of the exceptions of `ConfigBuilder`: class names, columns, and parameters
+  are quoted with backticks. `ConfigBuilder::build()` also throws `InvalidConfig` when the record
+  of a has-many relation, or its `through` record, is not defined.
 - Removed everything related to record caching, for now…
 
 ### Deprecated Features

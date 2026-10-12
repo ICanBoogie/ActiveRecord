@@ -66,11 +66,19 @@ final class ConfigBuilder
         return new Config($this->connections, $models);
     }
 
+    /**
+     * @throws InvalidConfig
+     */
+    private function error(string $message, ?Throwable $previous = null): never
+    {
+        throw new InvalidConfig($message, $previous);
+    }
+
     private function validate_models(): void
     {
         foreach ($this->model_definitions as $definition) {
-            $this->connections[$definition->connection] ?? throw new InvalidConfig(
-                "$definition->activerecord_class uses connection '$definition->connection', but it is not configured"
+                $this->connections[$definition->connection] ?? $this->error(
+                "`$definition->activerecord_class` uses the connection `$definition->connection`, which is not configured"
             );
 
             $this->resolve_parent_definition($definition);
@@ -92,12 +100,11 @@ final class ConfigBuilder
             $parent_schema = $parent->schema;
             $primary = $parent_schema->primary;
 
-            if (!is_string($primary)) {
-                throw new InvalidConfig(
-                    "$definition->activerecord_class cannot extend $parent->activerecord_class,"
-                    . " the primary key is not a column, given: " . json_encode($primary)
-                );
-            }
+            is_string($primary)
+            or $this->error(
+                "`$definition->activerecord_class` cannot extend `$parent->activerecord_class`,"
+                . " its primary key is not a single column, given: " . json_encode($primary)
+            );
 
             $schema = $definition->schema;
             $parent_column = $parent_schema->columns[$primary];
@@ -129,8 +136,8 @@ final class ConfigBuilder
                 try {
                     $belongs_to[] = $this->resolve_belongs_to($name, $column);
                 } catch (Throwable $e) {
-                    throw new InvalidConfig(
-                        "Unable to apply $owner->activerecord_class::belongs_to($column->associate::$name)",
+                    $this->error(
+                        "Unable to apply `$owner->activerecord_class::belongs_to($column->associate::$name)`",
                         previous: $e
                     );
                 }
@@ -142,8 +149,8 @@ final class ConfigBuilder
                 try {
                     $has_many[] = $this->resolve_has_many($owner, $item);
                 } catch (Throwable $e) {
-                    throw new InvalidConfig(
-                        "Unable to apply $owner->activerecord_class::has_many($item->associate)",
+                    $this->error(
+                        "Unable to apply `$owner->activerecord_class::has_many($item->associate)`",
                         previous: $e
                     );
                 }
@@ -179,8 +186,8 @@ final class ConfigBuilder
                 try {
                     [ $columns[$name], $foreign_keys[] ] = $this->resolve_foreign_key($definition, $name, $column);
                 } catch (Throwable $e) {
-                    throw new InvalidConfig(
-                        "Unable to create foreign key $definition->activerecord_class::$name",
+                    $this->error(
+                        "Unable to create foreign key `$definition->activerecord_class::$name`",
                         previous: $e
                     );
                 }
@@ -213,26 +220,26 @@ final class ConfigBuilder
         assert($on_delete !== null);
 
         $associate = $this->model_definitions[$column->associate]
-            ?? throw new InvalidConfig("$column->associate is not defined");
+            ?? $this->error("The associated record `$column->associate` is not defined");
 
         $associate->connection === $definition->connection
-        or throw new InvalidConfig(
-            "$associate->activerecord_class uses connection '$associate->connection',"
-            . " a foreign key cannot reference a table on another connection"
+        or $this->error(
+            "A foreign key cannot reference a table on another connection,"
+            . " `$associate->activerecord_class` uses the connection `$associate->connection`"
         );
 
         $references = $associate->schema->primary;
 
         is_string($references)
-        or throw new InvalidConfig("The primary key of $associate->activerecord_class is not a single column");
+        or $this->error("The primary key of `$associate->activerecord_class` is not a single column");
 
         $referenced_column = $associate->schema->columns[$references];
 
         $referenced_column instanceof Integer
-        or throw new InvalidConfig("The primary key of $associate->activerecord_class is not an integer");
+        or $this->error("The primary key of `$associate->activerecord_class` is not an integer");
 
         ($on_delete !== Schema\OnDelete::SetNull || $column->null)
-        or throw new InvalidConfig("The column must be nullable to use OnDelete::SetNull");
+        or $this->error("The column must be nullable to use `OnDelete::SetNull`");
 
         return [
             new Schema\BelongsTo(
@@ -262,8 +269,8 @@ final class ConfigBuilder
         }
 
         return $this->model_definitions[$parent_class]
-            ?? throw new InvalidConfig(
-                "$definition->activerecord_class extends $parent_class but there's no definition for it"
+            ?? $this->error(
+                "`$definition->activerecord_class` extends `$parent_class`, which is not defined"
             );
     }
 
@@ -302,11 +309,11 @@ final class ConfigBuilder
     private function resolve_belongs_to(string $local_key, Schema\BelongsTo $column): BelongsToAssociation
     {
         $associate = $this->model_definitions[$column->associate]
-            ?? throw new InvalidConfig("$column->associate is not defined");
+            ?? $this->error("The associated record `$column->associate` is not defined");
 
         $associate->schema->has_single_column_primary
-        or throw new InvalidConfig(
-            "The primary key of $associate->activerecord_class is not a single column"
+        or $this->error(
+            "The primary key of `$associate->activerecord_class` is not a single column"
         );
 
         $foreign_key = $associate->schema->primary;
@@ -327,12 +334,15 @@ final class ConfigBuilder
         TransientModelDefinition $owner,
         TransientHasManyAssociation $association
     ): HasManyAssociation {
-        $owner->schema->has_single_column_primary
-        or throw new InvalidConfig(
-            "The primary key of $owner->activerecord_class is not a single column"
-        );
+        if (!$owner->schema->has_single_column_primary) {
+            // @phpstan-ignore-next-line // primary is an array at this point
+            $primary_str = implode(", ", $owner->schema->primary);
 
-        $related = $this->model_definitions[$association->associate];
+            $this->error("The primary key of `$owner->activerecord_class` is not a single column: `$primary_str`");
+        }
+
+        $related = $this->model_definitions[$association->associate]
+            ?? $this->error("The associated record `$association->associate` is not defined");
         $foreign_key = $association->foreign_key;
         $as = $association->as ?? Inflector::pluralize($related->alias);
 
@@ -340,18 +350,19 @@ final class ConfigBuilder
             $foreign_key ??= $related->schema->primary;
         } elseif ($foreign_key) {
             $related->schema->has_column($foreign_key)
-            or throw new InvalidConfig("$related->activerecord_class has no column '$foreign_key'");
+            or $this->error("`$related->activerecord_class` has no column `$foreign_key`");
         } else {
             $foreign_key = $this->resolve_has_many_foreign_key($owner, $related);
         }
 
-        $foreign_key or throw new InvalidConfig("Unable to resolve the foreign key");
-        is_string($foreign_key) or throw new InvalidConfig("The foreign key is not a single column");
+        $foreign_key or $this->error("Unable to resolve the foreign key");
+        is_string($foreign_key) or $this->error("The foreign key is not a single column");
 
         $through = null;
 
         if ($association->through) {
-            $through = $this->model_definitions[$association->through];
+            $through = $this->model_definitions[$association->through]
+                ?? $this->error("The `through` record `$association->through` is not defined");
         }
 
         assert(strlen($as) > 1);
@@ -388,15 +399,15 @@ final class ConfigBuilder
         $candidates = $exact ?: $inherited;
 
         count($candidates) > 0
-        or throw new InvalidConfig(
-            "$related->activerecord_class has no BelongsTo column referencing $owner->activerecord_class,"
-            . " specify foreign_key"
+        or $this->error(
+            "`$related->activerecord_class` has no BelongsTo column referencing"
+            . " `$owner->activerecord_class`, specify `foreign_key`"
         );
 
         count($candidates) === 1
-        or throw new InvalidConfig(
-            "$related->activerecord_class has several BelongsTo columns referencing"
-            . " $owner->activerecord_class (" . implode(', ', $candidates) . "), specify foreign_key"
+        or $this->error(
+            "`$related->activerecord_class` has several BelongsTo columns referencing"
+            . " `$owner->activerecord_class` (" . implode(', ', $candidates) . "), specify `foreign_key`"
         );
 
         return $candidates[0];
@@ -444,7 +455,7 @@ final class ConfigBuilder
         $pattern = self::REGEXP_TIMEZONE;
 
         if (!preg_match($pattern, $time_zone)) {
-            throw new InvalidArgumentException("Time zone doesn't match pattern '$pattern': $time_zone");
+            $this->error("The time zone `$time_zone` does not match the pattern `$pattern`");
         }
     }
 
@@ -470,7 +481,11 @@ final class ConfigBuilder
         ?Closure $association_builder = null,
         string $connection = Config::DEFAULT_CONNECTION_ID,
     ): self {
-        Assert::extends_activerecord($record_class);
+        try {
+            Assert::extends_activerecord($record_class);
+        } catch (Throwable $e) {
+            $this->error($e->getMessage(), $e);
+        }
 
         [ $inner_schema_builder, $inner_association_builder ] = $this->create_builders($record_class);
 
@@ -478,8 +493,8 @@ final class ConfigBuilder
 
         if ($schema_builder) {
             $schema_builder($inner_schema_builder);
-        } elseif ($this->use_attributes && $inner_schema_builder->is_empty()) {
-            throw new LogicException("The Schema built from `$record_class` attributes is empty");
+        } elseif ($inner_schema_builder->is_empty()) {
+            $this->error("The schema of `$record_class` is empty");
         }
 
         // association
@@ -522,18 +537,6 @@ final class ConfigBuilder
         return Inflector::pluralize(Inflector::underscore($base)); // @phpstan-ignore-line
     }
 
-    private bool $use_attributes = false;
-
-    /**
-     * Enables the use of attributes to create schemas and associations.
-     */
-    public function use_attributes(): self
-    {
-        $this->use_attributes = true;
-
-        return $this;
-    }
-
     /**
      * Creates a schema builder and an association builder.
      *
@@ -545,13 +548,8 @@ final class ConfigBuilder
      */
     private function create_builders(string $activerecord_class): array
     {
-        $schema_builder = new SchemaBuilder();
-        $association_builder = new AssociationBuilder();
-
-        if ($this->use_attributes) {
-            $schema_builder->use_record($activerecord_class);
-            $association_builder->use_record($activerecord_class);
-        }
+        $schema_builder = new SchemaBuilder($activerecord_class);
+        $association_builder = new AssociationBuilder($activerecord_class);
 
         return [ $schema_builder, $association_builder ];
     }

@@ -10,8 +10,10 @@ The examples define a `Product` record, and `$builder` is a `ConfigBuilder` with
 
 ## Declaring the schema with attributes
 
-Call `ConfigBuilder::use_attributes()` to build schemas from the attributes of the record classes.
-A column attribute goes on a public property, which takes the name of the column.
+`ConfigBuilder::add_record()` builds the schema from the attributes of the record class. A column
+attribute goes on a public property, which takes the name of the column. The properties of the
+parent class are ignored, a record that extends another record shares its primary key, see
+[Extending another record](Relations.md#extending-another-record).
 
 ```php
 <?php
@@ -55,13 +57,12 @@ class Product extends ActiveRecord
 }
 
 $config = new ConfigBuilder()
-    ->use_attributes()
     ->add_connection('primary', 'sqlite::memory:')
     ->add_record(Product::class)
     ->build();
 ```
 
-An exception is thrown if attributes are enabled, a record defines no column, and no
+An [InvalidConfig][] exception is thrown if a record declares no column with attributes, and no
 `schema_builder` is given.
 
 
@@ -69,8 +70,12 @@ An exception is thrown if attributes are enabled, a record defines no column, an
 ## Building the schema by hand
 
 The `schema_builder` parameter of `ConfigBuilder::add_record()` builds the schema with a
-[SchemaBuilder][]. If attributes are enabled, the builder starts with the columns declared by the
-attributes, and a column added with the same name replaces it.
+[SchemaBuilder][]. The builder starts with the columns, the primary key, and the indexes declared by
+the attributes, if any, and the closure completes them. Defining a column that is already defined,
+by an attribute or by the closure, throws an [InvalidSchema][] exception, which is also thrown when
+a primary key or an index is defined twice, when the schema has no columns, and when the primary
+key or an index uses a column that is not defined. The message of the exception ends with the
+record class, if any.
 
 ```php
 <?php
@@ -207,6 +212,8 @@ readonly class Uuid extends Character implements ResolvesToColumn
 [Integer]:          ../../lib/ActiveRecord/Schema/Integer.php
 [ResolvesToColumn]: ../../lib/ActiveRecord/Schema/ResolvesToColumn.php
 [SchemaBuilder]:    ../../lib/ActiveRecord/SchemaBuilder.php
+[InvalidSchema]:    ../../lib/ActiveRecord/Schema/InvalidSchema.php
+[InvalidConfig]:    ../../lib/ActiveRecord/Config/InvalidConfig.php
 [Serial]:           ../../lib/ActiveRecord/Schema/Serial.php
 [Text]:             ../../lib/ActiveRecord/Schema/Text.php
 [Time]:             ../../lib/ActiveRecord/Schema/Time.php

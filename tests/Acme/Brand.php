@@ -9,7 +9,7 @@ use ICanBoogie\ActiveRecord\Schema\Serial;
 
 class Brand extends ActiveRecord
 {
-    #[Id, Serial]
+    #[Id, Serial(size: Serial::SIZE_BIG)]
     public int $brand_id;
 
     #[Character]

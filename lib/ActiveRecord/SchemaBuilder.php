@@ -14,6 +14,7 @@ use ICanBoogie\ActiveRecord\Schema\DateTime;
 use ICanBoogie\ActiveRecord\Schema\Decimal;
 use ICanBoogie\ActiveRecord\Schema\Id;
 use ICanBoogie\ActiveRecord\Schema\Index;
+use ICanBoogie\ActiveRecord\Schema\InvalidSchema;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\ActiveRecord\Schema\OnDelete;
 use ICanBoogie\ActiveRecord\Schema\SchemaAttribute;
@@ -35,20 +36,39 @@ final class SchemaBuilder
     private array $columns = [];
 
     /**
-     * @var array<non-empty-string>
+     * @var list<non-empty-string>
      */
     private array $primary = [];
 
     /**
-     * @var array<Index>
+     * @var list<Index>
      */
     private array $indexes = [];
+
+    /**
+     * @param class-string<ActiveRecord>|null $record_class
+     *     The initial schema is configured from the {@see ActiveRecord} class, when it is provided.
+     *
+     * @throws LogicException if the {@see $record_class} is not an {@see ActiveRecord} class.
+     */
+    public function __construct(
+        public readonly ?string $record_class = null,
+    ) {
+        if ($record_class) {
+            ActiveRecord\Config\Assert::extends_activerecord($record_class);
+
+            $this->use_record($record_class);
+        }
+    }
 
     public function build(): Schema
     {
         $columns = $this->columns;
-        assert(count($columns) > 0);
 
+        count($columns) > 0
+        or $this->error("The schema has no columns");
+
+        $this->assert_primary();
         $this->assert_indexes();
 
         $primary = match (count($this->primary)) {
@@ -65,30 +85,46 @@ final class SchemaBuilder
     }
 
     /**
-     * Asserts that the columns used by the indexes exist.
-     */
-    private function assert_indexes(): void
-    {
-        foreach ($this->indexes as $index) {
-            $columns = $index->columns;
-
-            if (is_string($columns)) {
-                $columns = [ $columns ];
-            }
-
-            foreach ($columns as $column) {
-                $this->columns[$column]
-                    ?? throw new LogicException("Column used by index is not defined: $column");
-            }
-        }
-    }
-
-    /**
      * Whether the builder is empty, i.e., no column is defined yet.
      */
     public function is_empty(): bool
     {
         return count($this->columns) === 0;
+    }
+
+    /**
+     * Adds an index on one or multiple columns.
+     *
+     * @param non-empty-string|non-empty-list<non-empty-string> $columns
+     *     Column names used by the index.
+     * @param non-empty-string|null $name
+     *     Name of the index.
+     *
+     * @return $this
+     *
+     * @throws InvalidSchema if an index with the same columns already exists.
+     *
+     * @see Index
+     */
+    public function add_index(
+        array|string $columns,
+        bool $unique = false,
+        ?string $name = null
+    ): self {
+        $columns_ar = (array)$columns;
+
+        foreach ($this->indexes as $i) {
+            // The order of the columns matters
+            if ((array)$i->columns === $columns_ar) {
+                $columns_str = implode(', ', $columns_ar);
+
+                $this->error("An index with the columns `$columns_str` already exists");
+            }
+        }
+
+        $this->indexes[] = new Index($columns, $unique, $name);
+
+        return $this;
     }
 
     /**
@@ -103,12 +139,13 @@ final class SchemaBuilder
         bool $null = false,
         ?bool $default = null,
     ): self {
-        $this->columns[$col_name] = new Boolean(
-            null: $null,
-            default: $default,
+        return $this->add_column(
+            $col_name,
+            new Boolean(
+                null: $null,
+                default: $default,
+            )
         );
-
-        return $this;
     }
 
     /**
@@ -130,17 +167,20 @@ final class SchemaBuilder
         int|string|null $default = null,
         bool $primary = false,
     ): self {
-        $this->columns[$col_name] = new Integer(
-            size: $size,
-            unsigned: $unsigned,
-            serial: $serial,
-            null: $null,
-            unique: $unique,
-            default: $default,
+        $this->add_column(
+            $col_name,
+            new Integer(
+                size: $size,
+                unsigned: $unsigned,
+                serial: $serial,
+                null: $null,
+                unique: $unique,
+                default: $default,
+            )
         );
 
         if ($primary) {
-            $this->primary[] = $col_name;
+            $this->add_primary($col_name);
         }
 
         return $this;
@@ -162,18 +202,21 @@ final class SchemaBuilder
         bool $null = false,
         bool $unique = false,
     ): self {
-        $this->columns[$col_name] = new Decimal(
-            precision: $precision,
-            scale: $scale,
-            approximate: $approximate,
-            null: $null,
-            unique: $unique
+        return $this->add_column(
+            $col_name,
+            new Decimal(
+                precision: $precision,
+                scale: $scale,
+                approximate: $approximate,
+                null: $null,
+                unique: $unique
+            )
         );
-
-        return $this;
     }
 
     /**
+     * Add a {@see Decimal} with a precision of 9 and approximate enabled.
+     *
      * @param non-empty-string $col_name
      *
      * @return $this
@@ -207,12 +250,15 @@ final class SchemaBuilder
         int $size = Integer::SIZE_REGULAR,
         bool $primary = false,
     ): self {
-        $this->columns[$col_name] = new Serial(
-            size: $size
+        $this->add_column(
+            $col_name,
+            new Serial(
+                size: $size
+            )
         );
 
         if ($primary) {
-            $this->primary[] = $col_name;
+            $this->add_primary($col_name);
         }
 
         return $this;
@@ -233,14 +279,17 @@ final class SchemaBuilder
         bool $unique = false,
         bool $primary = false,
     ): self {
-        $this->columns[$col_name] = new Integer(
-            size: $size,
-            null: $null,
-            unique: $unique,
+        $this->add_column(
+            $col_name,
+            new Integer(
+                size: $size,
+                null: $null,
+                unique: $unique,
+            )
         );
 
         if ($primary) {
-            $this->primary[] = $col_name;
+            $this->add_primary($col_name);
         }
 
         return $this;
@@ -258,12 +307,13 @@ final class SchemaBuilder
         bool $null = false,
         ?string $default = null,
     ): self {
-        $this->columns[$col_name] = new Date(
-            null: $null,
-            default: $default,
+        return $this->add_column(
+            $col_name,
+            new Date(
+                null: $null,
+                default: $default,
+            )
         );
-
-        return $this;
     }
 
     /**
@@ -278,12 +328,13 @@ final class SchemaBuilder
         bool $null = false,
         ?string $default = null,
     ): self {
-        $this->columns[$col_name] = new Time(
-            null: $null,
-            default: $default,
+        return $this->add_column(
+            $col_name,
+            new Time(
+                null: $null,
+                default: $default,
+            )
         );
-
-        return $this;
     }
 
     /**
@@ -300,13 +351,14 @@ final class SchemaBuilder
         ?string $default = null,
         bool $unique = false,
     ): self {
-        $this->columns[$col_name] = new DateTime(
-            null: $null,
-            default: $default,
-            unique: $unique,
+        return $this->add_column(
+            $col_name,
+            new DateTime(
+                null: $null,
+                default: $default,
+                unique: $unique,
+            )
         );
-
-        return $this;
     }
 
     /**
@@ -321,12 +373,13 @@ final class SchemaBuilder
         bool $null = false,
         ?string $default = null,
     ): self {
-        $this->columns[$col_name] = new Timestamp(
-            null: $null,
-            default: $default,
+        return $this->add_column(
+            $col_name,
+            new Timestamp(
+                null: $null,
+                default: $default,
+            )
         );
-
-        return $this;
     }
 
     /**
@@ -348,17 +401,20 @@ final class SchemaBuilder
         ?string $collate = null,
         bool $primary = false,
     ): self {
-        $this->columns[$col_name] = new Character(
-            size: $size,
-            fixed: $fixed,
-            null: $null,
-            default: $default,
-            unique: $unique,
-            collate: $collate,
+        $this->add_column(
+            $col_name,
+            new Character(
+                size: $size,
+                fixed: $fixed,
+                null: $null,
+                default: $default,
+                unique: $unique,
+                collate: $collate,
+            )
         );
 
         if ($primary) {
-            $this->primary[] = $col_name;
+            $this->add_primary($col_name);
         }
 
         return $this;
@@ -379,14 +435,15 @@ final class SchemaBuilder
         bool $null = false,
         bool $unique = false,
     ): self {
-        $this->columns[$col_name] = new Binary(
-            size: $size,
-            fixed: $fixed,
-            null: $null,
-            unique: $unique,
+        return $this->add_column(
+            $col_name,
+            new Binary(
+                size: $size,
+                fixed: $fixed,
+                null: $null,
+                unique: $unique,
+            )
         );
-
-        return $this;
     }
 
     /**
@@ -403,13 +460,14 @@ final class SchemaBuilder
         bool $null = false,
         bool $unique = false,
     ): self {
-        $this->columns[$col_name] = new Blob(
-            size: $size,
-            null: $null,
-            unique: $unique,
+        return $this->add_column(
+            $col_name,
+            new Blob(
+                size: $size,
+                null: $null,
+                unique: $unique,
+            )
         );
-
-        return $this;
     }
 
     /**
@@ -429,15 +487,16 @@ final class SchemaBuilder
         bool $unique = false,
         ?string $collate = null,
     ): self {
-        $this->columns[$col_name] = new Text(
-            size: $size,
-            null: $null,
-            default: $default,
-            unique: $unique,
-            collate: $collate,
+        return $this->add_column(
+            $col_name,
+            new Text(
+                size: $size,
+                null: $null,
+                default: $default,
+                unique: $unique,
+                collate: $collate,
+            )
         );
-
-        return $this;
     }
 
     /**
@@ -462,62 +521,115 @@ final class SchemaBuilder
         ?string $as = null,
         ?OnDelete $on_delete = null,
     ): self {
-        $this->columns[$col_name] = new BelongsTo(
-            associate: $associate,
-            size: $size,
-            null: $null,
-            unique: $unique,
-            as: $as,
-            on_delete: $on_delete,
+        return $this->add_column(
+            $col_name,
+            new BelongsTo(
+                associate: $associate,
+                size: $size,
+                null: $null,
+                unique: $unique,
+                as: $as,
+                on_delete: $on_delete,
+            )
         );
+    }
+
+    /**
+     * @throws InvalidSchema
+     */
+    private function error(string $message): never
+    {
+        throw new InvalidSchema($message, $this->record_class);
+    }
+
+    /**
+     * Add a column to the schema.
+     *
+     * @param non-empty-string $name
+     *
+     * @return $this
+     *
+     * @throws InvalidSchema if the name is empty, or the column is already defined.
+     */
+    private function add_column(string $name, Column $column): self
+    {
+        // @phpstan-ignore-next-line // double checking, just in case
+        $name !== ''
+        or $this->error("A column name must not be empty");
+
+        !isset($this->columns[$name])
+        or $this->error("Column `$name` is already defined");
+
+        $this->columns[$name] = $column;
 
         return $this;
     }
 
     /**
-     * Adds an index on one or multiple columns.
-     *
-     * @param non-empty-string|non-empty-array<non-empty-string> $columns
-     *     Column names used by the index.
-     * @param non-empty-string|null $name
-     *     Name of the index.
-     *
-     * @return $this
-     *
-     * @throws LogicException if a column used by the index is not defined.
-     *
-     * @see Index
+     * @param non-empty-string $primary
      */
-    public function add_index(
-        array|string $columns,
-        bool $unique = false,
-        ?string $name = null
-    ): self {
-        $this->indexes[] = new Index($columns, $unique, $name);
+    private function add_primary(string $primary): void
+    {
+        !in_array($primary, $this->primary, true)
+        or $this->error("Column `$primary` is already used as primary key");
 
-        return $this;
+        $this->primary[] = $primary;
+    }
+
+    /**
+     * Asserts that the columns used as primary key exist.
+     */
+    private function assert_primary(): void
+    {
+        foreach ($this->primary as $column) {
+            isset($this->columns[$column])
+            or $this->error("The column `$column`, used as primary key, is not defined");
+        }
+    }
+
+    /**
+     * Asserts that the columns used by the indexes exist.
+     */
+    private function assert_indexes(): void
+    {
+        foreach ($this->indexes as $index) {
+            $columns = $index->columns;
+
+            if (is_string($columns)) {
+                $columns = [ $columns ];
+            }
+
+
+            foreach ($columns as $column) {
+                isset($this->columns[$column])
+                or $this->error("The column `$column`, used by an index, is not defined");
+            }
+        }
     }
 
     /**
      * @param class-string<ActiveRecord> $activerecord_class
-     *
-     * @return $this
-     *
-     * @internal
      */
-    public function use_record(string $activerecord_class): self
+    private function use_record(string $activerecord_class): void
     {
         $class = new ReflectionClass($activerecord_class);
 
         foreach ($class->getAttributes(Index::class) as $attribute) {
-            $this->indexes[] = $attribute->newInstance();
+            $index = $attribute->newInstance();
+
+            $this->add_index(columns: $index->columns, unique: $index->unique, name: $index->name);
         }
+
+        $ids = [];
 
         foreach ($class->getProperties() as $property) {
             // We only want the columns for this record, not its parent.
             if ($property->getDeclaringClass()->name !== $activerecord_class) {
                 continue;
             }
+
+            /** @var non-empty-string $name */
+            $name = $property->name;
 
             foreach (
                 $property->getAttributes(
@@ -527,20 +639,19 @@ final class SchemaBuilder
             ) {
                 $attribute = $attribute->newInstance();
 
-                if ($attribute instanceof Id) {
-                    // @phpstan-ignore-next-line
-                    $this->primary[] = $property->name;
-
-                    continue;
+                if ($attribute instanceof Column) {
+                    $this->add_column($name, $attribute);
                 }
 
-                if ($attribute instanceof Column) {
-                    // @phpstan-ignore-next-line
-                    $this->columns[$property->name] = $attribute;
+                if ($attribute instanceof Id) {
+                    $ids[] = $name;
                 }
             }
         }
 
-        return $this;
+        // Primary keys are added once the columns are defined.
+        foreach ($ids as $name) {
+            $this->add_primary($name);
+        }
     }
 }

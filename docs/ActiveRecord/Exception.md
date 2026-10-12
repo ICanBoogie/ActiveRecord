@@ -18,10 +18,12 @@ try {
 | Exception                      | Thrown when                                                                                  |
 |--------------------------------|----------------------------------------------------------------------------------------------|
 | [AmbiguousRelation][]          | More than one relation links two models, e.g. when joining them. `relations` has them.       |
+| [Config\InvalidAssociation][]  | An association is not valid, e.g. a has-many relation is defined twice, or refers to a class that is not a record. |
 | [Config\InvalidConfig][]       | The config built with `ConfigBuilder` is not valid, e.g. a relation refers to an undefined record. |
 | [ConnectionNotDefined][]       | A connection is requested with an identifier that is not defined.                            |
 | [ConnectionNotEstablished][]   | A connection can't be established. The message doesn't include the DSN or the credentials.   |
 | [DriverNotDefined][]           | The DSN uses a driver other than `sqlite`, `mysql`, or `pgsql`.                              |
+| [Schema\InvalidSchema][]       | A schema is not valid, e.g. a column is defined twice, or the primary key uses an undefined column. |
 | [RecordNotFound][]             | `find_one()` or `find_many()` can't find one or more records. `records` has the records that were found.   |
 | [RecordNotValid][]             | A record is not valid when it is saved. `errors` has the validation errors.                  |
 | [RelationNotDefined][]         | A relation is requested from `Model::$relations` with a name that is not defined.            |
@@ -37,10 +39,12 @@ is deleted.
 
 [Exception]:                ../../lib/ActiveRecord/Exception.php
 [AmbiguousRelation]:        ../../lib/ActiveRecord/AmbiguousRelation.php
+[Config\InvalidAssociation]: ../../lib/ActiveRecord/Config/InvalidAssociation.php
 [Config\InvalidConfig]:     ../../lib/ActiveRecord/Config/InvalidConfig.php
 [ConnectionNotDefined]:     ../../lib/ActiveRecord/ConnectionNotDefined.php
 [ConnectionNotEstablished]: ../../lib/ActiveRecord/ConnectionNotEstablished.php
 [DriverNotDefined]:         ../../lib/ActiveRecord/DriverNotDefined.php
+[Schema\InvalidSchema]:     ../../lib/ActiveRecord/Schema/InvalidSchema.php
 [RecordNotFound]:           ../../lib/ActiveRecord/RecordNotFound.php
 [RecordNotValid]:           ../../lib/ActiveRecord/RecordNotValid.php
 [RelationNotDefined]:       ../../lib/ActiveRecord/RelationNotDefined.php

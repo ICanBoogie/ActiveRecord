@@ -34,7 +34,6 @@ final class PostgreSQLTest extends DbTestCase
         }
 
         $config = new ConfigBuilder()
-            ->use_attributes()
             ->add_connection(
                 id: Config::DEFAULT_CONNECTION_ID,
                 dsn: getenv('ACTIVERECORD_DSN') ?: self::DEFAULT_DSN,

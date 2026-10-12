@@ -41,8 +41,7 @@ readonly class Schema
      */
     public static function from(string $activerecord_class): self
     {
-        return new SchemaBuilder()
-            ->use_record($activerecord_class)
+        return new SchemaBuilder($activerecord_class)
             ->build();
     }
 

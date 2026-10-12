@@ -17,7 +17,6 @@ use ICanBoogie\ActiveRecord\ConfigBuilder;
 use Test\ICanBoogie\Fixtures;
 
 $builder = Fixtures::with_main_connection(new ConfigBuilder())
-    ->use_attributes()
     ->add_record(User::class)
     ->add_record(Node::class)
     ->add_record(Article::class)

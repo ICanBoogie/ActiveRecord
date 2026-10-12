@@ -89,7 +89,6 @@ final class ModelBelongsToTest extends DbTestCase
     public function getter_is_created_from_the_column_name_without_id_suffix(): void
     {
         $config = new ConfigBuilder()
-            ->use_attributes()
             ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
             ->add_record(record_class: Skill::class)
             ->add_record(record_class: DanceSession::class)

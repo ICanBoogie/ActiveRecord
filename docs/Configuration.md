@@ -12,9 +12,11 @@ The examples use the records of [Getting started](GettingStarted.md), and `$buil
 
 ## Using attributes
 
-`use_attributes()` builds the schemas and the associations from the attributes of the record
-classes. Without it, the schemas are built with the `schema_builder` parameter of `add_record()`,
-see [Schema](ActiveRecord/Schema.md).
+`add_record()` builds the schema and the associations of a record from the attributes of its class,
+see [Schema](ActiveRecord/Schema.md) and [Relations](ActiveRecord/Relations.md). The
+`schema_builder` and `association_builder` parameters complete them, and are the only source for a
+record that has no attributes. A schema builder cannot redefine a column that is declared by an
+attribute, an [InvalidSchema][] exception is thrown.
 
 
 
@@ -67,7 +69,6 @@ class Session extends ActiveRecord
 
 $config = $builder
     ->add_connection('cache', 'sqlite::memory:')
-    ->use_attributes()
     ->add_record(Session::class, table_name: 'user_sessions', connection: 'cache')
     ->build();
 ```
@@ -79,7 +80,8 @@ $config = $builder
 `build()` validates the definitions and returns a `Config`, with the connection definitions in
 `$config->connections`, and the model definitions in `$config->models`. An
 [InvalidConfig][] exception is thrown when a definition is not valid, for instance when a record
-uses a connection that is not defined, or extends a record that is not defined.
+uses a connection that is not defined, extends a record that is not defined, or declares no column,
+and no `schema_builder` is given.
 
 Building the config reads the attributes of the record classes, which takes some time. Since a
 config can be exported with `var_export()`, it can be built once and cached:
@@ -101,3 +103,4 @@ $config = require $file;
 [Config]:        ../lib/ActiveRecord/Config.php
 [ConfigBuilder]: ../lib/ActiveRecord/ConfigBuilder.php
 [InvalidConfig]: ../lib/ActiveRecord/Config/InvalidConfig.php
+[InvalidSchema]: ../lib/ActiveRecord/Schema/InvalidSchema.php

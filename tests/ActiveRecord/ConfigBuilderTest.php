@@ -7,250 +7,283 @@ use ICanBoogie\ActiveRecord\Config;
 use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\Config\InvalidConfig;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
-use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\ForeignKey;
 use ICanBoogie\ActiveRecord\Schema\Integer;
+use ICanBoogie\ActiveRecord\Schema\InvalidSchema;
 use ICanBoogie\ActiveRecord\Schema\OnDelete;
 use ICanBoogie\ActiveRecord\SchemaBuilder;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Test\ICanBoogie\Acme\Article;
-use Test\ICanBoogie\Acme\Brand;
-use Test\ICanBoogie\Acme\Car;
-use Test\ICanBoogie\Acme\Comment;
-use Test\ICanBoogie\Acme\Driver;
-use Test\ICanBoogie\Acme\ForeignKey\Author;
-use Test\ICanBoogie\Acme\ForeignKey\Book;
-use Test\ICanBoogie\Acme\ForeignKey\Review;
-use Test\ICanBoogie\Acme\HasMany\Appointment;
-use Test\ICanBoogie\Acme\HasMany\Patient;
-use Test\ICanBoogie\Acme\HasMany\Physician;
-use Test\ICanBoogie\Acme\Node;
-use Test\ICanBoogie\Fixtures;
+use Test\ICanBoogie\Acme\ConfigBuilder\Award;
+use Test\ICanBoogie\Acme\ConfigBuilder\Bookmark;
+use Test\ICanBoogie\Acme\ConfigBuilder\Catalog;
+use Test\ICanBoogie\Acme\ConfigBuilder\CatalogEdition;
+use Test\ICanBoogie\Acme\ConfigBuilder\Fixture;
+use Test\ICanBoogie\Acme\ConfigBuilder\Ledger;
+use Test\ICanBoogie\Acme\ConfigBuilder\LedgerEntry;
+use Test\ICanBoogie\Acme\ConfigBuilder\Letter;
+use Test\ICanBoogie\Acme\ConfigBuilder\Magazine;
+use Test\ICanBoogie\Acme\ConfigBuilder\Publication;
+use Test\ICanBoogie\Acme\ConfigBuilder\Reader;
+use Test\ICanBoogie\Acme\ConfigBuilder\Receipt;
+use Test\ICanBoogie\Acme\ConfigBuilder\Seat;
+use Test\ICanBoogie\Acme\ConfigBuilder\Subscription;
+use Test\ICanBoogie\Acme\ConfigBuilder\Tag;
+use Test\ICanBoogie\Acme\ConfigBuilder\Tagging;
+use Test\ICanBoogie\Acme\ConfigBuilder\Team;
+use Test\ICanBoogie\Acme\ConfigBuilder\Ticket;
+use Test\ICanBoogie\Acme\ConfigBuilder\Venue;
+use Test\ICanBoogie\Acme\ConfigBuilder\VipSeat;
 use Test\ICanBoogie\SetStateHelper;
 use Throwable;
 
+/**
+ * Tests how {@see ConfigBuilder} resolves the relationships between records.
+ *
+ * The records are defined in `tests/Acme/ConfigBuilder`.
+ */
 final class ConfigBuilderTest extends TestCase
 {
-    public function test_extends(): void
+    private static function builder(): ConfigBuilder
     {
-        $config = new ConfigBuilder()
-            ->add_connection(
-                id: Config::DEFAULT_CONNECTION_ID,
-                dsn: 'sqlite::memory:',
-            )
-            ->add_record(
-                record_class: Node::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('nid', primary: true)
-                    ->add_character('title'),
-            )
-            ->add_record(
-                record_class: Article::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_text('body')
-                    ->add_datetime('date'),
-            )
-            ->build();
-
-        $schema = $config->models[Article::class]->table->schema;
-
-        $this->assertInstanceOf(Schema::class, $schema);
-        $this->assertEquals('nid', $schema->primary);
-        $this->assertInstanceOf(Schema\Integer::class, $schema->columns['nid']);
-        $this->assertFalse($schema->columns['nid']->serial);
-
-        $nid = $schema->columns['nid'];
-        $this->assertInstanceOf(Integer::class, $nid);
-        $this->assertTrue($nid->unsigned, "same signedness as the parent's serial");
+        return new ConfigBuilder()
+            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
+            ->add_connection('other', 'sqlite::memory:');
     }
 
-    public function test_extends_signed_primary_key(): void
+    // Extending a record
+
+    public function test_extended_record_shares_the_primary_key_of_its_parent(): void
     {
-        $config = new ConfigBuilder()
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
+        $config = self::builder()
+            ->add_record(Publication::class)
+            ->add_record(Magazine::class)
+            ->build();
+
+        $schema = $config->models[Magazine::class]->table->schema;
+        $publication_id = $schema->columns['publication_id'];
+
+        $this->assertSame('publication_id', $schema->primary);
+        $this->assertInstanceOf(Integer::class, $publication_id);
+        $this->assertFalse($publication_id->serial, "the parent generates the identifier");
+        $this->assertTrue($publication_id->unsigned, "same signedness as the parent's serial");
+        $this->assertSame(Integer::SIZE_BIG, $publication_id->size, "same size as the parent's serial");
+        $this->assertArrayHasKey('issue', $schema->columns);
+    }
+
+    public function test_extended_record_aligns_on_a_signed_primary_key(): void
+    {
+        $config = self::builder()
+            ->add_record(Catalog::class)
+            ->add_record(CatalogEdition::class)
+            ->build();
+
+        $catalog_id = $config->models[CatalogEdition::class]->table->schema->columns['catalog_id'];
+
+        $this->assertInstanceOf(Integer::class, $catalog_id);
+        $this->assertFalse($catalog_id->unsigned);
+        $this->assertSame(Integer::SIZE_BIG, $catalog_id->size);
+    }
+
+    public function test_extended_record_requires_the_definition_of_its_parent(): void
+    {
+        $this->expectException(InvalidConfig::class);
+        $this->expectExceptionMessage("`" . Magazine::class . "` extends `" . Publication::class . "`, which is not defined");
+
+        self::builder()
+            ->add_record(Magazine::class)
+            ->build();
+    }
+
+    public function test_extended_record_requires_a_single_column_primary_key(): void
+    {
+        $this->expectException(InvalidConfig::class);
+        $this->expectExceptionMessage("`" . VipSeat::class . "` cannot extend `" . Seat::class . "`");
+
+        self::builder()
+            ->add_record(Seat::class)
+            ->add_record(VipSeat::class)
+            ->build();
+    }
+
+    // BelongsTo
+
+    public function test_belongs_to_associations(): void
+    {
+        $config = self::builder()
+            ->add_record(Reader::class)
+            ->add_record(Publication::class)
+            ->add_record(Subscription::class)
+            ->build();
+
+        $association = $config->models[Subscription::class]->association;
+
+        $this->assertNotNull($association);
+        $this->assertEquals([
+            new Config\BelongsToAssociation(Reader::class, 'reader_id', 'reader_id', 'reader'),
+            new Config\BelongsToAssociation(Publication::class, 'publication_id', 'publication_id', 'publication'),
+        ], $association->belongs_to);
+    }
+
+    public function test_belongs_to_requires_a_single_column_primary_key(): void
+    {
+        try {
+            self::builder()
+                ->add_record(Seat::class)
+                ->add_record(Ticket::class)
+                ->build();
+
+            $this->fail("Expected InvalidConfig");
+        } catch (InvalidConfig $e) {
+            $this->assertStringStartsWith("Unable to apply", $e->getMessage());
+            $this->assertInstanceOf(Throwable::class, $e->getPrevious());
+            $this->assertStringContainsString("not a single column", $e->getPrevious()->getMessage());
+        }
+    }
+
+    // schema_builder:
+
+    public function test_schema_builder_defines_the_schema_of_a_record_without_attributes(): void
+    {
+        $config = self::builder()
             ->add_record(
-                record_class: Node::class,
+                record_class: Ledger::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
-                    // create a signed integer on purpose, to check alignment
-                    ->add_integer('nid', size: Integer::SIZE_BIG, primary: true),
+                    // a signed integer on purpose, to check the alignment of the foreign key
+                    ->add_integer('ledger_id', size: Integer::SIZE_BIG, primary: true),
             )
             ->add_record(
-                record_class: Article::class,
+                record_class: Receipt::class,
                 schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_text('body'),
+                    ->add_serial('receipt_id', primary: true)
+                    ->belongs_to('ledger_id', Ledger::class, on_delete: OnDelete::Cascade),
             )
             ->build();
 
-        $nid = $config->models[Article::class]->table->schema->columns['nid'];
+        $schema = $config->models[Receipt::class]->table->schema;
+        $ledger_id = $schema->columns['ledger_id'];
 
-        $this->assertInstanceOf(Integer::class, $nid);
-        $this->assertFalse($nid->unsigned);
-        $this->assertSame(Integer::SIZE_BIG, $nid->size);
+        $this->assertSame('receipt_id', $schema->primary);
+        $this->assertEquals(
+            [ new ForeignKey('ledger_id', 'ledgers', 'ledger_id', OnDelete::Cascade) ],
+            $schema->foreign_keys
+        );
+        $this->assertInstanceOf(Integer::class, $ledger_id);
+        $this->assertFalse($ledger_id->unsigned, "aligned on ledgers.ledger_id");
+        $this->assertSame(Integer::SIZE_BIG, $ledger_id->size);
+    }
+
+    public function test_extended_record_defined_with_schema_builder_aligns_on_its_parent(): void
+    {
+        $config = self::builder()
+            ->add_record(
+                record_class: Ledger::class,
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_integer('ledger_id', size: Integer::SIZE_BIG, primary: true),
+            )
+            ->add_record(
+                record_class: LedgerEntry::class,
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_text('memo'),
+            )
+            ->build();
+
+        $ledger_id = $config->models[LedgerEntry::class]->table->schema->columns['ledger_id'];
+
+        $this->assertInstanceOf(Integer::class, $ledger_id);
+        $this->assertFalse($ledger_id->unsigned);
+        $this->assertSame(Integer::SIZE_BIG, $ledger_id->size);
+    }
+
+    public function test_schema_builder_completes_the_columns_of_attributes(): void
+    {
+        $config = self::builder()
+            ->add_record(
+                record_class: Team::class,
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_integer('founded_in', null: true),
+            )
+            ->build();
+
+        $schema = $config->models[Team::class]->table->schema;
+
+        $this->assertSame('team_id', $schema->primary);
+        $this->assertSame([ 'team_id', 'name', 'founded_in' ], array_keys($schema->columns));
+    }
+
+    public function test_schema_builder_cannot_redefine_the_columns_of_attributes(): void
+    {
+        $this->expectException(InvalidSchema::class);
+        $this->expectExceptionMessage("Column `name` is already defined (record `" . Team::class . "`)");
+
+        self::builder()
+            ->add_record(
+                record_class: Team::class,
+                schema_builder: fn(SchemaBuilder $schema) => $schema
+                    ->add_text('name'),
+            );
+    }
+
+    public function test_record_without_attributes_requires_a_schema_builder(): void
+    {
+        $this->expectException(InvalidConfig::class);
+        $this->expectExceptionMessage("The schema of `" . Ledger::class . "` is empty");
+
+        self::builder()
+            ->add_record(Ledger::class);
+    }
+
+    // Foreign keys
+
+    public function test_foreign_keys_are_opt_in(): void
+    {
+        $config = self::builder()
+            ->add_record(Reader::class)
+            ->add_record(Publication::class)
+            ->add_record(Subscription::class)
+            ->build();
+
+        $this->assertEquals(
+            [ new ForeignKey('reader_id', 'readers', 'reader_id', OnDelete::Cascade) ],
+            $config->models[Subscription::class]->table->schema->foreign_keys,
+            "only the BelongsTo with an on_delete creates a foreign key"
+        );
+        $this->assertSame([], $config->models[Reader::class]->table->schema->foreign_keys);
+    }
+
+    public function test_foreign_key_aligns_on_the_referenced_primary_key(): void
+    {
+        $config = self::builder()
+            ->add_record(Reader::class)
+            ->add_record(Publication::class)
+            ->add_record(Subscription::class)
+            ->build();
+
+        $reader_id = $config->models[Subscription::class]->table->schema->columns['reader_id'];
+
+        $this->assertInstanceOf(Integer::class, $reader_id);
+        $this->assertTrue($reader_id->unsigned, "aligned on readers.reader_id");
+        $this->assertSame(Integer::SIZE_REGULAR, $reader_id->size);
     }
 
     public function test_foreign_key_to_a_child_table(): void
     {
-        $config = new ConfigBuilder()
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
-            ->add_record(
-                record_class: Node::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('nid', primary: true),
-            )
-            ->add_record(
-                record_class: Article::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_text('body'),
-            )
-            ->add_record(
-                record_class: Comment::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('comment_id', primary: true)
-                    ->belongs_to('nid', Article::class, on_delete: OnDelete::Cascade),
-            )
+        $config = self::builder()
+            ->add_record(Publication::class)
+            ->add_record(Magazine::class)
+            ->add_record(Letter::class)
             ->build();
 
-        $nid = $config->models[Comment::class]->table->schema->columns['nid'];
-
-        $this->assertInstanceOf(Integer::class, $nid);
-        $this->assertTrue($nid->unsigned, "aligned on articles.nid, which is aligned on nodes.nid");
-    }
-
-    public function test_from_attributes(): void
-    {
-        $config = new ConfigBuilder()
-            ->use_attributes()
-            ->add_connection(
-                id: Config::DEFAULT_CONNECTION_ID,
-                dsn: 'sqlite::memory:',
-            )
-            ->add_record(Node::class)
-            ->add_record(Article::class)
-            ->add_record(Comment::class)
-            ->build();
-
-        $schema = $config->models[Article::class]->table->schema;
-
-        $this->assertInstanceOf(Schema::class, $schema);
-        $this->assertEquals('nid', $schema->primary);
-        $this->assertInstanceOf(Schema\Integer::class, $schema->columns['nid']);
-        $this->assertFalse($schema->columns['nid']->serial);
-        $this->assertEquals([
-            new Schema\Index('rating', name: 'idx_rating')
-        ], $schema->indexes);
-    }
-
-    public function test_from_attributes_with_association(): void
-    {
-        $config = new ConfigBuilder()
-            ->use_attributes()
-            ->add_connection(
-                id: Config::DEFAULT_CONNECTION_ID,
-                dsn: 'sqlite::memory:',
-            )
-            ->add_record(Physician::class)
-            ->add_record(Patient::class)
-            ->add_record(Appointment::class)
-            ->build();
-
-        $ph_def = $config->models[Physician::class];
-        $ap_def = $config->models[Appointment::class];
-
-        $this->assertNotNull($ap_def->association);
-        $this->assertEquals([
-            new Config\BelongsToAssociation(Physician::class, 'physician_id', 'ph_id', 'physician'),
-            new Config\BelongsToAssociation(Patient::class, 'patient_id', 'pa_id', 'patient'),
-        ], $ap_def->association->belongs_to);
-        $this->assertEquals([
-            new Config\HasManyAssociation(Appointment::class, 'physician_id', 'appointments', null),
-            new Config\HasManyAssociation(Patient::class, 'pa_id', 'patients', Appointment::class),
-        ], $ph_def->association->has_many);
-    }
-
-    public function test_export(): void
-    {
-        $builder = new ConfigBuilder();
-
-        Fixtures::with_main_connection($builder);
-        Fixtures::with_models($builder, [ 'physicians', 'appointments', 'patients' ]);
-
-        $config = $builder->build();
-        $actual = SetStateHelper::export_import($config);
-
-        $this->assertEquals($config, $actual);
-    }
-
-    public function test_foreign_keys_from_attributes(): void
-    {
-        $config = new ConfigBuilder()
-            ->use_attributes()
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
-            ->add_record(Author::class)
-            ->add_record(Book::class)
-            ->add_record(Review::class)
-            ->add_record(Node::class)
-            ->add_record(Article::class)
-            ->add_record(Comment::class)
-            ->build();
-
-        $book = $config->models[Book::class]->table->schema;
+        $schema = $config->models[Letter::class]->table->schema;
+        $magazine_id = $schema->columns['magazine_id'];
 
         $this->assertEquals(
-            [ new ForeignKey('author_id', 'authors', 'id', OnDelete::Cascade) ],
-            $book->foreign_keys
+            [ new ForeignKey('magazine_id', 'magazines', 'publication_id', OnDelete::Cascade) ],
+            $schema->foreign_keys
         );
-
-        $author_id = $book->columns['author_id'];
-        $this->assertInstanceOf(Integer::class, $author_id);
-        $this->assertTrue($author_id->unsigned, "aligned on the serial primary key");
-
-        $this->assertEquals(
-            [ new ForeignKey('book_id', 'books', 'id', OnDelete::SetNull) ],
-            $config->models[Review::class]->table->schema->foreign_keys
-        );
-
-        $this->assertSame([], $config->models[Author::class]->table->schema->foreign_keys);
-        $this->assertSame(
-            [],
-            $config->models[Comment::class]->table->schema->foreign_keys,
-            "a BelongsTo without on_delete doesn't create a foreign key"
-        );
-    }
-
-    public function test_foreign_key_aligns_on_the_size_of_the_primary_key(): void
-    {
-        $config = new ConfigBuilder()
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
-            ->add_record(
-                record_class: Brand::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('id', size: Integer::SIZE_BIG, primary: true),
-            )
-            ->add_record(
-                record_class: Driver::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('id', primary: true)
-                    ->belongs_to('brand_id', Brand::class, on_delete: OnDelete::Cascade),
-            )
-            ->build();
-
-        $brand_id = $config->models[Driver::class]->table->schema->columns['brand_id'];
-
-        $this->assertInstanceOf(Integer::class, $brand_id);
-        $this->assertSame(Integer::SIZE_BIG, $brand_id->size);
-    }
-
-    public function test_foreign_key_export(): void
-    {
-        $config = new ConfigBuilder()
-            ->use_attributes()
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
-            ->add_record(Author::class)
-            ->add_record(Book::class)
-            ->build();
-
-        $this->assertEquals($config, SetStateHelper::export_import($config));
+        $this->assertInstanceOf(Integer::class, $magazine_id);
+        $this->assertTrue($magazine_id->unsigned, "aligned on magazines.publication_id, itself aligned on publications");
+        $this->assertSame(Integer::SIZE_BIG, $magazine_id->size);
     }
 
     /**
@@ -259,12 +292,9 @@ final class ConfigBuilderTest extends TestCase
     #[DataProvider('provide_invalid_foreign_key')]
     public function test_invalid_foreign_key(Closure $configure, string $expected): void
     {
-        $builder = new ConfigBuilder()
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
-            ->add_connection('other', 'sqlite::memory:');
-
         try {
-            $configure($builder)->build();
+            $configure(self::builder())->build();
+
             $this->fail("Expected InvalidConfig");
         } catch (InvalidConfig $e) {
             $this->assertStringStartsWith("Unable to create foreign key", $e->getMessage());
@@ -278,140 +308,161 @@ final class ConfigBuilderTest extends TestCase
      */
     public static function provide_invalid_foreign_key(): iterable
     {
-        $driver = fn(OnDelete $on_delete, bool $null = false) => fn(SchemaBuilder $schema) => $schema
-            ->add_serial('id', primary: true)
-            ->belongs_to('brand_id', Brand::class, null: $null, on_delete: $on_delete);
-
         yield "SetNull on a column that isn't nullable" => [
             fn(ConfigBuilder $builder) => $builder
-                ->add_record(Brand::class, schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('id', primary: true))
-                ->add_record(Driver::class, schema_builder: $driver(OnDelete::SetNull)),
+                ->add_record(Team::class)
+                ->add_record(Bookmark::class),
             "must be nullable",
         ];
 
         yield "Referenced table on another connection" => [
             fn(ConfigBuilder $builder) => $builder
-                ->add_record(Brand::class, schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('id', primary: true), connection: 'other')
-                ->add_record(Driver::class, schema_builder: $driver(OnDelete::Cascade)),
+                ->add_record(Reader::class, connection: 'other')
+                ->add_record(Publication::class)
+                ->add_record(Subscription::class),
             "another connection",
         ];
 
         yield "Primary key that isn't an integer" => [
             fn(ConfigBuilder $builder) => $builder
-                ->add_record(Brand::class, schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_character('code', primary: true))
-                ->add_record(Driver::class, schema_builder: $driver(OnDelete::Cascade)),
+                ->add_record(Tag::class)
+                ->add_record(Tagging::class),
             "not an integer",
         ];
     }
 
-    /**
-     * Both records have an `id` primary key, the foreign key must not default to it.
-     */
-    public function test_has_many_infers_foreign_key_from_belongs_to(): void
+    // HasMany
+
+    public function test_has_many_associations_from_attributes(): void
     {
-        $config = new ConfigBuilder()
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
-            ->add_record(
-                record_class: Driver::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('id', primary: true),
-                association_builder: fn(AssociationBuilder $association) => $association
-                    ->has_many(Car::class),
-            )
-            ->add_record(
-                record_class: Car::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('id', primary: true)
-                    ->belongs_to('driver_id', Driver::class),
-            )
+        $config = self::builder()
+            ->add_record(Reader::class)
+            ->add_record(Publication::class)
+            ->add_record(Subscription::class)
             ->build();
 
-        $has_many = $config->models[Driver::class]->association?->has_many;
+        $association = $config->models[Reader::class]->association;
 
+        $this->assertNotNull($association);
         $this->assertEquals([
-            new Config\HasManyAssociation(Car::class, 'driver_id', 'cars', null),
-        ], $has_many);
+            new Config\HasManyAssociation(Subscription::class, 'reader_id', 'subscriptions', null),
+            new Config\HasManyAssociation(Publication::class, 'publication_id', 'publications', Subscription::class),
+        ], $association->has_many);
     }
 
-    /**
-     * @param Closure(SchemaBuilder): SchemaBuilder $comment_schema
-     */
-    #[DataProvider('provide_has_many_infers_foreign_key_from_ancestor')]
-    public function test_has_many_infers_foreign_key_from_ancestor(Closure $comment_schema, string $expected): void
+    public function test_has_many_infers_the_foreign_key_from_the_belongs_to_of_the_ancestor(): void
     {
-        $config = new ConfigBuilder()
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
+        $config = self::builder()
+            ->add_record(Reader::class)
+            ->add_record(Publication::class)
             ->add_record(
-                record_class: Node::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('nid', primary: true),
-            )
-            ->add_record(
-                record_class: Article::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_text('body'),
+                record_class: Magazine::class,
                 association_builder: fn(AssociationBuilder $association) => $association
-                    ->has_many(Comment::class),
+                    ->has_many(Subscription::class),
             )
-            ->add_record(
-                record_class: Comment::class,
-                schema_builder: $comment_schema,
-            )
+            ->add_record(Subscription::class)
             ->build();
 
-        $has_many = $config->models[Article::class]->association?->has_many;
+        $association = $config->models[Magazine::class]->association;
 
-        $this->assertNotNull($has_many);
-        $this->assertEquals($expected, $has_many[0]->foreign_key);
+        $this->assertNotNull($association);
+        $this->assertEquals([
+            new Config\HasManyAssociation(Subscription::class, 'publication_id', 'subscriptions', null),
+        ], $association->has_many);
     }
 
-    /**
-     * @return iterable<string, array{ Closure(SchemaBuilder): SchemaBuilder, string }>
-     */
-    public static function provide_has_many_infers_foreign_key_from_ancestor(): iterable
+    public function test_has_many_prefers_the_belongs_to_of_the_record_over_the_ancestor(): void
     {
-        yield "BelongsTo the parent" => [
-            fn(SchemaBuilder $schema) => $schema
-                ->add_serial('id', primary: true)
-                ->belongs_to('node_id', Node::class),
-            'node_id',
-        ];
+        $config = self::builder()
+            ->add_record(Publication::class)
+            ->add_record(
+                record_class: Magazine::class,
+                association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_many(Award::class),
+            )
+            ->add_record(Award::class)
+            ->build();
 
-        yield "BelongsTo the record is preferred over BelongsTo the parent" => [
-            fn(SchemaBuilder $schema) => $schema
-                ->add_serial('id', primary: true)
-                ->belongs_to('node_id', Node::class)
-                ->belongs_to('article_id', Article::class),
-            'article_id',
-        ];
+        $association = $config->models[Magazine::class]->association;
+
+        $this->assertNotNull($association);
+        $this->assertSame('magazine_id', $association->has_many[0]->foreign_key);
+    }
+
+    public function test_has_many_foreign_key_resolves_the_ambiguity(): void
+    {
+        $config = self::builder()
+            ->add_record(
+                record_class: Team::class,
+                association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_many(Fixture::class, foreign_key: 'home_team_id', as: 'home_fixtures')
+                    ->has_many(Fixture::class, foreign_key: 'away_team_id', as: 'away_fixtures'),
+            )
+            ->add_record(Fixture::class)
+            ->build();
+
+        $association = $config->models[Team::class]->association;
+
+        $this->assertNotNull($association);
+        $this->assertEquals([
+            new Config\HasManyAssociation(Fixture::class, 'home_team_id', 'home_fixtures', null),
+            new Config\HasManyAssociation(Fixture::class, 'away_team_id', 'away_fixtures', null),
+        ], $association->has_many);
+    }
+
+    public function test_has_many_requires_the_definition_of_the_associate(): void
+    {
+        try {
+            self::builder()
+                ->add_record(Team::class, association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_many(Fixture::class))
+                ->build();
+
+            $this->fail("Expected InvalidConfig");
+        } catch (InvalidConfig $e) {
+            $this->assertStringStartsWith("Unable to apply", $e->getMessage());
+            $this->assertInstanceOf(Throwable::class, $e->getPrevious());
+            $this->assertStringContainsString(
+                "The associated record `" . Fixture::class . "` is not defined",
+                $e->getPrevious()->getMessage()
+            );
+        }
+    }
+
+    public function test_has_many_requires_the_definition_of_the_through_record(): void
+    {
+        try {
+            self::builder()
+                ->add_record(Team::class, association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_many(Fixture::class, through: Venue::class))
+                ->add_record(Fixture::class)
+                ->build();
+
+            $this->fail("Expected InvalidConfig");
+        } catch (InvalidConfig $e) {
+            $this->assertStringStartsWith("Unable to apply", $e->getMessage());
+            $this->assertInstanceOf(Throwable::class, $e->getPrevious());
+            $this->assertStringContainsString(
+                "The `through` record `" . Venue::class . "` is not defined",
+                $e->getPrevious()->getMessage()
+            );
+        }
     }
 
     /**
-     * @param Closure(SchemaBuilder): SchemaBuilder $car_schema
-     * @param non-empty-string|null $foreign_key
+     * @param Closure(AssociationBuilder): AssociationBuilder $association_builder
      */
     #[DataProvider('provide_invalid_has_many')]
-    public function test_invalid_has_many(Closure $car_schema, ?string $foreign_key, string $expected): void
+    public function test_invalid_has_many(Closure $association_builder, string $expected): void
     {
-        $builder = new ConfigBuilder()
-            ->add_connection(Config::DEFAULT_CONNECTION_ID, 'sqlite::memory:')
-            ->add_record(
-                record_class: Driver::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('id', primary: true),
-                association_builder: fn(AssociationBuilder $association) => $association
-                    ->has_many(Car::class, foreign_key: $foreign_key),
-            )
-            ->add_record(
-                record_class: Car::class,
-                schema_builder: $car_schema,
-            );
+        $builder = self::builder()
+            ->add_record(Team::class, association_builder: $association_builder)
+            ->add_record(Fixture::class)
+            ->add_record(Venue::class);
 
         try {
             $builder->build();
+
             $this->fail("Expected InvalidConfig");
         } catch (InvalidConfig $e) {
             $this->assertStringStartsWith("Unable to apply", $e->getMessage());
@@ -421,33 +472,41 @@ final class ConfigBuilderTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{ Closure(SchemaBuilder): SchemaBuilder, ?string, string }>
+     * @return iterable<string, array{ Closure(AssociationBuilder): AssociationBuilder, string }>
      */
     public static function provide_invalid_has_many(): iterable
     {
         yield "No BelongsTo column" => [
-            fn(SchemaBuilder $schema) => $schema
-                ->add_serial('id', primary: true)
-                ->add_integer('driver_id'),
-            null,
+            fn(AssociationBuilder $association) => $association
+                ->has_many(Venue::class),
             "has no BelongsTo column referencing",
         ];
 
         yield "Several BelongsTo columns" => [
-            fn(SchemaBuilder $schema) => $schema
-                ->add_serial('id', primary: true)
-                ->belongs_to('driver_id', Driver::class)
-                ->belongs_to('co_driver_id', Driver::class),
-            null,
+            fn(AssociationBuilder $association) => $association
+                ->has_many(Fixture::class),
             "several BelongsTo columns referencing",
         ];
 
         yield "Foreign key that isn't a column" => [
-            fn(SchemaBuilder $schema) => $schema
-                ->add_serial('id', primary: true)
-                ->belongs_to('driver_id', Driver::class),
-            'pilot_id',
-            "has no column 'pilot_id'",
+            fn(AssociationBuilder $association) => $association
+                ->has_many(Fixture::class, foreign_key: 'pilot_id'),
+            "has no column `pilot_id`",
         ];
+    }
+
+    // Export
+
+    public function test_export(): void
+    {
+        $config = self::builder()
+            ->add_record(Reader::class)
+            ->add_record(Publication::class)
+            ->add_record(Magazine::class)
+            ->add_record(Subscription::class)
+            ->add_record(Letter::class)
+            ->build();
+
+        $this->assertEquals($config, SetStateHelper::export_import($config));
     }
 }

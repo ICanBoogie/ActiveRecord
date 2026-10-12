@@ -7,15 +7,13 @@ use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use ICanBoogie\ActiveRecord\Model;
 use ICanBoogie\ActiveRecord\ModelInstaller;
 use ICanBoogie\ActiveRecord\ModelRegistry;
-use ICanBoogie\ActiveRecord\Schema\OnDelete;
-use ICanBoogie\ActiveRecord\SchemaBuilder;
 use ICanBoogie\ActiveRecord\StatementNotValid;
 use LogicException;
 use PHPUnit\Framework\Attributes\Group;
-use Test\ICanBoogie\Acme\Brand;
-use Test\ICanBoogie\Acme\Driver;
 use Test\ICanBoogie\Acme\ForeignKey\Author;
 use Test\ICanBoogie\Acme\ForeignKey\Book;
+use Test\ICanBoogie\Acme\ForeignKey\Chicken;
+use Test\ICanBoogie\Acme\ForeignKey\Egg;
 use Test\ICanBoogie\Acme\ForeignKey\Loan;
 use Test\ICanBoogie\Acme\ForeignKey\Review;
 use Test\ICanBoogie\DbTestCase;
@@ -34,7 +32,6 @@ final class ForeignKeyTest extends DbTestCase
     {
         // Records are defined before the records they reference, install() must reorder them.
         $config = Fixtures::with_main_connection(new ConfigBuilder())
-            ->use_attributes()
             ->add_record(Review::class)
             ->add_record(Loan::class)
             ->add_record(Book::class)
@@ -123,18 +120,8 @@ final class ForeignKeyTest extends DbTestCase
     public function test_install_fails_on_cycle(): void
     {
         $config = Fixtures::with_main_connection(new ConfigBuilder())
-            ->add_record(
-                record_class: Brand::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('id', primary: true)
-                    ->belongs_to('driver_id', Driver::class, null: true, on_delete: OnDelete::SetNull),
-            )
-            ->add_record(
-                record_class: Driver::class,
-                schema_builder: fn(SchemaBuilder $schema) => $schema
-                    ->add_serial('id', primary: true)
-                    ->belongs_to('brand_id', Brand::class, on_delete: OnDelete::Cascade),
-            )
+            ->add_record(Chicken::class)
+            ->add_record(Egg::class)
             ->build();
 
         $models = new ModelRegistry(new ConnectionRegistry($config->connections), $config->models);
@@ -142,7 +129,7 @@ final class ForeignKeyTest extends DbTestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIs(
             "Unable to order the installation of the models, foreign keys form a cycle: "
-            . Brand::class . " -> " . Driver::class . " -> " . Brand::class
+            . Chicken::class . " -> " . Egg::class . " -> " . Chicken::class
         );
 
         new ModelInstaller($models)->install();
