@@ -12,10 +12,11 @@ way, so please read the backward incompatible changes.
 
 ### New Requirements
 
-PHP 8.4+
+PHP 8.4+, `icanboogie/config`
 
 ### New features
 
+- `ConfigBuilder` implements `ICanBoogie\Config\Builder`, so it can be used directly as a configuration builder.
 - Added `ResolvesToColumn` to enable custom column types.
 - Added support for PostgreSQL.
 - Added foreign key constraints, opt-in with `BelongsTo::$on_delete` and `OnDelete`, e.g.

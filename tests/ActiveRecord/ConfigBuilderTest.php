@@ -44,6 +44,11 @@ use Throwable;
  */
 final class ConfigBuilderTest extends TestCase
 {
+    public function test_fragment_filename(): void
+    {
+        $this->assertSame('activerecord', ConfigBuilder::get_fragment_filename());
+    }
+
     private static function builder(): ConfigBuilder
     {
         return new ConfigBuilder()

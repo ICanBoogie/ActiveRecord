@@ -17,8 +17,7 @@ use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
 use ICanBoogie\ActiveRecord\Schema\Integer;
-use InvalidArgumentException;
-use LogicException;
+use ICanBoogie\Config\Builder;
 use Throwable;
 
 use function assert;
@@ -34,8 +33,16 @@ use function strlen;
 use function strrpos;
 use function substr;
 
-final class ConfigBuilder
+/**
+ * @implements Builder<Config>
+ */
+final class ConfigBuilder implements Builder
 {
+    public static function get_fragment_filename(): string
+    {
+        return 'activerecord';
+    }
+
     private const string REGEXP_TIMEZONE = '/^[-+]\d{2}:\d{2}$/';
     public const string ID_SUFFIX = '_id';
 
