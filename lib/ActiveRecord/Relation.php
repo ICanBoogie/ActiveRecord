@@ -14,7 +14,7 @@ use function explode;
 abstract readonly class Relation
 {
     /**
-     * @param Model $owner
+     * @param Model<*> $owner
      *     The owner of the relation.
      * @param class-string<ActiveRecord> $related
      *     The class of the related ActiveRecord.
@@ -62,6 +62,8 @@ abstract readonly class Relation
 
     /**
      * Resolve the related model.
+     *
+     * @return Model<*>
      */
     protected function resolve_related_model(): Model
     {

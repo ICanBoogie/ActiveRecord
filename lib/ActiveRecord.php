@@ -96,8 +96,7 @@ abstract class ActiveRecord extends Prototyped
     /**
      * @return scalar|scalar[]
      */
-    public mixed $primary_key_value
-    {
+    public mixed $primary_key_value {
         get {
             $primary = static::model()->extended_schema->primary;
 

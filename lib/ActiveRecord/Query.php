@@ -55,8 +55,7 @@ class Query implements IteratorAggregate
     /**
      * @var non-empty-string[]
      */
-    public array $joins
-    {
+    public array $joins {
         get => $this->joins_;
     }
 
@@ -70,8 +69,7 @@ class Query implements IteratorAggregate
     /**
      * @var mixed[]
      */
-    public array $joins_args
-    {
+    public array $joins_args {
         get => $this->joins_args_;
     }
 
@@ -85,8 +83,7 @@ class Query implements IteratorAggregate
     /**
      * @var non-empty-string[]
      */
-    public array $conditions
-    {
+    public array $conditions {
         get => $this->conditions_;
     }
 
@@ -100,8 +97,7 @@ class Query implements IteratorAggregate
     /**
      * @var mixed[]
      */
-    public array $conditions_args
-    {
+    public array $conditions_args {
         get => $this->conditions_args_;
     }
 
@@ -120,8 +116,7 @@ class Query implements IteratorAggregate
     /**
      * @var mixed[]
      */
-    public array $having_args
-    {
+    public array $having_args {
         get => $this->having_args_;
     }
 
@@ -131,8 +126,7 @@ class Query implements IteratorAggregate
      *
      * @var mixed[]
      */
-    public array $args
-    {
+    public array $args {
         get => array_merge($this->joins_args_, $this->conditions_args_, $this->having_args_);
     }
 
@@ -476,7 +470,7 @@ class Query implements IteratorAggregate
      * Unless `$on` is provided, the join is established from the relations of the queried model to
      * the joined model, or the relations of the joined model to the queried model.
      *
-     * @param Model<ActiveRecord> $model
+     * @param Model<*> $model
      * @param non-empty-string $mode
      *     Join mode.
      * @param ?non-empty-string $as
@@ -511,7 +505,7 @@ class Query implements IteratorAggregate
     /**
      * Resolve the `USING` or `ON` clause joining a model from the relations between the models.
      *
-     * @param Model<ActiveRecord> $model
+     * @param Model<*> $model
      * @param non-empty-string $as
      *
      * @throws RelationNotFound if no relation links the models.
@@ -839,8 +833,7 @@ class Query implements IteratorAggregate
      *
      * @deprecated Use {@see self::prepare()}
      */
-    public Statement $prepared
-    {
+    public Statement $prepared {
         get => $this->prepare();
     }
 
@@ -900,8 +893,7 @@ class Query implements IteratorAggregate
      *
      * @see self::all()
      */
-    public array $all
-    {
+    public array $all {
         get => $this->all();
     }
 
@@ -926,8 +918,7 @@ class Query implements IteratorAggregate
     /**
      * @see self::one()
      */
-    public mixed $one
-    {
+    public mixed $one {
         get => $this->one();
     }
 
@@ -939,8 +930,7 @@ class Query implements IteratorAggregate
      *
      * @see self::pairs()
      */
-    public array $pairs
-    {
+    public array $pairs {
         // @phpstan-ignore-next-line
         get => $this->all(PDO::FETCH_KEY_PAIR);
     }
@@ -948,8 +938,7 @@ class Query implements IteratorAggregate
     /**
      * Returns the first column of the first row.
      */
-    public int|string|false|null $rc
-    {
+    public int|string|false|null $rc {
         get => (clone $this)->take(1)->execute()->rc;
     }
 
@@ -1018,8 +1007,7 @@ class Query implements IteratorAggregate
         return !empty($rc);
     }
 
-    public bool $exists
-    {
+    public bool $exists {
         // @phpstan-ignore-next-line
         get => $this->exists();
     }
@@ -1078,8 +1066,7 @@ class Query implements IteratorAggregate
      *
      * @see self::count()
      */
-    public int|array $count
-    {
+    public int|array $count {
         get => $this->count();
     }
 

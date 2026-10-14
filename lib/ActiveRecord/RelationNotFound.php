@@ -12,8 +12,8 @@ use Throwable;
 class RelationNotFound extends LogicException implements Exception
 {
     /**
-     * @param Model<ActiveRecord> $model
-     * @param Model<ActiveRecord> $other
+     * @param Model<*> $model
+     * @param Model<*> $other
      */
     public function __construct(
         public readonly Model $model,

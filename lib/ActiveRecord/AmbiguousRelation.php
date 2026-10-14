@@ -14,8 +14,8 @@ use function count;
 class AmbiguousRelation extends LogicException implements Exception
 {
     /**
-     * @param Model<ActiveRecord> $model
-     * @param Model<ActiveRecord> $other
+     * @param Model<*> $model
+     * @param Model<*> $other
      * @param Relation[] $relations
      *     The relations linking the models.
      */

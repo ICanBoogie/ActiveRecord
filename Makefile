@@ -44,6 +44,11 @@ test-container-84:
 	@-docker compose run --rm app84 bash
 	@docker compose down -v
 
+.PHONY: test-container-85
+test-container-85:
+	@-docker compose run --rm app85 bash
+	@docker compose down -v
+
 .PHONY: test-container-db
 test-container-db: test-container-db-sqlite
 
@@ -74,5 +79,5 @@ test-container-db-mysql:
 
 .PHONY: lint
 lint:
-	#@XDEBUG_MODE=off phpcs -s # broken with property hooks
+	@XDEBUG_MODE=off php-cs-fixer check --diff
 	@XDEBUG_MODE=off vendor/bin/phpstan --memory-limit=-1

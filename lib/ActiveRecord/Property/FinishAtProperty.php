@@ -7,6 +7,7 @@ use ICanBoogie\DateTime;
 /**
  * Implements a `finish_at` property.
  */
+// @phpstan-ignore trait.unused (provided to applications)
 trait FinishAtProperty
 {
     public DateTime $finish_at {

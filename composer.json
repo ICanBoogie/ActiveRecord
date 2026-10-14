@@ -8,7 +8,7 @@
     "activerecord"
   ],
   "homepage": "https://icanboogie.org/",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "authors": [
     {
       "name": "Olivier Laviale",
@@ -22,6 +22,9 @@
     "source": "https://github.com/ICanBoogie/ActiveRecord"
   },
   "config": {
+    "platform": {
+      "php": "8.4.1"
+    },
     "sort-packages": true
   },
   "minimum-stability": "dev",

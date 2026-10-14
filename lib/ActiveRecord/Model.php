@@ -17,7 +17,7 @@ use function implode;
  *
  * @template TRecord of ActiveRecord
  *
- * @property-read Model|null $parent Parent model.
+ * @property-read Model<*>|null $parent Parent model.
  */
 class Model extends Table
 {
@@ -41,8 +41,8 @@ class Model extends Table
         public readonly ModelProvider $models,
         ModelDefinition $definition
     ) {
-        $this->activerecord_class = $definition->activerecord_class; // @phpstan-ignore-line
-        $this->query_class = $definition->query_class;
+        $this->activerecord_class = $definition->activerecord_class; // @phpstan-ignore assign.propertyType (the class comes from the definition of the model)
+        $this->query_class = $definition->query_class; // @phpstan-ignore assign.propertyType (the class comes from the definition of the model)
 
         $parent = $this->resolve_parent($models);
 
@@ -51,6 +51,9 @@ class Model extends Table
         $this->relations = new RelationCollection($this, $definition->association);
     }
 
+    /**
+     * @return Model<*>|null
+     */
     private function resolve_parent(ModelProvider $models): ?Model
     {
         $parent_class = get_parent_class($this->activerecord_class);
@@ -155,7 +158,7 @@ class Model extends Table
      */
     public function query(): Query
     {
-        return new $this->query_class($this);
+        return new $this->query_class($this); // @phpstan-ignore return.type (the query class is resolved at runtime)
     }
 
     /**

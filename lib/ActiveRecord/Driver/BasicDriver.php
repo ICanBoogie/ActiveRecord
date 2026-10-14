@@ -16,8 +16,7 @@ use function is_float;
  */
 abstract class BasicDriver implements Driver
 {
-    public Connection $connection
-    {
+    public Connection $connection {
         get => ($this->connection_provider)();
     }
 

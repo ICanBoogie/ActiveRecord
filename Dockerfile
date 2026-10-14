@@ -27,11 +27,12 @@ EOF
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER 1
-ENV PATH="/root/.composer/vendor/bin:${PATH}"
+ENV COMPOSER_HOME=/opt/composer
+ENV PATH="/opt/composer/vendor/bin:${PATH}"
 
 # lint
 
-RUN composer global require squizlabs/php_codesniffer
+RUN composer global require friendsofphp/php-cs-fixer
 
 # extra
 

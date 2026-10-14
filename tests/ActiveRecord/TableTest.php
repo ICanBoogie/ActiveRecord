@@ -368,7 +368,7 @@ final class TableTest extends DbTestCase
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessageIsOrContains("No values to insert");
-        $this->multi_column->insert([]); // @phpstan-ignore-line
+        $this->multi_column->insert([]);
     }
 
     public function test_insert_multi_column(): void

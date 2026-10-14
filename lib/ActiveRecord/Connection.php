@@ -217,18 +217,17 @@ class Connection
      * The ID of the last inserted row, or the last value from a sequence object,
      * depending on the underlying driver.
      */
-    public int $last_insert_id
-        {
-            get {
-                $id = $this->pdo->lastInsertId();
+    public int $last_insert_id {
+        get {
+            $id = $this->pdo->lastInsertId();
 
-                if ($id === false) {
-                    throw new RuntimeException("Unable to retrieve last inserted ID");
-                }
-
-                return (int)$id;
+            if ($id === false) {
+                throw new RuntimeException("Unable to retrieve last inserted ID");
             }
+
+            return (int)$id;
         }
+    }
 
     /**
      * Replaces placeholders with their value.

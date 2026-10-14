@@ -6,16 +6,18 @@ on:
 
 jobs:
   phpunit:
-    name: "phpunit (SQLite, PHP ${{ matrix.php-version }})"
+    name: "phpunit (SQLite, PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }})"
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version:
-        - "8.4"
-        - "8.5"
+        include:
+        - php-version: "8.4"
+          dependencies: lowest
+        - php-version: "8.5"
+          dependencies: highest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Install PHP
       uses: shivammathur/setup-php@v2
       with:
@@ -25,22 +27,22 @@ jobs:
         tools: composer:v2
         extensions: pdo_mysql, pdo_pgsql
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: |
           ~/.composer/cache
           vendor
-        key: "php-${{ matrix.php-version }}"
-        restore-keys: "php-${{ matrix.php-version }}"
+        key: "php-${{ matrix.php-version }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}"
+        restore-keys: "php-${{ matrix.php-version }}-${{ matrix.dependencies }}-"
 
     - name: Install dependencies
-      run: composer install --no-interaction --no-progress
+      run: composer update --no-interaction --no-progress --prefer-stable ${{ matrix.dependencies == 'lowest' && '--prefer-lowest' || '' }}
 
     - name: Run PHPUnit
       run: make test-coveralls
 
     - name: Upload code coverage
-      if: ${{ matrix.php-version == '8.4' }}
+      if: ${{ matrix.dependencies == 'highest' }}
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -88,26 +90,26 @@ jobs:
           password: postgres
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Install PHP
       uses: shivammathur/setup-php@v2
       with:
         coverage: none
-        php-version: "8.4"
+        php-version: "8.5"
         ini-values: memory_limit=-1
         tools: composer:v2
         extensions: pdo_mysql, pdo_pgsql
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: |
           ~/.composer/cache
           vendor
-        key: "php-8.4"
-        restore-keys: "php-8.4"
+        key: "php-8.5-highest-${{ hashFiles('composer.json') }}"
+        restore-keys: "php-8.5-highest-"
 
     - name: Install dependencies
-      run: composer install --no-interaction --no-progress
+      run: composer update --no-interaction --no-progress --prefer-stable
 
     - name: Run PHPUnit
       env:

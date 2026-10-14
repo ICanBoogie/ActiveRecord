@@ -16,6 +16,7 @@ final readonly class HasManyRelation extends Relation
     /**
      * @inheritdoc
      *
+     * @param Model<*> $owner
      * @param class-string<ActiveRecord>|null $through
      *     The ActiveRecord used as pivot.
      */
@@ -84,11 +85,9 @@ final readonly class HasManyRelation extends Relation
         // Because of the select, we need to set the mode otherwise an array would be
         // fetched instead of an object.
         $q->mode(PDO::FETCH_CLASS, $related->activerecord_class);
-        //phpcs:disable Generic.Files.LineLength.TooLong
         $q->join(expression: 'INNER JOIN ' . $quote($through_model->name)
             . ' ON ' . $quote($through_model->name) . ".{$r2->local_key}"
             . ' = ' . $quote($r2_model->alias) . ".{$related->primary}");
-        //phpcs:disable Generic.Files.LineLength.TooLong
         $q->join(expression: 'INNER JOIN ' . $quote($owner->name) . ' ' . $quote($owner->alias)
             . ' ON ' . $quote($through_model->name) . ".{$r1->local_key}"
             . ' = ' . $quote($owner->alias) . ".{$owner->primary}");

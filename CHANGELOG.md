@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v7.0
+## v7.0.0
 
 v7.0 makes the attributes of record classes first-class citizens: schemas, indexes, relations, and
 foreign keys are declared on the records, and `ConfigBuilder` and `SchemaBuilder` complete them
@@ -129,10 +129,12 @@ PHP 8.4+
   since PHP 8.5.
 - `StaticModelProvider` now caches models per record class, and `set()` invalidates the cache.
 - The documentation moved from `README.md` to `docs/`, one page per topic, and was updated for v7.0.
+- The license is now BSD-3-Clause, as for the other ICanBoogie packages.
+- The code style is checked with PHP-CS-Fixer instead of PHP_CodeSniffer, which broke on property hooks.
 
 
 
-## v6.0
+## v6.0.0
 
 ### New Requirements
 

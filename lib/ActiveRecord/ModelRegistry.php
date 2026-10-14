@@ -16,7 +16,7 @@ final class ModelRegistry implements ModelProvider, ModelIterator
     /**
      * Instantiated models.
      *
-     * @var array<class-string<ActiveRecord>, Model>
+     * @var array<class-string<ActiveRecord>, Model<*>>
      */
     private array $instances = [];
 
@@ -31,6 +31,7 @@ final class ModelRegistry implements ModelProvider, ModelIterator
 
     public function model_for_record(string $activerecord_class): Model
     {
+        // @phpstan-ignore return.type (the model is resolved at runtime)
         return $this->instances[$activerecord_class] ??= $this->instantiate_model($activerecord_class);
     }
 
@@ -47,6 +48,8 @@ final class ModelRegistry implements ModelProvider, ModelIterator
 
     /**
      * @param class-string<ActiveRecord> $activerecord_class
+     *
+     * @return Model<*>
      */
     private function instantiate_model(string $activerecord_class): Model
     {

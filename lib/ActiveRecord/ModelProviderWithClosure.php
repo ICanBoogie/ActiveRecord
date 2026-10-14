@@ -10,7 +10,7 @@ use Closure;
 final readonly class ModelProviderWithClosure implements ModelProvider
 {
     /**
-     * @param Closure(string):Model $closure
+     * @param Closure(string):Model<*> $closure
      */
     public function __construct(
         private Closure $closure
@@ -19,6 +19,6 @@ final readonly class ModelProviderWithClosure implements ModelProvider
 
     public function model_for_record(string $activerecord_class): Model
     {
-        return ($this->closure)($activerecord_class);
+        return ($this->closure)($activerecord_class); // @phpstan-ignore return.type (the model is resolved at runtime)
     }
 }

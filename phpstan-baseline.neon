@@ -1,0 +1,343 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Class Test\\ICanBoogie\\Acme\\CustomQuery extends generic class ICanBoogie\\ActiveRecord\\Query but does not specify its types\: TRecord$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/Acme/CustomQuery.php
+
+		-
+			message: '#^Class Test\\ICanBoogie\\Acme\\FailingModel extends generic class ICanBoogie\\ActiveRecord\\Model but does not specify its types\: TRecord$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/Acme/FailingModel.php
+
+		-
+			message: '#^Parameter \#1 \$record_class of class ICanBoogie\\ActiveRecord\\Config\\AssociationBuilder constructor expects class\-string\<ICanBoogie\\ActiveRecord\>\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/ActiveRecord/AssociationBuilderTest.php
+
+		-
+			message: '#^Call to an undefined method Test\\ICanBoogie\\Acme\\Driver\:\:create_table\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/ActiveRecord/DriverTest.php
+
+		-
+			message: '#^Class Test\\ICanBoogie\\Acme\\Driver does not have a constructor and must be instantiated without any parameters\.$#'
+			identifier: new.noConstructor
+			count: 1
+			path: tests/ActiveRecord/DriverTest.php
+
+		-
+			message: '#^Method ICanBoogie\\ActiveRecord\\Connection@anonymous/tests/ActiveRecord/DriverTest\.php\:30\:\:exec\(\) never returns false so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: tests/ActiveRecord/DriverTest.php
+
+		-
+			message: '#^Method Test\\ICanBoogie\\ActiveRecord\\DriverTest\:\:provide_expected\(\) should return array\<array\{class\-string\<Test\\ICanBoogie\\Acme\\Driver\>, string\}\> but returns array\{array\{''ICanBoogie\\\\ActiveRecord\\\\Driver\\\\MySQLDriver'', ''CREATE TABLE menus …''\}, array\{''ICanBoogie\\\\ActiveRecord\\\\Driver\\\\SQLiteDriver'', ''CREATE TABLE menus …''\}, array\{''ICanBoogie\\\\ActiveRecord\\\\Driver\\\\PostgreSQLDriver'', ''CREATE TABLE menus …''\}\}\.$#'
+			identifier: return.type
+			count: 1
+			path: tests/ActiveRecord/DriverTest.php
+
+		-
+			message: '#^Parameter \#1 \$id of class ICanBoogie\\ActiveRecord\\Config\\ConnectionDefinition constructor expects non\-empty\-string, '''' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/ActiveRecord/DriverTest.php
+
+		-
+			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/ActiveRecord/ExceptionTest.php
+
+		-
+			message: '#^Property Test\\ICanBoogie\\ActiveRecord\\ForeignKeyTest\:\:\$authors with generic class ICanBoogie\\ActiveRecord\\Model does not specify its types\: TRecord$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/ActiveRecord/ForeignKeyTest.php
+
+		-
+			message: '#^Property Test\\ICanBoogie\\ActiveRecord\\ForeignKeyTest\:\:\$books with generic class ICanBoogie\\ActiveRecord\\Model does not specify its types\: TRecord$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/ActiveRecord/ForeignKeyTest.php
+
+		-
+			message: '#^Property Test\\ICanBoogie\\ActiveRecord\\ForeignKeyTest\:\:\$loans with generic class ICanBoogie\\ActiveRecord\\Model does not specify its types\: TRecord$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/ActiveRecord/ForeignKeyTest.php
+
+		-
+			message: '#^Property Test\\ICanBoogie\\ActiveRecord\\ForeignKeyTest\:\:\$reviews with generic class ICanBoogie\\ActiveRecord\\Model does not specify its types\: TRecord$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/ActiveRecord/ForeignKeyTest.php
+
+		-
+			message: '#^Cannot access property \$article_comments on array\<Test\\ICanBoogie\\Acme\\Article\>\|Test\\ICanBoogie\\Acme\\Article\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/ActiveRecord/HasManyRelationTest.php
+
+		-
+			message: '#^Cannot access property \$body on mixed\.$#'
+			identifier: property.nonObject
+			count: 4
+			path: tests/ActiveRecord/HasManyRelationTest.php
+
+		-
+			message: '#^Cannot access property \$comments on array\<Test\\ICanBoogie\\Acme\\Article\>\|Test\\ICanBoogie\\Acme\\Article\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/ActiveRecord/HasManyRelationTest.php
+
+		-
+			message: '#^Property Test\\ICanBoogie\\ActiveRecord\\ModelTest\:\:\$articles with generic class ICanBoogie\\ActiveRecord\\Model does not specify its types\: TRecord$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/ActiveRecord/ModelTest.php
+
+		-
+			message: '#^Property Test\\ICanBoogie\\ActiveRecord\\ModelTest\:\:\$nodes with generic class ICanBoogie\\ActiveRecord\\Model does not specify its types\: TRecord$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/ActiveRecord/ModelTest.php
+
+		-
+			message: '#^Property Test\\ICanBoogie\\ActiveRecord\\PostgreSQLTest\:\:\$samples with generic class ICanBoogie\\ActiveRecord\\Model does not specify its types\: TRecord$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/ActiveRecord/PostgreSQLTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<mixed\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/ActiveRecord/QueryTest.php
+
+		-
+			message: '#^Parameter \#2 \$field_values of method ICanBoogie\\ActiveRecord\\Query\<Test\\ICanBoogie\\Acme\\Node\>\:\:order\(\) expects array\<bool\|float\|int\|string\>\|null, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/ActiveRecord/QueryTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<int\|non\-empty\-string, ICanBoogie\\ActiveRecord\|null\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/ActiveRecord/RecordNotFoundTest.php
+
+		-
+			message: '#^Parameter \#2 \$records of class ICanBoogie\\ActiveRecord\\RecordNotFound constructor expects array\<int\|non\-empty\-string, ICanBoogie\\ActiveRecord\|null\>, array\{1\: Test\\ICanBoogie\\Acme\\Node, 2\: false, 3\: Test\\ICanBoogie\\Acme\\Node\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/ActiveRecord/RecordNotFoundTest.php
+
+		-
+			message: '#^Parameter \#1 \$array of class ICanBoogie\\Validate\\ValidationErrors constructor expects array\<string, array\<ICanBoogie\\Validate\\Message\>\>\|object, array\<string, array\<int, string\>\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/ActiveRecord/RecordNotValidTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotInstanceOf\(\) with ''ICanBoogie\\\\ActiveRecord\\\\Schema\\\\Integer'' and ICanBoogie\\ActiveRecord\\Schema\\Boolean will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/ActiveRecord/Schema/BooleanTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with ICanBoogie\\ActiveRecord\\Schema will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/ActiveRecord/SchemaTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<bool\|float\|int\|string\|null\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/ActiveRecord/StatementTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/ActiveRecord/StatementTest.php
+
+		-
+			message: '#^Parameter \#1 \$expected of method PHPUnit\\Framework\\Assert\:\:assertInstanceOf\(\) expects class\-string\<object\>, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/ActiveRecord/Validate/ValidatorProvider/ActiveRecordValidatorProviderTest.php
+
+		-
+			message: '#^Property Test\\ICanBoogie\\ActiveRecordTest\\ValidateCase\:\:\$id is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: tests/ActiveRecordTest/ValidateCase.php
+
+		-
+			message: '#^Cannot call method fetchAll\(\) on PDOStatement\|false\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/DbTestCase.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: tests/DbTestCase.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: tests/DbTestCase.php
+
+		-
+			message: '#^Offset int\<0, max\>\|null might not exist on list\<string\>\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Docs/DocsTest.php
+
+		-
+			message: '#^Only iterables can be unpacked, list\<string\>\|false given\.$#'
+			identifier: arrayUnpacking.nonIterable
+			count: 2
+			path: tests/Docs/DocsTest.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, Closure\(string\)\: string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Docs/DocsTest.php
+
+		-
+			message: '#^Call to static method find_one\(\) on an unknown class App\\Article\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^Call to static method model\(\) on an unknown class App\\Article\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^Call to static method query\(\) on an unknown class App\\Article\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^Call to static method query\(\) on an unknown class App\\Comment\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^Cannot access property \$one on mixed\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^Class App\\Article not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^Class App\\Comment not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^Class App\\Node not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^Class App\\User not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^PHPDoc tag @var for variable \$alice contains unknown class App\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^Parameter \#1 \$record_class of method ICanBoogie\\ActiveRecord\\ConfigBuilder\:\:add_record\(\) expects class\-string\<ICanBoogie\\ActiveRecord\>, string given\.$#'
+			identifier: argument.type
+			count: 4
+			path: tests/Docs/prelude.php
+
+		-
+			message: '#^PHPDoc tag @return with type string\|null is not subtype of native type string\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: tests/Fixtures.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Property/CreateAtPropertyTest.php
+
+		-
+			message: '#^Cannot access property \$is_empty on null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Property/CreateAtPropertyTest.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Property/CreateAtPropertyTest.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$date\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Property/DatePropertyTest.php
+
+		-
+			message: '#^Cannot access property \$is_empty on null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Property/DatePropertyTest.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Property/DatePropertyTest.php
+
+		-
+			message: '#^Method Property\\DatePropertyTest\:\:testEmpty\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: tests/Property/DatePropertyTest.php
+
+		-
+			message: '#^Method Test\\ICanBoogie\\SetStateHelper\:\:export_import\(\) should return T of object but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: tests/SetStateHelper.php
+
+		-
+			message: '#^Trying to invoke mixed but it''s not a callable\.$#'
+			identifier: callable.nonCallable
+			count: 1
+			path: tests/bootstrap.php

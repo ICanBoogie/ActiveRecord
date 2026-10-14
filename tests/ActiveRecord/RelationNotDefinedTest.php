@@ -11,8 +11,9 @@ final class RelationNotDefinedTest extends TestCase
     public function test_exception(): void
     {
         $relation_name = uniqid();
-        $relations = new class() extends RelationCollection {
-            public function __construct() {
+        $relations = new class () extends RelationCollection {
+            public function __construct()
+            {
             }
         };
 

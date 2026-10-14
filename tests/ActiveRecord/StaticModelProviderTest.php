@@ -43,7 +43,7 @@ final class StaticModelProviderTest extends TestCase
             ->with(Article::class)
             ->willReturn($model);
 
-        StaticModelProvider::set(static function() use (&$factory_calls, $provider) {
+        StaticModelProvider::set(static function () use (&$factory_calls, $provider) {
             $factory_calls++;
             return $provider;
         });

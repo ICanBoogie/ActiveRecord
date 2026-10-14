@@ -1,12 +1,12 @@
 # $schema: https://phpstan.olvlvl.com/schema.json
+includes:
+  - phpstan-baseline.neon
+
 parameters:
   level: max
+  phpVersion: 80400
   paths:
     - lib
-  ignoreErrors:
-    - identifier: trait.unused
-    - "#generic class .+Model does not specify its types#"
-    - "#generic class .+Model but does not specify its types#"
-    - "#generic class .+Query but does not specify its types#"
-    # See https://github.com/phpstan/phpstan/issues/12075
-    - "/should return .+Inflector but returns mixed/"
+    - tests
+  excludePaths:
+    - tests/sandbox/*

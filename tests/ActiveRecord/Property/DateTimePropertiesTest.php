@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class DateTimePropertiesTest extends TestCase
 {
-    public function test_properties()
+    public function test_properties(): void
     {
         $r = new A();
         $created_at = new DateTime('-10 day');
@@ -40,7 +40,7 @@ class DateTimePropertiesTest extends TestCase
         $this->assertTrue($r->updated_at->is_empty);
     }
 
-    public function test_properties_extended()
+    public function test_properties_extended(): void
     {
         $r = new B();
         $created_at = new DateTime('-10 day');

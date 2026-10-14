@@ -23,6 +23,9 @@ class RelationCollection
      */
     private readonly array $relations;
 
+    /**
+     * @param Model<*> $model
+     */
     public function __construct(
         public readonly Model $model,
         ?Association $association
@@ -112,7 +115,7 @@ class RelationCollection
      * The relations of the model to the other model, and the relations of the other model to the
      * model, are considered. `has_many … through` relations are ignored.
      *
-     * @param Model<ActiveRecord> $other
+     * @param Model<*> $other
      *
      * @return array{ non-empty-string, non-empty-string }
      *     The column of the model, and the column of the other model.

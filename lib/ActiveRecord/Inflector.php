@@ -6,9 +6,7 @@ final readonly class Inflector
 {
     private static function get(): \ICanBoogie\Inflector
     {
-        static $inflector;
-
-        return $inflector ??= \ICanBoogie\Inflector::get();
+        return \ICanBoogie\Inflector::get();
     }
 
     public static function singularize(string $word): string

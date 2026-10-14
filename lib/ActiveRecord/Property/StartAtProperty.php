@@ -7,6 +7,7 @@ use ICanBoogie\DateTime;
 /**
  * Implements a `start_at` property.
  */
+// @phpstan-ignore trait.unused (provided to applications)
 trait StartAtProperty
 {
     public DateTime $start_at {

@@ -21,7 +21,7 @@ final class StaticModelProvider
     /**
      * A cache for the models.
      *
-     * @var array<class-string, Model>
+     * @var array<class-string, Model<*>>
      */
     private static array $models = [];
 
@@ -80,6 +80,7 @@ final class StaticModelProvider
                 "No factory defined yet. Please define one with `StaticModelProvider::set()`"
             );
 
+        // @phpstan-ignore return.type (the model is resolved at runtime)
         return self::$models[$activerecord_class]
             ??= (self::$provider ??= $factory())->model_for_record($activerecord_class);
     }

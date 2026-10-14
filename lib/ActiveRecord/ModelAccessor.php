@@ -19,6 +19,9 @@ final readonly class ModelAccessor
     /**
      * Returns the {@see Model} matching the {@see ModelDefinition} from the {@see ModelProvider}.
      */
+    /**
+     * @return Model<*>
+     */
     public function get(): Model
     {
         return $this->provider->model_for_record($this->definition->activerecord_class);

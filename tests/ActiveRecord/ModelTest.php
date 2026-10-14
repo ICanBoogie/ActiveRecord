@@ -228,7 +228,7 @@ final class ModelTest extends DbTestCase
     public function test_custom_query(): void
     {
         $id = uniqid();
-        $model = new class(
+        $model = new class (
             $this->connections->connection_for_id('primary'),
             $this->models,
             new ModelDefinition(

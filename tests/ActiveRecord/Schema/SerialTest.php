@@ -25,7 +25,7 @@ final class SerialTest extends TestCase
      */
     public static function provideInstance(): array
     {
-        return [ // @phpstan-ignore-line
+        return [
 
             [
                 new Serial(),

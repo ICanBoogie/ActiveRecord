@@ -16,9 +16,9 @@ use ICanBoogie\ActiveRecord\Schema;
 final class TransientModelDefinition
 {
     /**
-     * @param class-string<Model> $model_class
+     * @param class-string<Model<*>> $model_class
      * @param class-string<ActiveRecord> $activerecord_class
-     * @param class-string<Query> $query_class
+     * @param class-string<Query<*>> $query_class
      * @param non-empty-string $table_name
      * @param non-empty-string $alias
      * @param non-empty-string $connection

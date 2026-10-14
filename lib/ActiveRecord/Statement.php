@@ -91,8 +91,7 @@ final class Statement
     /**
      * Equivalent to `mode(PDO::FETCH_ASSOC)`.
      */
-    public self $as_assoc
-    {
+    public self $as_assoc {
         get => $this->mode(PDO::FETCH_ASSOC);
     }
 
@@ -119,8 +118,7 @@ final class Statement
      *
      * @see $one
      */
-    public mixed $one
-    {
+    public mixed $one {
         get => $this->one();
     }
 
@@ -129,8 +127,7 @@ final class Statement
      *
      * @see $rc
      */
-    public int|string|false|null $rc
-    {
+    public int|string|false|null $rc {
         get {
             $rc = $this->pdo_statement->fetchColumn();
 
@@ -159,8 +156,7 @@ final class Statement
      *
      * @see $all
      */
-    public array $all
-    {
+    public array $all {
         // @phpstan-ignore-next-line
         get => $this->pdo_statement->fetchAll();
     }
@@ -171,8 +167,7 @@ final class Statement
      *
      * @see $pairs
      */
-    public array $pairs
-    {
+    public array $pairs {
         // @phpstan-ignore-next-line
         get => $this->pdo_statement->fetchAll(PDO::FETCH_KEY_PAIR);
     }

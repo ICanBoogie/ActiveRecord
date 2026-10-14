@@ -9,7 +9,24 @@ services:
       PHP_IDE_CONFIG: 'serverName=icanboogie-activerecord'
     volumes:
       - .:/app:delegated
-      - composer-cache:/root/.composer
+      - composer-cache:/opt/composer/cache
+    working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+
+  app85:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.5"
+    environment:
+      PHP_IDE_CONFIG: 'serverName=icanboogie-activerecord'
+    volumes:
+      - .:/app:delegated
+      - composer-cache:/opt/composer/cache
     working_dir: /app
     depends_on:
       postgres:

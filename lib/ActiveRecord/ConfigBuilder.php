@@ -77,7 +77,7 @@ final class ConfigBuilder
     private function validate_models(): void
     {
         foreach ($this->model_definitions as $definition) {
-                $this->connections[$definition->connection] ?? $this->error(
+            $this->connections[$definition->connection] ?? $this->error(
                 "`$definition->activerecord_class` uses the connection `$definition->connection`, which is not configured"
             );
 
@@ -463,8 +463,8 @@ final class ConfigBuilder
      * Adds a record definition.
      *
      * @param class-string<ActiveRecord> $record_class
-     * @param class-string<Model> $model_class
-     * @param class-string<Query> $query_class
+     * @param class-string<Model<*>> $model_class
+     * @param class-string<Query<*>> $query_class
      * @param non-empty-string|null $table_name
      * @param non-empty-string|null $alias
      * @param (Closure(SchemaBuilder): SchemaBuilder)|null $schema_builder

@@ -14,8 +14,7 @@ final class DatePropertyTest extends TestCase
     {
         parent::setUp();
 
-        $this->sut = new class
-        {
+        $this->sut = new class () {
             use DateProperty;
         };
     }

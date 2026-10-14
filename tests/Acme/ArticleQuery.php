@@ -12,8 +12,7 @@ class ArticleQuery extends Query
     /**
      * @see self::ordered()
      */
-    public self $ordered
-    {
+    public self $ordered {
         get => $this->ordered();
     }
 

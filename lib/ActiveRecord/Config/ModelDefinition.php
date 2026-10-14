@@ -16,9 +16,9 @@ readonly class ModelDefinition
     /**
      * @param array{
      *     table: TableDefinition,
-     *     model_class: class-string<Model>,
+     *     model_class: class-string<Model<*>>,
      *     activerecord_class: class-string<ActiveRecord>,
-     *     query_class: class-string<Query>,
+     *     query_class: class-string<Query<*>>,
      *     connection: non-empty-string,
      *     association: ?Association
      * } $an_array
@@ -29,9 +29,9 @@ readonly class ModelDefinition
     }
 
     /**
-     * @param class-string<Model> $model_class
+     * @param class-string<Model<*>> $model_class
      * @param class-string<ActiveRecord> $activerecord_class
-     * @param class-string<Query> $query_class
+     * @param class-string<Query<*>> $query_class
      * @param non-empty-string $connection
      */
     public function __construct(
