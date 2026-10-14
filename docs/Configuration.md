@@ -75,6 +75,19 @@ $config = $builder
 
 
 
+## Discovering records
+
+With [olvlvl/composer-attribute-collector][], `ConfigBuilder` can find the records tagged with a
+schema attribute (`#[Id]`, `#[Integer]`, `#[BelongsTo]`, …) instead of you adding them one by one.
+Enable it with `enable_discovery()`, and disable it with `disable_discovery()`. Records are added
+during `build()`, with default options, unless they were already added with `add_record()`.
+
+```
+$builder->enable_discovery();
+```
+
+[olvlvl/composer-attribute-collector]: https://github.com/olvlvl/composer-attribute-collector
+
 ## Building the config
 
 `build()` validates the definitions and returns a `Config`, with the connection definitions in

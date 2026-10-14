@@ -25,7 +25,10 @@
     "platform": {
       "php": "8.4.1"
     },
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "olvlvl/composer-attribute-collector": true
+    }
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -41,6 +44,7 @@
   "require-dev": {
     "ext-pdo_mysql": "*",
     "ext-pdo_pgsql": "*",
+    "olvlvl/composer-attribute-collector": "^3.0",
     "phpstan/phpstan": "^2.3",
     "phpunit/phpunit": "^13.4"
   },
@@ -54,8 +58,19 @@
     ]
   },
   "autoload-dev": {
+    "files": [
+      "vendor/attributes.php"
+    ],
     "psr-4": {
       "Test\\ICanBoogie\\": "tests"
+    }
+  },
+  "suggest": {
+    "olvlvl/composer-attribute-collector": "Required by ConfigBuilder::enable_discovery() to discover records"
+  },
+  "extra": {
+    "composer-attribute-collector": {
+      "include": ["lib", "tests/Acme/Discovery"]
     }
   }
 }

@@ -23,6 +23,8 @@ PHP 8.4+, `icanboogie/config`
   `#[BelongsTo(User::class, on_delete: OnDelete::Cascade)]`. `ConfigBuilder` resolves them into
   `Schema::$foreign_keys`, and `ModelInstaller::install()` creates referenced tables first.
 - Added `RelationCollection::columns_to()`, `RelationNotFound`, and `AmbiguousRelation`.
+- Added `ConfigBuilder::enable_discovery()` and `disable_discovery()`. When enabled, `build()` uses
+  `olvlvl/composer-attribute-collector` to add the records tagged with `SchemaAttribute`.
 - Added `ActiveRecord::model()` to resolve the model of a record class.
 - Added `ActiveRecord::find_one()` and `ActiveRecord::find_many()`, typed counterparts of
   `Model::find()` that throw `RecordNotFound` when a record cannot be found. `find_many()` always returns an array.

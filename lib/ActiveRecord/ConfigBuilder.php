@@ -18,6 +18,7 @@ use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\Config\Builder;
+use olvlvl\ComposerAttributeCollector\Attributes;
 use Throwable;
 
 use function assert;
@@ -26,8 +27,11 @@ use function get_parent_class;
 use function ICanBoogie\trim_suffix;
 use function implode;
 use function is_a;
+use function is_subclass_of;
 use function is_string;
 use function json_encode;
+use function array_keys;
+use function class_exists;
 use function preg_match;
 use function strlen;
 use function strrpos;
@@ -62,8 +66,43 @@ final class ConfigBuilder implements Builder
      */
     private array $association = [];
 
+    private bool $discovery = false;
+
+    /**
+     * Enables the discovery of the active records tagged with {@see Schema\SchemaAttribute}, they are
+     * added to the configuration when {@see build()} is invoked.
+     *
+     * Discovery requires `olvlvl/composer-attribute-collector`.
+     *
+     * Only the attributes declared by a record itself are considered: a record that inherits all its
+     * attributes from a parent, and declares none of its own, is not discovered.
+     * Use {@see add_record()} to add such records.
+     *
+     * @return $this
+     */
+    public function enable_discovery(): self
+    {
+        $this->discovery = true;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function disable_discovery(): self
+    {
+        $this->discovery = false;
+
+        return $this;
+    }
+
     public function build(): Config
     {
+        if ($this->discovery) {
+            $this->discover_records();
+        }
+
         $this->validate_models();
 
         $associations = $this->build_associations();
@@ -71,6 +110,37 @@ final class ConfigBuilder implements Builder
         $models = $this->build_models($associations);
 
         return new Config($this->connections, $models);
+    }
+
+    /**
+     * Adds the active records tagged with a {@see Schema\SchemaAttribute}, on their class or on
+     * their properties, that have not been added already.
+     */
+    private function discover_records(): void
+    {
+        class_exists(Attributes::class)
+        or $this->error("Discovery requires `olvlvl/composer-attribute-collector`");
+
+        $predicate = Attributes::predicateForAttributeInstanceOf(Schema\SchemaAttribute::class);
+        $classes = [];
+
+        foreach (Attributes::filterTargetClasses($predicate) as $target) {
+            $classes[$target->name] = true;
+        }
+
+        foreach (Attributes::filterTargetProperties(
+            fn(string $attribute): bool => $predicate($attribute)
+        ) as $target) {
+            $classes[$target->class] = true;
+        }
+
+        foreach (array_keys($classes) as $class) {
+            if (!is_subclass_of($class, ActiveRecord::class) || isset($this->model_definitions[$class])) {
+                continue;
+            }
+
+            $this->add_record($class);
+        }
     }
 
     /**

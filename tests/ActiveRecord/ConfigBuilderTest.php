@@ -34,6 +34,8 @@ use Test\ICanBoogie\Acme\ConfigBuilder\Team;
 use Test\ICanBoogie\Acme\ConfigBuilder\Ticket;
 use Test\ICanBoogie\Acme\ConfigBuilder\Venue;
 use Test\ICanBoogie\Acme\ConfigBuilder\VipSeat;
+use Test\ICanBoogie\Acme\Discovery\Author as DiscoveredAuthor;
+use Test\ICanBoogie\Acme\Discovery\Book as DiscoveredBook;
 use Test\ICanBoogie\SetStateHelper;
 use Throwable;
 
@@ -513,5 +515,48 @@ final class ConfigBuilderTest extends TestCase
             ->build();
 
         $this->assertEquals($config, SetStateHelper::export_import($config));
+    }
+
+    // Discovery
+
+    public function test_discovery_is_disabled_by_default(): void
+    {
+        $config = self::builder()->build();
+
+        $this->assertSame([], array_keys($config->models));
+    }
+
+    /**
+     * The records are collected from `tests/Acme/Discovery`.
+     */
+    public function test_discovery_adds_tagged_records(): void
+    {
+        $config = self::builder()->enable_discovery()->build();
+        $classes = array_keys($config->models);
+        sort($classes);
+
+        $this->assertSame([ DiscoveredAuthor::class, DiscoveredBook::class ], $classes);
+        $this->assertSame(
+            DiscoveredAuthor::class,
+            $config->models[DiscoveredBook::class]->association?->belongs_to[0]->associate
+        );
+    }
+
+    public function test_discovery_keeps_explicit_records(): void
+    {
+        $config = self::builder()
+            ->add_record(DiscoveredAuthor::class, table_name: 'writers')
+            ->enable_discovery()
+            ->build();
+
+        $this->assertSame('writers', $config->models[DiscoveredAuthor::class]->table->name);
+        $this->assertArrayHasKey(DiscoveredBook::class, $config->models);
+    }
+
+    public function test_discovery_can_be_disabled(): void
+    {
+        $config = self::builder()->enable_discovery()->disable_discovery()->build();
+
+        $this->assertSame([], array_keys($config->models));
     }
 }
