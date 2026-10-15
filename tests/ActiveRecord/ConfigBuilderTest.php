@@ -36,6 +36,7 @@ use Test\ICanBoogie\Acme\ConfigBuilder\Venue;
 use Test\ICanBoogie\Acme\ConfigBuilder\VipSeat;
 use Test\ICanBoogie\Acme\Discovery\Author as DiscoveredAuthor;
 use Test\ICanBoogie\Acme\Discovery\Book as DiscoveredBook;
+use Test\ICanBoogie\Acme\Discovery\Reviewer as DiscoveredReviewer;
 use Test\ICanBoogie\SetStateHelper;
 use Throwable;
 
@@ -535,11 +536,20 @@ final class ConfigBuilderTest extends TestCase
         $classes = array_keys($config->models);
         sort($classes);
 
-        $this->assertSame([ DiscoveredAuthor::class, DiscoveredBook::class ], $classes);
+        $this->assertSame([ DiscoveredAuthor::class, DiscoveredBook::class, DiscoveredReviewer::class ], $classes);
         $this->assertSame(
             DiscoveredAuthor::class,
             $config->models[DiscoveredBook::class]->association?->belongs_to[0]->associate
         );
+    }
+
+    public function test_discovery_uses_the_record_attribute(): void
+    {
+        $definition = self::builder()->enable_discovery()->build()->models[DiscoveredReviewer::class];
+
+        $this->assertSame('critics', $definition->table->name);
+        $this->assertSame('critic', $definition->table->alias);
+        $this->assertSame('other', $definition->connection);
     }
 
     public function test_discovery_keeps_explicit_records(): void

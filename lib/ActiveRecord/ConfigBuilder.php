@@ -74,9 +74,9 @@ final class ConfigBuilder implements Builder
      *
      * Discovery requires `olvlvl/composer-attribute-collector`.
      *
-     * Only the attributes declared by a record itself are considered: a record that inherits all its
-     * attributes from a parent, and declares none of its own, is not discovered.
-     * Use {@see add_record()} to add such records.
+     * Records tagged with {@see Schema\Record} are discovered too, and use its options. Only the attributes
+     * declared by a record itself are considered: a record that inherits all its attributes from a parent,
+     * and declares none of its own, is not discovered. Use {@see add_record()} to add such records.
      *
      * @return $this
      */
@@ -134,12 +134,34 @@ final class ConfigBuilder implements Builder
             $classes[$target->class] = true;
         }
 
+        $options = [];
+
+        foreach (Attributes::findTargetClasses(Schema\Record::class) as $target) {
+            $classes[$target->name] = true;
+            $options[$target->name] = $target->attribute;
+        }
+
         foreach (array_keys($classes) as $class) {
             if (!is_subclass_of($class, ActiveRecord::class) || isset($this->model_definitions[$class])) {
                 continue;
             }
 
-            $this->add_record($class);
+            $record = $options[$class] ?? null;
+
+            if (!$record instanceof Schema\Record) {
+                $this->add_record($class);
+
+                continue;
+            }
+
+            $this->add_record(
+                $class,
+                model_class: $record->model_class,
+                query_class: $record->query_class,
+                table_name: $record->table_name,
+                alias: $record->alias,
+                connection: $record->connection,
+            );
         }
     }
 

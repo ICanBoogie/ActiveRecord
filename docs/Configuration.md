@@ -86,6 +86,18 @@ during `build()`, with default options, unless they were already added with `add
 $builder->enable_discovery();
 ```
 
+The options of `add_record()` that the schema attributes can't express (`model_class`, `query_class`,
+`table_name`, `alias`, and `connection`) are set with `#[Record]` on the record class. It isn't
+inherited, a child record declares its own.
+
+```
+#[Record(table_name: 'user_sessions', connection: 'cache')]
+class Session extends ActiveRecord
+{
+    // …
+}
+```
+
 [olvlvl/composer-attribute-collector]: https://github.com/olvlvl/composer-attribute-collector
 
 ## Building the config
