@@ -121,25 +121,25 @@ abstract class ActiveRecord extends Prototyped
      * Properties whose values are instances of the {@see ActiveRecord} class are removed from the
      * exported properties.
      *
-     * @return array<non-empty-string, mixed>
-     *
      * @throws ReflectionException
+     *
+     * @return array<string, mixed>
      */
-    public function __sleep() // @phpstan-ignore-line
+    public function __sleep(): array
     {
         $properties = parent::__sleep();
 
-        // @phpstan-ignore-next-line
         unset($properties['is_new']);
-        // @phpstan-ignore-next-line
         unset($properties['primary_key_value']);
 
-        foreach (array_keys($properties) as $property) {
-            if ($this->$property instanceof self) {
+        // Remove associated active records
+        foreach ($properties as $property => $value) {
+            if ($value instanceof self) {
                 unset($properties[$property]);
             }
         }
 
+        // @phpstan-ignore-next-line // PHPStan is being very stubborn here.
         return $properties;
     }
 

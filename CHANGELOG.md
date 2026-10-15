@@ -12,7 +12,7 @@ way, so please read the backward incompatible changes.
 
 ### New Requirements
 
-PHP 8.4+, `icanboogie/config`
+PHP 8.4+, `icanboogie/config` ^7.0, `icanboogie/prototype` ^7.0
 
 ### New features
 

@@ -38,7 +38,7 @@
     "icanboogie/config": "^7.0",
     "icanboogie/datetime": "^3.0",
     "icanboogie/inflector": "^4.0",
-    "icanboogie/prototype": "^6.0",
+    "icanboogie/prototype": "^7.0",
     "icanboogie/validate": "^6.0"
   },
   "require-dev": {
