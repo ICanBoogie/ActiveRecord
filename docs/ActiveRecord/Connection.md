@@ -81,7 +81,32 @@ Other useful members of a connection:
 - `quote()` and `quote_identifier()`: Quote a value or an identifier for the driver.
 - `table_exists()`: Whether a table exists, the name is given without the prefix.
 - `begin()`: Begins a transaction, use `$connection->pdo` to commit or roll back.
+- `transaction()`: Runs a callback in a transaction, see below.
 - `last_insert_id`: The ID of the last inserted row.
+
+`transaction()` commits when the callback returns, and rolls back when it throws. It returns what
+the callback returns. If a transaction is already active, the callback runs in a savepoint instead:
+when it throws, only the work done since the savepoint is rolled back, and the exception is
+rethrown. The code that began the outer transaction can catch it and carry on, or let it roll back
+everything. Committing or rolling back the outer transaction is left to that code:
+
+```php
+$connection->transaction(function () use ($connection) {
+    // ...
+
+    try {
+        $connection->transaction(function () {
+            // Rolled back on its own if it throws.
+        });
+    } catch (Throwable) {
+        // The outer transaction is still active.
+    }
+});
+```
+
+Savepoints are supported by SQLite, MySQL and PostgreSQL. On PostgreSQL they are also the only way
+to keep going after a failed statement, which otherwise aborts the whole transaction. MySQL commits
+implicitly when a DDL statement is executed, which discards the savepoints.
 
 
 

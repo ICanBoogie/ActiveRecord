@@ -2,7 +2,6 @@
 
 namespace ICanBoogie\ActiveRecord;
 
-use Closure;
 use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use LogicException;
 use Throwable;
@@ -321,7 +320,7 @@ class Table
             return $this->insert_and_get_id($values);
         }
 
-        return $this->in_transaction(fn() => $this->insert_and_get_id($values));
+        return $this->connection->transaction(fn() => $this->insert_and_get_id($values));
     }
 
     /**
@@ -346,40 +345,6 @@ class Table
         $this->insert($values);
 
         return $id;
-    }
-
-    /**
-     * Runs a callback in a transaction, unless one is already active.
-     *
-     * @template T
-     *
-     * @param Closure(): T $callback
-     *
-     * @return T
-     *
-     * @throws Throwable
-     */
-    private function in_transaction(Closure $callback): mixed
-    {
-        $pdo = $this->connection->pdo;
-
-        if ($pdo->inTransaction()) {
-            return $callback();
-        }
-
-        $pdo->beginTransaction();
-
-        try {
-            $result = $callback();
-        } catch (Throwable $e) {
-            $pdo->rollBack();
-
-            throw $e;
-        }
-
-        $pdo->commit();
-
-        return $result;
     }
 
     /**
@@ -487,7 +452,7 @@ class Table
             return;
         }
 
-        $this->in_transaction(function () use ($values, $key): void {
+        $this->connection->transaction(function () use ($values, $key): void {
             for ($table = $this; $table; $table = $table->parent) {
                 $table->update_own_values($values, $key);
             }

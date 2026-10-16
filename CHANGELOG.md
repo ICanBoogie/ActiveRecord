@@ -22,6 +22,8 @@ PHP 8.4+, `icanboogie/config` ^7.0, `icanboogie/prototype` ^7.0
 - Added foreign key constraints, opt-in with `BelongsTo::$on_delete` and `OnDelete`, e.g.
   `#[BelongsTo(User::class, on_delete: OnDelete::Cascade)]`. `ConfigBuilder` resolves them into
   `Schema::$foreign_keys`, and `ModelInstaller::install()` creates referenced tables first.
+- Added `Connection::transaction()` to run a callback in a transaction, or in a savepoint when a transaction is
+  already active, so that a nested failure only rolls back its own work. `Table` uses it to save records.
 - Added `RelationCollection::columns_to()`, `RelationNotFound`, and `AmbiguousRelation`.
 - Added `ConfigBuilder::enable_discovery()` and `disable_discovery()`. When enabled, `build()` uses
   `olvlvl/composer-attribute-collector` to add the records tagged with `SchemaAttribute`.

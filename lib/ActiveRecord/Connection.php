@@ -6,6 +6,7 @@ use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Driver\MySQLDriver;
 use ICanBoogie\ActiveRecord\Driver\PostgreSQLDriver;
 use ICanBoogie\ActiveRecord\Driver\SQLiteDriver;
+use Closure;
 use InvalidArgumentException;
 use PDO;
 use PDOException;
@@ -55,6 +56,11 @@ class Connection
 
     public readonly PDO $pdo;
     public readonly ConnectionTelemetry $telemetry;
+
+    /**
+     * Number of savepoints alive, used to name them.
+     */
+    private int $savepoint_depth = 0;
 
     /**
      * Establish a connection to a database.
@@ -255,6 +261,81 @@ class Connection
     public function begin(): bool
     {
         return $this->pdo->beginTransaction();
+    }
+
+    /**
+     * Runs a callback in a transaction, or in a savepoint when a transaction is already active.
+     *
+     * The outermost call commits when the callback returns, and rolls back if it throws. A nested call, made while
+     * a transaction is active, creates a savepoint: if the callback throws, only the work done since the savepoint
+     * is rolled back, and the exception is rethrown. The caller of the outer transaction can catch it and carry on,
+     * or let it roll back everything. The outer transaction is committed or rolled back by whoever began it.
+     *
+     * Note that MySQL commits implicitly when a DDL statement is executed, which also discards the savepoints.
+     *
+     * @template T
+     *
+     * @param Closure(): T $callback
+     *
+     * @return T The value returned by the callback.
+     *
+     * @throws Throwable The exception thrown by the callback.
+     */
+    public function transaction(Closure $callback): mixed
+    {
+        if ($this->pdo->inTransaction()) {
+            return $this->savepoint($callback);
+        }
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $result = $callback();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+
+            throw $e;
+        }
+
+        $this->pdo->commit();
+
+        return $result;
+    }
+
+    /**
+     * Runs a callback in a savepoint.
+     *
+     * @template T
+     *
+     * @param Closure(): T $callback
+     *
+     * @return T
+     *
+     * @throws Throwable
+     */
+    private function savepoint(Closure $callback): mixed
+    {
+        // The depth makes the name unique among the savepoints that are alive.
+        $name = 'sp_' . ++$this->savepoint_depth;
+
+        try {
+            $this->pdo->exec("SAVEPOINT $name");
+
+            try {
+                $result = $callback();
+            } catch (Throwable $e) {
+                $this->pdo->exec("ROLLBACK TO SAVEPOINT $name");
+                $this->pdo->exec("RELEASE SAVEPOINT $name");
+
+                throw $e;
+            }
+
+            $this->pdo->exec("RELEASE SAVEPOINT $name");
+
+            return $result;
+        } finally {
+            --$this->savepoint_depth;
+        }
     }
 
     /**
