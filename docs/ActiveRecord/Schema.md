@@ -168,7 +168,7 @@ the builder, use `add_index()`. An index can be unique, and can be named, for in
 
 ## Custom columns
 
-A custom column extends one of the column attributes and implements [ResolvesToColumn][], to
+A custom column extends one of the column attributes and implements [IntoColumn][], to
 resolve into a basic column when the table is created. The following example defines a `Uuid`
 column, rendered as a fixed character column:
 
@@ -180,17 +180,17 @@ namespace App\Schema;
 use Attribute;
 use ICanBoogie\ActiveRecord\Schema\Character;
 use ICanBoogie\ActiveRecord\Schema\Column;
-use ICanBoogie\ActiveRecord\Schema\ResolvesToColumn;
+use ICanBoogie\ActiveRecord\Schema\IntoColumn;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-readonly class Uuid extends Character implements ResolvesToColumn
+readonly class Uuid extends Character implements IntoColumn
 {
     public function __construct(bool $null = false, bool $unique = false)
     {
         parent::__construct(size: 36, fixed: true, null: $null, unique: $unique);
     }
 
-    public function resolve(): Column
+    public function into_column(): Column
     {
         return new Character(size: $this->size, fixed: true, null: $this->null, unique: $this->unique);
     }
@@ -210,7 +210,7 @@ readonly class Uuid extends Character implements ResolvesToColumn
 [Id]:               ../../lib/ActiveRecord/Schema/Id.php
 [Index]:            ../../lib/ActiveRecord/Schema/Index.php
 [Integer]:          ../../lib/ActiveRecord/Schema/Integer.php
-[ResolvesToColumn]: ../../lib/ActiveRecord/Schema/ResolvesToColumn.php
+[IntoColumn]: ../../lib/ActiveRecord/Schema/IntoColumn.php
 [SchemaBuilder]:    ../../lib/ActiveRecord/SchemaBuilder.php
 [InvalidSchema]:    ../../lib/ActiveRecord/Schema/InvalidSchema.php
 [InvalidConfig]:    ../../lib/ActiveRecord/Config/InvalidConfig.php

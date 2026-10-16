@@ -92,8 +92,8 @@ abstract class TableRenderer
 
     protected function render_type_name(Column $column): string
     {
-        if ($column instanceof Schema\ResolvesToColumn) {
-            $column = $column->resolve();
+        if ($column instanceof Schema\IntoColumn) {
+            $column = $column->into_column();
         }
 
         return match ($column::class) {

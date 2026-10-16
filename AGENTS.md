@@ -17,7 +17,7 @@ built on PDO. It supports SQLite, MySQL, and PostgreSQL.
 | `lib/ActiveRecord/`          | `ICanBoogie\ActiveRecord\*`: Connection, Model, Table, Query, Schema, relations, providers, exceptions.        |
 | `lib/ActiveRecord/Config/`   | Config definitions (connections, tables, models, associations).                                                |
 | `lib/ActiveRecord/Driver/`   | One driver and table renderer per engine (SQLite, MySQL, PostgreSQL).                                          |
-| `lib/ActiveRecord/Schema/`   | Column and relation attributes (`#[Integer]`, `#[BelongsTo]`, …), plus `ResolvesToColumn`.                     |
+| `lib/ActiveRecord/Schema/`   | Column and relation attributes (`#[Integer]`, `#[BelongsTo]`, …), plus `IntoColumn`.                           |
 | `lib/ActiveRecord/Property/` | Traits for date properties, implemented with property hooks.                                                   |
 | `helpers.php`                | Functions that Composer autoloads.                                                                             |
 | `tests/`                     | `Test\ICanBoogie\*`. Fixture records live in `tests/Acme/`.                                                    |

@@ -17,7 +17,7 @@ PHP 8.4+, `icanboogie/config` ^7.0, `icanboogie/prototype` ^7.0
 ### New features
 
 - `ConfigBuilder` implements `ICanBoogie\Config\Builder`, so it can be used directly as a configuration builder.
-- Added `ResolvesToColumn` to enable custom column types.
+- Added `IntoColumn` to enable custom column types.
 - Added support for PostgreSQL.
 - Added foreign key constraints, opt-in with `BelongsTo::$on_delete` and `OnDelete`, e.g.
   `#[BelongsTo(User::class, on_delete: OnDelete::Cascade)]`. `ConfigBuilder` resolves them into
