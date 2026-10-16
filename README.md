@@ -50,6 +50,7 @@ instead.
 - [The query interface](docs/ActiveRecord/Query.md)
 - [Exceptions](docs/ActiveRecord/Exception.md)
 - [Database engines](docs/Engines.md)
+- [Architecture decision records](docs/adr/0001-custom-columns-with-into-column.md)
 
 See [CHANGELOG](CHANGELOG.md) for the changes between versions, and how to upgrade.
 
