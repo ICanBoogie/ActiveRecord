@@ -306,7 +306,7 @@ class Table
      *
      * @return int The primary key of the row.
      *
-     * @throws Throwable
+     * @throws StatementNotValid if a statement fails.
      */
     public function save(array $values, ?int $id = null): int
     {
@@ -442,7 +442,7 @@ class Table
      *
      * @param array<string, mixed> $values
      *
-     * @throws Throwable
+     * @throws StatementNotValid if a statement fails.
      */
     public function update(array $values, int|string $key): void
     {
@@ -485,6 +485,8 @@ class Table
      * Deletes a record.
      *
      * @param int|string|array<int|string> $key
+     *
+     * @throws StatementNotValid if a statement fails.
      */
     public function delete(int|string|array $key): void
     {

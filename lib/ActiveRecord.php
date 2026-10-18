@@ -8,11 +8,11 @@ use ICanBoogie\ActiveRecord\RecordNotFound;
 use ICanBoogie\ActiveRecord\RecordNotValid;
 use ICanBoogie\ActiveRecord\Schema;
 use ICanBoogie\ActiveRecord\Schema\Serial;
+use ICanBoogie\ActiveRecord\StatementNotValid;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
 use ICanBoogie\Validate\ValidationErrors;
 use LogicException;
 use ReflectionException;
-use Throwable;
 
 use function array_keys;
 use function in_array;
@@ -167,7 +167,9 @@ abstract class ActiveRecord extends Prototyped
      *
      * @return $this
      *
-     * @throws Throwable
+     * @throws RecordNotValid if the record is not valid.
+     * @throws StatementNotValid if a statement fails.
+     * @throws LogicException if there are no properties to save.
      */
     public function save(bool $skip_validation = false): static
     {
@@ -281,6 +283,7 @@ abstract class ActiveRecord extends Prototyped
      * Deletes the active record using its model.
      *
      * @throws LogicException in an attempt to delete a record from a model which primary key is empty.
+     * @throws StatementNotValid if a statement fails.
      */
     public function delete(): void
     {
