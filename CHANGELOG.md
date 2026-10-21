@@ -115,6 +115,8 @@ PHP 8.4+, `icanboogie/config` ^7.0, `icanboogie/prototype` ^7.0
 ### Deprecated Features
 
 - `Model::find()` is deprecated, use `Model::find_one()` or `Model::find_many()`.
+- `Query::$prepared` is deprecated.
+- Deprecated features now emit an `E_USER_DEPRECATED` notice, in addition to the `@deprecated` tag.
 
 ### Other Changes
 

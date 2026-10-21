@@ -84,7 +84,7 @@ final class ForeignKeyTest extends DbTestCase
 
         $this->books->delete($book_id);
 
-        $review = $this->reviews->find($review_id);
+        $review = $this->reviews->find_one($review_id);
         assert($review instanceof Review);
 
         $this->assertNull($review->book_id);

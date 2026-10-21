@@ -6,6 +6,7 @@ use ICanBoogie\ActiveRecord\ModelInstaller;
 use ICanBoogie\ActiveRecord\Query;
 use ICanBoogie\ActiveRecord\RelationNotFound;
 use ICanBoogie\ActiveRecord\StaticModelProvider;
+use ICanBoogie\ActiveRecord\Statement;
 use ICanBoogie\DateTime;
 use PHPUnit\Framework\Attributes\Group;
 use Test\ICanBoogie\Acme\Article;
@@ -20,6 +21,8 @@ use Test\ICanBoogie\Fixtures;
 use function get_object_vars;
 use function gmdate;
 use function rand;
+use function restore_error_handler;
+use function set_error_handler;
 use function time;
 
 #[Group("db")]
@@ -81,6 +84,27 @@ final class QueryTest extends DbTestCase
     public function test_one(): void
     {
         $this->assertInstanceOf(Article::class, $this->articles->one);
+    }
+
+    public function test_prepared_is_deprecated(): void
+    {
+        $errors = [];
+        set_error_handler(function (int $errno, string $errstr) use (&$errors): bool {
+            $errors[] = [ $errno, $errstr ];
+
+            return true;
+        });
+
+        try {
+            $statement = $this->articles->prepared;
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertInstanceOf(Statement::class, $statement);
+        $this->assertCount(1, $errors);
+        $this->assertSame(E_USER_DEPRECATED, $errors[0][0]);
+        $this->assertStringContainsString('$prepared is deprecated', $errors[0][1]);
     }
 
     public function test_all(): void

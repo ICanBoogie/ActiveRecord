@@ -209,8 +209,7 @@ final class ActiveRecordTest extends DbTestCase
         $this->assertEquals($nid, $sut->primary_key_value);
         $this->assertSame(1, $this->model->query()->count);
 
-        $found = $this->model->find($nid);
-        assert($found instanceof Node);
+        $found = $this->model->find_one($nid);
         $this->assertSame("madonna 2", $found->title);
     }
 
@@ -321,8 +320,7 @@ final class ActiveRecordTest extends DbTestCase
 
         $this->assertSame($record, $record->save(skip_validation: true));
 
-        $found = $model->find($record->id);
-        assert($found instanceof Validated);
+        $found = $model->find_one($record->id);
         $this->assertSame('ab', $found->name);
     }
 
@@ -351,8 +349,7 @@ final class ActiveRecordTest extends DbTestCase
         $record = new Nullable();
         $record->save();
 
-        $found = $model->find($record->id);
-        assert($found instanceof Nullable);
+        $found = $model->find_one($record->id);
         $this->assertSame('anonymous', $found->name, "null was discarded, the default value was used");
         $this->assertNull($found->nickname);
 
@@ -364,8 +361,7 @@ final class ActiveRecordTest extends DbTestCase
         $record->nickname = null;
         $record->save();
 
-        $found = $model->find($record->id);
-        assert($found instanceof Nullable);
+        $found = $model->find_one($record->id);
         $this->assertSame('madonna', $found->name, "null was discarded, the value was not updated");
         $this->assertNull($found->nickname, "null is accepted by the column");
     }
@@ -406,15 +402,13 @@ final class ActiveRecordTest extends DbTestCase
 
         $this->assertSame($record, $record->save());
 
-        $found = $model->find('alpha');
-        assert($found instanceof Natural);
+        $found = $model->find_one('alpha');
         $this->assertSame('madonna', $found->name);
 
         $record->name = 'madonna 2';
         $this->assertSame($record, $record->save());
 
-        $found = $model->find('alpha');
-        assert($found instanceof Natural);
+        $found = $model->find_one('alpha');
         $this->assertSame('madonna 2', $found->name);
         $this->assertSame(1, $model->query()->count);
     }

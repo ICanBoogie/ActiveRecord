@@ -78,8 +78,7 @@ final class HasManyRelationTest extends DbTestCase
 
     public function test_getter(): void
     {
-        $article = $this->articles->find(1);
-        assert($article instanceof Article);
+        $article = $this->articles->find_one(1);
         $article_comments = $article->comments;
 
         $this->assertInstanceOf(Query::class, $article_comments);
@@ -88,7 +87,7 @@ final class HasManyRelationTest extends DbTestCase
 
     public function test_association_auto(): void
     {
-        $comments = $this->articles->find(1)->comments->all();
+        $comments = $this->articles->find_one(1)->comments->all();
 
         $this->assertCount(4, $comments);
         $this->assertEquals("Comment 1", $comments[0]->body);
@@ -99,7 +98,7 @@ final class HasManyRelationTest extends DbTestCase
 
     public function test_association_as(): void
     {
-        $article = $this->articles->find(1);
+        $article = $this->articles->find_one(1);
         $comments = $article->article_comments;
 
         $this->assertInstanceOf(Query::class, $comments);

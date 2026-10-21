@@ -79,7 +79,7 @@ final class PostgreSQLTest extends DbTestCase
         $sample->count = 42;
         $sample->save();
 
-        $reloaded = $this->samples->find($sample->id);
+        $reloaded = $this->samples->find_one($sample->id);
         assert($reloaded instanceof Sample);
 
         $this->assertSame('one', $reloaded->name);
@@ -97,7 +97,7 @@ final class PostgreSQLTest extends DbTestCase
         $sample->count = 0;
         $sample->save();
 
-        $reloaded = $this->samples->find($sample->id);
+        $reloaded = $this->samples->find_one($sample->id);
         assert($reloaded instanceof Sample);
 
         $this->assertFalse($reloaded->active);

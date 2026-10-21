@@ -26,6 +26,8 @@ use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
 
 use function array_keys;
+use function restore_error_handler;
+use function set_error_handler;
 use function uniqid;
 
 #[Group("db")]
@@ -116,7 +118,7 @@ final class ModelTest extends DbTestCase
         $id = rand();
 
         try {
-            $this->nodes->find($id);
+            $this->nodes->find_one($id);
             $this->fail("Expected RecordNotFound");
         } catch (RecordNotFound $e) {
             $this->assertSame([ $id => null ], $e->records);
@@ -131,7 +133,7 @@ final class ModelTest extends DbTestCase
         $model->save([ 'title' => uniqid() ]);
 
         try {
-            $model->find(1, 2, $id);
+            $model->find_many(1, 2, $id);
             $this->fail("Expected RecordNotFound");
         } catch (RecordNotFound $e) {
             $records = $e->records;
@@ -154,7 +156,7 @@ final class ModelTest extends DbTestCase
         $model = $this->nodes;
 
         try {
-            $model->find($id1, $id2, $id3);
+            $model->find_many($id1, $id2, $id3);
             $this->fail("Expected RecordNotFound");
         } catch (RecordNotFound $e) {
             $records = $e->records;
@@ -176,7 +178,7 @@ final class ModelTest extends DbTestCase
         $id = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
         $this->assertNotEmpty($id);
 
-        $record = $model->find($id);
+        $record = $model->find_one($id);
         $this->assertInstanceOf(Article::class, $record);
     }
 
@@ -190,12 +192,34 @@ final class ModelTest extends DbTestCase
         $this->assertNotEmpty($id2);
         $this->assertNotEmpty($id3);
 
-        $records = $model->find($id1, $id2, $id3);
+        $records = $model->find_many($id1, $id2, $id3);
 
-        $this->assertIsArray($records);
         $this->assertInstanceOf(Article::class, $records[$id1]);
         $this->assertInstanceOf(Article::class, $records[$id2]);
         $this->assertInstanceOf(Article::class, $records[$id3]);
+    }
+
+    public function test_find_is_deprecated(): void
+    {
+        $model = $this->articles;
+        $id = $model->save([ 'title' => uniqid(), 'body' => uniqid(), 'date' => DateTime::now() ]);
+        $errors = [];
+        set_error_handler(function (int $errno, string $errstr) use (&$errors): bool {
+            $errors[] = [ $errno, $errstr ];
+
+            return true;
+        });
+
+        try {
+            $record = $model->find($id);
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertInstanceOf(Article::class, $record);
+        $this->assertCount(1, $errors);
+        $this->assertSame(E_USER_DEPRECATED, $errors[0][0]);
+        $this->assertStringContainsString('find_one() or find_many()', $errors[0][1]);
     }
 
     public function test_find_many_with_one_key_returns_array(): void

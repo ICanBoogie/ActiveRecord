@@ -76,6 +76,7 @@ class Model extends Table
      *
      * @deprecated use find_one() or find_many()
      */
+    #[\Deprecated("use find_one() or find_many()", since: "icanboogie/activerecord 7.0")]
     public function find(int|string ...$keys)
     {
         if (count($keys) == 1) {

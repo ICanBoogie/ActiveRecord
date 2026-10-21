@@ -79,8 +79,8 @@ parameters:
 			path: tests/ActiveRecord/ForeignKeyTest.php
 
 		-
-			message: '#^Cannot access property \$article_comments on array\<Test\\ICanBoogie\\Acme\\Article\>\|Test\\ICanBoogie\\Acme\\Article\.$#'
-			identifier: property.nonObject
+			message: '#^Access to an undefined property Test\\ICanBoogie\\Acme\\Article\:\:\$article_comments\.$#'
+			identifier: property.notFound
 			count: 1
 			path: tests/ActiveRecord/HasManyRelationTest.php
 
@@ -88,12 +88,6 @@ parameters:
 			message: '#^Cannot access property \$body on mixed\.$#'
 			identifier: property.nonObject
 			count: 4
-			path: tests/ActiveRecord/HasManyRelationTest.php
-
-		-
-			message: '#^Cannot access property \$comments on array\<Test\\ICanBoogie\\Acme\\Article\>\|Test\\ICanBoogie\\Acme\\Article\.$#'
-			identifier: property.nonObject
-			count: 1
 			path: tests/ActiveRecord/HasManyRelationTest.php
 
 		-

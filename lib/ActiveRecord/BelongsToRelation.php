@@ -30,8 +30,7 @@ final readonly class BelongsToRelation extends Relation
             throw new LogicException("Unable to establish relation, '$local_key' is empty.");
         }
 
-        /** @var ActiveRecord|null */
-        return $this->resolve_related_model()->find($id); // @phpstan-ignore argument.type
+        return $this->resolve_related_model()->find_one($id); // @phpstan-ignore argument.type
     }
 
     /**

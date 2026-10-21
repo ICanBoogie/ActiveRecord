@@ -24,6 +24,7 @@ use function preg_match;
 use function preg_replace;
 use function reset;
 use function substr;
+use function trigger_error;
 
 use const PHP_INT_MAX;
 
@@ -831,10 +832,18 @@ class Query implements IteratorAggregate
     /**
      * Return a prepared query.
      *
-     * @deprecated Use {@see self::prepare()}
+     * @deprecated Execute the query with {@see self::all()}, {@see self::one()}, or the other
+     *     public methods instead. `#[\Deprecated]` cannot target properties, hence `trigger_error()`.
      */
     public Statement $prepared {
-        get => $this->prepare();
+        get {
+            trigger_error(
+                "Query::\$prepared is deprecated since icanboogie/activerecord 7.0, use all() or one()",
+                E_USER_DEPRECATED
+            );
+
+            return $this->prepare();
+        }
     }
 
     /**

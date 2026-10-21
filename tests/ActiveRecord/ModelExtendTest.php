@@ -39,9 +39,7 @@ final class ModelExtendTest extends DbTestCase
 
         $this->assertEquals(1, $nid);
 
-        $record = $model->find($nid);
-
-        assert($record instanceof Article);
+        $record = $model->find_one($nid);
 
         $this->assertEquals(1, $record->nid);
         $this->assertEquals("Title", $record->title);
