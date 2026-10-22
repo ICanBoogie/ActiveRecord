@@ -449,7 +449,7 @@ final class ConfigBuilder implements Builder
         TransientModelDefinition $owner,
         TransientHasManyAssociation $association
     ): HasManyAssociation {
-        [ $related, $foreign_key, $through ] = $this->resolve_has($owner, $association);
+        [ $related, $foreign_key, $through, $through_key ] = $this->resolve_has($owner, $association);
         $as = $association->as ?? Inflector::pluralize($related->alias);
 
         assert(strlen($as) > 1);
@@ -459,6 +459,7 @@ final class ConfigBuilder implements Builder
             foreign_key: $foreign_key,
             as: $as,
             through: $through?->activerecord_class,
+            through_key: $through_key,
         );
     }
 
@@ -466,7 +467,7 @@ final class ConfigBuilder implements Builder
         TransientModelDefinition $owner,
         TransientHasOneAssociation $association
     ): HasOneAssociation {
-        [ $related, $foreign_key, $through ] = $this->resolve_has($owner, $association);
+        [ $related, $foreign_key, $through, $through_key ] = $this->resolve_has($owner, $association);
         $as = $association->as ?? $related->alias;
 
         assert(strlen($as) > 0);
@@ -476,14 +477,24 @@ final class ConfigBuilder implements Builder
             foreign_key: $foreign_key,
             as: $as,
             through: $through?->activerecord_class,
+            through_key: $through_key,
         );
     }
 
     /**
      * Resolves what a has-many and a has-one association have in common: the related record, the
-     * foreign key, and the pivot.
+     * column that references the owner, and, with a pivot, the pivot and its column that references
+     * the related record.
      *
-     * @return array{ TransientModelDefinition, non-empty-string, TransientModelDefinition|null }
+     * Without a pivot, the column that references the owner is on the related record. With a pivot,
+     * both columns are on the pivot, so the relation doesn't have to look for them when it's used.
+     *
+     * @return array{
+     *     TransientModelDefinition,
+     *     non-empty-string,
+     *     TransientModelDefinition|null,
+     *     non-empty-string|null,
+     * }
      */
     private function resolve_has(
         TransientModelDefinition $owner,
@@ -498,44 +509,72 @@ final class ConfigBuilder implements Builder
 
         $related = $this->model_definitions[$association->associate]
             ?? $this->error("The associated record `$association->associate` is not defined");
-        $foreign_key = $association->foreign_key;
 
-        if ($association->through) {
-            $foreign_key ??= $related->schema->primary;
-        } elseif ($foreign_key) {
-            $related->schema->has_column($foreign_key)
-            or $this->error("`$related->activerecord_class` has no column `$foreign_key`");
-        } else {
-            $foreign_key = $this->resolve_has_foreign_key($owner, $related);
+        if (!$association->through) {
+            return [ $related, $this->resolve_has_column($owner, $related, $association->foreign_key), null, null ];
         }
 
-        $foreign_key or $this->error("Unable to resolve the foreign key");
-        is_string($foreign_key) or $this->error("The foreign key is not a single column");
+        $through = $this->model_definitions[$association->through]
+            ?? $this->error("The `through` record `$association->through` is not defined");
 
-        $through = null;
+        $related->schema->has_single_column_primary
+        or $this->error("The primary key of `$related->activerecord_class` is not a single column");
 
-        if ($association->through) {
-            $through = $this->model_definitions[$association->through]
-                ?? $this->error("The `through` record `$association->through` is not defined");
-        }
+        $foreign_key = $this->resolve_has_column($owner, $through, $association->foreign_key);
+        // The pivot can reference the related record and the owner with the same class, e.g. friends.
+        $through_key = $this->resolve_has_foreign_key($related, $through, except: $foreign_key, option: null);
 
-        return [ $related, $foreign_key, $through ];
+        return [ $related, $foreign_key, $through, $through_key ];
     }
 
     /**
-     * Resolves the foreign key of a has-many or has-one relation from the {@see Schema\BelongsTo}
-     * column of the related record that references the owner, or one of its ancestors.
+     * Returns the column of `$record` that references the owner: the one specified, which must
+     * exist, or the one resolved from its {@see Schema\BelongsTo} columns.
+     *
+     * @return non-empty-string
+     */
+    private function resolve_has_column(
+        TransientModelDefinition $owner,
+        TransientModelDefinition $record,
+        ?string $specified,
+    ): string {
+        if ($specified === null) {
+            return $this->resolve_has_foreign_key($owner, $record);
+        }
+
+        $specified !== '' && $record->schema->has_column($specified)
+        or $this->error("`$record->activerecord_class` has no column `$specified`");
+
+        return $specified;
+    }
+
+    /**
+     * Resolves the column of `$related` that references `$owner`, or one of its ancestors, from the
+     * {@see Schema\BelongsTo} columns of `$related`. A column that references the owner itself is
+     * preferred over one that references an ancestor.
+     *
+     * @param non-empty-string|null $except
+     *     A column that isn't a candidate, because it's already used.
+     * @param non-empty-string|null $option
+     *     The option that resolves an ambiguity, suggested in the error messages.
      *
      * @return non-empty-string
      */
     private function resolve_has_foreign_key(
         TransientModelDefinition $owner,
         TransientModelDefinition $related,
+        ?string $except = null,
+        ?string $option = 'foreign_key',
     ): string {
         $exact = [];
         $inherited = [];
+        $hint = $option ? ", specify `$option`" : "";
 
         foreach ($related->schema->belongs_to_iterator() as $name => $column) {
+            if ($name === $except) {
+                continue;
+            }
+
             if ($column->associate === $owner->activerecord_class) {
                 $exact[] = $name;
             } elseif (is_a($owner->activerecord_class, $column->associate, true)) {
@@ -548,13 +587,13 @@ final class ConfigBuilder implements Builder
         count($candidates) > 0
         or $this->error(
             "`$related->activerecord_class` has no BelongsTo column referencing"
-            . " `$owner->activerecord_class`, specify `foreign_key`"
+            . " `$owner->activerecord_class`$hint"
         );
 
         count($candidates) === 1
         or $this->error(
             "`$related->activerecord_class` has several BelongsTo columns referencing"
-            . " `$owner->activerecord_class` (" . implode(', ', $candidates) . "), specify `foreign_key`"
+            . " `$owner->activerecord_class` (" . implode(', ', $candidates) . ")$hint"
         );
 
         return $candidates[0];

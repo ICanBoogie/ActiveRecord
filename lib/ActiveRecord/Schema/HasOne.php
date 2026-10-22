@@ -18,8 +18,8 @@ final readonly class HasOne implements SchemaAttribute
      * @param class-string<ActiveRecord> $associate
      *     The associate ActiveRecord class.
      * @param non-empty-string|null $foreign_key
-     *     The column of the associate that references the owner. Defaults to the associate's
-     *     {@see BelongsTo} column that references the owner, or one of its ancestors.
+     *     The column of the associate that references the owner, or of the pivot with `$through`.
+     *     Defaults to its {@see BelongsTo} column that references the owner, or one of its ancestors.
      * @param class-string<ActiveRecord>|null $through
      *     The pivot ActiveRecord class.
      * @param non-empty-string|null $as

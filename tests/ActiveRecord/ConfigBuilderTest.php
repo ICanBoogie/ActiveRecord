@@ -357,8 +357,14 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertNotNull($association);
         $this->assertEquals([
-            new Config\HasManyAssociation(Subscription::class, 'reader_id', 'subscriptions', null),
-            new Config\HasManyAssociation(Publication::class, 'publication_id', 'publications', Subscription::class),
+            new Config\HasManyAssociation(Subscription::class, 'reader_id', 'subscriptions', null, null),
+            new Config\HasManyAssociation(
+                Publication::class,
+                'reader_id',
+                'publications',
+                Subscription::class,
+                'publication_id',
+            ),
         ], $association->has_many);
     }
 
@@ -379,7 +385,7 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertNotNull($association);
         $this->assertEquals([
-            new Config\HasManyAssociation(Subscription::class, 'publication_id', 'subscriptions', null),
+            new Config\HasManyAssociation(Subscription::class, 'publication_id', 'subscriptions', null, null),
         ], $association->has_many);
     }
 
@@ -417,8 +423,8 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertNotNull($association);
         $this->assertEquals([
-            new Config\HasManyAssociation(Fixture::class, 'home_team_id', 'home_fixtures', null),
-            new Config\HasManyAssociation(Fixture::class, 'away_team_id', 'away_fixtures', null),
+            new Config\HasManyAssociation(Fixture::class, 'home_team_id', 'home_fixtures', null, null),
+            new Config\HasManyAssociation(Fixture::class, 'away_team_id', 'away_fixtures', null, null),
         ], $association->has_many);
     }
 
@@ -505,6 +511,31 @@ final class ConfigBuilderTest extends TestCase
                 ->has_many(Fixture::class, foreign_key: 'pilot_id'),
             "has no column `pilot_id`",
         ];
+
+        yield "Pivot referencing the owner twice" => [
+            fn(AssociationBuilder $association) => $association
+                ->has_many(Team::class, through: Fixture::class, as: 'opponents'),
+            "has several BelongsTo columns referencing `" . Team::class . "` (home_team_id, away_team_id)"
+            . ", specify `foreign_key`",
+        ];
+
+        yield "Pivot not referencing the owner" => [
+            fn(AssociationBuilder $association) => $association
+                ->has_many(Fixture::class, through: Venue::class),
+            "`" . Venue::class . "` has no BelongsTo column referencing `" . Team::class . "`, specify `foreign_key`",
+        ];
+
+        yield "Pivot not referencing the related record" => [
+            fn(AssociationBuilder $association) => $association
+                ->has_many(Venue::class, foreign_key: 'home_team_id', through: Fixture::class),
+            "`" . Fixture::class . "` has no BelongsTo column referencing `" . Venue::class . "`",
+        ];
+
+        yield "Foreign key that isn't a column of the pivot" => [
+            fn(AssociationBuilder $association) => $association
+                ->has_many(Team::class, foreign_key: 'pilot_id', through: Fixture::class, as: 'opponents'),
+            "`" . Fixture::class . "` has no column `pilot_id`",
+        ];
     }
 
     // HasOne
@@ -522,8 +553,8 @@ final class ConfigBuilderTest extends TestCase
 
         $this->assertNotNull($association);
         $this->assertEquals([
-            new Config\HasOneAssociation(Badge::class, 'employee_id', 'badge', null),
-            new Config\HasOneAssociation(Desk::class, 'desk_id', 'desk', DeskAssignment::class),
+            new Config\HasOneAssociation(Badge::class, 'employee_id', 'badge', null, null),
+            new Config\HasOneAssociation(Desk::class, 'employee_id', 'desk', DeskAssignment::class, 'desk_id'),
         ], $association->has_one);
         $this->assertSame([], $association->has_many);
     }
@@ -598,6 +629,50 @@ final class ConfigBuilderTest extends TestCase
                 ->has_one(Venue::class, through: Badge::class),
             "The `through` record `" . Badge::class . "` is not defined",
         ];
+    }
+
+    // Through
+
+    public function test_through_resolves_the_columns_of_the_pivot_from_ancestors(): void
+    {
+        $config = self::builder()
+            ->add_record(Reader::class, association_builder: fn(AssociationBuilder $association) => $association
+                ->has_many(Magazine::class, through: Subscription::class))
+            ->add_record(Publication::class)
+            ->add_record(Magazine::class, association_builder: fn(AssociationBuilder $association) => $association
+                ->has_many(Reader::class, through: Subscription::class))
+            ->add_record(Subscription::class)
+            ->build();
+
+        $reader = $config->models[Reader::class]->association;
+        $magazine = $config->models[Magazine::class]->association;
+
+        $this->assertNotNull($reader);
+        $this->assertNotNull($magazine);
+        // The pivot references `Publication`, the parent of `Magazine`: on the related side, then the owner side.
+        $this->assertEquals(
+            new Config\HasManyAssociation(Magazine::class, 'reader_id', 'magazines', Subscription::class, 'publication_id'),
+            $reader->has_many[2]
+        );
+        $this->assertEquals([
+            new Config\HasManyAssociation(Reader::class, 'publication_id', 'readers', Subscription::class, 'reader_id'),
+        ], $magazine->has_many);
+    }
+
+    public function test_through_foreign_key_leaves_the_other_column_for_the_related_record(): void
+    {
+        $config = self::builder()
+            ->add_record(Team::class, association_builder: fn(AssociationBuilder $association) => $association
+                ->has_many(Team::class, foreign_key: 'home_team_id', through: Fixture::class, as: 'guests'))
+            ->add_record(Fixture::class)
+            ->build();
+
+        $association = $config->models[Team::class]->association;
+
+        $this->assertNotNull($association);
+        $this->assertEquals([
+            new Config\HasManyAssociation(Team::class, 'home_team_id', 'guests', Fixture::class, 'away_team_id'),
+        ], $association->has_many);
     }
 
     // Export

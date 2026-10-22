@@ -3,8 +3,7 @@
 namespace ICanBoogie\ActiveRecord;
 
 use ICanBoogie\ActiveRecord;
-use LogicException;
-use PDO;
+use InvalidArgumentException;
 
 use function is_string;
 
@@ -18,8 +17,15 @@ abstract readonly class HasRelation extends Relation
      * @inheritdoc
      *
      * @param Model<*> $owner
+     * @param non-empty-string $foreign_key
+     *     The column that references the owner: on the related record, or on the pivot with
+     *     `$through`.
      * @param class-string<ActiveRecord>|null $through
      *     The ActiveRecord used as pivot.
+     * @param non-empty-string|null $through_key
+     *     The column of the pivot that references the related record, required with `$through`.
+     *
+     * @throws InvalidArgumentException if `$through_key` is given without `$through`, or the other way round.
      */
     public function __construct(
         Model $owner,
@@ -27,8 +33,12 @@ abstract readonly class HasRelation extends Relation
         string $foreign_key,
         string $as,
         public ?string $through = null,
+        public ?string $through_key = null,
     ) {
         assert(is_string($owner->primary));
+
+        ($through === null) === ($through_key === null)
+        or throw new InvalidArgumentException("`through` and `through_key` go together");
 
         parent::__construct(
             owner: $owner,
@@ -46,8 +56,8 @@ abstract readonly class HasRelation extends Relation
      */
     protected function query(ActiveRecord $record): Query
     {
-        if ($this->through) {
-            return $this->build_through_query($record, $this->through);
+        if ($this->through && $this->through_key) {
+            return $this->build_through_query($record, $this->through, $this->through_key);
         }
 
         return $this
@@ -56,44 +66,33 @@ abstract readonly class HasRelation extends Relation
     }
 
     /**
+     * The related records are joined to the pivot, which is filtered on the key of the owner: the
+     * owner's table isn't needed. Both columns of the pivot are resolved by the config.
+     *
+     * The default select is kept: it has the columns of the related record and of its parents, and
+     * none of the pivot.
+     *
      * @param class-string<ActiveRecord> $through
+     * @param non-empty-string $through_key
      *
      * @return Query<ActiveRecord>
      *
      * https://guides.rubyonrails.org/association_basics.html#the-has-many-through-association
      */
-    private function build_through_query(ActiveRecord $record, string $through): Query
+    private function build_through_query(ActiveRecord $record, string $through, string $through_key): Query
     {
-        // $owner == $r1_model
-        // $related === $r2_model
-
-        $owner = $this->owner;
         $related = $this->resolve_related_model();
-        $through_model = $this->model_for_activerecord($through);
-        $r = $through_model->relations;
-        $r1 = $r->find(fn(Relation $r) => $r->related === $this->owner->activerecord_class)
-            ?? throw new LogicException("Unable to resolve relation: $owner->activerecord_class to $this->related");
-        $r2 = $r->find(fn(Relation $r) => $r->related === $related->activerecord_class)
-            ?? throw new LogicException("Unable to find related model for " . $related::class);
-        $r2_model = $this->model_for_activerecord($r2->related);
 
         assert(is_string($related->primary));
-        assert(is_string($owner->primary));
 
         $quote = $related->connection->quote_identifier(...);
+        $pivot_name = $quote($this->model_for_activerecord($through)->name);
 
-        $q = $related->query()->select($quote($related->alias) . '.*');
-        // Because of the select, we need to set the mode otherwise an array would be
-        // fetched instead of an object.
-        $q->mode(PDO::FETCH_CLASS, $related->activerecord_class);
-        $q->join(expression: 'INNER JOIN ' . $quote($through_model->name)
-            . ' ON ' . $quote($through_model->name) . ".{$r2->local_key}"
-            . ' = ' . $quote($r2_model->alias) . ".{$related->primary}");
-        $q->join(expression: 'INNER JOIN ' . $quote($owner->name) . ' ' . $quote($owner->alias)
-            . ' ON ' . $quote($through_model->name) . ".{$r1->local_key}"
-            . ' = ' . $quote($owner->alias) . ".{$owner->primary}");
-        $q->where($quote($owner->alias) . ".{$owner->primary} = ?", $record->{$this->local_key});
-
-        return $q;
+        return $related
+            ->query()
+            ->join(expression: "INNER JOIN $pivot_name"
+                . " ON $pivot_name." . $quote($through_key)
+                . ' = ' . $quote($related->alias) . '.' . $quote($related->primary))
+            ->where("$pivot_name." . $quote($this->foreign_key) . ' = ?', $record->{$this->local_key});
     }
 }

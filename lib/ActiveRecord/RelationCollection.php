@@ -56,6 +56,7 @@ class RelationCollection
                     foreign_key: $r->foreign_key,
                     as: $as,
                     through: $r->through,
+                    through_key: $r->through_key,
                 );
             }
 
@@ -67,6 +68,7 @@ class RelationCollection
                     foreign_key: $r->foreign_key,
                     as: $as,
                     through: $r->through,
+                    through_key: $r->through_key,
                 );
             }
         }

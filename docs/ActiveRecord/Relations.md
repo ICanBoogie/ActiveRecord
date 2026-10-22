@@ -265,6 +265,37 @@ foreach ($article->commenters as $user) {
 }
 ```
 
+Both columns are on the pivot, and resolved from its [BelongsTo][] columns when the config is built,
+as for a relation without pivot: the column that references the owner, or one of its ancestors, and
+the column that references the related record, or one of its ancestors. Comments reference articles
+with `nid`, and users with `user_id`. With `through`, `foreign_key` is the column of the pivot that
+references the owner. When the pivot references the owner and the related record with the same
+class, as friendships between users do, specify it, and the other column references the related
+record:
+
+<!-- doc-test: skip: the example records of the documentation have no such pivot -->
+```php
+<?php
+
+/**
+ * @property-read Query<User> $friends
+ */
+#[HasMany(User::class, foreign_key: 'user_id', through: Friendship::class, as: 'friends')]
+class User extends ActiveRecord
+{
+    // …
+}
+
+class Friendship extends ActiveRecord
+{
+    #[BelongsTo(User::class)]
+    public int $user_id;
+
+    #[BelongsTo(User::class)]
+    public int $friend_id;
+}
+```
+
 
 
 ## Has one

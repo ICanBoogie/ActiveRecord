@@ -50,13 +50,15 @@ final class HasOneRelationTest extends DbTestCase
         $this->assertSame('employee_id', $badge->local_key);
         $this->assertSame('employee_id', $badge->foreign_key);
         $this->assertNull($badge->through);
+        $this->assertNull($badge->through_key);
 
         $desk = $relations->get('desk');
         $this->assertInstanceOf(HasOneRelation::class, $desk);
         $this->assertSame(Desk::class, $desk->related);
         $this->assertSame('employee_id', $desk->local_key);
-        $this->assertSame('desk_id', $desk->foreign_key);
+        $this->assertSame('employee_id', $desk->foreign_key);
         $this->assertSame(DeskAssignment::class, $desk->through);
+        $this->assertSame('desk_id', $desk->through_key);
     }
 
     public function test_getter_returns_the_related_record(): void

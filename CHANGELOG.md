@@ -137,6 +137,15 @@ PHP 8.4+, `icanboogie/config` ^7.0, `icanboogie/prototype` ^7.0
   already active.
 - Fixed upserts on MySQL and PostgreSQL for tables where every column is part of the primary key,
   such as join tables. The update clause used to be empty, which is invalid SQL.
+- Fixed relations through a pivot not fetching the columns of the parents of the related record. The
+  query no longer joins the table of the owner, filters on the column of the pivot, and quotes its
+  columns.
+- The columns of a pivot are resolved by `ConfigBuilder`, from its `BelongsTo` columns that
+  reference the owner and the related record, or one of their ancestors, instead of being searched
+  each time the relation is used. A pivot that doesn't reference them, or references them more than
+  once, fails the build with `InvalidConfig`, instead of failing at runtime or using the first
+  `BelongsTo`. With `through`, `foreign_key` is the column of the pivot that references the owner,
+  which makes a pivot that references the same class twice possible, e.g. friendships.
 - Use `Pdo\Mysql::ATTR_INIT_COMMAND` instead of `PDO::MYSQL_ATTR_INIT_COMMAND`, which is deprecated
   since PHP 8.5.
 - `StaticModelProvider` now caches models per record class, and `set()` invalidates the cache.
