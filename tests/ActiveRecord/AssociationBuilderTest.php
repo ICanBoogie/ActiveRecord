@@ -10,6 +10,10 @@ use stdClass;
 use Test\ICanBoogie\Acme\ConfigBuilder\Publication;
 use Test\ICanBoogie\Acme\ConfigBuilder\Reader;
 use Test\ICanBoogie\Acme\ConfigBuilder\Subscription;
+use Test\ICanBoogie\Acme\HasOne\Badge;
+use Test\ICanBoogie\Acme\HasOne\Desk;
+use Test\ICanBoogie\Acme\HasOne\DeskAssignment;
+use Test\ICanBoogie\Acme\HasOne\Employee;
 
 final class AssociationBuilderTest extends TestCase
 {
@@ -88,5 +92,63 @@ final class AssociationBuilderTest extends TestCase
 
         // @phpstan-ignore-next-line
         new AssociationBuilder()->has_many(Subscription::class, as: '');
+    }
+
+    public function test_starts_with_the_has_one_associations_of_the_record(): void
+    {
+        $association = new AssociationBuilder(Employee::class)->build();
+
+        $this->assertSame([], $association->has_many);
+        $this->assertCount(2, $association->has_one);
+        $this->assertSame(Badge::class, $association->has_one[0]->associate);
+        $this->assertNull($association->has_one[0]->through);
+        $this->assertSame(Desk::class, $association->has_one[1]->associate);
+        $this->assertSame(DeskAssignment::class, $association->has_one[1]->through);
+    }
+
+    public function test_has_one_completes_the_attributes(): void
+    {
+        $association = new AssociationBuilder(Employee::class)
+            ->has_one(Badge::class, as: 'access_badge')
+            ->build();
+
+        $this->assertCount(3, $association->has_one);
+    }
+
+    public function test_duplicate_has_one_is_rejected(): void
+    {
+        $builder = new AssociationBuilder(Employee::class);
+
+        try {
+            $builder->has_one(Badge::class);
+            $this->fail("Expected InvalidAssociation");
+        } catch (InvalidAssociation $e) {
+            $this->assertSame(Employee::class, $e->record_class);
+            $this->assertStringContainsString("has-one relation with `" . Badge::class . "`", $e->getMessage());
+        }
+    }
+
+    public function test_has_one_associate_must_be_an_activerecord(): void
+    {
+        $this->expectException(InvalidAssociation::class);
+
+        // @phpstan-ignore-next-line
+        new AssociationBuilder()->has_one(stdClass::class);
+    }
+
+    public function test_has_one_through_must_be_an_activerecord(): void
+    {
+        $this->expectException(InvalidAssociation::class);
+
+        // @phpstan-ignore-next-line
+        new AssociationBuilder()->has_one(Badge::class, through: stdClass::class);
+    }
+
+    public function test_has_one_empty_as_is_rejected(): void
+    {
+        $this->expectException(InvalidAssociation::class);
+
+        // @phpstan-ignore-next-line
+        new AssociationBuilder()->has_one(Badge::class, as: '');
     }
 }

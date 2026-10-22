@@ -11,9 +11,11 @@ final readonly class TransientAssociation
 {
     /**
      * @param array<TransientHasManyAssociation> $has_many
+     * @param array<TransientHasOneAssociation> $has_one
      */
     public function __construct(
         public array $has_many,
+        public array $has_one,
     ) {
     }
 }

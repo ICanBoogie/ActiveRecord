@@ -3,7 +3,6 @@
 namespace ICanBoogie\ActiveRecord;
 
 use Closure;
-use ICanBoogie\ActiveRecord;
 use ICanBoogie\ActiveRecord\Config\Association;
 
 use function array_values;
@@ -44,13 +43,25 @@ class RelationCollection
                 );
             }
 
-            if ($association->has_many) {
+            // Has-many and has-one relations need a single-column primary key, which ConfigBuilder ensures.
+            if ($association->has_many || $association->has_one) {
                 assert(is_string($this->model->primary));
             }
 
             foreach ($association->has_many as $r) {
                 $as = $r->as;
                 $relations[$as] = new HasManyRelation(
+                    owner: $this->model,
+                    related: $r->associate,
+                    foreign_key: $r->foreign_key,
+                    as: $as,
+                    through: $r->through,
+                );
+            }
+
+            foreach ($association->has_one as $r) {
+                $as = $r->as;
+                $relations[$as] = new HasOneRelation(
                     owner: $this->model,
                     related: $r->associate,
                     foreign_key: $r->foreign_key,
@@ -100,20 +111,14 @@ class RelationCollection
      */
     public function find(Closure $predicate): ?Relation
     {
-        foreach ($this->relations as $as => $relation) {
-            if ($predicate($relation, $as)) {
-                return $relation;
-            }
-        }
-
-        return null;
+        return array_find($this->relations, $predicate);
     }
 
     /**
      * Resolve the columns linking the model to another model.
      *
      * The relations of the model to the other model, and the relations of the other model to the
-     * model, are considered. `has_many … through` relations are ignored.
+     * model, are considered. `has_many … through` and `has_one … through` relations are ignored.
      *
      * @param Model<*> $other
      *
@@ -158,6 +163,6 @@ class RelationCollection
 
     private function is_direct(Relation $relation): bool
     {
-        return !($relation instanceof HasManyRelation && $relation->through);
+        return !($relation instanceof HasRelation && $relation->through);
     }
 }

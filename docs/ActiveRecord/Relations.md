@@ -1,8 +1,8 @@
 # Relations
 
-Records relate to each other in three ways: a record class can extend another, a record can belong
-to another, and a record can have many others. The models of the related records must be defined in
-the same config.
+Records relate to each other in four ways: a record class can extend another, a record can belong
+to another, a record can have many others, and a record can have one other. The models of the
+related records must be defined in the same config.
 
 The examples use the records of [Getting started](../GettingStarted.md), and `$builder` is a
 `ConfigBuilder` with these records already added.
@@ -267,6 +267,72 @@ foreach ($article->commenters as $user) {
 
 
 
+## Has one
+
+A record can have one other record. For instance, an employee has one badge. The relation is
+declared with the [HasOne][] attribute on the record class, which is repeatable, or with
+`AssociationBuilder::has_one()`. It takes the same options as [Has many](#has-many), and its
+`foreign_key` is resolved the same way, directly or through a pivot record.
+
+A getter is added to the record class, and returns the related record, or `null` if there's none.
+Its name is the alias of the related model, `badge` for `Badge`. Use `as` to choose another name.
+
+The getter returns the first related record. That there is at most one is up to the schema: make
+the column that references the owner unique, or, through a pivot, make it the primary key of the
+pivot. Below, a badge references its employee with a unique column, and a desk assignment has the
+employee as primary key:
+
+<!-- doc-test: skip: the example records of the documentation have no one-to-one relation -->
+```php
+<?php
+
+/**
+ * @property-read Badge|null $badge
+ * @property-read Desk|null $desk
+ */
+#[HasOne(Badge::class)]
+#[HasOne(Desk::class, through: DeskAssignment::class)]
+class Employee extends ActiveRecord
+{
+    #[Id, Serial]
+    public int $employee_id;
+}
+
+class Badge extends ActiveRecord
+{
+    #[Id, Serial]
+    public int $badge_id;
+
+    #[BelongsTo(Employee::class, unique: true)]
+    public int $employee_id;
+}
+
+class DeskAssignment extends ActiveRecord
+{
+    #[Id, BelongsTo(Employee::class)]
+    public int $employee_id;
+
+    #[BelongsTo(Desk::class)]
+    public int $desk_id;
+}
+```
+
+<!-- doc-test: skip: the example records of the documentation have no one-to-one relation -->
+```php
+<?php
+
+/* @var $employee Employee */
+
+echo $employee->badge?->badge_id ?? "No badge";
+echo $employee->desk?->desk_id ?? "No desk";
+```
+
+Like a belongs-to getter, a has-one getter runs a query each time it's accessed, nothing is cached.
+Keep the record in a variable to use it more than once.
+
+
+
 [BelongsTo]: ../../lib/ActiveRecord/Schema/BelongsTo.php
 [HasMany]:   ../../lib/ActiveRecord/Schema/HasMany.php
+[HasOne]:    ../../lib/ActiveRecord/Schema/HasOne.php
 [InvalidAssociation]: ../../lib/ActiveRecord/Config/InvalidAssociation.php

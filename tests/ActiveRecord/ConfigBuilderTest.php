@@ -37,6 +37,10 @@ use Test\ICanBoogie\Acme\ConfigBuilder\VipSeat;
 use Test\ICanBoogie\Acme\Discovery\Author as DiscoveredAuthor;
 use Test\ICanBoogie\Acme\Discovery\Book as DiscoveredBook;
 use Test\ICanBoogie\Acme\Discovery\Reviewer as DiscoveredReviewer;
+use Test\ICanBoogie\Acme\HasOne\Badge;
+use Test\ICanBoogie\Acme\HasOne\Desk;
+use Test\ICanBoogie\Acme\HasOne\DeskAssignment;
+use Test\ICanBoogie\Acme\HasOne\Employee;
 use Test\ICanBoogie\SetStateHelper;
 use Throwable;
 
@@ -503,6 +507,99 @@ final class ConfigBuilderTest extends TestCase
         ];
     }
 
+    // HasOne
+
+    public function test_has_one_associations_from_attributes(): void
+    {
+        $config = self::builder()
+            ->add_record(Employee::class)
+            ->add_record(Badge::class)
+            ->add_record(Desk::class)
+            ->add_record(DeskAssignment::class)
+            ->build();
+
+        $association = $config->models[Employee::class]->association;
+
+        $this->assertNotNull($association);
+        $this->assertEquals([
+            new Config\HasOneAssociation(Badge::class, 'employee_id', 'badge', null),
+            new Config\HasOneAssociation(Desk::class, 'desk_id', 'desk', DeskAssignment::class),
+        ], $association->has_one);
+        $this->assertSame([], $association->has_many);
+    }
+
+    public function test_has_one_as_names_the_accessor(): void
+    {
+        $config = self::builder()
+            ->add_record(
+                record_class: Employee::class,
+                association_builder: fn(AssociationBuilder $association) => $association
+                    ->has_one(Badge::class, as: 'access_badge'),
+            )
+            ->add_record(Badge::class)
+            ->add_record(Desk::class)
+            ->add_record(DeskAssignment::class)
+            ->build();
+
+        $association = $config->models[Employee::class]->association;
+
+        $this->assertNotNull($association);
+        $this->assertSame('access_badge', $association->has_one[2]->as);
+    }
+
+    /**
+     * @param Closure(AssociationBuilder): AssociationBuilder $association_builder
+     */
+    #[DataProvider('provide_invalid_has_one')]
+    public function test_invalid_has_one(Closure $association_builder, string $expected): void
+    {
+        $builder = self::builder()
+            ->add_record(Team::class, association_builder: $association_builder)
+            ->add_record(Fixture::class)
+            ->add_record(Venue::class);
+
+        try {
+            $builder->build();
+
+            $this->fail("Expected InvalidConfig");
+        } catch (InvalidConfig $e) {
+            $this->assertStringStartsWith("Unable to apply", $e->getMessage());
+            $this->assertStringContainsString("has_one", $e->getMessage());
+            $this->assertInstanceOf(Throwable::class, $e->getPrevious());
+            $this->assertStringContainsString($expected, $e->getPrevious()->getMessage());
+        }
+    }
+
+    /**
+     * @return iterable<string, array{ Closure(AssociationBuilder): AssociationBuilder, string }>
+     */
+    public static function provide_invalid_has_one(): iterable
+    {
+        yield "No BelongsTo column" => [
+            fn(AssociationBuilder $association) => $association
+                ->has_one(Venue::class),
+            "has no BelongsTo column referencing",
+        ];
+
+        yield "Several BelongsTo columns" => [
+            fn(AssociationBuilder $association) => $association
+                ->has_one(Fixture::class),
+            "several BelongsTo columns referencing",
+        ];
+
+        yield "Associate not defined" => [
+            fn(AssociationBuilder $association) => $association
+                ->has_one(Badge::class),
+            "The associated record `" . Badge::class . "` is not defined",
+        ];
+
+        yield "Through record not defined" => [
+            fn(AssociationBuilder $association) => $association
+                ->has_one(Venue::class, through: Badge::class),
+            "The `through` record `" . Badge::class . "` is not defined",
+        ];
+    }
+
     // Export
 
     public function test_export(): void
@@ -513,6 +610,10 @@ final class ConfigBuilderTest extends TestCase
             ->add_record(Magazine::class)
             ->add_record(Subscription::class)
             ->add_record(Letter::class)
+            ->add_record(Employee::class)
+            ->add_record(Badge::class)
+            ->add_record(Desk::class)
+            ->add_record(DeskAssignment::class)
             ->build();
 
         $this->assertEquals($config, SetStateHelper::export_import($config));

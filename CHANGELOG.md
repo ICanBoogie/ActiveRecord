@@ -25,6 +25,9 @@ PHP 8.4+, `icanboogie/config` ^7.0, `icanboogie/prototype` ^7.0
 - Added `Connection::transaction()` to run a callback in a transaction, or in a savepoint when a transaction is
   already active, so that a nested failure only rolls back its own work. `Table` uses it to save records.
 - Added `RelationCollection::columns_to()`, `RelationNotFound`, and `AmbiguousRelation`.
+- Added has-one relations, declared with `#[HasOne]` or `AssociationBuilder::has_one()`, directly or
+  through a pivot, e.g. `#[HasOne(Desk::class, through: DeskAssignment::class)]`. The getter returns
+  the related record or `null`. `HasManyRelation` and `HasOneRelation` extend `HasRelation`.
 - Added `ConfigBuilder::enable_discovery()` and `disable_discovery()`. When enabled, `build()` uses
   `olvlvl/composer-attribute-collector` to add the records tagged with `SchemaAttribute`.
 - Added the `#[Record]` attribute to configure a discovered record: `model_class`, `query_class`,

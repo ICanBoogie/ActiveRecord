@@ -18,6 +18,10 @@ use Test\ICanBoogie\Acme\Driver;
 use Test\ICanBoogie\Acme\HasMany\Appointment;
 use Test\ICanBoogie\Acme\HasMany\Patient;
 use Test\ICanBoogie\Acme\HasMany\Physician;
+use Test\ICanBoogie\Acme\HasOne\Badge;
+use Test\ICanBoogie\Acme\HasOne\Desk;
+use Test\ICanBoogie\Acme\HasOne\DeskAssignment;
+use Test\ICanBoogie\Acme\HasOne\Employee;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\Subscriber;
 use Test\ICanBoogie\Acme\Update;
@@ -148,6 +152,21 @@ final class Fixtures
                 ),
                 'patients' => $config->add_record(
                     record_class: Patient::class,
+                ),
+                #
+                # has one
+                #
+                'employees' => $config->add_record(
+                    record_class: Employee::class,
+                ),
+                'badges' => $config->add_record(
+                    record_class: Badge::class,
+                ),
+                'desks' => $config->add_record(
+                    record_class: Desk::class,
+                ),
+                'desk_assignments' => $config->add_record(
+                    record_class: DeskAssignment::class,
                 ),
                 default => throw new LogicException("We don't have that model: $id")
             };

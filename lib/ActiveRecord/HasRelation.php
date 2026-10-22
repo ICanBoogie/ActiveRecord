@@ -1,0 +1,99 @@
+<?php
+
+namespace ICanBoogie\ActiveRecord;
+
+use ICanBoogie\ActiveRecord;
+use LogicException;
+use PDO;
+
+use function is_string;
+
+/**
+ * What a has-many and a has-one relation have in common: the related records reference the owner,
+ * directly or through a pivot, and they are found with the same query.
+ */
+abstract readonly class HasRelation extends Relation
+{
+    /**
+     * @inheritdoc
+     *
+     * @param Model<*> $owner
+     * @param class-string<ActiveRecord>|null $through
+     *     The ActiveRecord used as pivot.
+     */
+    public function __construct(
+        Model $owner,
+        string $related,
+        string $foreign_key,
+        string $as,
+        public ?string $through = null,
+    ) {
+        assert(is_string($owner->primary));
+
+        parent::__construct(
+            owner: $owner,
+            related: $related,
+            local_key: $owner->primary,
+            foreign_key: $foreign_key,
+            as: $as,
+        );
+    }
+
+    /**
+     * Creates a query for the records related to a record.
+     *
+     * @return Query<ActiveRecord>
+     */
+    protected function query(ActiveRecord $record): Query
+    {
+        if ($this->through) {
+            return $this->build_through_query($record, $this->through);
+        }
+
+        return $this
+            ->resolve_related_model()
+            ->where([ $this->foreign_key => $record->{$this->local_key} ]);
+    }
+
+    /**
+     * @param class-string<ActiveRecord> $through
+     *
+     * @return Query<ActiveRecord>
+     *
+     * https://guides.rubyonrails.org/association_basics.html#the-has-many-through-association
+     */
+    private function build_through_query(ActiveRecord $record, string $through): Query
+    {
+        // $owner == $r1_model
+        // $related === $r2_model
+
+        $owner = $this->owner;
+        $related = $this->resolve_related_model();
+        $through_model = $this->model_for_activerecord($through);
+        $r = $through_model->relations;
+        $r1 = $r->find(fn(Relation $r) => $r->related === $this->owner->activerecord_class)
+            ?? throw new LogicException("Unable to resolve relation: $owner->activerecord_class to $this->related");
+        $r2 = $r->find(fn(Relation $r) => $r->related === $related->activerecord_class)
+            ?? throw new LogicException("Unable to find related model for " . $related::class);
+        $r2_model = $this->model_for_activerecord($r2->related);
+
+        assert(is_string($related->primary));
+        assert(is_string($owner->primary));
+
+        $quote = $related->connection->quote_identifier(...);
+
+        $q = $related->query()->select($quote($related->alias) . '.*');
+        // Because of the select, we need to set the mode otherwise an array would be
+        // fetched instead of an object.
+        $q->mode(PDO::FETCH_CLASS, $related->activerecord_class);
+        $q->join(expression: 'INNER JOIN ' . $quote($through_model->name)
+            . ' ON ' . $quote($through_model->name) . ".{$r2->local_key}"
+            . ' = ' . $quote($r2_model->alias) . ".{$related->primary}");
+        $q->join(expression: 'INNER JOIN ' . $quote($owner->name) . ' ' . $quote($owner->alias)
+            . ' ON ' . $quote($through_model->name) . ".{$r1->local_key}"
+            . ' = ' . $quote($owner->alias) . ".{$owner->primary}");
+        $q->where($quote($owner->alias) . ".{$owner->primary} = ?", $record->{$this->local_key});
+
+        return $q;
+    }
+}

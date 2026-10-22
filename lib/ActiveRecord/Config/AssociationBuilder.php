@@ -18,6 +18,11 @@ final class AssociationBuilder
     private array $has_many = [];
 
     /**
+     * @var list<TransientHasOneAssociation>
+     */
+    private array $has_one = [];
+
+    /**
      * @param class-string<ActiveRecord>|null $record_class
      *     The initial associations are configured from the {@see ActiveRecord} class, when it is provided.
      *
@@ -38,6 +43,7 @@ final class AssociationBuilder
     {
         return new TransientAssociation(
             has_many: $this->has_many,
+            has_one: $this->has_one,
         );
     }
 
@@ -71,19 +77,7 @@ final class AssociationBuilder
         ?string $as = null,
         ?string $through = null,
     ): self {
-        is_subclass_of($associate, ActiveRecord::class)
-        or $this->error("`$associate` is not extending `" . ActiveRecord::class . "`, given for `associate`");
-
-        $through === null || is_subclass_of($through, ActiveRecord::class)
-        or $this->error("`$through` is not extending `" . ActiveRecord::class . "`, given for `through`");
-
-        // @phpstan-ignore-next-line // double checking, just in case
-        $foreign_key !== ''
-        or $this->error("`foreign_key` must not be empty");
-
-        // @phpstan-ignore-next-line // double checking, just in case
-        $as !== ''
-        or $this->error("`as` must not be empty");
+        $this->assert_association($associate, $foreign_key, $as, $through);
 
         foreach ($this->has_many as $other) {
             if (
@@ -107,6 +101,72 @@ final class AssociationBuilder
     }
 
     /**
+     * The relation returns the first matching record, or `null`. That there is at most one is up to
+     * the schema, e.g. with a unique key on the column that references the owner.
+     *
+     * @param class-string<ActiveRecord> $associate
+     *     The associate ActiveRecord.
+     * @param non-empty-string|null $foreign_key
+     *     The column of the associate that references the owner. Defaults to the associate's
+     *     {@see Schema\BelongsTo} column that references the owner, or one of its ancestors.
+     * @param non-empty-string|null $as
+     *     The name of the accessor.
+     * @param class-string<ActiveRecord>|null $through
+     *     An optional ActiveRecord pivot.
+     *
+     * @return $this
+     *
+     * @throws InvalidAssociation if the associate or the pivot is not an {@see ActiveRecord} class, if
+     * `$foreign_key` or `$as` is empty, or if the relation is already defined.
+     */
+    public function has_one(
+        string $associate,
+        ?string $foreign_key = null,
+        ?string $as = null,
+        ?string $through = null,
+    ): self {
+        $this->assert_association($associate, $foreign_key, $as, $through);
+
+        foreach ($this->has_one as $other) {
+            if (
+                $other->associate === $associate
+                && $other->through === $through
+                && $other->foreign_key === $foreign_key
+                && $other->as === $as
+            ) {
+                $this->error("The has-one relation with `$associate` is already defined");
+            }
+        }
+
+        $this->has_one[] = new TransientHasOneAssociation(
+            associate: $associate,
+            foreign_key: $foreign_key,
+            as: $as,
+            through: $through,
+        );
+
+        return $this;
+    }
+
+    /**
+     * @throws InvalidAssociation
+     */
+    private function assert_association(string $associate, ?string $foreign_key, ?string $as, ?string $through): void
+    {
+        is_subclass_of($associate, ActiveRecord::class)
+        or $this->error("`$associate` is not extending `" . ActiveRecord::class . "`, given for `associate`");
+
+        $through === null || is_subclass_of($through, ActiveRecord::class)
+        or $this->error("`$through` is not extending `" . ActiveRecord::class . "`, given for `through`");
+
+        $foreign_key !== ''
+        or $this->error("`foreign_key` must not be empty");
+
+        $as !== ''
+        or $this->error("`as` must not be empty");
+    }
+
+    /**
      * @param class-string<ActiveRecord> $activerecord_class
      */
     private function use_record(string $activerecord_class): void
@@ -118,6 +178,18 @@ final class AssociationBuilder
             /** @var Schema\HasMany $attribute */
 
             $this->has_many(
+                associate: $attribute->associate,
+                foreign_key: $attribute->foreign_key,
+                as: $attribute->as,
+                through: $attribute->through,
+            );
+        }
+
+        foreach ($class->getAttributes(Schema\HasOne::class) as $attribute) {
+            $attribute = $attribute->newInstance();
+            /** @var Schema\HasOne $attribute */
+
+            $this->has_one(
                 associate: $attribute->associate,
                 foreign_key: $attribute->foreign_key,
                 as: $attribute->as,

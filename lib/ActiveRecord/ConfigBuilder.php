@@ -10,28 +10,30 @@ use ICanBoogie\ActiveRecord\Config\AssociationBuilder;
 use ICanBoogie\ActiveRecord\Config\BelongsToAssociation;
 use ICanBoogie\ActiveRecord\Config\ConnectionDefinition;
 use ICanBoogie\ActiveRecord\Config\HasManyAssociation;
+use ICanBoogie\ActiveRecord\Config\HasOneAssociation;
 use ICanBoogie\ActiveRecord\Config\InvalidConfig;
 use ICanBoogie\ActiveRecord\Config\ModelDefinition;
 use ICanBoogie\ActiveRecord\Config\TableDefinition;
 use ICanBoogie\ActiveRecord\Config\TransientAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientHasManyAssociation;
+use ICanBoogie\ActiveRecord\Config\TransientHasOneAssociation;
 use ICanBoogie\ActiveRecord\Config\TransientModelDefinition;
 use ICanBoogie\ActiveRecord\Schema\Integer;
 use ICanBoogie\Config\Builder;
 use olvlvl\ComposerAttributeCollector\Attributes;
 use Throwable;
 
+use function array_keys;
 use function assert;
+use function class_exists;
 use function count;
 use function get_parent_class;
 use function ICanBoogie\trim_suffix;
 use function implode;
 use function is_a;
-use function is_subclass_of;
 use function is_string;
+use function is_subclass_of;
 use function json_encode;
-use function array_keys;
-use function class_exists;
 use function preg_match;
 use function strlen;
 use function strrpos;
@@ -255,9 +257,23 @@ final class ConfigBuilder implements Builder
                 }
             }
 
+            $has_one = [];
+
+            foreach ($association->has_one as $item) {
+                try {
+                    $has_one[] = $this->resolve_has_one($owner, $item);
+                } catch (Throwable $e) {
+                    $this->error(
+                        "Unable to apply `$owner->activerecord_class::has_one($item->associate)`",
+                        previous: $e
+                    );
+                }
+            }
+
             $associations[$activerecord_class] = new Association(
                 belongs_to: $belongs_to,
                 has_many: $has_many,
+                has_one: $has_one,
             );
         }
 
@@ -433,6 +449,46 @@ final class ConfigBuilder implements Builder
         TransientModelDefinition $owner,
         TransientHasManyAssociation $association
     ): HasManyAssociation {
+        [ $related, $foreign_key, $through ] = $this->resolve_has($owner, $association);
+        $as = $association->as ?? Inflector::pluralize($related->alias);
+
+        assert(strlen($as) > 1);
+
+        return new HasManyAssociation(
+            associate: $related->activerecord_class,
+            foreign_key: $foreign_key,
+            as: $as,
+            through: $through?->activerecord_class,
+        );
+    }
+
+    private function resolve_has_one(
+        TransientModelDefinition $owner,
+        TransientHasOneAssociation $association
+    ): HasOneAssociation {
+        [ $related, $foreign_key, $through ] = $this->resolve_has($owner, $association);
+        $as = $association->as ?? $related->alias;
+
+        assert(strlen($as) > 0);
+
+        return new HasOneAssociation(
+            associate: $related->activerecord_class,
+            foreign_key: $foreign_key,
+            as: $as,
+            through: $through?->activerecord_class,
+        );
+    }
+
+    /**
+     * Resolves what a has-many and a has-one association have in common: the related record, the
+     * foreign key, and the pivot.
+     *
+     * @return array{ TransientModelDefinition, non-empty-string, TransientModelDefinition|null }
+     */
+    private function resolve_has(
+        TransientModelDefinition $owner,
+        TransientHasManyAssociation|TransientHasOneAssociation $association
+    ): array {
         if (!$owner->schema->has_single_column_primary) {
             // @phpstan-ignore-next-line // primary is an array at this point
             $primary_str = implode(", ", $owner->schema->primary);
@@ -443,7 +499,6 @@ final class ConfigBuilder implements Builder
         $related = $this->model_definitions[$association->associate]
             ?? $this->error("The associated record `$association->associate` is not defined");
         $foreign_key = $association->foreign_key;
-        $as = $association->as ?? Inflector::pluralize($related->alias);
 
         if ($association->through) {
             $foreign_key ??= $related->schema->primary;
@@ -451,7 +506,7 @@ final class ConfigBuilder implements Builder
             $related->schema->has_column($foreign_key)
             or $this->error("`$related->activerecord_class` has no column `$foreign_key`");
         } else {
-            $foreign_key = $this->resolve_has_many_foreign_key($owner, $related);
+            $foreign_key = $this->resolve_has_foreign_key($owner, $related);
         }
 
         $foreign_key or $this->error("Unable to resolve the foreign key");
@@ -464,23 +519,16 @@ final class ConfigBuilder implements Builder
                 ?? $this->error("The `through` record `$association->through` is not defined");
         }
 
-        assert(strlen($as) > 1);
-
-        return new HasManyAssociation(
-            associate: $related->activerecord_class,
-            foreign_key: $foreign_key,
-            as: $as,
-            through: $through?->activerecord_class,
-        );
+        return [ $related, $foreign_key, $through ];
     }
 
     /**
-     * Resolves the foreign key of a has-many relation from the {@see Schema\BelongsTo} column of the
-     * related record that references the owner, or one of its ancestors.
+     * Resolves the foreign key of a has-many or has-one relation from the {@see Schema\BelongsTo}
+     * column of the related record that references the owner, or one of its ancestors.
      *
      * @return non-empty-string
      */
-    private function resolve_has_many_foreign_key(
+    private function resolve_has_foreign_key(
         TransientModelDefinition $owner,
         TransientModelDefinition $related,
     ): string {
