@@ -22,7 +22,6 @@ use function is_numeric;
 use function is_string;
 use function preg_match;
 use function preg_replace;
-use function reset;
 use function substr;
 use function trigger_error;
 
@@ -165,7 +164,8 @@ class Query implements IteratorAggregate
      */
     public function __construct(
         public readonly Model $model // @phpstan-ignore generics.variance
-    ) {
+    )
+    {
     }
 
     /**
@@ -371,12 +371,23 @@ class Query implements IteratorAggregate
      *     A {@link execute} instance, it is rendered as a string and used as a subquery of the `JOIN` clause.
      *     The `$options` parameter can be used to customize the output.
      * @param ?class-string<ActiveRecord> $record
+     *     An ActiveRecord class, its model is joined. Unless `$on` is provided, the join is established from the
+     *     relations of the queried model to the joined model, or the relations of the joined model to the queried
+     *     model.
      * @param non-empty-string $mode
      *     Join mode. Default: "INNER"
      * @param ?non-empty-string $as
-     *     The alias of the subquery. Default: The query's model alias.
+     *     The alias of the joined subquery or model. Default: The alias of the subquery's model, or of the joined
+     *     model.
      * @param ?non-empty-string $on
-     *     The column on which to joint is created. Default: The query's model primary key.
+     *     How the join is created. Default: The primary key of the subquery's model with `$query`, resolved from the
+     *     relations between the models with `$record`.
+     *
+     *     - With `$query`, the name of a column.
+     *     - With `$record`, a column name, which renders as `USING(column)` and must exist on both sides (on the
+     *       joined model, and on the queried model or a model already joined), or an `ON` expression such as
+     *       `"a.school_id = b.school_id"`. A value made of word characters only is taken as a column name, anything
+     *       else as an expression.
      *
      * @return $this
      *
@@ -386,6 +397,10 @@ class Query implements IteratorAggregate
      * # using an ActiveRecord class.
      *
      * $query->join(record: Comment::class);
+     *
+     * # joining a model on a column, after another join.
+     *
+     * $query->join(record: PhotoSession::class)->join(record: School::class, on: 'school_id');
      *
      * # using a subquery
      *
@@ -537,7 +552,9 @@ class Query implements IteratorAggregate
         }
 
         if (!$target) {
-            throw new LogicException("Unable to resolve column `$queried_column` from model $queried_class. Specify `on`.");
+            throw new LogicException(
+                "Unable to resolve column `$queried_column` from model $queried_class. Specify `on`."
+            );
         }
 
         return 'ON ' . $this->quote_identifier($target->alias) . '.' . $this->quote_identifier($queried_column)
