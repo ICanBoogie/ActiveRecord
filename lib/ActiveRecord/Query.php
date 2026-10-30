@@ -160,6 +160,13 @@ class Query implements IteratorAggregate
     private array $mode = [];
 
     /**
+     * The relations to preload on the records fetched by {@see all()}, by name.
+     *
+     * @var array<string, Relation>
+     */
+    private array $includes = [];
+
+    /**
      * @param Model<TRecord> $model The model to query.
      */
     public function __construct(
@@ -836,6 +843,38 @@ class Query implements IteratorAggregate
     }
 
     /**
+     * Preload relations on the records fetched by {@see all()}, with one query per relation,
+     * instead of one query per record when the relation is read.
+     *
+     * Only {@see all()} preloads, and what relies on it: the `$all` property, and iterating over
+     * the query (once per batch). {@see one()} and the aggregates ignore the relations.
+     *
+     * ```php
+     * foreach ($cars->query()->includes('brand') as $car) {
+     *     echo $car->brand->name; // no query
+     * }
+     * ```
+     *
+     * @param non-empty-string ...$relations Names of relations, as declared on the model or its parents.
+     *
+     * @return $this
+     *
+     * @throws RelationNotDefined if a relation isn't defined.
+     * @throws RelationNotPreloadable if a relation can't be preloaded, see {@see Relation::is_preloadable()}.
+     */
+    public function includes(string ...$relations): static
+    {
+        foreach ($relations as $name) {
+            $relation = $this->model->relations->resolve($name);
+            $relation->is_preloadable() or throw new RelationNotPreloadable($relation);
+
+            $this->includes[$name] = $relation;
+        }
+
+        return $this;
+    }
+
+    /**
      * Prepare the query.
      *
      * We use the connection's prepare() method because the statement has already been resolved
@@ -905,13 +944,36 @@ class Query implements IteratorAggregate
     /**
      * Execute the query and returns an array of records.
      *
+     * The relations of {@see includes()} are preloaded on the records.
+     *
      * @param mixed ...$mode Fetch mode.
      *
      * @return array<mixed>
+     *
+     * @throws LogicException if relations are included and the fetch mode doesn't produce records,
+     *     e.g. with {@see select()} or `PDO::FETCH_COLUMN`: there is nothing to attach them to.
      */
     public function all(...$mode): array
     {
-        return $this->execute()->all(...$this->resolve_fetch_mode(...$mode));
+        $fetch_mode = $this->resolve_fetch_mode(...$mode);
+
+        if (!$this->includes) {
+            return $this->execute()->all(...$fetch_mode);
+        }
+
+        // Flags such as `PDO::FETCH_PROPS_LATE` are in the high bits of the mode.
+        if (($fetch_mode[0] & 0xFFFF) !== PDO::FETCH_CLASS) {
+            throw new LogicException("Relations can only be included when fetching records.");
+        }
+
+        /** @var ActiveRecord[] $owners */
+        $owners = $this->execute()->all(...$fetch_mode);
+
+        foreach ($this->includes as $relation) {
+            $relation->preload($owners);
+        }
+
+        return $owners;
     }
 
     /**
