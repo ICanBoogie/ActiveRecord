@@ -370,6 +370,23 @@ $title = Article::query()->select('title')->order('-views')->rc; // Hello world
 
 
 
+## Preloading relations
+
+`includes()` names the relations to load on the records that `all()` fetches, with one query per
+relation instead of one query per record when the relation is read. It applies to the `all`
+property and to iteration too, once per batch. See
+[Preloading relations](Relations.md#preloading-relations) for what can be preloaded.
+
+```php
+<?php
+
+namespace App;
+
+$comments = Comment::query()->includes('user')->all;
+```
+
+
+
 ## Defining the fetch mode
 
 The fetch mode is usually selected by the query interface, but the `mode()` method can specify it.

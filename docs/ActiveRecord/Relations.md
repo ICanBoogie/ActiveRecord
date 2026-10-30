@@ -358,8 +358,60 @@ echo $employee->badge?->badge_id ?? "No badge";
 echo $employee->desk?->desk_id ?? "No desk";
 ```
 
-Like a belongs-to getter, a has-one getter runs a query each time it's accessed, nothing is cached.
-Keep the record in a variable to use it more than once.
+Like a belongs-to getter, a has-one getter runs a query each time it's accessed, nothing is cached,
+unless the relation was [preloaded](#preloading-relations). Keep the record in a variable to use it
+more than once.
+
+
+
+## Preloading relations
+
+Reading a relation of each record of a list runs a query per record. For 100 comments, reading
+`$comment->user` runs 100 queries on top of the one that fetched the comments. To run one query
+instead, name the relations in `Query::includes()`, the records that `all()` fetches come with
+them loaded:
+
+```php
+<?php
+
+namespace App;
+
+foreach (Comment::query()->includes('user', 'article')->order('-id') as $comment) {
+    echo "{$comment->user->username} commented on {$comment->article->title}.\n"; // no query
+}
+```
+
+The relations are loaded after the records are fetched, with one query per relation, whatever the
+number of records. That also is the case when iterating, once per batch, and with the `all`
+property. Comments of the same user share the same `User` instance.
+
+- Only belongs-to and has-one relations can be preloaded, and has-one relations only when they
+  aren't `through` a pivot. `includes()` throws a [RelationNotPreloadable][] exception for the other
+  ones, instead of leaving you with the queries that you wanted to avoid, and a
+  [RelationNotDefined][] exception for a name that isn't a relation of the model or of its parents.
+  The relations are named one level at a time: `'user.country'` isn't supported.
+- A has-one relation without a related record is loaded as `null`.
+- A belongs-to relation with a key that doesn't match any record isn't loaded, reading it throws
+  [RecordNotFound][], as it does when it isn't preloaded.
+- Assigning another value to the foreign key invalidates what was loaded, the getter runs a query.
+  A cloned record doesn't keep what was loaded either.
+- `one()`, `count()` and the other methods that don't fetch a list ignore the relations.
+  `all()` throws a `LogicException` if they're included and the fetch mode doesn't create records,
+  e.g. with `select()`, since there is no record to attach them to.
+
+A relation can also be preloaded for records you already have, with `Relation::preload()`. Records
+that already have the relation loaded are skipped, and no query is run if there's none left:
+
+<!-- doc-test: skip: needs saved records -->
+```php
+<?php
+
+namespace App;
+
+/* @var $comments Comment[] */
+
+Comment::model()->relations->resolve('user')->preload($comments);
+```
 
 
 
@@ -367,3 +419,6 @@ Keep the record in a variable to use it more than once.
 [HasMany]:   ../../lib/ActiveRecord/Schema/HasMany.php
 [HasOne]:    ../../lib/ActiveRecord/Schema/HasOne.php
 [InvalidAssociation]: ../../lib/ActiveRecord/Config/InvalidAssociation.php
+[RecordNotFound]: ../../lib/ActiveRecord/RecordNotFound.php
+[RelationNotDefined]: ../../lib/ActiveRecord/RelationNotDefined.php
+[RelationNotPreloadable]: ../../lib/ActiveRecord/RelationNotPreloadable.php

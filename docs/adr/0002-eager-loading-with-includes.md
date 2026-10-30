@@ -127,7 +127,8 @@ map is a property of a `readonly` class, which fixes the reference to the map, n
 public API for anyone who extends `Relation`, so its name and contract don't change: it still takes
 the owner record and returns the related record, or a `Query`. The check of the entry is not
 moved into a template method that would turn `__invoke()` into a final wrapper, which would break
-those subclasses. Instead `Relation` gets two protected helpers that read and write the map, and
+those subclasses. Instead `Relation` gets protected helpers that read and write the map
+(`has_loaded()`, `set_loaded()`, and `read_key()`, see the implementation notes below), and
 the concrete relations that support preloading call the first one before they query:
 
 ```php
@@ -174,6 +175,23 @@ value and the lazy value have the same type, and the contract of the getter does
 `has_many`, the `through` variants of `has_one`, and nested includes are deliberately left out, see
 below. `includes()` refuses the relations with `RelationNotPreloadable`, and a nested name such as
 `'school.region'` isn't a relation name, so it fails with `RelationNotDefined`.
+
+**Implementation notes.** What the implementation settled differently, or in more detail, than
+the sketches above:
+
+- `has_loaded()` and `set_loaded()` are typed on `?ActiveRecord`, not `mixed`: with `belongs_to`
+  and `has_one` the value is a record or `null`, and it avoids casts. A future `has_many` preload
+  stores a `Query` or a list, and will have to widen the type.
+- `read_key()` is a third helper, shared by `preload()` and the freshness check. It reads the
+  value of a key column from a record, and returns `null` for an unset or empty (`''`) key. A key
+  of `0` is returned as is, but the lazy getter rejects it (`!$id`), so the preload skips the
+  owners with a `0` key too, to behave the same.
+- The check that includes need a record fetch mode masks the mode with `0xFFFF`, so that
+  `PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE` is accepted: the flags are in the high bits. It runs
+  once the statement was executed, because both paths of `all()` share the fetch. A rejected call
+  costs one wasted query, for what is a programming error.
+- `Query::all()` returns `array<mixed>`. The path with includes narrows the fetched records to
+  `ActiveRecord[]` with an inline `@var`, as `HasOneRelation::__invoke()` already does for `one`.
 
 
 
