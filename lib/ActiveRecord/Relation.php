@@ -106,7 +106,7 @@ abstract readonly class Relation
      */
     protected function set_loaded(ActiveRecord $record, ?ActiveRecord $value): void
     {
-        $this->loaded->[$record] = [ $this->read_key($record, $this->local_key), $value ];
+        $this->loaded[$record] = [ $this->read_key($record, $this->local_key), $value ];
     }
 
     /**
