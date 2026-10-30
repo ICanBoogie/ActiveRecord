@@ -50,7 +50,9 @@ instead.
 - [The query interface](docs/ActiveRecord/Query.md)
 - [Exceptions](docs/ActiveRecord/Exception.md)
 - [Database engines](docs/Engines.md)
-- [Architecture decision records](docs/adr/0001-custom-columns-with-into-column.md)
+- Architecture decision records:
+  [custom columns with `IntoColumn`](docs/adr/0001-custom-columns-with-into-column.md),
+  [eager loading with `includes()`](docs/adr/0002-eager-loading-with-includes.md)
 
 See [CHANGELOG](CHANGELOG.md) for the changes between versions, and how to upgrade.
 
