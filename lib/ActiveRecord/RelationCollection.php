@@ -93,10 +93,32 @@ class RelationCollection
      *
      * @throws RelationNotDefined if the relation doesn't exist.
      */
-    public function get(string $relation_name): ?Relation
+    public function get(string $relation_name): Relation
     {
         return $this->relations[$relation_name]
             ?? throw new RelationNotDefined($relation_name, $this);
+    }
+
+    /**
+     * Returns a relation of the model, or of its closest parent that defines it.
+     *
+     * The collection of a model only holds the relations that the model declares, while the getter
+     * of a parent's relation is inherited by the records of its children. This is the lookup that
+     * follows the getter.
+     *
+     * @param non-empty-string $relation_name
+     *
+     * @throws RelationNotDefined if neither the model nor its parents define the relation.
+     */
+    public function resolve(string $relation_name): Relation
+    {
+        for ($model = $this->model; $model instanceof Model; $model = $model->parent) {
+            if ($model->relations->has($relation_name)) {
+                return $model->relations->get($relation_name);
+            }
+        }
+
+        throw new RelationNotDefined($relation_name, $this);
     }
 
     /**

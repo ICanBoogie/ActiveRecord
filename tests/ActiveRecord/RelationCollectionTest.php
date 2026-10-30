@@ -7,12 +7,14 @@ use ICanBoogie\ActiveRecord\AmbiguousRelation;
 use ICanBoogie\ActiveRecord\ConfigBuilder;
 use ICanBoogie\ActiveRecord\ConnectionRegistry;
 use ICanBoogie\ActiveRecord\ModelRegistry;
+use ICanBoogie\ActiveRecord\RelationNotDefined;
 use ICanBoogie\ActiveRecord\RelationNotFound;
 use PHPUnit\Framework\TestCase;
 use Test\ICanBoogie\Acme\Article;
 use Test\ICanBoogie\Acme\Comment;
 use Test\ICanBoogie\Acme\Node;
 use Test\ICanBoogie\Acme\RelationCollection\Maker;
+use Test\ICanBoogie\Acme\RelationCollection\Truck;
 use Test\ICanBoogie\Acme\RelationCollection\UsedVehicle;
 use Test\ICanBoogie\Acme\RelationCollection\Vehicle;
 use Test\ICanBoogie\Acme\Subscriber;
@@ -115,6 +117,47 @@ final class RelationCollectionTest extends TestCase
             $this->assertSame($vehicles, $e->model);
             $this->assertSame($makers, $e->other);
             $this->assertCount(2, $e->relations);
+        }
+    }
+
+    public function test_resolve_returns_a_relation_of_the_model(): void
+    {
+        $models = $this->build_models(Maker::class, Vehicle::class);
+        $relations = $models->model_for_record(Vehicle::class)->relations;
+
+        $actual = $relations->resolve('maker');
+
+        $this->assertSame($relations->get('maker'), $actual);
+    }
+
+    /**
+     * The relations of a parent aren't in the collection of its children, although the getter is
+     * inherited through the prototype.
+     */
+    public function test_resolve_returns_a_relation_of_a_parent(): void
+    {
+        $models = $this->build_models(Maker::class, Vehicle::class, Truck::class);
+        $trucks = $models->model_for_record(Truck::class)->relations;
+        $vehicles = $models->model_for_record(Vehicle::class)->relations;
+
+        $this->assertFalse($trucks->has('maker'));
+
+        $actual = $trucks->resolve('maker');
+
+        $this->assertSame($vehicles->get('maker'), $actual);
+    }
+
+    public function test_resolve_throws_when_no_model_of_the_chain_defines_the_relation(): void
+    {
+        $models = $this->build_models(Maker::class, Vehicle::class, Truck::class);
+        $trucks = $models->model_for_record(Truck::class)->relations;
+
+        try {
+            $trucks->resolve('undefined');
+            $this->fail("Expected " . RelationNotDefined::class);
+        } catch (RelationNotDefined $e) {
+            $this->assertSame('undefined', $e->relation_name);
+            $this->assertSame($trucks, $e->collection);
         }
     }
 
