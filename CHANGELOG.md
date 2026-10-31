@@ -27,10 +27,13 @@ PHP 8.4+, `icanboogie/config` ^7.0, `icanboogie/prototype` ^7.0
 - Added `RelationCollection::columns_to()`, `RelationNotFound`, and `AmbiguousRelation`.
 - Added `RelationCollection::resolve()`, which finds a relation on a model or its parents, as the getter
   of a record does, and throws `RelationNotDefined` if there's none.
-- Added `Query::includes()` to preload belongs-to and has-one relations, with one query per relation, on the
-  records fetched by `all()`, the `all` property, and iteration, e.g. `Comment::query()->includes('user')`.
-  `Relation::preload()` does it for records you already have. Relations that can't be preloaded throw
-  `RelationNotPreloadable`.
+- Added `Query::includes()` to preload belongs-to, has-one and has-many relations, with one query
+  per relation, on the records fetched by `all()`, the `all` property, and iteration, e.g.
+  `Comment::query()->includes('user')`. `Relation::preload()` does it for records you already have.
+  Relations that can't be preloaded, i.e. the ones through a pivot, throw `RelationNotPreloadable`.
+- Added the `{name}_loaded` getter to has-many relations, e.g. `$article->comments_loaded`. It
+  returns the preloaded records as a list, or fetches them if the relation wasn't preloaded. The
+  has-many getter still returns a `Query`.
 - Added has-one relations, declared with `#[HasOne]` or `AssociationBuilder::has_one()`, directly or
   through a pivot, e.g. `#[HasOne(Desk::class, through: DeskAssignment::class)]`. The getter returns
   the related record or `null`. `HasManyRelation` and `HasOneRelation` extend `HasRelation`.

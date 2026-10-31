@@ -144,8 +144,9 @@ public function __invoke(ActiveRecord $record): ?ActiveRecord
 
 `has_loaded()` returns whether a fresh entry exists and gives its value by reference, so that a
 loaded `null` can be told from a missing entry. `preload()` writes through the other helper. A
-relation that doesn't support preloading, `has_many` and the `through` variants, doesn't call
-either, and its `__invoke()` is unchanged. Subclasses outside the library keep working untouched:
+relation that doesn't support preloading, the `through` variants, doesn't call either, and its
+`__invoke()` is unchanged. `has_many` writes through `set_loaded()` but its `__invoke()` doesn't
+read, see the has_many scope below. Subclasses outside the library keep working untouched:
 without the call they are lazy, as today.
 
 Three rules keep the entries honest:
@@ -172,16 +173,27 @@ rely on, copies them.
 
 **First scope: `belongs_to` and `has_one`**, single level. They return a record, so the loaded
 value and the lazy value have the same type, and the contract of the getter doesn't change.
-`has_many`, the `through` variants of `has_one`, and nested includes are deliberately left out, see
-below. `includes()` refuses the relations with `RelationNotPreloadable`, and a nested name such as
-`'school.region'` isn't a relation name, so it fails with `RelationNotDefined`.
+`has_many`, the `through` variants, and nested includes were left out of it, see below. `includes()`
+refuses the relations with `RelationNotPreloadable`, and a nested name such as `'school.region'`
+isn't a relation name, so it fails with `RelationNotDefined`.
+
+**Second scope: `has_many` without `through`.** A `has_many` getter returns a `Query` that callers
+chain, which a list of loaded records can't be. Its getter doesn't change: `$post->comments` is
+always a `Query`, and queries each time it is read. `HasManyRelation::preload()` stores a list of
+records per owner (`[]` for an owner without any), and a second prototype getter,
+`get_{as}_loaded`, reads it: `$post->comments_loaded` returns `list<ActiveRecord>`. When nothing
+was preloaded for the record, or the entry is stale, it fetches the list with the query of the
+relation, so it is safe to call whatever the way the record was fetched, and a relation `through`
+a pivot, which can't be preloaded, has the getter too. A preloaded relation that is read with
+`$post->comments` instead still queries: the N+1 only goes away for the code that reads the list.
 
 **Implementation notes.** What the implementation settled differently, or in more detail, than
 the sketches above:
 
 - `has_loaded()` and `set_loaded()` are typed on `?ActiveRecord`, not `mixed`: with `belongs_to`
-  and `has_one` the value is a record or `null`, and it avoids casts. A future `has_many` preload
-  stores a `Query` or a list, and will have to widen the type.
+  and `has_one` the value is a record or `null`, and it avoids casts. `has_many` stores a list, so
+  the helpers take `ActiveRecord|list<ActiveRecord>|null`, and the two getters that return a record
+  narrow the value with an inline `@var`.
 - `read_key()` is a third helper, shared by `preload()` and the freshness check. It reads the
   value of a key column from a record, and returns `null` for an unset or empty (`''`) key. A key
   of `0` is returned as is, but the lazy getter rejects it (`!$id`), so the preload skips the
@@ -209,8 +221,9 @@ Positive:
 
 Negative:
 
-- `includes()` on a `has_many` is not supported yet, and a list of records with their collection
-  still has the N+1. Asking for an unsupported relation throws instead of degrading.
+- A preloaded `has_many` is read with `comments_loaded`, not `comments`: two getters for the same
+  relation, and code that reads the `Query` keeps its N+1. A `has_many` through a pivot can't be
+  preloaded, `includes()` throws for it instead of degrading.
 - The loaded value is not visible on the record: `var_dump($record)` doesn't show it, which makes
   debugging a little harder.
 - A `readonly` class that mutates through a `WeakMap` may surprise a reader. The state is per
@@ -284,8 +297,12 @@ Negative:
 
 ## Revisit when
 
-- `has_many` preloading is needed. Decide the return type first: a `Query`-like wrapper over the
-  loaded records, or a separate accessor for the loaded collection.
+- Callers want `$post->comments` itself to serve the preloaded records, or `comments_loaded` is
+  mixed up with it. Then make the `has_many` getter return a `Query`-like wrapper over the loaded
+  records, which falls back to the real query for `where()`, `order()` and the other builders.
+  The storage and `preload()` don't change.
+- `through` relations need preloading. The pivot key has to be selected to tell which owner a
+  record belongs to.
 - Nested includes are needed (`'school.region'`). The relation names would be resolved through the
   related model, and the preload run per level.
 - A `JOIN` based `eager_load` is wanted, for a `belongs_to` filtered on the related table.

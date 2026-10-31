@@ -385,12 +385,14 @@ The relations are loaded after the records are fetched, with one query per relat
 number of records. That also is the case when iterating, once per batch, and with the `all`
 property. Comments of the same user share the same `User` instance.
 
-- Only belongs-to and has-one relations can be preloaded, and has-one relations only when they
-  aren't `through` a pivot. `includes()` throws a [RelationNotPreloadable][] exception for the other
+- Belongs-to, has-one and has-many relations can be preloaded, the last two only when they aren't
+  `through` a pivot. `includes()` throws a [RelationNotPreloadable][] exception for the other
   ones, instead of leaving you with the queries that you wanted to avoid, and a
   [RelationNotDefined][] exception for a name that isn't a relation of the model or of its parents.
   The relations are named one level at a time: `'user.country'` isn't supported.
 - A has-one relation without a related record is loaded as `null`.
+- A has-many getter returns a `Query`, which can't hold records. The preloaded records are read
+  with the `_loaded` getter, see [below](#reading-a-preloaded-has-many).
 - A belongs-to relation with a key that doesn't match any record isn't loaded, reading it throws
   [RecordNotFound][], as it does when it isn't preloaded.
 - Assigning another value to the foreign key invalidates what was loaded, the getter runs a query.
@@ -398,6 +400,29 @@ property. Comments of the same user share the same `User` instance.
 - `one()`, `count()` and the other methods that don't fetch a list ignore the relations.
   `all()` throws a `LogicException` if they're included and the fetch mode doesn't create records,
   e.g. with `select()`, since there is no record to attach them to.
+
+### Reading a preloaded has-many
+
+`$article->comments` is a `Query` that you can chain on, so it queries each time it's read,
+preloaded or not. A has-many relation has a second getter, named after the first with a `_loaded`
+suffix, that returns the records as a list: the ones that were preloaded, or the ones that a query
+fetches if the relation wasn't preloaded for the record. That is also what happens with a relation
+that is `through` a pivot, which can't be preloaded.
+
+<!-- doc-test: skip: needs saved records -->
+```php
+<?php
+
+namespace App;
+
+foreach (Article::query()->includes('comments')->all as $article) {
+    echo count($article->comments_loaded), " comments\n"; // no query
+}
+```
+
+An article without comments is loaded with an empty list. The list is a snapshot: comments added
+after the preload are not in it, and assigning another value to the primary key of the owner
+invalidates it.
 
 A relation can also be preloaded for records you already have, with `Relation::preload()`. Records
 that already have the relation loaded are skipped, and no query is run if there's none left:

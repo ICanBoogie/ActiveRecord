@@ -18,11 +18,11 @@ abstract readonly class Relation
 {
     /**
      * The values loaded by {@see preload()}, by owner record. An entry holds the key of the owner
-     * that the value was loaded for, and the value, which can be `null`.
+     * that the value was loaded for, and the value: a record or `null`, or a list of records.
      *
      * Entries are keyed by record identity and go away with the record.
      *
-     * @var WeakMap<ActiveRecord, array{ int|non-empty-string|null, ActiveRecord|null }>
+     * @var WeakMap<ActiveRecord, array{ int|non-empty-string|null, ActiveRecord|list<ActiveRecord>|null }>
      */
     private WeakMap $loaded;
 
@@ -86,9 +86,9 @@ abstract readonly class Relation
      * An entry is stale when the key of the record changed since it was loaded, e.g. a foreign key
      * that was assigned another value: the relation is then not considered loaded.
      *
-     * @param ActiveRecord|null $value Receives the loaded value, which can be `null`.
+     * @param ActiveRecord|list<ActiveRecord>|null $value Receives the loaded value, which can be `null`.
      */
-    protected function has_loaded(ActiveRecord $record, ?ActiveRecord &$value = null): bool
+    protected function has_loaded(ActiveRecord $record, ActiveRecord|array|null &$value = null): bool
     {
         $entry = $this->loaded[$record] ?? null;
 
@@ -103,8 +103,10 @@ abstract readonly class Relation
 
     /**
      * Stores the value loaded for a record, with the current key of the record.
+     *
+     * @param ActiveRecord|list<ActiveRecord>|null $value
      */
-    protected function set_loaded(ActiveRecord $record, ?ActiveRecord $value): void
+    protected function set_loaded(ActiveRecord $record, ActiveRecord|array|null $value): void
     {
         $this->loaded[$record] = [ $this->read_key($record, $this->local_key), $value ];
     }

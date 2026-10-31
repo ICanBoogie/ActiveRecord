@@ -48,24 +48,17 @@ final class RelationNotPreloadableTest extends TestCase
         );
     }
 
-    public function test_has_many_is_not_preloadable(): void
+    public function test_has_many_through_is_not_preloadable(): void
     {
-        $relation = $this->models->model_for_record(Skill::class)->relations->get('hires');
+        $relation = $this->models->model_for_record(Person::class)->relations->get('equipment');
 
         $this->assertInstanceOf(HasManyRelation::class, $relation);
         $this->assertFalse($relation->is_preloadable());
     }
 
-    public function test_has_many_through_is_not_preloadable(): void
-    {
-        $relation = $this->models->model_for_record(Person::class)->relations->get('equipment');
-
-        $this->assertFalse($relation->is_preloadable());
-    }
-
     public function test_preload_throws_when_the_relation_is_not_preloadable(): void
     {
-        $relation = $this->models->model_for_record(Skill::class)->relations->get('hires');
+        $relation = $this->models->model_for_record(Person::class)->relations->get('equipment');
 
         try {
             $relation->preload([]);

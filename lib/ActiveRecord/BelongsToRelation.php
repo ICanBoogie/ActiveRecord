@@ -20,6 +20,7 @@ final readonly class BelongsToRelation extends Relation
     public function __invoke(ActiveRecord $record): ?ActiveRecord
     {
         if ($this->has_loaded($record, $loaded)) {
+            /** @var ActiveRecord|null $loaded Only records are loaded for this relation. */
             return $loaded;
         }
 

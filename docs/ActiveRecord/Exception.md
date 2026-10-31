@@ -28,7 +28,7 @@ try {
 | [RecordNotValid][]             | A record is not valid when it is saved. `errors` has the validation errors.                  |
 | [RelationNotDefined][]         | A relation is requested from `Model::$relations` with a name that is not defined.            |
 | [RelationNotFound][]           | No relation links two models, e.g. when joining them. `model` and `other` are the models.    |
-| [RelationNotPreloadable][]     | A relation that can't be preloaded is included in a query, e.g. a has-many. `relation` is the relation. |
+| [RelationNotPreloadable][]     | A relation that can't be preloaded is included in a query, e.g. a relation through a pivot. `relation` is the relation. |
 | [StatementNotValid][]          | A statement can't be prepared or executed. `statement`, `args`, and `original`, the `PDOException`, describe it. |
 | [UnableToSetFetchMode][]       | The fetch mode of a statement can't be set.                                                  |
 

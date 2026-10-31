@@ -66,6 +66,77 @@ abstract readonly class HasRelation extends Relation
     }
 
     /**
+     * A relation through a pivot needs the key of the pivot to tell which owner a record belongs to.
+     */
+    #[\Override]
+    public function is_preloadable(): bool
+    {
+        return $this->through === null;
+    }
+
+    /**
+     * Loads the related records with one query, whatever the number of owners.
+     *
+     * What an owner is loaded with, including when it has no related record, is up to
+     * {@see into_loaded()}: reading the relation of an owner that was preloaded never queries.
+     *
+     * @inheritdoc
+     */
+    #[\Override]
+    public function preload(array $records): void
+    {
+        $this->is_preloadable() or throw new RelationNotPreloadable($this);
+
+        $owners_by_key = [];
+
+        foreach ($records as $record) {
+            $key = $this->read_key($record, $this->local_key);
+
+            if (!$key || $this->has_loaded($record)) {
+                continue;
+            }
+
+            $owners_by_key[$key][] = $record;
+        }
+
+        if (!$owners_by_key) {
+            return;
+        }
+
+        $by_key = [];
+
+        /** @var ActiveRecord[] $related */
+        $related = $this->resolve_related_model()
+            ->where([ $this->foreign_key => array_keys($owners_by_key) ])
+            ->all;
+
+        foreach ($related as $related_record) {
+            $key = $this->read_key($related_record, $this->foreign_key);
+
+            if ($key !== null) {
+                $by_key[$key][] = $related_record;
+            }
+        }
+
+        foreach ($owners_by_key as $key => $owners) {
+            $loaded = $this->into_loaded($by_key[$key] ?? []);
+
+            foreach ($owners as $owner) {
+                $this->set_loaded($owner, $loaded);
+            }
+        }
+    }
+
+    /**
+     * Turns the records related to an owner into the value that is loaded for it.
+     *
+     * @param list<ActiveRecord> $related The records related to the owner, empty if there are none.
+     *
+     * @return ActiveRecord|list<ActiveRecord>|null
+     */
+    abstract protected function into_loaded(array $related): ActiveRecord|array|null;
+
+    /**
      * The related records are joined to the pivot, which is filtered on the key of the owner: the
      * owner's table isn't needed. Both columns of the pivot are resolved by the config.
      *
