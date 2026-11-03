@@ -35,7 +35,13 @@ final readonly class BelongsToRelation extends Relation
             throw new LogicException("Unable to establish relation, '$local_key' is empty.");
         }
 
-        return $this->resolve_related_model()->find_one($id); // @phpstan-ignore argument.type
+        $related = $this->resolve_related_model()->find_one($id); // @phpstan-ignore argument.type
+
+        // Kept for the next read, which would otherwise query again. The key it was loaded with is kept too: if the
+        // key of the record changes, the related record is loaded again.
+        $this->set_loaded($record, $related);
+
+        return $related;
     }
 
     #[\Override]

@@ -114,6 +114,11 @@ echo "{$comment->user->username} commented on {$comment->article->title}.";
 // bob commented on Hello world.
 ```
 
+The associate is loaded the first time the getter is read, and kept by the record: reading it again
+runs no query and returns the same object. Assigning another value to the column loads the new
+associate on the next read. A change made to the associate row by something else, or a deletion,
+is not seen by a record that has already loaded it. A cloned record doesn't keep it either.
+
 
 
 ### Foreign key constraints
@@ -358,7 +363,7 @@ echo $employee->badge?->badge_id ?? "No badge";
 echo $employee->desk?->desk_id ?? "No desk";
 ```
 
-Like a belongs-to getter, a has-one getter runs a query each time it's accessed, nothing is cached,
+Unlike a belongs-to getter, a has-one getter runs a query each time it's accessed, nothing is cached,
 unless the relation was [preloaded](#preloading-relations). Keep the record in a variable to use it
 more than once.
 
@@ -366,7 +371,8 @@ more than once.
 
 ## Preloading relations
 
-Reading a relation of each record of a list runs a query per record. For 100 comments, reading
+Reading a relation of each record of a list runs a query per record, even though each record keeps
+the associate it loaded. For 100 comments, reading
 `$comment->user` runs 100 queries on top of the one that fetched the comments. To run one query
 instead, name the relations in `Query::includes()`, the records that `all()` fetches come with
 them loaded:

@@ -31,6 +31,8 @@ PHP 8.4+, `icanboogie/config` ^7.0, `icanboogie/prototype` ^7.0
   per relation, on the records fetched by `all()`, the `all` property, and iteration, e.g.
   `Comment::query()->includes('user')`. `Relation::preload()` does it for records you already have.
   Relations that can't be preloaded, i.e. the ones through a pivot, throw `RelationNotPreloadable`.
+- A belongs-to getter keeps the record it loaded: reading `$comment->user` again runs no query and returns the same
+  object. Assigning another value to the foreign key loads the new record on the next read.
 - Added the `{name}_loaded` getter to has-many relations, e.g. `$article->comments_loaded`. It
   returns the preloaded records as a list, or fetches them if the relation wasn't preloaded. The
   has-many getter still returns a `Query`.

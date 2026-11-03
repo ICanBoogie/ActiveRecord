@@ -21,6 +21,7 @@ use Test\ICanBoogie\Acme\PersonEquipment;
 use Test\ICanBoogie\Acme\Skill;
 use Test\ICanBoogie\DbTestCase;
 use Test\ICanBoogie\Fixtures;
+use Throwable;
 
 #[Group("db")]
 final class PreloadBelongsToTest extends DbTestCase
@@ -125,6 +126,49 @@ final class PreloadBelongsToTest extends DbTestCase
         $actual = $car->brand;
 
         $this->assertSame($this->fiat->brand_id, $actual->brand_id);
+    }
+
+    public function test_reading_the_relation_twice_runs_one_query(): void
+    {
+        [ $car ] = $this->create_cars($this->smart);
+
+        $first = $this->count_queries(fn() => $car->brand);
+        $second = $this->count_queries(fn() => $car->brand);
+
+        $this->assertSame(1, $first);
+        $this->assertSame(0, $second);
+    }
+
+    public function test_reading_the_relation_twice_returns_the_same_record(): void
+    {
+        [ $car ] = $this->create_cars($this->smart);
+
+        $this->assertSame($car->brand, $car->brand);
+    }
+
+    public function test_changing_the_key_after_a_read_reloads_the_record(): void
+    {
+        [ $car ] = $this->create_cars($this->smart);
+        $car->brand; // @phpstan-ignore expr.resultUnused
+
+        $car->brand_id = $this->fiat->brand_id;
+        $actual = $car->brand;
+
+        $this->assertSame($this->fiat->brand_id, $actual->brand_id);
+    }
+
+    public function test_a_dangling_key_is_not_memoized(): void
+    {
+        [ $dangling ] = $this->create_cars(null);
+
+        foreach ([ 1, 2 ] as $_) {
+            try {
+                $dangling->brand; // @phpstan-ignore expr.resultUnused
+                $this->fail("Expected RecordNotFound");
+            } catch (Throwable $e) {
+                $this->assertInstanceOf(RecordNotFound::class, $e);
+            }
+        }
     }
 
     public function test_a_clone_is_not_loaded(): void
